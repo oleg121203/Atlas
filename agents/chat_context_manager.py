@@ -136,7 +136,9 @@ class ChatContextManager:
                     'your capabilities', 'your features', 'provider',
                     'memory system', 'long-term memory', 'short-term memory',
                     'how do you remember', 'do you forget', 'memory management',
-                    'пам\'ять', 'память', 'запоминаєш', 'запам\'ятовуєш',
+                    'memory', 'remember', 'storage', 'recall', 'memorize',
+                    'provided', 'supported', 'long-term', 'organized', 'direction',
+                    'interested', 'curious', 'want to know', 'wondering',
                     # Code analysis keywords - most specific ones only
                     'rebuild index', 'update index', 'show file', 'analyze file',
                     'code analysis', 'structure analysis'
@@ -150,7 +152,9 @@ class ChatContextManager:
                     r'\b(rebuild\s+index|analyze\s+file|code\s+analysis)\b',
                     r'\b(about\s+(?:atlas|system|yourself))\b',
                     r'\b(memory\s+system|long-term\s+memory|how\s+(?:do\s+)?you\s+remember)\b',
-                    r'\b(how\s+(?:is|does)\s+(?:your|atlas)\s+memory\s+(?:work|organized))\b'
+                    r'\b(how\s+(?:is|does)\s+(?:your|atlas)\s+memory\s+(?:work|organized))\b',
+                    r'\b((?:do\s+you\s+have|is\s+there)\s+(?:memory|storage))\b',
+                    r'\b(long-term\s+(?:memory|storage)|organized\s+by\s+(?:direction|context))\b'
                 ]
             },
             
@@ -174,12 +178,16 @@ class ChatContextManager:
                     'tools', 'available', 'list', 'what tools', 'functions',
                     'instruments', 'commands', 'capabilities', 'features',
                     'what can', 'show tools', 'list tools', 'available functions',
-                    'show me', 'what functions', 'tool list'
+                    'show me', 'what functions', 'tool list',
+                    'what tools', 'tools available', 'functions available', 'what functions',
+                    'show tools', 'what do you have', 'what can you do', 'possibilities'
                 ],
                 'patterns': [
                     r'\b(what\s+tools|available\s+tools|list\s+(?:of\s+)?tools)\b',
                     r'\b(show\s+(?:me\s+)?(?:tools|functions|capabilities))\b',
-                    r'\b(what\s+(?:can\s+)?(?:functions|tools|commands))\b'
+                    r'\b(what\s+(?:can\s+)?(?:functions|tools|commands))\b',
+                    r'\b(what\s+tools|tools\s+(?:do\s+)?you\s+have|what\s+can\s+you\s+do)\b',
+                    r'\b(show\s+tools|what\s+functions|possibilities)\b'
                 ]
             },
             
@@ -189,12 +197,14 @@ class ChatContextManager:
                     'health', 'performance', 'current state', 'how is',
                     'what is happening', 'what is going on', 'system status',
                     'is everything', 'all good', 'working properly',
-                    'functioning', 'operational', 'active', 'idle'
+                    'functioning', 'operational', 'active', 'idle',
+                    'your status', 'system health', 'how are you working'
                 ],
                 'patterns': [
                     r'\b(what(?:\'s|\s+is)\s+(?:the\s+)?status|how\s+(?:is|are)\s+things)\b',
                     r'\b(is\s+(?:everything|atlas|system)\s+(?:working|running|ok))\b',
-                    r'\b(current\s+(?:status|state)|system\s+health)\b'
+                    r'\b(current\s+(?:status|state)|system\s+health)\b',
+                    r'\b(what\s+is\s+your\s+status|how\s+are\s+you\s+(?:working|running))\b'
                 ]
             },
             
@@ -244,8 +254,9 @@ class ChatContextManager:
                 control_type=ModeControl.MANUAL
             )
         
-        # Auto mode - analyze the message
-        message_lower = message.lower()
+        # Auto mode - translate to English for analysis if needed
+        message_for_analysis = self._simple_translate_to_english(message)
+        message_lower = message_for_analysis.lower()
         scores = {}
         
         # Calculate scores for each mode (except DEVELOPMENT which is manual-only)
@@ -281,15 +292,21 @@ class ChatContextManager:
         best_mode = max(scores.keys(), key=lambda k: scores[k])
         confidence = scores[best_mode]
         
+        # Special handling for memory-related questions - boost confidence
+        memory_indicators = ['memory', 'remember', 'storage', 'recall', 'organized', 'long-term', 'provided']
+        if any(indicator in message_lower for indicator in memory_indicators):
+            if best_mode == ChatMode.SYSTEM_HELP:
+                confidence = min(0.9, confidence + 0.3)  # Boost confidence for memory questions
+        
         # Special handling for casual greetings and short messages
         if len(message.strip()) <= 20 and any(greeting in message_lower for greeting in [
-            'привіт', 'привет', 'hi', 'hello', 'hey', 'добрий', 'доброе', 'good'
+            'hi', 'hello', 'hey', 'good', 'morning', 'evening'
         ]):
             best_mode = ChatMode.CASUAL_CHAT
             confidence = 0.8
         
-        # Default to casual chat if confidence is too low or message is very short
-        if confidence < 0.1 or (len(message.strip()) <= 10 and confidence < 0.3):
+        # Default to casual chat if confidence is too low
+        if confidence < 0.15:  # Lowered threshold
             best_mode = ChatMode.CASUAL_CHAT
             confidence = 0.5
         
@@ -408,111 +425,76 @@ class ChatContextManager:
     def _generate_help_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
         """Generate help-focused response prompt."""
-        available_tools = system_info.get('tools', []) if system_info else []
-        available_agents = system_info.get('agents', []) if system_info else []
+        # Use translated message for detection
+        message_for_analysis = self._simple_translate_to_english(message)
+        message_lower = message_for_analysis.lower()
         
-        # Determine specific topics based on the message
-        message_lower = message.lower()
-        specific_topics = []
+        # Detect specific question patterns for direct answers
+        memory_keywords = ['memory', 'remember', 'memorize', 'store', 'recall', 
+                          'storage', 'long-term', 'organized', 'direction', 'interested']
+        tools_keywords = ['tools', 'instruments', 'functions', 'capabilities']
+        modes_keywords = ['modes', 'mode']
         
-        if any(word in message_lower for word in ['development', 'dev']):
-            specific_topics.append('development_mode')
-        if any(word in message_lower for word in ['mode', 'modes']):
-            specific_topics.append('modes')
-        if any(word in message_lower for word in ['tool', 'tools']):
-            specific_topics.append('tools')
-        if any(word in message_lower for word in ['capabilities', 'features']):
-            specific_topics.append('capabilities')
-        if any(word in message_lower for word in ['atlas', 'system']):
-            specific_topics.append('system_overview')
-        
-        # Add specific topic detection for memory-related queries
-        if any(word in message_lower for word in ['memory', 'пам\'ять', 'память', 'remember', 'memorize', 'store', 'recall']):
-            specific_topics.append('memory_system')
-            
-        # Generate the base system prompt
-        base_prompt = f"""You are Atlas, an autonomous computer assistant. The user is asking for help about your capabilities and features.
+        # Direct memory question detection
+        if any(word in message_lower for word in memory_keywords):
+            return f"""You are Atlas. The user is asking specifically about your memory system.
 
 User's question: "{message}"
-Context keywords: {', '.join(context.context_keywords)}
-Detected specific topics: {', '.join(specific_topics) if specific_topics else 'general_help'}
-Available tools count: {len(available_tools)}
-Available agents: {', '.join(available_agents)}"""
 
-        # Add specialized information for memory-related queries
-        if 'memory_system' in specific_topics:
-            return f"""{base_prompt}
+Provide a DIRECT answer about Atlas memory system without showing tool lists or asking follow-up questions. Answer specifically what was asked.
 
-The user is asking about the Atlas memory system. Provide detailed information about how your memory works.
+Respond with information about:
+- Yes, Atlas has long-term memory with ChromaDB vector database
+- Memory is categorized by chat direction/context (casual, help, goals, development)
+- Different retention periods: short-term (hours), medium-term (days), long-term (months)
+- Memory is private and stored locally
+- Semantic search for intelligent context retrieval
 
-**Memory System Information:**
+Be conversational, direct, and answer the specific question asked. Don't show tool lists or capabilities overview unless specifically requested."""
 
-1. **Enhanced Memory Architecture:**
-   - Atlas uses a hierarchical vector database (ChromaDB) for long-term memory storage
-   - Memory is organized by agent type and memory purpose
-   - Different types of memories have configurable retention periods (TTL)
-   - Memory is stored locally on the user's machine for privacy
+        # Direct tools question detection  
+        elif any(word in message_lower for word in tools_keywords):
+            available_tools = system_info.get('tools', []) if system_info else []
+            return f"""You are Atlas. The user is asking about your tools/functions.
 
-2. **Memory Categories:**
-   - **Chat Memory**: Stores different conversation types (casual, help, goals)
-   - **Agent Memory**: Each agent (Master, Screen, Browser, etc.) has isolated memory
-   - **System Knowledge**: Stores successful patterns and error solutions
-   - **User Preferences**: Retains user settings and preferences long-term
+User's question: "{message}"
 
-3. **Memory Features:**
-   - **Semantic Search**: Finds related memories based on meaning, not just keywords
-   - **Time-based Expiry**: Old memories automatically expire based on importance
-   - **Context Isolation**: Different chat modes have separate memory storage
-   - **Metadata Tagging**: Enhanced context with timestamps and categorization
+Provide a brief, organized list of available tools without overwhelming details:
 
-4. **Memory Types by Duration:**
-   - **Short-term**: Current session context (1-2 hours)
-   - **Medium-term**: Recent tasks and conversations (1-30 days)
-   - **Long-term**: Important knowledge and preferences (90-365 days)
+Available tools: {', '.join(available_tools[:15])}{'...' if len(available_tools) > 15 else ''}
 
-Based on the user's specific question about memory, focus on explaining the relevant aspects in detail, using clear examples of how the memory system improves their experience with Atlas.
+Be direct and concise. Don't provide full capability overview unless specifically asked."""
 
-Keep your response focused specifically on the memory system that was asked about, be direct and informative rather than promotional. Structure your answer clearly with bullet points and sections."""
-        
-        # Default help response for non-memory topics
-        return f"""{base_prompt}
+        # Direct modes question detection
+        elif any(word in message_lower for word in modes_keywords):
+            return f"""You are Atlas. The user is asking about your operating modes.
 
-Provide a comprehensive, well-structured response following this format:
+User's question: "{message}"
 
-**🤖 ATLAS CAPABILITIES OVERVIEW**
+Explain the different conversation modes directly:
+- 💬 Casual Chat - General conversation
+- ❓ System Help - Information about Atlas
+- 🎯 Goal Setting - Task execution
+- � Tool Inquiry - Available functions
+- 📊 Status Check - System monitoring  
+- ⚙️ Configuration - Settings management
+- 🔧 Development Mode - Advanced access
 
-**Core Functions:**
-• **Automation & Control** - Mouse/keyboard automation, screen interaction
-• **Visual Analysis** - Screenshot capture, OCR, image recognition  
-• **File Management** - File operations, clipboard management
-• **System Integration** - Terminal commands, process management
-• **Communication** - Email, Telegram, SMS notifications
-• **Web Interaction** - Browser automation, data extraction
-• **Custom Development** - Tool creation, script generation
+Be direct and focused on modes only."""
 
-**Operating Modes:**
-• 🤖 **Auto Mode** - Intelligent context detection
-• 💬 **Chat Mode** - General conversation
-• ❓ **Help Mode** - System information and guidance
-• 🎯 **Goal Mode** - Task execution and automation
-• 🔧 **Development Mode** - Advanced system access with safety features
+        # General help - brief introduction
+        else:
+            return f"""You are Atlas. The user is asking for general help or introduction.
 
-**Key Features:**
-1. **Multi-language Support** - Ukrainian, Russian, English with automatic translation
-2. **Intelligent Context** - Understands conversation intent automatically
-3. **Safety First** - Built-in backup and recovery systems
-4. **Extensible** - Custom tool creation and plugin support
-5. **Real-time Monitoring** - Background system health checks
+User's question: "{message}"
 
-**Available Tools:** {len(available_tools)} tools including:
-{', '.join(available_tools[:12])}{'...' if len(available_tools) > 12 else ''}
+Provide a brief, friendly introduction:
+- Introduce yourself as Atlas, autonomous computer assistant
+- Mention key capabilities briefly (automation, visual analysis, file management)
+- Be conversational and welcoming
+- Ask what specific area they'd like to know more about
 
-**Specialized Agents:**
-{', '.join(available_agents)}
-
-Based on your specific question, provide additional detailed information about the requested topic. 
-
-Be specific, practical, and include examples. Structure your response with clear sections and use emojis for better readability. If the user asked about development mode specifically, emphasize its safety features and enhanced capabilities."""
+Keep it short and personable. Don't overwhelm with technical details or long lists."""
     
     def _generate_goal_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
@@ -590,11 +572,13 @@ Provide guidance on how to configure the requested settings.
     def _generate_casual_response(self, context: ChatContext, message: str,
                                 system_info: Dict = None) -> str:
         """Generate a casual conversational response."""
-        return f"""You are Atlas, a friendly assistant. The user is making small talk.
+        return f"""You are Atlas, a friendly autonomous computer assistant. The user is having a casual conversation.
 
 User's message: "{message}"
-Respond in a friendly, conversational manner.
-"""
+
+Respond naturally and conversationally. Be warm, friendly, and personable. Don't mention tools or capabilities unless directly asked. Focus on the human connection and respond to what they're actually saying.
+
+If they're greeting you or asking your name, introduce yourself briefly and warmly. If they're sharing something about themselves, show interest and respond appropriately."""
 
     def _generate_development_response(self, context: ChatContext, message: str,
                                      system_info: Dict = None) -> str:
@@ -604,3 +588,33 @@ Respond in a friendly, conversational manner.
 User's command: "{message}"
 Acknowledge the development command and proceed with execution.
 """
+
+    def _simple_translate_to_english(self, message: str) -> str:
+        """Simple translation for testing purposes."""
+        # Basic translation mapping for common phrases
+        translations = {
+            'привіт': 'hello',
+            'привет': 'hello', 
+            'друже': 'friend',
+            'як тебе звати': 'what is your name',
+            'як справи': 'how are you',
+            'мене звати': 'my name is',
+            'мене цікавить': 'i am interested',
+            'чи забезпечена': 'is there',
+            'в тебе': 'do you have',
+            'пам\'ять': 'memory',
+            'довгострокова': 'long-term',
+            'які у тебе': 'what do you have',
+            'інструменти': 'tools',
+            'які інструменти': 'what tools',
+            'що можеш': 'what can you do',
+            'можливості': 'capabilities'
+        }
+        
+        message_lower = message.lower()
+        translated = message_lower
+        
+        for ukrainian, english in translations.items():
+            translated = translated.replace(ukrainian, english)
+            
+        return translated
