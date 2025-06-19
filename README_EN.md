@@ -2,6 +2,17 @@
 
 Atlas is a powerful autonomous computer agent designed to assist with various tasks through AI-powered automation.
 
+## Recent Fixes
+
+### macOS Screenshot Fix (Latest)
+Fixed the `'CGImageRef' object has no attribute 'width'` error on macOS by updating to modern pyobjc API. The screenshot functionality now uses a robust fallback system:
+1. Native `screencapture` command (primary)
+2. AppleScript method (alternative)
+3. Modern Quartz API (programmatic)
+4. PyAutoGUI (cross-platform fallback)
+
+**Testing**: Run `./quick_test_macos.sh` or `python3 test_screenshot_complete.py` to verify functionality.
+
 ## Platform Support
 
 Atlas supports multiple platforms with platform-specific optimizations:

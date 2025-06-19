@@ -73,10 +73,59 @@ Grant these permissions when prompted via:
 
 ### Native Features
 
-- **Quartz-based screenshots**: High-performance screen capture using native macOS APIs
+- **Multiple screenshot methods**: 
+  - Native `screencapture` command (primary)
+  - AppleScript integration (backup)
+  - Quartz API (legacy support)
 - **System appearance**: Automatically adapts to light/dark mode
 - **Dock integration**: Native macOS dock icon
 - **Application Support**: Stores data in `~/Library/Application Support/Atlas`
+
+## Testing Screenshot Functionality
+
+After setup, verify screenshot functionality works:
+
+### Quick Test
+```bash
+# Run enhanced quick test
+./quick_test_macos.sh
+```
+
+### Comprehensive Test
+```bash
+# Run full diagnostic test
+python3 test_screenshot_complete.py
+```
+
+### Manual Test
+```bash
+# Test screenshot capture directly
+python3 -c "from tools.screenshot_tool import capture_screen; img = capture_screen(); print(f'Screenshot: {img.size[0]}x{img.size[1]} pixels')"
+```
+
+## Troubleshooting Screenshot Issues
+
+If you encounter the error `'CGImageRef' object has no attribute 'width'`:
+
+1. **Update pyobjc**:
+   ```bash
+   pip install --upgrade pyobjc-framework-Quartz pyobjc-framework-ApplicationServices
+   ```
+
+2. **Check Screen Recording permissions**:
+   - System Preferences → Security & Privacy → Privacy → Screen Recording
+   - Add Terminal and/or Python to allowed applications
+
+3. **Verify fallback methods**:
+   ```bash
+   # Test native screencapture
+   screencapture -x test.png && ls -la test.png && rm test.png
+   ```
+
+4. **Check detailed diagnostics**:
+   ```bash
+   python3 test_screenshot_complete.py
+   ```
 
 ## Command Line Options
 

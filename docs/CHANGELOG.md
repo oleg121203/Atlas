@@ -165,3 +165,36 @@ All notable changes to this project will be documented in this file.
 - Initial `README.md` and `CHANGELOG.md` files.
 
 ---
+
+## [2024-12-19] - macOS Screenshot Fix
+
+### Fixed
+- **macOS Screenshot API Error:** Resolved critical `'CGImageRef' object has no attribute 'width'` error on macOS by updating Quartz screenshot implementation to use modern pyobjc API exclusively
+- **Mixed API Usage:** Eliminated conflicting legacy and modern pyobjc API calls in screenshot functionality
+- **Screenshot Fallback System:** Enhanced screenshot capture with robust fallback hierarchy:
+  1. Native `screencapture` command (most reliable)
+  2. AppleScript method (alternative native)
+  3. Modern Quartz API (programmatic access)
+  4. PyAutoGUI (cross-platform fallback)
+  5. Dummy image (last resort)
+
+### Added
+- **Comprehensive Testing Suite:** 
+  - `test_screenshot_complete.py` - Full diagnostic testing for all screenshot methods
+  - `verify_screenshot_fix.py` - Quick verification script for the specific fix
+  - Enhanced `quick_test_macos.sh` with detailed diagnostics
+- **macOS Screenshot Documentation:** 
+  - `docs/MACOS_SCREENSHOT_FIX.md` - Detailed fix documentation
+  - Updated troubleshooting guides in `MACOS_SETUP.md` and `README_EN.md`
+- **Enhanced Error Handling:** Better error reporting and diagnostics for screenshot functionality
+
+### Changed
+- **Screenshot Tool Architecture:** Refactored `tools/screenshot_tool.py` to use modern pyobjc function-based API
+- **Image Format Handling:** Improved RGBA to RGB conversion for consistent screenshot output
+- **Platform Detection:** Enhanced platform-specific code paths for better macOS integration
+
+### Technical Details
+- Updated from deprecated `image_ref.width()` to `CGImageGetWidth(image_ref)`
+- Implemented proper CFData to bytes conversion for modern pyobjc
+- Added comprehensive fallback testing and validation
+- Enhanced cross-platform compatibility while maintaining macOS native features
