@@ -146,11 +146,23 @@ class EnhancedHelperSyncTellTool:
         
         if self.config_manager:
             try:
-                # Try to load plugin-specific configuration
-                plugin_config = self.config_manager.get('helper_sync_tell', {})
-                default_config.update(plugin_config)
+                # Try to load plugin-specific configuration using different methods
+                plugin_config = {}
+                if hasattr(self.config_manager, 'get'):
+                    plugin_config = self.config_manager.get('helper_sync_tell', {})
+                elif hasattr(self.config_manager, 'get_section'):
+                    plugin_config = self.config_manager.get_section('helper_sync_tell', {})
+                elif hasattr(self.config_manager, 'config') and hasattr(self.config_manager.config, 'get'):
+                    # Try accessing through config attribute
+                    if self.config_manager.config.has_section('helper_sync_tell'):
+                        plugin_config = dict(self.config_manager.config.items('helper_sync_tell'))
+                
+                if plugin_config:
+                    default_config.update(plugin_config)
+                    self.logger.info(f"Loaded plugin configuration: {list(plugin_config.keys())}")
+                
             except Exception as e:
-                self.logger.warning(f"Could not load configuration: {e}")
+                self.logger.debug(f"Could not load configuration (using defaults): {e}")
         
         return default_config
 
@@ -689,6 +701,8 @@ class EnhancedHelperSyncTellTool:
         except Exception as e:
             self.logger.error(f"Failed to integrate with Atlas help mode: {e}")
             return False
+    
+    def get_performance_stats(self) -> Dict[str, Any]:
         """Get performance statistics for the tool."""
         return {
             **self.performance_stats,
@@ -789,5 +803,11 @@ def register(llm_manager=None, atlas_app=None):
     except Exception as e:
         logging.error(f"Failed to register Enhanced Helper Sync Tell plugin: {e}")
         import traceback
+        traceback.print_exc()
+        return {
+            "tools": [],
+            "agents": [],
+            "metadata": {"error": str(e)}
+        }
         logging.error(f"Traceback: {traceback.format_exc()}")
         return {"tools": [], "agents": []}
