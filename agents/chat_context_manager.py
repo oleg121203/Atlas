@@ -490,3 +490,46 @@ Provide a comprehensive, well-structured response following this format:
 Based on your specific question, provide additional detailed information about the requested topic. 
 
 Be specific, practical, and include examples. Structure your response with clear sections and use emojis for better readability. If the user asked about development mode specifically, emphasize its safety features and enhanced capabilities."""
+    
+    def _generate_goal_response(self, context: ChatContext, message: str, 
+                              system_info: Dict = None) -> str:
+        """Generate goal-oriented response prompt."""
+        available_tools = system_info.get('tools', []) if system_info else []
+        available_agents = system_info.get('agents', []) if system_info else []
+        
+        return f"""You are Atlas, an autonomous computer assistant. The user wants to accomplish a task.
+
+User's goal: "{message}"
+Context keywords: {', '.join(context.context_keywords)}
+
+This appears to be a task request. Respond by:
+1. Acknowledging that you understand this as a goal
+2. Briefly explaining how you'll approach it
+3. Mentioning which tools/agents you'll likely use
+4. Asking for clarification if needed
+
+Available tools: {', '.join(available_tools[:10])}{'...' if len(available_tools) > 10 else ''}
+Available agents: {', '.join(available_agents)}
+
+Format your response to be encouraging and action-oriented. Start with "🎯 I understand you want to..." """
+    
+    def _generate_tool_response(self, context: ChatContext, message: str, 
+                              system_info: Dict = None) -> str:
+        """Generate tool-focused response prompt."""
+        available_tools = system_info.get('tools', []) if system_info else []
+        
+        return f"""You are Atlas, an autonomous computer assistant. The user is asking about your tools and capabilities.
+
+User's question: "{message}"
+Context keywords: {', '.join(context.context_keywords)}
+
+Available tools: {', '.join(available_tools)}
+
+Provide a comprehensive overview of your tools, organized by category:
+• **Screen & Vision**: Screenshot, OCR, image recognition
+• **Input Control**: Mouse clicks, keyboard input, text typing
+• **System Interaction**: Terminal commands, file operations
+• **Data Management**: Clipboard operations, file handling
+• **Automation**: Custom tool creation, workflow automation
+
+Be specific about what each category can accomplish."""
