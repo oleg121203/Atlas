@@ -139,6 +139,21 @@ class ChatContextManager:
                     'memory', 'remember', 'storage', 'recall', 'memorize',
                     'provided', 'supported', 'long-term', 'organized', 'direction',
                     'interested', 'curious', 'want to know', 'wondering',
+                    # Problem analysis keywords
+                    'problem', 'issue', 'error', 'bug', 'fix', 'solve', 'investigate',
+                    'analyze', 'check', 'review', 'find problems', 'find issues',
+                    'code quality', 'quality check', 'find errors', 'find bugs',
+                    'debug', 'troubleshoot', 'examine', 'inspect',
+                    # Performance analysis keywords
+                    'performance', 'bottleneck', 'optimization', 'optimize', 
+                    'slow', 'fast', 'speed', 'memory usage', 'cpu usage',
+                    'performance issues', 'performance problems', 'profiling',
+                    'profile code', 'analyze performance', 'check performance',
+                    # Dependency analysis keywords
+                    'dependency', 'dependencies', 'architecture', 'structure',
+                    'dependency conflicts', 'architectural problems', 'imports',
+                    'circular dependencies', 'dependency graph', 'modules',
+                    'component dependencies', 'architecture analysis',
                     # Technical implementation keywords
                     'implementation', 'how implemented', 'where implemented',
                     'code structure', 'architecture', 'how works', 'how does it work',
@@ -160,7 +175,18 @@ class ChatContextManager:
                     r'\b((?:do\s+you\s+have|is\s+there)\s+(?:memory|storage))\b',
                     r'\b(long-term\s+(?:memory|storage)|organized\s+by\s+(?:direction|context))\b',
                     r'\b(how\s+(?:implemented|realized|works)|where\s+implemented)\b',
-                    r'\b((?:software|program)\s+(?:possibilities|capabilities))\b'
+                    r'\b((?:software|program)\s+(?:possibilities|capabilities))\b',
+                    r'\b(find\s+(?:problems|issues|errors|bugs)|check\s+(?:quality|code))\b',
+                    r'\b(analyze\s+code|review\s+code|investigate\s+(?:problems|issues))\b',
+                    # Performance analysis patterns
+                    r'\b(performance\s+(?:issues|problems|analysis|check))\b',
+                    r'\b(check\s+(?:for\s+)?performance|analyze\s+performance)\b',
+                    r'\b((?:memory|cpu)\s+usage|bottleneck|optimization|profile)\b',
+                    # Dependency analysis patterns
+                    r'\b(dependency\s+(?:conflicts|analysis|graph))\b',
+                    r'\b(architectural?\s+(?:problems|analysis|issues))\b',
+                    r'\b(investigate\s+(?:dependency|dependencies|architecture))\b',
+                    r'\b(circular\s+(?:dependency|dependencies|imports))\b'
                 ]
             },
             
@@ -447,28 +473,35 @@ class ChatContextManager:
 
 User's question: "{message}"
 
-ANALYZE THE CODEBASE to provide specific, technical details about memory implementation. Use your code analysis tools to:
+Use your COMPREHENSIVE ANALYSIS TOOLS to investigate the memory implementation:
 
-1. First, search for memory-related files and classes:
-   - Search for "MemoryManager" classes
-   - Look for "ChromaDB" implementation
-   - Find memory configuration files
-   - Analyze "enhanced_memory_manager.py"
+1. **Core Analysis Tools:**
+   - `code_reader_tool`: Analyze memory-related files with AST analysis
+   - `professional_analyzer`: Detect memory issues and patterns
+   - `dependency_analyzer`: Check memory component dependencies and architecture
+   - `performance_profiler`: Analyze memory performance and bottlenecks
+   - `semantic_search`: Find memory-related code
+   - `file_search`: Locate memory implementation files
+   - `grep_search`: Search for memory patterns
 
-2. Provide SPECIFIC implementation details:
-   - Exact file locations where memory is implemented
-   - Class names and methods responsible for memory
-   - How data is stored (ChromaDB vector database specifics)
-   - Memory categorization by chat modes
-   - Retention policies and TTL settings
-   - Configuration options
+2. **Focus your investigation on:**
+   - Find `enhanced_memory_manager.py` and analyze its structure
+   - Locate ChromaDB integration code
+   - Check memory configuration files
+   - Analyze memory retention policies
+   - Review memory categorization logic
+   - Check for memory performance issues and bottlenecks
 
-3. Include code snippets from actual files showing:
-   - Memory initialization
-   - Storage mechanisms
-   - Retrieval methods
+3. **Provide specific technical details:**
+   - Exact file paths and line numbers
+   - Class names and method signatures
+   - Memory storage mechanisms
+   - Configuration options and defaults
+   - Code snippets showing implementation
+   - Dependency analysis and architectural insights
+   - Performance characteristics and optimization opportunities
 
-Use semantic_search, file_search, and read_file tools to gather this information. Don't give generic answers - provide actual code analysis with file paths and implementation details."""
+Start by using `code_reader_tool` to analyze the memory manager files, then use `professional_analyzer` and `dependency_analyzer` to identify any potential issues."""
 
         # Direct tools question detection  
         elif any(word in message_lower for word in tools_keywords):
@@ -476,25 +509,34 @@ Use semantic_search, file_search, and read_file tools to gather this information
 
 User's question: "{message}"
 
-ANALYZE THE CODEBASE to provide detailed information about available tools and their implementation:
+Use your COMPREHENSIVE ANALYSIS ARSENAL to investigate tool implementation:
 
-1. Search for tool-related files:
-   - Look for "tools/" directory structure
-   - Find agent files in "agents/" directory
-   - Search for tool definitions and registrations
+1. **Advanced Analysis Tools:**
+   - `code_reader_tool`: Analyze tool structure with AST and metrics
+   - `professional_analyzer`: Detect tool quality issues and improvements
+   - `dependency_analyzer`: Analyze tool dependencies and architecture
+   - `performance_profiler`: Check tool performance and optimization opportunities
+   - `file_search`: Find tool files in tools/ and plugins/ directories
+   - `semantic_search`: Search for tool patterns and usage
 
-2. Provide SPECIFIC details about:
-   - Exact file locations of tool implementations
-   - Tool categories and their purposes
-   - How tools are registered and managed
-   - Integration with different agents
+2. **Investigation focus:**
+   - Explore `tools/` directory structure and dependencies
+   - Analyze `plugins/` directory for plugin tools
+   - Check agent tools in `agents/` directory
+   - Review tool registration and management code
+   - Assess tool performance characteristics
+   - Identify architectural patterns and dependencies
 
-3. Use code analysis tools to show:
-   - Actual tool class definitions
-   - Available tool methods and parameters
-   - Tool usage examples from the codebase
+3. **Provide comprehensive technical details:**
+   - Tool categories and their file locations
+   - Implementation patterns and architectures
+   - Tool registration mechanisms
+   - Performance analysis and bottlenecks
+   - Dependency graphs and architectural insights
+   - Usage examples from codebase
+   - Any issues or improvements identified
 
-Use semantic_search and file_search to gather comprehensive tool information. Provide technical details with file paths and code examples."""
+Start by using `file_search` to explore tool directories, then `code_reader_tool` and `dependency_analyzer` to analyze key tool implementations."""
 
         # Direct modes question detection
         elif any(word in message_lower for word in modes_keywords):
@@ -513,33 +555,85 @@ Explain the different conversation modes directly:
 
 Be direct and focused on modes only."""
 
-        # General help - use code analysis for comprehensive understanding
+        # General help - use professional code analysis for comprehensive understanding
         else:
-            return f"""You are Atlas in System Help mode. The user is asking for information about the system.
+            # Check if this is a problem analysis or investigation request
+            investigation_keywords = ['problem', 'issue', 'error', 'bug', 'fix', 'solve', 'investigate', 'analyze', 'check', 'review', 'find']
+            is_investigation = any(keyword in message_lower for keyword in investigation_keywords)
+            
+            if is_investigation:
+                return f"""You are Atlas Professional Code Analyzer. The user needs expert investigation and problem-solving.
 
 User's question: "{message}"
 
-As a System Help expert, you have FULL ACCESS to analyze the entire Atlas codebase. Your role is to:
+ACTIVATE PROFESSIONAL ANALYSIS MODE:
 
-1. INVESTIGATE the codebase using your tools:
-   - Use semantic_search to find relevant code
-   - Use file_search to locate specific files
-   - Use read_file to examine implementations
-   - Use grep_search to find patterns
+1. 🔍 COMPREHENSIVE INVESTIGATION:
+   - Use semantic_search to understand the problem domain
+   - Use file_search to locate relevant code files
+   - Use grep_search to find error patterns or issues
+   - Use read_file to examine code implementation details
 
-2. PROVIDE TECHNICAL EXPERTISE:
-   - Analyze code structure and implementation details
-   - Identify potential issues or improvements
-   - Explain how different components work together
-   - Reference specific files, classes, and methods
+2. 🎯 ADVANCED PROBLEM DETECTION PROTOCOL:
+   - Use `professional_analyzer`: Scan for security vulnerabilities and code quality issues
+   - Use `dependency_analyzer`: Identify dependency conflicts and architectural violations
+   - Use `performance_profiler`: Find performance bottlenecks and memory issues
+   - Use `code_reader_tool`: Deep AST analysis for complex patterns
+   - Detect resource leaks and optimization opportunities
+   - Check architecture compliance and best practices
 
-3. ANSWER WITH AUTHORITY:
-   - Give specific file locations
+3. 💡 SOLUTION ENGINEERING:
+   - Provide specific, actionable fixes with code examples
+   - Prioritize solutions by impact and effort
+   - Reference exact file locations and line numbers
+   - Include risk assessment for each recommendation
+   - Provide performance optimization strategies
+   - Suggest architectural improvements
+
+4. 📊 PROFESSIONAL REPORTING:
+   - Executive summary of findings
+   - Technical details with evidence
+   - Dependency analysis and architectural insights
+   - Performance metrics and optimization recommendations
+   - Implementation roadmap with priorities
+   - Quality metrics and improvement suggestions
+
+Begin immediate analysis using ALL AVAILABLE advanced code investigation tools. Be thorough, professional, and solution-oriented."""
+            
+            else:
+                return f"""You are Atlas in System Help mode. The user is asking for information about the system.
+
+User's question: "{message}"
+
+As a System Help expert, you have FULL ACCESS to analyze the entire Atlas codebase with ADVANCED TOOLS. Your role is to:
+
+1. INVESTIGATE the codebase using your comprehensive toolkit:
+   - Use `semantic_search` to find relevant code patterns
+   - Use `file_search` to locate specific files and directories
+   - Use `read_file` to examine implementations in detail
+   - Use `grep_search` to find specific patterns and usage
+   - Use `code_reader_tool` for deep AST analysis and code metrics
+   - Use `professional_analyzer` for issue detection and quality assessment
+   - Use `dependency_analyzer` for architectural and dependency analysis
+   - Use `performance_profiler` for performance analysis and optimization
+
+2. PROVIDE COMPREHENSIVE TECHNICAL EXPERTISE:
+   - Analyze code structure and implementation details with AST analysis
+   - Identify potential issues, vulnerabilities, and improvements
+   - Explain architectural dependencies and component interactions
+   - Assess performance characteristics and optimization opportunities
+   - Reference specific files, classes, and methods with evidence
+   - Provide metrics, complexity analysis, and quality assessments
+
+3. ANSWER WITH PROFESSIONAL AUTHORITY:
+   - Give specific file locations with line numbers
    - Show actual code snippets when relevant
-   - Explain implementation details
-   - Provide technical insights
+   - Explain implementation details with technical depth
+   - Provide architectural insights and dependency analysis
+   - Include performance analysis and optimization recommendations
+   - Deliver professional-grade code analysis and insights
 
-Start by analyzing the relevant parts of the codebase to answer the user's question comprehensively. Use your code analysis tools actively to provide detailed, technical responses."""
+Start by analyzing the relevant parts of the codebase using your FULL ARSENAL of advanced analysis tools to answer the user's question comprehensively and professionally."""
     
     def _generate_goal_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
@@ -575,32 +669,40 @@ Format your response to be encouraging and action-oriented. Start with "🎯 I u
         is_technical_question = any(keyword in message_lower for keyword in implementation_keywords)
         
         if is_technical_question:
-            return f"""You are Atlas in Tool Inquiry mode with technical analysis capabilities. The user is asking about tool implementation details.
+            return f"""You are Atlas in Tool Inquiry mode with comprehensive analysis capabilities. The user is asking about tool implementation details.
 
 User's question: "{message}"
 Context keywords: {', '.join(context.context_keywords)}
 
-ANALYZE THE CODEBASE to provide detailed technical information about tool implementations:
+ACTIVATE COMPREHENSIVE TOOL ANALYSIS using your advanced arsenal:
 
-1. Search for tool-related files and structures:
-   - Look for "tools/" directory and its contents
-   - Find agent files in "agents/" directory that implement tools
-   - Search for tool registration and management code
-   - Analyze plugin systems and tool creators
+1. **Advanced Analysis Tools Available:**
+   - `code_reader_tool`: Deep AST analysis and code metrics
+   - `professional_analyzer`: Quality assessment and issue detection
+   - `dependency_analyzer`: Architectural and dependency analysis
+   - `performance_profiler`: Performance analysis and optimization
+   - `semantic_search`: Intelligent code pattern search
+   - `file_search`: Structured file exploration
+   - `grep_search`: Pattern-based code search
 
-2. Provide SPECIFIC implementation details:
+2. **Investigation Protocol:**
+   - Search for tool-related files and structures in tools/ directory
+   - Find agent files in agents/ directory that implement tools
+   - Analyze plugin systems and tool creators with AST analysis
+   - Check tool registration and management code
+   - Assess tool performance characteristics and dependencies
+   - Map tool architecture and component relationships
+
+3. **Provide COMPREHENSIVE technical details:**
    - Exact file locations where tools are defined
-   - Class names and method signatures for tools
+   - Class names and method signatures with complexity analysis
+   - Tool dependency graphs and architectural patterns
+   - Performance characteristics and optimization opportunities
    - How tools are registered and integrated
    - Tool categories and their organizational structure
+   - Quality assessment and potential improvements
 
-3. Use code analysis tools to show:
-   - Actual tool class definitions with file paths
-   - Tool initialization and configuration
-   - Integration patterns with agents
-   - Examples of tool usage from the codebase
-
-Use semantic_search, file_search, and read_file tools to gather comprehensive information. Provide technical details with actual code references."""
+Use your FULL ARSENAL of analysis tools to gather comprehensive information. Provide professional-grade technical details with actual code references, performance insights, and architectural analysis."""
         
         else:
             # Standard tool list for non-technical questions
@@ -612,11 +714,25 @@ Context keywords: {', '.join(context.context_keywords)}
 
 **ATLAS TOOLBOX**
 
-Here are the tools currently available to me:
-- {', '.join(available_tools)}
+**System Tools:** {', '.join(available_tools) if available_tools else 'Standard system tools available'}
 
-Provide a list of tools, and if the user asks for something specific, give more details about that tool.
-"""
+**Advanced Analysis Arsenal:**
+- 🔍 **code_reader_tool**: Deep code analysis with AST parsing and metrics
+- 🛡️ **professional_analyzer**: Quality assessment and issue detection
+- 🔧 **dependency_analyzer**: Architectural and dependency analysis
+- ⚡ **performance_profiler**: Performance bottlenecks and optimization
+- 🔎 **semantic_search**: Intelligent codebase exploration
+- 📁 **file_search**: Structured file system navigation
+- 🔍 **grep_search**: Pattern-based code searching
+
+**Capabilities:**
+- Comprehensive code analysis and quality assessment
+- Architectural investigation and dependency mapping
+- Performance profiling and optimization recommendations
+- Security vulnerability detection
+- Professional-grade technical documentation
+
+If you need specific tool information or want to see tools in action, just ask! I can provide detailed technical analysis using these advanced capabilities."""
 
     def _generate_status_response(self, context: ChatContext, message: str,
                                   system_info: Dict = None) -> str:
@@ -709,7 +825,34 @@ Acknowledge the development command and proceed with execution.
             'ПО': 'software system',
             'працює': 'works how does it work',
             'система': 'system implementation',
-            'atlas': 'atlas system'
+            'atlas': 'atlas system',
+            'проблема': 'problem issue',
+            'помилка': 'error bug',
+            'виправити': 'fix solve',
+            'дослідити': 'investigate analyze',
+            'перевірити': 'check review',
+            'знайди': 'find analyze search investigate',
+            'проблеми': 'problems issues',
+            'рішення': 'solutions fixes',
+            'перевір': 'check analyze review investigate',
+            'якість': 'quality',
+            'коду': 'code',
+            'код': 'code analyze',
+            'помилки': 'errors bugs issues problems',
+            # Problem investigation keywords
+            'проблеми': 'problems issues',
+            'проблема': 'problem issue',
+            'помилки': 'errors bugs',
+            'помилка': 'error bug',
+            'виправити': 'fix solve',
+            'знайти': 'find analyze',
+            'дослідити': 'investigate analyze',
+            'перевірити': 'check review',
+            'аналізувати': 'analyze investigate',
+            'чому не працює': 'why not working',
+            'не працює': 'not working',
+            'баг': 'bug error',
+            'фікс': 'fix solution'
         }
         
         message_lower = message.lower()

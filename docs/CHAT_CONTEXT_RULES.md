@@ -122,6 +122,21 @@ Instead of matching Cyrillic keywords directly:
 9. **Memory Management Rules** - to be defined
 10. **Development Mode Restrictions** - to be defined
 
+11. **System Help Tool Integration** ⭐ NEW
+   - Leverages existing `code_reader_tool` for code structure analysis
+   - Uses `professional_analyzer` for advanced issue detection
+   - Employs `semantic_search` for intelligent code discovery
+   - Utilizes `file_search` and `grep_search` for targeted searches
+   - Activates Professional Analysis Mode for problem-solving requests
+   - References specific Atlas tools by name in analysis workflows
+
+12. **Professional Analysis Mode Activation** ⭐ NEW
+   - Automatically activated for problem/investigation keywords
+   - Triggers comprehensive code analysis protocols
+   - Provides systematic problem detection and solution engineering
+   - Includes executive summary and implementation roadmap
+   - Risk assessment for recommended solutions
+
 ---
 
 *This document should be updated whenever new context management rules are established.*
