@@ -31,10 +31,10 @@ class LLMManager:
         self.config_manager = config_manager or utils_config_manager
         
         # Initialize clients for different providers
-        self.openai_client: Optional[OpenAI] = None
+        # Note: OpenAI client is created dynamically when needed
         self.gemini_client: Optional[Any] = None
-        self.current_provider = "openai"  # Default provider
-        self.current_model = "gpt-3.5-turbo"  # Default model
+        self.current_provider = "gemini"  # Default provider
+        self.current_model = "gemini-1.5-flash"  # Default model
         
         # Add missing model attributes
         self.gemini_model = "gemini-1.5-flash"
@@ -46,46 +46,34 @@ class LLMManager:
 
     def _initialize_clients(self):
         """Initializes all available LLM clients."""
-        self._initialize_openai()
+        # OpenAI client is created dynamically when needed
         self._initialize_gemini()
         
         # Set current provider from config after initialization
         configured_provider = self.config_manager.get_current_provider()
+        configured_model = self.config_manager.get_current_model()
+        
         if configured_provider:
             self.current_provider = configured_provider.lower()
             self.logger.info(f"Set current provider to: {self.current_provider} (from config)")
-        
-    def _initialize_openai(self):
-        """Initializes the OpenAI client using the API key from the config."""
-        api_key = self.config_manager.get_openai_api_key()
-        if not api_key or api_key.strip() == "":
-            self.logger.warning("OpenAI API key not found in config. OpenAI client is not available.")
-            return
-        
-        # Check for placeholder/invalid keys
-        placeholder_indicators = [
-            "your-openai-key-here", "your_openai_api_key_here", "placeholder",
-            "# openai key not configured", "not configured", "sk-placeholder"
-        ]
-        
-        if (api_key.startswith("test_") or 
-            api_key.startswith("sk-test") or 
-            api_key.startswith("#") or
-            any(indicator in api_key.lower() for indicator in placeholder_indicators) or
-            api_key in ["111", "test", "demo", "example"] or
-            len(api_key) < 20):  # Real OpenAI keys are much longer
-            self.logger.info("OpenAI API key is a placeholder. OpenAI client is not available (this is OK if using Gemini).")
-            return
             
-        try:
-            self.openai_client = OpenAI(api_key=api_key)
-            # Test the connection with a simple API call
-            self.openai_client.models.list()
-            self.logger.info("OpenAI API key is valid and client is initialized.")
-        except Exception as e:
-            self.openai_client = None
-            self.logger.warning(f"Failed to initialize OpenAI client: {e}. This is OK if using Gemini as default.")
-            
+            # Set appropriate model for the provider
+            if configured_model:
+                self.current_model = configured_model
+                self.logger.info(f"Set current model to: {self.current_model} (from config)")
+            else:
+                # Set default model for the provider
+                if self.current_provider == "gemini":
+                    self.current_model = "gemini-1.5-flash"
+                elif self.current_provider == "openai":
+                    self.current_model = "gpt-4-turbo"
+                elif self.current_provider == "ollama":
+                    self.current_model = "llama3.1"
+                self.logger.info(f"Set default model for {self.current_provider}: {self.current_model}")
+        else:
+            # Ensure defaults are consistent
+            self.logger.info(f"Using default provider: {self.current_provider} with model: {self.current_model}")
+        
     def _initialize_gemini(self):
         """Initializes the Gemini client using the API key from the config."""
         api_key = self.config_manager.get_gemini_api_key()
@@ -121,8 +109,9 @@ class LLMManager:
         """Returns available providers and their models."""
         providers = {}
         
-        # OpenAI models
-        if self.openai_client:
+        # OpenAI models (check API key dynamically)
+        openai_key = self.config_manager.get_openai_api_key()
+        if self._is_valid_openai_key(openai_key):
             providers["openai"] = [
                 "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4",
                 "gpt-3.5-turbo", "gpt-3.5-turbo-16k"
@@ -154,6 +143,49 @@ class LLMManager:
             ]
         
         return providers
+
+    def _is_valid_openai_key(self, api_key: str) -> bool:
+        """Check if OpenAI API key is valid (not placeholder)."""
+        if not api_key or api_key.strip() == "":
+            return False
+            
+        # Check for placeholder/invalid keys
+        placeholder_indicators = [
+            "your-openai-key-here", "your_openai_api_key_here", "placeholder",
+            "# openai key not configured", "not configured", "sk-placeholder"
+        ]
+        
+        if (api_key.startswith("test_") or 
+            api_key.startswith("sk-test") or 
+            api_key.startswith("#") or
+            any(indicator in api_key.lower() for indicator in placeholder_indicators) or
+            api_key in ["111", "test", "demo", "example"] or
+            len(api_key) < 20):
+            return False
+            
+        return True
+
+    def _is_openai_available(self) -> bool:
+        """Check if OpenAI is available and configured."""
+        api_key = self.config_manager.get_openai_api_key()
+        if not api_key or api_key.strip() == "":
+            return False
+            
+        # Check for placeholder/invalid keys
+        placeholder_indicators = [
+            "your-openai-key-here", "your_openai_api_key_here", "placeholder",
+            "# openai key not configured", "not configured", "sk-placeholder"
+        ]
+        
+        if (api_key.startswith("test_") or 
+            api_key.startswith("sk-test") or 
+            api_key.startswith("#") or
+            any(indicator in api_key.lower() for indicator in placeholder_indicators) or
+            api_key in ["111", "test", "demo", "example"] or
+            len(api_key) < 20):  # Real OpenAI keys are much longer
+            return False
+            
+        return True
 
     def _validate_provider_model(self, provider: str, model: str) -> tuple[str, str]:
         """Validate and fix provider/model combinations to ensure compatibility."""
@@ -236,9 +268,19 @@ class LLMManager:
 
     def _chat_openai(self, messages: list[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gpt-3.5-turbo") -> TokenUsage:
         """Handle OpenAI chat requests."""
-        if not self.openai_client:
-            self.logger.error("OpenAI client not initialized. Cannot make chat request.")
-            raise ValueError("OpenAI client not initialized. Please set your API key in config.")
+        # Check API key dynamically (like Groq/Mistral)
+        api_key = self.config_manager.get_openai_api_key()
+        if not self._is_valid_openai_key(api_key):
+            self.logger.warning("OpenAI API key is invalid or placeholder, falling back to Gemini.")
+            return self._chat_gemini(messages, tools, "gemini-1.5-flash")
+        
+        # Create client dynamically (like Groq)
+        try:
+            from openai import OpenAI
+            openai_client = OpenAI(api_key=api_key)
+        except Exception as e:
+            self.logger.warning(f"Failed to create OpenAI client: {e}, falling back to Gemini.")
+            return self._chat_gemini(messages, tools, "gemini-1.5-flash")
 
         try:
             kwargs = {
@@ -250,7 +292,7 @@ class LLMManager:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
 
-            response = self.openai_client.chat.completions.create(**kwargs)
+            response = openai_client.chat.completions.create(**kwargs)
 
             message = response.choices[0].message
             prompt_tokens = response.usage.prompt_tokens
@@ -484,12 +526,19 @@ class LLMManager:
 
     def get_embedding(self, text: str, model: str = "text-embedding-3-small") -> List[float]:
         """Generates an embedding for the given text using OpenAI."""
-        if not self.openai_client:
-            self.logger.error("OpenAI client not initialized. Cannot get embedding.")
-            raise ValueError("OpenAI client not initialized.")
+        # Check if OpenAI is available
+        if not self._is_openai_available():
+            self.logger.warning("OpenAI not available for embeddings. Returning empty embedding.")
+            # Return a placeholder embedding of appropriate size for compatibility
+            return [0.0] * 1536  # Standard OpenAI embedding size
+            
         try:
+            # Create OpenAI client dynamically
+            api_key = self.config_manager.get_openai_api_key()
+            openai_client = OpenAI(api_key=api_key)
+            
             text = text.replace("\n", " ")
-            response = self.openai_client.embeddings.create(
+            response = openai_client.embeddings.create(
                 input=[text],
                 model=model
             )
@@ -504,7 +553,7 @@ class LLMManager:
         """Check if a specific provider is available and configured."""
         provider = provider.lower()
         if provider == "openai":
-            return self.openai_client is not None
+            return self._is_openai_available()
         elif provider == "gemini":
             return self.gemini_client is not None
         elif provider == "ollama":

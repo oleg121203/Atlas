@@ -130,15 +130,27 @@ class CodeReaderTool:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.root_path = Path(root_path) if root_path else Path(__file__).parent.parent
         self.allowed_extensions = {'.py', '.md', '.txt', '.json', '.yaml', '.yml', '.toml'}
-        self.excluded_dirs = {'__pycache__', '.git', '.venv', 'venv', 'node_modules', '.pytest_cache', 'build', 'dist'}
+        # Розширений список виключених директорій для macOS
+        self.excluded_dirs = {
+            '__pycache__', '.git', '.venv', 'venv', 'venv-macos', 'venv-linux', 
+            'node_modules', '.pytest_cache', 'build', 'dist', '.mypy_cache',
+            'site-packages', 'lib', 'include', 'Scripts', 'bin', 'share',
+            '.DS_Store', 'unused', 'monitoring/logs'
+        }
         
         # Initialize code index for advanced analysis
         self.index = CodeIndex(cache_file=str(self.root_path / ".atlas_code_cache.json"))
         self._last_index_update = 0
         self._index_update_interval = 300  # 5 minutes
         
-        # Initialize indexing on startup if needed
-        self._ensure_index_updated()
+        # Запускаємо індексацію в фоні, щоб не блокувати запуск
+        # Можна відключити через змінну середовища
+        if os.getenv('ATLAS_DISABLE_CODE_INDEXING', '').lower() not in ('true', '1', 'yes'):
+            import threading
+            self._indexing_thread = threading.Thread(target=self._ensure_index_updated, daemon=True)
+            self._indexing_thread.start()
+        else:
+            self.logger.info("Code indexing disabled via ATLAS_DISABLE_CODE_INDEXING")
         
     def get_file_tree(self, max_depth: int = 3) -> str:
         """Get a tree view of the Atlas codebase structure."""
@@ -398,21 +410,45 @@ class CodeReaderTool:
     
     def _ensure_index_updated(self):
         """Ensure code index is up to date"""
-        current_time = time.time()
-        if current_time - self._last_index_update > self._index_update_interval:
-            self.rebuild_index()
+        try:
+            # Спочатку спробуємо завантажити існуючий кеш
+            cache_file = self.root_path / ".atlas_code_cache.json"
+            if cache_file.exists():
+                cache_age = time.time() - cache_file.stat().st_mtime
+                if cache_age < self._index_update_interval:
+                    self.logger.info("Using existing code index cache")
+                    return
+            
+            current_time = time.time()
+            if current_time - self._last_index_update > self._index_update_interval:
+                self.rebuild_index()
+        except Exception as e:
+            self.logger.error(f"Error updating index: {e}")
     
     def rebuild_index(self):
         """Rebuild the entire code index from scratch"""
         self.logger.info("Rebuilding code index...")
         start_time = time.time()
+        max_indexing_time = 30  # Максимум 30 секунд на індексацію
         
         # Clear existing index
         self.index = CodeIndex(cache_file=str(self.root_path / ".atlas_code_cache.json"))
         
-        # Index all Python files
-        python_files = list(self.root_path.glob("**/*.py"))
+        # Index only Atlas Python files (not venv)
+        python_files = []
+        for pattern in ["*.py", "agents/*.py", "tools/*.py", "ui/*.py", "utils/*.py", "tests/*.py"]:
+            python_files.extend(self.root_path.glob(pattern))
+        
+        # Обмежуємо кількість файлів
+        python_files = python_files[:200]  # Максимум 200 файлів
+        
+        files_processed = 0
         for file_path in python_files:
+            # Перевірка таймауту
+            if time.time() - start_time > max_indexing_time:
+                self.logger.info(f"Indexing timeout reached, processed {files_processed} files")
+                break
+                
             if any(excluded in file_path.parts for excluded in self.excluded_dirs):
                 continue
             
@@ -420,8 +456,10 @@ class CodeReaderTool:
                 analysis = self._analyze_python_file(file_path)
                 if analysis:
                     self.index.add_file_analysis(analysis)
+                    files_processed += 1
             except Exception as e:
-                self.logger.error(f"Error analyzing {file_path}: {e}")
+                self.logger.error(f"Error analyzing file {file_path}: {e}")
+                continue
         
         self.index.save_cache()
         self._last_index_update = time.time()
@@ -435,19 +473,38 @@ class CodeReaderTool:
     def _analyze_python_file(self, file_path: Path) -> Optional[FileAnalysis]:
         """Analyze a Python file using AST and extract code elements"""
         try:
+            # Перевірка на виключені директорії
+            if any(excluded in file_path.parts for excluded in self.excluded_dirs):
+                return None
+                
+            # Перевірка розміру файлу (максимум 1MB)
+            stat = file_path.stat()
+            max_size = 1024 * 1024  # 1MB
+            if stat.st_size > max_size:
+                self.logger.warning(f"Skipping large file {file_path} ({stat.st_size} bytes)")
+                return None
+            
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
+            # Перевірка кількості рядків (максимум 10000)
+            lines = content.count('\n') + 1
+            if lines > 10000:
+                self.logger.warning(f"Skipping large file {file_path} ({lines} lines)")
+                return None
+            
             # Basic file info
             file_hash = hashlib.md5(content.encode()).hexdigest()
-            stat = file_path.stat()
-            lines = content.count('\n') + 1
             
-            # Parse AST
+            # Parse AST з обмеженням глибини рекурсії
             try:
+                import sys
+                old_limit = sys.getrecursionlimit()
+                sys.setrecursionlimit(500)  # Обмежуємо рекурсію
                 tree = ast.parse(content, filename=str(file_path))
-            except SyntaxError as e:
-                self.logger.warning(f"Syntax error in {file_path}: {e}")
+                sys.setrecursionlimit(old_limit)
+            except (SyntaxError, RecursionError) as e:
+                self.logger.warning(f"Cannot parse {file_path}: {e}")
                 return None
             
             # Extract elements
