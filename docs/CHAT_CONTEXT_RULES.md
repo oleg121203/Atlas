@@ -96,12 +96,31 @@ Instead of matching Cyrillic keywords directly:
 ## Rules to Add as Needed
 
 1. **English-Only Internal Processing** (established above)
-2. **Response Time Limits** - to be defined
-3. **Context Confidence Thresholds** - to be defined  
-4. **Mode Switching Logic** - to be defined
-5. **Error Handling Protocols** - to be defined
-6. **Memory Management Rules** - to be defined
-7. **Development Mode Restrictions** - to be defined
+
+2. **System Help Mode Behavior** ⭐ NEW
+   - MUST actively use code analysis tools for technical questions
+   - MUST provide specific file paths and implementation details
+   - MUST analyze actual codebase instead of giving generic answers
+   - Should use: semantic_search, file_search, read_file, grep_search
+   - Focus on technical expertise, not general overviews
+
+3. **Tool Inquiry Mode Enhancement** ⭐ NEW
+   - Detect technical implementation questions vs simple tool lists
+   - For implementation questions: analyze codebase and provide file paths
+   - For simple questions: provide organized tool lists
+   - Use code analysis for "where implemented" and "how works" questions
+
+4. **Mode Detection Improvements** ⭐ NEW
+   - Enhanced translation includes technical terms
+   - Better recognition of implementation-focused questions
+   - Improved confidence scoring for technical queries
+
+5. **Response Time Limits** - to be defined
+6. **Context Confidence Thresholds** - to be defined  
+7. **Mode Switching Logic** - to be defined
+8. **Error Handling Protocols** - to be defined
+9. **Memory Management Rules** - to be defined
+10. **Development Mode Restrictions** - to be defined
 
 ---
 

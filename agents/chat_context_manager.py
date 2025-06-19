@@ -139,6 +139,10 @@ class ChatContextManager:
                     'memory', 'remember', 'storage', 'recall', 'memorize',
                     'provided', 'supported', 'long-term', 'organized', 'direction',
                     'interested', 'curious', 'want to know', 'wondering',
+                    # Technical implementation keywords
+                    'implementation', 'how implemented', 'where implemented',
+                    'code structure', 'architecture', 'how works', 'how does it work',
+                    'realized', 'implemented', 'possibilities', 'software',
                     # Code analysis keywords - most specific ones only
                     'rebuild index', 'update index', 'show file', 'analyze file',
                     'code analysis', 'structure analysis'
@@ -154,7 +158,9 @@ class ChatContextManager:
                     r'\b(memory\s+system|long-term\s+memory|how\s+(?:do\s+)?you\s+remember)\b',
                     r'\b(how\s+(?:is|does)\s+(?:your|atlas)\s+memory\s+(?:work|organized))\b',
                     r'\b((?:do\s+you\s+have|is\s+there)\s+(?:memory|storage))\b',
-                    r'\b(long-term\s+(?:memory|storage)|organized\s+by\s+(?:direction|context))\b'
+                    r'\b(long-term\s+(?:memory|storage)|organized\s+by\s+(?:direction|context))\b',
+                    r'\b(how\s+(?:implemented|realized|works)|where\s+implemented)\b',
+                    r'\b((?:software|program)\s+(?:possibilities|capabilities))\b'
                 ]
             },
             
@@ -437,33 +443,58 @@ class ChatContextManager:
         
         # Direct memory question detection
         if any(word in message_lower for word in memory_keywords):
-            return f"""You are Atlas. The user is asking specifically about your memory system.
+            return f"""You are Atlas in System Help mode. The user is asking about the memory system implementation.
 
 User's question: "{message}"
 
-Provide a DIRECT answer about Atlas memory system without showing tool lists or asking follow-up questions. Answer specifically what was asked.
+ANALYZE THE CODEBASE to provide specific, technical details about memory implementation. Use your code analysis tools to:
 
-Respond with information about:
-- Yes, Atlas has long-term memory with ChromaDB vector database
-- Memory is categorized by chat direction/context (casual, help, goals, development)
-- Different retention periods: short-term (hours), medium-term (days), long-term (months)
-- Memory is private and stored locally
-- Semantic search for intelligent context retrieval
+1. First, search for memory-related files and classes:
+   - Search for "MemoryManager" classes
+   - Look for "ChromaDB" implementation
+   - Find memory configuration files
+   - Analyze "enhanced_memory_manager.py"
 
-Be conversational, direct, and answer the specific question asked. Don't show tool lists or capabilities overview unless specifically requested."""
+2. Provide SPECIFIC implementation details:
+   - Exact file locations where memory is implemented
+   - Class names and methods responsible for memory
+   - How data is stored (ChromaDB vector database specifics)
+   - Memory categorization by chat modes
+   - Retention policies and TTL settings
+   - Configuration options
+
+3. Include code snippets from actual files showing:
+   - Memory initialization
+   - Storage mechanisms
+   - Retrieval methods
+
+Use semantic_search, file_search, and read_file tools to gather this information. Don't give generic answers - provide actual code analysis with file paths and implementation details."""
 
         # Direct tools question detection  
         elif any(word in message_lower for word in tools_keywords):
-            available_tools = system_info.get('tools', []) if system_info else []
-            return f"""You are Atlas. The user is asking about your tools/functions.
+            return f"""You are Atlas in System Help mode. The user is asking about tools/functions implementation.
 
 User's question: "{message}"
 
-Provide a brief, organized list of available tools without overwhelming details:
+ANALYZE THE CODEBASE to provide detailed information about available tools and their implementation:
 
-Available tools: {', '.join(available_tools[:15])}{'...' if len(available_tools) > 15 else ''}
+1. Search for tool-related files:
+   - Look for "tools/" directory structure
+   - Find agent files in "agents/" directory
+   - Search for tool definitions and registrations
 
-Be direct and concise. Don't provide full capability overview unless specifically asked."""
+2. Provide SPECIFIC details about:
+   - Exact file locations of tool implementations
+   - Tool categories and their purposes
+   - How tools are registered and managed
+   - Integration with different agents
+
+3. Use code analysis tools to show:
+   - Actual tool class definitions
+   - Available tool methods and parameters
+   - Tool usage examples from the codebase
+
+Use semantic_search and file_search to gather comprehensive tool information. Provide technical details with file paths and code examples."""
 
         # Direct modes question detection
         elif any(word in message_lower for word in modes_keywords):
@@ -482,19 +513,33 @@ Explain the different conversation modes directly:
 
 Be direct and focused on modes only."""
 
-        # General help - brief introduction
+        # General help - use code analysis for comprehensive understanding
         else:
-            return f"""You are Atlas. The user is asking for general help or introduction.
+            return f"""You are Atlas in System Help mode. The user is asking for information about the system.
 
 User's question: "{message}"
 
-Provide a brief, friendly introduction:
-- Introduce yourself as Atlas, autonomous computer assistant
-- Mention key capabilities briefly (automation, visual analysis, file management)
-- Be conversational and welcoming
-- Ask what specific area they'd like to know more about
+As a System Help expert, you have FULL ACCESS to analyze the entire Atlas codebase. Your role is to:
 
-Keep it short and personable. Don't overwhelm with technical details or long lists."""
+1. INVESTIGATE the codebase using your tools:
+   - Use semantic_search to find relevant code
+   - Use file_search to locate specific files
+   - Use read_file to examine implementations
+   - Use grep_search to find patterns
+
+2. PROVIDE TECHNICAL EXPERTISE:
+   - Analyze code structure and implementation details
+   - Identify potential issues or improvements
+   - Explain how different components work together
+   - Reference specific files, classes, and methods
+
+3. ANSWER WITH AUTHORITY:
+   - Give specific file locations
+   - Show actual code snippets when relevant
+   - Explain implementation details
+   - Provide technical insights
+
+Start by analyzing the relevant parts of the codebase to answer the user's question comprehensively. Use your code analysis tools actively to provide detailed, technical responses."""
     
     def _generate_goal_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
@@ -521,9 +566,46 @@ Format your response to be encouraging and action-oriented. Start with "🎯 I u
     def _generate_tool_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
         """Generate tool inquiry response prompt."""
-        available_tools = system_info.get('tools', []) if system_info else []
+        # Use translated message for better detection
+        message_for_analysis = self._simple_translate_to_english(message)
+        message_lower = message_for_analysis.lower()
         
-        return f"""You are Atlas, an autonomous computer assistant. The user is asking about your available tools.
+        # Check if this is a technical implementation question about tools
+        implementation_keywords = ['implemented', 'realized', 'where', 'how', 'code', 'files']
+        is_technical_question = any(keyword in message_lower for keyword in implementation_keywords)
+        
+        if is_technical_question:
+            return f"""You are Atlas in Tool Inquiry mode with technical analysis capabilities. The user is asking about tool implementation details.
+
+User's question: "{message}"
+Context keywords: {', '.join(context.context_keywords)}
+
+ANALYZE THE CODEBASE to provide detailed technical information about tool implementations:
+
+1. Search for tool-related files and structures:
+   - Look for "tools/" directory and its contents
+   - Find agent files in "agents/" directory that implement tools
+   - Search for tool registration and management code
+   - Analyze plugin systems and tool creators
+
+2. Provide SPECIFIC implementation details:
+   - Exact file locations where tools are defined
+   - Class names and method signatures for tools
+   - How tools are registered and integrated
+   - Tool categories and their organizational structure
+
+3. Use code analysis tools to show:
+   - Actual tool class definitions with file paths
+   - Tool initialization and configuration
+   - Integration patterns with agents
+   - Examples of tool usage from the codebase
+
+Use semantic_search, file_search, and read_file tools to gather comprehensive information. Provide technical details with actual code references."""
+        
+        else:
+            # Standard tool list for non-technical questions
+            available_tools = system_info.get('tools', []) if system_info else []
+            return f"""You are Atlas, an autonomous computer assistant. The user is asking about your available tools.
 
 User's question: "{message}"
 Context keywords: {', '.join(context.context_keywords)}
@@ -600,21 +682,43 @@ Acknowledge the development command and proceed with execution.
             'як справи': 'how are you',
             'мене звати': 'my name is',
             'мене цікавить': 'i am interested',
-            'чи забезпечена': 'is there',
+            'мене': 'me',
+            'розкажи': 'tell me about explain',
+            'розкажи про': 'tell me about explain',
+            'чи забезпечена': 'is there provided',
+            'забезпечена': 'provided supported',
             'в тебе': 'do you have',
-            'пам\'ять': 'memory',
+            'у тебе': 'do you have',
+            'пам\'ять': 'memory storage',
+            'памяті': 'memory storage',
             'довгострокова': 'long-term',
-            'які у тебе': 'what do you have',
-            'інструменти': 'tools',
-            'які інструменти': 'what tools',
+            'довгостроковій': 'long-term',
+            'які у тебе': 'what do you have what tools',
+            'інструменти': 'tools instruments',
+            'які інструменти': 'what tools what instruments',
             'що можеш': 'what can you do',
-            'можливості': 'capabilities'
+            'можливості': 'capabilities possibilities features',
+            'даного': 'this software',
+            'програмного забезпечення': 'software system',
+            'по': 'about',
+            'де': 'where implemented',
+            'як': 'how implemented',
+            'реалізовано': 'implemented realized',
+            'реалізовані': 'implemented realized',
+            'і': 'and',
+            'ПО': 'software system',
+            'працює': 'works how does it work',
+            'система': 'system implementation',
+            'atlas': 'atlas system'
         }
         
         message_lower = message.lower()
         translated = message_lower
         
-        for ukrainian, english in translations.items():
+        # Apply translations in order of specificity (longer phrases first)
+        sorted_translations = sorted(translations.items(), key=lambda x: len(x[0]), reverse=True)
+        
+        for ukrainian, english in sorted_translations:
             translated = translated.replace(ukrainian, english)
             
         return translated
