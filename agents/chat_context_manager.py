@@ -533,3 +533,39 @@ Provide a comprehensive overview of your tools, organized by category:
 • **Automation**: Custom tool creation, workflow automation
 
 Be specific about what each category can accomplish."""
+
+    def _generate_status_response(self, context: ChatContext, message: str,
+                                system_info: Dict = None) -> str:
+        """Generate status-check response prompt."""
+        return f"""You are Atlas. The user is asking about the system status.
+
+User's query: "{message}"
+Respond by providing a summary of the current system health and ongoing tasks.
+"""
+
+    def _generate_config_response(self, context: ChatContext, message: str,
+                                system_info: Dict = None) -> str:
+        """Generate configuration-focused response prompt."""
+        return f"""You are Atlas. The user is asking about configuration or settings.
+
+User's query: "{message}"
+Provide guidance on how to configure the requested settings.
+"""
+
+    def _generate_casual_response(self, context: ChatContext, message: str,
+                                system_info: Dict = None) -> str:
+        """Generate a casual conversational response."""
+        return f"""You are Atlas, a friendly assistant. The user is making small talk.
+
+User's message: "{message}"
+Respond in a friendly, conversational manner.
+"""
+
+    def _generate_development_response(self, context: ChatContext, message: str,
+                                     system_info: Dict = None) -> str:
+        """Generate a development-focused response."""
+        return f"""You are Atlas in Development Mode.
+
+User's command: "{message}"
+Acknowledge the development command and proceed with execution.
+"""
