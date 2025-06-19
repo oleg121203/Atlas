@@ -515,37 +515,49 @@ Format your response to be encouraging and action-oriented. Start with "🎯 I u
     
     def _generate_tool_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
-        """Generate tool-focused response prompt."""
+        """Generate tool inquiry response prompt."""
         available_tools = system_info.get('tools', []) if system_info else []
         
-        return f"""You are Atlas, an autonomous computer assistant. The user is asking about your tools and capabilities.
+        return f"""You are Atlas, an autonomous computer assistant. The user is asking about your available tools.
 
 User's question: "{message}"
 Context keywords: {', '.join(context.context_keywords)}
 
-Available tools: {', '.join(available_tools)}
+**ATLAS TOOLBOX**
 
-Provide a comprehensive overview of your tools, organized by category:
-• **Screen & Vision**: Screenshot, OCR, image recognition
-• **Input Control**: Mouse clicks, keyboard input, text typing
-• **System Interaction**: Terminal commands, file operations
-• **Data Management**: Clipboard operations, file handling
-• **Automation**: Custom tool creation, workflow automation
+Here are the tools currently available to me:
+- {', '.join(available_tools)}
 
-Be specific about what each category can accomplish."""
-
-    def _generate_status_response(self, context: ChatContext, message: str,
-                                system_info: Dict = None) -> str:
-        """Generate status-check response prompt."""
-        return f"""You are Atlas. The user is asking about the system status.
-
-User's query: "{message}"
-Respond by providing a summary of the current system health and ongoing tasks.
+Provide a list of tools, and if the user asks for something specific, give more details about that tool.
 """
 
-    def _generate_config_response(self, context: ChatContext, message: str,
+    def _generate_status_response(self, context: ChatContext, message: str,
+                                  system_info: Dict = None) -> str:
+        """Generate status check response prompt."""
+        system_health = system_info.get('health', {}) if system_info else {}
+        active_processes = system_info.get('processes', []) if system_info else []
+        
+        return f"""You are Atlas, an autonomous computer assistant. The user is asking for a status update.
+
+User's question: "{message}"
+Context keywords: {', '.join(context.context_keywords)}
+
+**ATLAS STATUS REPORT**
+
+**System Health:**
+- **CPU Usage:** {system_health.get('cpu_usage', 'N/A')}
+- **Memory Usage:** {system_health.get('memory_usage', 'N/A')}
+- **Disk Space:** {system_health.get('disk_space', 'N/A')}
+
+**Active Processes:**
+{', '.join(active_processes) if active_processes else 'No major processes active.'}
+
+Provide a concise summary of the current system status. Be reassuring and clear.
+"""
+    
+    def _generate_config_response(self, context: ChatContext, message: str, 
                                 system_info: Dict = None) -> str:
-        """Generate configuration-focused response prompt."""
+        """Generate configuration guidance response prompt."""
         return f"""You are Atlas. The user is asking about configuration or settings.
 
 User's query: "{message}"
