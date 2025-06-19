@@ -84,6 +84,8 @@ PyMsgBox==1.0.9
 pyobjc-core==11.1
 pyobjc-framework-Cocoa==11.1
 pyobjc-framework-Quartz==11.1
+pyobjc-framework-ApplicationServices==11.1  # For better screenshot APIs
+pyobjc-framework-CoreServices==11.1         # For system services integration
 pyparsing==3.2.3
 pyperclip==1.9.0
 PyPika==0.48.9
