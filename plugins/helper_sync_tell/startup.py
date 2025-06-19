@@ -44,8 +44,8 @@ def integrate_with_atlas():
         sys.path.insert(0, str(plugin_path))
         
         try:
-            plugin_module = importlib.import_module('plugin')
-            integration_module = importlib.import_module('integration')
+            import plugin as plugin_module
+            import integration as integration_module
         except ImportError as e:
             logger.error(f"Failed to import plugin modules: {e}")
             return False

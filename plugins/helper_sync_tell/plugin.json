@@ -5,8 +5,7 @@
     "author": "Atlas Team",
     "entry_point": "helper_sync_tell",
     "min_python_version": "3.8",
-    "dependencies": [
-        "chromadb"
-    ],
-    "platforms_supported": ["linux", "macos"]
+    "dependencies": [],
+    "platforms_supported": ["linux", "macos"],
+    "integration_script": "post_load_integration.py"
 }

@@ -10,7 +10,11 @@ import logging
 from typing import Dict, Any, Callable, Optional
 
 # Import the tool
-from .plugin import HelperSyncTellTool
+try:
+    from .plugin import HelperSyncTellTool
+except ImportError:
+    # Fall back to direct import
+    from plugin import HelperSyncTellTool
 
 class HelperModeIntegration:
     """

@@ -14,7 +14,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Import the plugin
 sys.path.insert(0, str(Path(__file__).parent))
-from plugin import HelperSyncTellTool
+try:
+    from plugin import HelperSyncTellTool
+except ImportError:
+    # Try alternative import method
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("plugin", Path(__file__).parent / "plugin.py")
+    plugin_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(plugin_module)
+    HelperSyncTellTool = plugin_module.HelperSyncTellTool
 
 class TestHelperSyncTell(unittest.TestCase):
     """Test cases for the Helper Sync Tell tool."""

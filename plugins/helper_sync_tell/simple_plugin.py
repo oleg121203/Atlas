@@ -1,8 +1,8 @@
 """
-Helper Sync Tell - Advanced Thinking Plugin
+Helper Sync Tell - Minimal Working Version
 
-This plugin enhances the Atlas helper system with structured multi-step thinking,
-allowing for more nuanced and comprehensive responses to complex queries.
+A simplified version of the Helper Sync Tell plugin that focuses on core
+functionality and should load without import issues.
 """
 
 import logging
@@ -11,17 +11,19 @@ import uuid
 from typing import List, Dict, Any, Optional, Callable
 import sys
 import json
+
+# Platform detection - simplified to avoid import issues
 import platform
 import os
 
-# Platform detection - simplified to avoid import issues
 IS_MACOS = platform.system().lower() == 'darwin'
 IS_LINUX = platform.system().lower() == 'linux'
 IS_HEADLESS = os.environ.get('DISPLAY') is None and IS_LINUX
 
-class HelperSyncTellTool:
+class SimpleHelperSyncTellTool:
     """
-    A tool that enhances the Atlas helper with structured multi-step thinking.
+    A simplified version of the Helper Sync Tell tool that enhances Atlas
+    helper responses through structured multi-step thinking.
     """
 
     def __init__(self, llm_manager=None, memory_manager=None):
@@ -49,6 +51,7 @@ class HelperSyncTellTool:
     def break_down_query(self, query: str) -> List[str]:
         """Break down a complex query into sub-questions."""
         if not self.llm_manager:
+            # Simple fallback - just return the original query
             return [query]
         
         try:
@@ -72,6 +75,7 @@ class HelperSyncTellTool:
                     if question:
                         sub_questions.append(question)
             
+            # Fallback to original query if no sub-questions found
             return sub_questions if sub_questions else [query]
             
         except Exception as e:
@@ -81,17 +85,17 @@ class HelperSyncTellTool:
     def analyze_sub_question(self, sub_question: str, available_tools: Dict[str, Callable]) -> str:
         """Analyze a sub-question using available tools."""
         try:
-            # Use available tools
+            # Try to use available tools
             tool_results = {}
             for tool_name, tool_fn in available_tools.items():
                 try:
                     result = tool_fn(sub_question)
                     if result:
-                        tool_results[tool_name] = str(result)[:500]
+                        tool_results[tool_name] = str(result)[:500]  # Limit result size
                 except Exception as e:
                     self.logger.debug(f"Tool {tool_name} failed: {e}")
             
-            # Use LLM to analyze
+            # Use LLM to analyze if available
             if self.llm_manager:
                 if tool_results:
                     analysis_prompt = f"""
@@ -105,10 +109,15 @@ class HelperSyncTellTool:
                     Provide a clear analysis based on these results.
                     """
                 else:
-                    analysis_prompt = f"Provide an analysis for this question: {sub_question}"
+                    analysis_prompt = f"""
+                    Provide an analysis for this question:
+                    
+                    Question: {sub_question}
+                    """
                 
                 return self.llm_manager.generate_text(analysis_prompt)
             else:
+                # Simple fallback
                 if tool_results:
                     return f"Analysis of '{sub_question}':\n" + "\n".join([f"- {tool}: {result}" for tool, result in tool_results.items()])
                 else:
@@ -121,6 +130,7 @@ class HelperSyncTellTool:
     def synthesize_response(self, original_query: str, analyses: List[str]) -> str:
         """Synthesize a comprehensive response from analyses."""
         if not self.llm_manager:
+            # Simple fallback
             return f"Analysis of your question:\n\n" + "\n\n".join(analyses)
         
         try:
@@ -151,16 +161,16 @@ class HelperSyncTellTool:
         self.logger.info(f"Processing query with structured thinking {thought_id}")
         
         try:
-            # Break down the query
+            # Step 1: Break down the query
             sub_questions = self.break_down_query(query)
             
-            # Analyze each sub-question
+            # Step 2: Analyze each sub-question
             analyses = []
             for sub_question in sub_questions:
                 analysis = self.analyze_sub_question(sub_question, available_tools)
                 analyses.append(analysis)
             
-            # Synthesize response
+            # Step 3: Synthesize response
             final_response = self.synthesize_response(query, analyses)
             
             self.logger.info(f"Completed structured thinking process {thought_id}")
@@ -170,12 +180,11 @@ class HelperSyncTellTool:
             self.logger.error(f"Error in structured thinking process: {e}")
             return f"I apologize, but I encountered an error while processing your question: {query}"
 
-
 def register(llm_manager=None):
-    """Register the Helper Sync Tell tool."""
+    """Register the simplified Helper Sync Tell tool."""
     try:
         # Create the tool
-        tool = HelperSyncTellTool(llm_manager=llm_manager)
+        tool = SimpleHelperSyncTellTool(llm_manager=llm_manager)
         
         logging.info("Helper Sync Tell tool registered successfully")
         
