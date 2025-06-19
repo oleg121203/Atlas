@@ -6,12 +6,25 @@ Entry point for the application. Initializes the CustomTkinter GUI and
 loads configuration.
 """
 
+import sys
+import os
+import platform
+
 # Load environment variables first
 try:
     from dotenv import load_dotenv
     load_dotenv()  # Load .env file variables
 except ImportError:
     pass  # dotenv is optional
+
+# Import platform utilities
+from utils.platform_utils import (
+    IS_MACOS, IS_LINUX, IS_WINDOWS, IS_HEADLESS, 
+    get_platform_info, configure_for_platform
+)
+
+# Configure for current platform
+configure_for_platform()
 
 import customtkinter as ctk
 from PIL import Image
@@ -58,6 +71,15 @@ from agents.chat_translation_manager import ChatTranslationManager
 from agents.task_manager import TaskManager, TaskPriority, TaskStatus
 from plugin_manager import PluginManager
 
+# Platform-specific imports
+if IS_MACOS:
+    from utils.macos_utils import (
+        configure_macos_gui, 
+        check_macos_permissions,
+        setup_macos_dock_icon,
+        get_macos_app_support_dir
+    )
+
 
 class AtlasApp(ctk.CTk):
     """Primary CustomTkinter application window."""
@@ -67,6 +89,17 @@ class AtlasApp(ctk.CTk):
         self.logger = get_logger()
         self.title("Atlas – Autonomous Computer Agent")
         self.geometry("1200x800")
+
+        # Platform-specific setup
+        if IS_MACOS:
+            configure_macos_gui()
+            # Set up dock icon if available
+            icon_path = setup_macos_dock_icon()
+            if icon_path:
+                try:
+                    self.iconbitmap(icon_path)
+                except Exception as e:
+                    self.logger.debug(f"Could not set icon: {e}")
 
         self._setup_theme()
 
@@ -2588,7 +2621,18 @@ def main():
     parser = argparse.ArgumentParser(description="Atlas - Autonomous Computer Agent")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument("--config", help="Path to configuration file")
+    parser.add_argument("--cli", action="store_true", help="Run in CLI mode (no GUI)")
+    parser.add_argument("--headless", action="store_true", help="Run in headless mode")
+    parser.add_argument("--platform-info", action="store_true", help="Show platform information and exit")
     args = parser.parse_args()
+    
+    # Show platform info if requested
+    if args.platform_info:
+        platform_info = get_platform_info()
+        print("Atlas Platform Information:")
+        for key, value in platform_info.items():
+            print(f"  {key}: {value}")
+        sys.exit(0)
     
     # Set up logging level
     if args.debug:
@@ -2596,9 +2640,36 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
     
+    # Force headless mode if requested or detected
+    force_headless = args.headless or args.cli or IS_HEADLESS
+    
     try:
-        # Create and run the application
-        app = AtlasApp()
+        if force_headless or args.cli:
+            print("Starting Atlas in CLI mode...")
+            print("Platform:", "macOS" if IS_MACOS else "Linux" if IS_LINUX else "Windows" if IS_WINDOWS else "Unknown")
+            print("Note: GUI mode is available on macOS and systems with display")
+            # TODO: Implement CLI interface
+            print("CLI mode not yet implemented. Use GUI mode instead.")
+            sys.exit(1)
+        else:
+            # Platform-specific setup
+            if IS_MACOS:
+                check_macos_permissions()
+            
+            # Create and run the GUI application
+            print(f"Starting Atlas GUI on {platform.system()}...")
+            app = AtlasApp()
+            app.mainloop()
+            
+    except KeyboardInterrupt:
+        print("\nAtlas shutdown requested by user")
+        sys.exit(0)
+    except Exception as e:
+        print(f"Error starting Atlas: {e}")
+        if args.debug:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
         app.mainloop()
     except KeyboardInterrupt:
         print("\nAtlas shutdown requested by user.")
