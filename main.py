@@ -32,7 +32,7 @@ from tools.code_reader_tool import CodeReaderTool
 from config_manager import ConfigManager
 from logger import get_logger
 from logger import add_handler, get_logger
-from gui_logger import GuiLogger
+from utils.gui_logger import GuiLogger
 from agents.agent_manager import AgentManager
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
