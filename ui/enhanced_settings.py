@@ -815,58 +815,118 @@ class EnhancedSettingsView(ctk.CTkFrame):
     
     def save_settings(self):
         """Save current settings."""
-        if self.config_manager:
-            # Use the passed config_manager instance
-            config_manager = self.config_manager
-            
-            # Collect all settings
-            settings = {}
-            
-            for key, var in self.settings_vars.items():
-                if isinstance(var, tk.BooleanVar):
-                    settings[key] = var.get()
-                else:
-                    value = var.get()
-                    # Try to convert numeric values
-                    if key in ['max_concurrent_ops', 'memory_limit', 'max_tokens', 'daily_token_limit']:
-                        try:
-                            settings[key] = int(value)
-                        except ValueError:
-                            settings[key] = value
-                    elif key in ['temperature']:
-                        try:
-                            settings[key] = float(value)
-                        except ValueError:
-                            settings[key] = value
+        try:
+            if self.config_manager:
+                # Use the passed config_manager instance
+                config_manager = self.config_manager
+                
+                # Collect all settings
+                settings = {}
+                
+                for key, var in self.settings_vars.items():
+                    if isinstance(var, tk.BooleanVar):
+                        settings[key] = var.get()
                     else:
-                        settings[key] = value
-            
-            # Special handling for LLM settings
-            if 'current_provider' in settings and 'current_model' in settings:
-                config_manager.set_llm_provider_and_model(
-                    settings['current_provider'], 
-                    settings['current_model']
-                )
-            
-            # Save API keys
-            for provider in ['openai', 'gemini', 'groq', 'mistral']:
-                key_name = f'{provider}_api_key'
-                if key_name in settings and settings[key_name]:
-                    config_manager.set_llm_api_key(provider, settings[key_name])
-            
-            # Save other LLM settings
-            for key in ['ollama_url', 'temperature', 'max_tokens']:
-                if key in settings:
-                    config_manager.set_setting(key, settings[key])
-            
-            # Save restricted directories
-            if hasattr(self, 'restricted_dirs_text'):
-                restricted_text = self.restricted_dirs_text.get(1.0, tk.END).strip()
-                settings['restricted_directories'] = [d.strip() for d in restricted_text.split('\n') if d.strip()]
-                config_manager.set_setting('restricted_directories', settings['restricted_directories'])
-            
-            # Save plugin settings
-            plugin_settings = {}
+                        value = var.get()
+                        # Try to convert numeric values
+                        if key in ['max_concurrent_ops', 'memory_limit', 'max_tokens', 'daily_token_limit']:
+                            try:
+                                settings[key] = int(value)
+                            except ValueError:
+                                settings[key] = value
+                        elif key in ['temperature']:
+                            try:
+                                settings[key] = float(value)
+                            except ValueError:
+                                settings[key] = value
+                        else:
+                            settings[key] = value
+                
+                # Special handling for LLM settings with better error handling
+                success = True
+                if 'current_provider' in settings and 'current_model' in settings:
+                    try:
+                        if hasattr(config_manager, 'set_llm_provider_and_model'):
+                            config_manager.set_llm_provider_and_model(
+                                settings['current_provider'], 
+                                settings['current_model']
+                            )
+                        else:
+                            print("⚠️ Method set_llm_provider_and_model not found, using fallback")
+                            success = False
+                    except Exception as e:
+                        print(f"❌ Error setting LLM provider/model: {e}")
+                        success = False
+                
+                # Save API keys with better error handling
+                for provider in ['openai', 'gemini', 'groq', 'mistral']:
+                    key_name = f'{provider}_api_key'
+                    if key_name in settings and settings[key_name]:
+                        try:
+                            if hasattr(config_manager, 'set_llm_api_key'):
+                                config_manager.set_llm_api_key(provider, settings[key_name])
+                            else:
+                                print(f"⚠️ Method set_llm_api_key not found for {provider}")
+                                success = False
+                        except Exception as e:
+                            print(f"❌ Error setting {provider} API key: {e}")
+                            success = False
+                
+                # Save other LLM settings
+                for key in ['ollama_url', 'temperature', 'max_tokens']:
+                    if key in settings:
+                        try:
+                            config_manager.set_setting(key, settings[key])
+                        except Exception as e:
+                            print(f"❌ Error setting {key}: {e}")
+                
+                # Save restricted directories
+                if hasattr(self, 'restricted_dirs_text'):
+                    try:
+                        restricted_text = self.restricted_dirs_text.get(1.0, tk.END).strip()
+                        settings['restricted_directories'] = [d.strip() for d in restricted_text.split('\n') if d.strip()]
+                        config_manager.set_setting('restricted_directories', settings['restricted_directories'])
+                    except Exception as e:
+                        print(f"❌ Error saving restricted directories: {e}")
+                
+                # Save plugin settings
+                try:
+                    plugin_settings = {}
+                    for plugin_id, var in self.plugin_vars.items():
+                        plugin_settings[plugin_id] = var.get()
+                    settings['plugin_enabled_states'] = plugin_settings
+                    config_manager.set_setting('plugin_enabled_states', plugin_settings)
+                except Exception as e:
+                    print(f"❌ Error saving plugin settings: {e}")
+                
+                # Apply settings to legacy config manager if exists
+                try:
+                    if hasattr(self.config_manager, 'load'):
+                        current_config = self.config_manager.load()
+                        current_config.update(settings)
+                        self.config_manager.save(current_config)
+                except Exception as e:
+                    print(f"❌ Error updating legacy config: {e}")
+                
+                # Call save callback if provided
+                if self.save_callback:
+                    try:
+                        self.save_callback(settings)
+                    except Exception as e:
+                        print(f"❌ Error in save callback: {e}")
+                
+                # Show success message
+                if success:
+                    messagebox.showinfo("Успіх", "✅ Налаштування збережено успішно!")
+                    print("✅ Settings saved successfully!")
+                else:
+                    messagebox.showwarning("Попередження", "⚠️ Налаштування збережено з деякими помилками")
+                    print("⚠️ Settings saved with some errors")
+                    
+        except Exception as e:
+            error_msg = f"❌ Помилка збереження налаштувань: {str(e)}"
+            messagebox.showerror("Помилка", error_msg)
+            print(f"❌ Error saving settings: {e}")
             for plugin_id, var in self.plugin_vars.items():
                 plugin_settings[plugin_id] = var.get()
             settings['plugin_enabled_states'] = plugin_settings

@@ -37,8 +37,16 @@ class ConfigManager:
     def _create_default_config(self):
         """Creates a default config object for when the file is missing."""
         self.config['OpenAI'] = {
-            'API_KEY': 'YOUR_API_KEY_HERE',
+            'API_KEY': 'YOUR_OPENAI_API_KEY_HERE',
             'MODEL_NAME': 'gpt-4-turbo'
+        }
+        self.config['Gemini'] = {
+            'API_KEY': 'YOUR_GEMINI_API_KEY_HERE',
+            'MODEL_NAME': 'gemini-1.5-flash'
+        }
+        self.config['LLM'] = {
+            'provider': 'gemini',
+            'model': 'gemini-1.5-flash'
         }
         self.config['App'] = {
             'DEFAULT_GOAL': 'Analyze the current screen and suggest the next action.'
@@ -171,6 +179,70 @@ class ConfigManager:
         yaml_key = self.yaml_config.get('anthropic_api_key', '')
         env_key = os.getenv('ANTHROPIC_API_KEY', '')
         return yaml_key or env_key
+
+    def set_llm_provider_and_model(self, provider: str, model: str):
+        """Set LLM provider and model in configuration."""
+        try:
+            # Update INI config
+            if not self.config.has_section('LLM'):
+                self.config.add_section('LLM')
+            
+            if provider:
+                self.config.set('LLM', 'provider', provider)
+                self.logger.info(f"Set LLM provider to: {provider}")
+            
+            if model:
+                self.config.set('LLM', 'model', model)
+                self.logger.info(f"Set LLM model to: {model}")
+            
+            # Save INI config
+            try:
+                with open(self.config_file, 'w') as configfile:
+                    self.config.write(configfile)
+                self.logger.info(f"Saved LLM settings to {self.config_file}")
+            except Exception as e:
+                self.logger.error(f"Failed to save INI config: {e}")
+            
+            # Also update YAML config
+            if provider:
+                self.set_setting('current_provider', provider)
+            if model:
+                self.set_setting('current_model', model)
+                
+            self.logger.info(f"✅ LLM configuration updated: provider={provider}, model={model}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"❌ Error setting LLM provider/model: {e}")
+            return False
+
+    def set_llm_api_key(self, provider: str, api_key: str):
+        """Set API key for specific LLM provider in INI config."""
+        try:
+            section_name = provider.title()  # 'gemini' -> 'Gemini'
+            
+            if not self.config.has_section(section_name):
+                self.config.add_section(section_name)
+            
+            self.config.set(section_name, 'api_key', api_key)
+            
+            # Save INI config
+            try:
+                with open(self.config_file, 'w') as configfile:
+                    self.config.write(configfile)
+                self.logger.info(f"Saved {provider} API key to {self.config_file}")
+            except Exception as e:
+                self.logger.error(f"Failed to save INI config: {e}")
+            
+            # Also save to YAML config
+            self.set_setting(f'{provider.lower()}_api_key', api_key)
+            
+            self.logger.info(f"✅ Set {provider} API key")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"❌ Error setting {provider} API key: {e}")
+            return False
 
 # Global instance
 config_manager = ConfigManager()

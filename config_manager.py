@@ -139,6 +139,52 @@ class ConfigManager:
         config[key] = value
         self.save(config)
 
+    def set_llm_provider_and_model(self, provider: str, model: str):
+        """Set LLM provider and model in configuration."""
+        try:
+            config = self.load()
+            
+            if provider:
+                config['current_provider'] = provider
+                logger.info(f"Set LLM provider to: {provider}")
+            
+            if model:
+                config['current_model'] = model
+                logger.info(f"Set LLM model to: {model}")
+            
+            # Save to disk
+            self.save(config)
+            logger.info(f"✅ LLM configuration updated: provider={provider}, model={model}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Error setting LLM provider/model: {e}")
+            return False
+
+    def set_llm_api_key(self, provider: str, api_key: str):
+        """Set API key for specific LLM provider."""
+        try:
+            config = self.load()
+            
+            # Initialize api_keys section if it doesn't exist
+            if 'api_keys' not in config:
+                config['api_keys'] = {}
+            
+            # Set the API key
+            config['api_keys'][provider.lower()] = api_key
+            
+            # Also set in the direct key format for backwards compatibility
+            config[f'{provider.lower()}_api_key'] = api_key
+            
+            # Save to disk
+            self.save(config)
+            logger.info(f"✅ Set {provider} API key")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Error setting {provider} API key: {e}")
+            return False
+
     def _create_default(self) -> None:
         """Write default configuration scaffold."""
         default_cfg = {

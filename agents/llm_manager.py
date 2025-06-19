@@ -36,6 +36,12 @@ class LLMManager:
         self.current_provider = "openai"  # Default provider
         self.current_model = "gpt-3.5-turbo"  # Default model
         
+        # Add missing model attributes
+        self.gemini_model = "gemini-1.5-flash"
+        self.openai_model = "gpt-4-turbo"
+        self.anthropic_model = "claude-3-sonnet-20240229"
+        self.groq_model = "llama3-8b-8192"
+        
         self._initialize_clients()
 
     def _initialize_clients(self):
@@ -235,6 +241,18 @@ class LLMManager:
             raise ValueError("Gemini client not initialized. Please set your API key in config.")
 
         try:
+            # Fix: Ensure we use valid Gemini models only
+            if model and model.startswith('gpt'):
+                # If someone tries to use GPT model with Gemini, use default Gemini model
+                original_model = model
+                model = self.gemini_model or 'gemini-1.5-flash'
+                self.logger.warning(f"⚠️  Switching from GPT model '{original_model}' to Gemini model: {model}")
+            
+            # Ensure we have a valid Gemini model
+            if not model or not model.startswith('gemini'):
+                model = 'gemini-1.5-flash'
+                self.logger.info(f"Using default Gemini model: {model}")
+
             # Convert OpenAI format messages to Gemini format
             if len(messages) == 1 and messages[0]["role"] == "user":
                 prompt = messages[0]["content"]
