@@ -900,6 +900,51 @@ class CodeReaderTool:
             elif element.type == 'class':
                 complexity += 2
         return complexity
+    
+    def _get_file_icon(self, file_path: Path) -> str:
+        """Get appropriate icon for file type"""
+        if file_path.is_dir():
+            return "📁"
+        
+        suffix = file_path.suffix.lower()
+        icon_map = {
+            '.py': '🐍',
+            '.md': '📝',
+            '.txt': '📄',
+            '.json': '🔧',
+            '.yaml': '⚙️',
+            '.yml': '⚙️',
+            '.toml': '⚙️',
+            '.ini': '⚙️',
+            '.sh': '💻',
+            '.bat': '💻',
+            '.log': '📋',
+            '.png': '🖼️',
+            '.jpg': '🖼️',
+            '.jpeg': '🖼️',
+            '.gif': '🖼️',
+            '.ico': '🖼️',
+            '.icns': '🖼️'
+        }
+        return icon_map.get(suffix, '📄')
+    
+    def _get_language_hint(self, file_path: Path) -> str:
+        """Get syntax highlighting hint for file type"""
+        suffix = file_path.suffix.lower()
+        lang_map = {
+            '.py': 'python',
+            '.md': 'markdown',
+            '.txt': 'text',
+            '.json': 'json',
+            '.yaml': 'yaml',
+            '.yml': 'yaml',
+            '.toml': 'toml',
+            '.ini': 'ini',
+            '.sh': 'bash',
+            '.bat': 'batch',
+            '.log': 'text'
+        }
+        return lang_map.get(suffix, 'text')
 
 
 class ASTAnalyzer(ast.NodeVisitor):
