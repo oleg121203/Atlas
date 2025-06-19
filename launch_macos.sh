@@ -67,6 +67,24 @@ if [ ! -f "$SCRIPT_DIR/config-macos.ini" ]; then
     fi
 fi
 
+# Check configuration
+echo ""
+echo "🔧 Checking Atlas configuration..."
+if [ ! -f "config.ini" ]; then
+    echo "❌ config.ini not found"
+    echo "📋 Running configuration setup..."
+    ./setup_config_macos.sh
+    echo ""
+    echo "⚠️ Please edit config.ini with your API keys before continuing"
+    echo "Quick edit: nano config.ini"
+    read -p "Press Enter when ready to continue..."
+elif grep -q "YOUR_API_KEY_HERE" config.ini; then
+    echo "⚠️ Default API keys detected in config.ini"
+    echo "Consider running: ./setup_config_macos.sh"
+else
+    echo "✅ Configuration file looks good"
+fi
+
 # Display platform info
 echo "🔍 Platform Information:"
 $PYTHON_CMD -c "
