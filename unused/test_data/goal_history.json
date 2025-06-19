@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "goal": "Integration test goal",
+    "timestamp": "2025-06-18T06:11:25.585870",
+    "status": "Completed",
+    "execution_time": null,
+    "steps_completed": null,
+    "total_steps": null,
+    "error_message": null,
+    "metadata": {}
+  }
+]

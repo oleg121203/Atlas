@@ -1,0 +1,11 @@
+{
+    "name": "Web Browsing",
+    "version": "1.0.0",
+    "description": "Web browsing and automation tools",
+    "author": "Atlas Team",
+    "entry_point": "plugin.py",
+    "tools": [],
+    "agents": [],
+    "dependencies": [],
+    "enabled": false
+}
