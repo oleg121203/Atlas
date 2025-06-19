@@ -1,0 +1,12 @@
+{
+    "name": "Helper Sync Tell",
+    "version": "1.0.0",
+    "description": "An advanced thinking tool for the Atlas helper that improves response quality through multi-step analysis and synthesis.",
+    "author": "Atlas Team",
+    "entry_point": "helper_sync_tell",
+    "min_python_version": "3.8",
+    "dependencies": [
+        "chromadb"
+    ],
+    "platforms_supported": ["linux", "macos"]
+}
