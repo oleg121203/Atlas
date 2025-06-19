@@ -62,21 +62,29 @@ class LLMManager:
             self.logger.warning("OpenAI API key not found in config. OpenAI client is not available.")
             return
         
-        # Додаткова перевірка на тестові ключі
+        # Check for placeholder/invalid keys
+        placeholder_indicators = [
+            "your-openai-key-here", "your_openai_api_key_here", "placeholder",
+            "# openai key not configured", "not configured", "sk-placeholder"
+        ]
+        
         if (api_key.startswith("test_") or 
             api_key.startswith("sk-test") or 
+            api_key.startswith("#") or
+            any(indicator in api_key.lower() for indicator in placeholder_indicators) or
             api_key in ["111", "test", "demo", "example"] or
-            len(api_key) < 10):
-            self.logger.warning("Test OpenAI API key detected. OpenAI client is not available.")
+            len(api_key) < 20):  # Real OpenAI keys are much longer
+            self.logger.info("OpenAI API key is a placeholder. OpenAI client is not available (this is OK if using Gemini).")
             return
             
         try:
             self.openai_client = OpenAI(api_key=api_key)
+            # Test the connection with a simple API call
             self.openai_client.models.list()
             self.logger.info("OpenAI API key is valid and client is initialized.")
-        except APIError as e:
+        except Exception as e:
             self.openai_client = None
-            self.logger.error(f"Failed to initialize OpenAI client: {e}")
+            self.logger.warning(f"Failed to initialize OpenAI client: {e}. This is OK if using Gemini as default.")
             
     def _initialize_gemini(self):
         """Initializes the Gemini client using the API key from the config."""
@@ -147,6 +155,40 @@ class LLMManager:
         
         return providers
 
+    def _validate_provider_model(self, provider: str, model: str) -> tuple[str, str]:
+        """Validate and fix provider/model combinations to ensure compatibility."""
+        provider = provider.lower()
+        
+        # Get available providers and their models
+        available_providers = self.get_available_providers()
+        
+        # If the provider is not available, fallback to an available one
+        if provider not in available_providers:
+            if "gemini" in available_providers:
+                self.logger.warning(f"Provider '{provider}' not available, falling back to Gemini")
+                provider = "gemini"
+                model = "gemini-1.5-flash"
+            elif "ollama" in available_providers:
+                self.logger.warning(f"Provider '{provider}' not available, falling back to Ollama")
+                provider = "ollama"
+                model = "llama3.1"
+            else:
+                raise ValueError(f"No LLM providers are available. Please configure at least one API key.")
+        
+        # Validate model for the selected provider
+        if provider in available_providers:
+            available_models = available_providers[provider]
+            if model not in available_models:
+                # Use the first available model for this provider
+                fallback_model = available_models[0] if available_models else None
+                if fallback_model:
+                    self.logger.warning(f"Model '{model}' not available for {provider}, using '{fallback_model}'")
+                    model = fallback_model
+                else:
+                    raise ValueError(f"No models available for provider '{provider}'")
+        
+        return provider, model
+
     def chat(
         self,
         messages: list[dict],
@@ -170,6 +212,13 @@ class LLMManager:
         use_provider = provider or self.current_provider
         use_model = model or self.current_model
         
+        # Validate and fix provider/model combination
+        try:
+            use_provider, use_model = self._validate_provider_model(use_provider, use_model)
+        except ValueError as e:
+            self.logger.error(f"Provider/model validation failed: {e}")
+            raise
+
         # Route to appropriate provider
         if use_provider == "openai":
             return self._chat_openai(messages, tools, use_model)
@@ -189,7 +238,7 @@ class LLMManager:
         """Handle OpenAI chat requests."""
         if not self.openai_client:
             self.logger.error("OpenAI client not initialized. Cannot make chat request.")
-            raise APIError("OpenAI client not initialized. Please set your API key in config.", response=None, body=None)
+            raise ValueError("OpenAI client not initialized. Please set your API key in config.")
 
         try:
             kwargs = {
@@ -437,7 +486,7 @@ class LLMManager:
         """Generates an embedding for the given text using OpenAI."""
         if not self.openai_client:
             self.logger.error("OpenAI client not initialized. Cannot get embedding.")
-            raise APIError("OpenAI client not initialized.", response=None, body=None)
+            raise ValueError("OpenAI client not initialized.")
         try:
             text = text.replace("\n", " ")
             response = self.openai_client.embeddings.create(
