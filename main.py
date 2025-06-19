@@ -1953,12 +1953,27 @@ The current mode will be shown above. How can I help you today?"""
                     
                     # Execute the goal
                     def execute_goal():
-                        self.master_agent.set_goals([processed_message])
-                        result = self.master_agent.execute()
-                        if result and result.response_text:
-                            response = f"✅ Goal completed! Result: {result.response_text}"
-                        else:
-                            response = "❌ Goal execution failed or returned no result."
+                        # Use the correct method to run goals
+                        try:
+                            # Set up the goal execution
+                            self.master_agent.run(
+                                goal=processed_message,
+                                master_prompt="Chat goal execution",
+                                options={"cyclic": False}
+                            )
+                            
+                            # Wait for completion
+                            if self.master_agent.thread:
+                                self.master_agent.thread.join(timeout=30)  # 30 second timeout
+                            
+                            # Check if goal was completed successfully
+                            if self.master_agent.last_plan:
+                                response = f"✅ Goal completed! I successfully executed: {processed_message}"
+                            else:
+                                response = "❌ Goal execution failed or returned no result."
+                            
+                        except Exception as e:
+                            response = f"❌ Error during goal execution: {str(e)}"
                         
                         # Translate response if needed
                         final_response = self.chat_translation_manager.process_outgoing_response(response)

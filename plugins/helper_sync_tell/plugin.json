@@ -1,11 +1,28 @@
 {
-    "name": "Helper Sync Tell",
-    "version": "1.0.0",
-    "description": "An advanced thinking tool for the Atlas helper that improves response quality through multi-step analysis and synthesis.",
+    "name": "Helper Sync Tell Enhanced",
+    "version": "2.0.0",
+    "description": "An advanced thinking tool for the Atlas helper that improves response quality through multi-step analysis, synthesis, and comprehensive tool integration.",
     "author": "Atlas Team",
+    "main": "plugin.py",
     "entry_point": "helper_sync_tell",
     "min_python_version": "3.8",
+    "max_python_version": "3.13",
     "dependencies": [],
     "platforms_supported": ["linux", "macos"],
-    "integration_script": "post_load_integration.py"
+    "features": [
+        "multi_step_thinking",
+        "tool_integration",
+        "memory_storage",
+        "performance_tracking",
+        "cross_platform_compatibility",
+        "error_resilience",
+        "response_refinement"
+    ],
+    "integration_hooks": ["helper_mode", "post_load"],
+    "configuration": {
+        "max_sub_questions": 5,
+        "enable_memory_storage": true,
+        "enable_tool_integration": true,
+        "response_refinement": true
+    }
 }
