@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
+import time
 
 from .enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 
@@ -327,7 +328,29 @@ class ChatContextManager:
             'last_auto_mode': self.last_auto_detected_mode.value if self.last_auto_detected_mode else None,
             'development_features': self.development_mode_features if self.manual_override_mode == ChatMode.DEVELOPMENT else None
         }
-    
+
+    def update_conversation_history(self, message: str, response: str, context: 'ChatContext'):
+        """
+        Update the conversation history.
+
+        This is a placeholder implementation. In a real scenario, this would
+        interact with a more sophisticated memory or logging system.
+        """
+        # This is a simplified implementation. A more robust solution would involve
+        # a dedicated memory manager, as hinted at in the class's docstrings.
+        history_entry = {
+            "timestamp": time.time(),
+            "message": message,
+            "response": response,
+            "mode": context.mode.value,
+            "confidence": context.confidence
+        }
+        self.conversation_history.append(history_entry)
+        
+        # Optional: Limit history size
+        if len(self.conversation_history) > 100: # Keep last 100 exchanges
+            self.conversation_history.pop(0)
+
     def analyze_message_with_mode_control(self, message: str, system_info: Dict = None) -> ChatContext:
         """Analyze message respecting mode control settings."""
         if not self.auto_mode_enabled and self.manual_override_mode:
