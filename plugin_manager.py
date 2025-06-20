@@ -25,7 +25,7 @@ class PluginManager:
         self.plugins: Dict[str, Dict[str, Any]] = {}
         self.logger = get_logger()
 
-    def discover_plugins(self, llm_manager: LLMManager):
+    def discover_plugins(self, llm_manager: LLMManager, atlas_app=None):
         """Finds and loads all valid plugins and their tools."""
         self.logger.info(f"Discovering plugins in '{self.plugin_dir}'...")
         for plugin_path in self.plugin_dir.iterdir():
@@ -62,10 +62,28 @@ class PluginManager:
                 if hasattr(module, "register") and callable(module.register):
                     try:
                         sig = inspect.signature(module.register)
+                        # Enhanced parameter detection for better plugin integration
+                        param_names = list(sig.parameters.keys())
+                        
+                        # Prepare arguments based on plugin requirements
+                        call_args = {}
+                        if 'llm_manager' in param_names:
+                            call_args['llm_manager'] = llm_manager
+                        if 'atlas_app' in param_names:
+                            call_args['atlas_app'] = atlas_app
+                        if 'agent_manager' in param_names:
+                            call_args['agent_manager'] = self.agent_manager
+                        
+                        # Call with appropriate arguments
                         if len(sig.parameters) > 0:
-                            registration_data = module.register(llm_manager)
+                            if call_args:
+                                registration_data = module.register(**call_args)
+                            else:
+                                # Fallback to positional arguments for backward compatibility
+                                registration_data = module.register(llm_manager)
                         else:
                             registration_data = module.register()
+                            
                     except Exception as e:
                         self.logger.error(f"Error calling register() for plugin '{plugin_name}': {e}")
                         continue

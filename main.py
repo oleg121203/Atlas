@@ -148,7 +148,7 @@ class AtlasApp(ctk.CTk):
         )
 
         # Discover plugins after all managers are ready
-        self.plugin_manager.discover_plugins(self.llm_manager)
+        self.plugin_manager.discover_plugins(self.llm_manager, atlas_app=self)
         self._log_loaded_plugins()
         
         # Initialize enhanced agents

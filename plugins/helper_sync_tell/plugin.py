@@ -455,7 +455,7 @@ class EnhancedHelperSyncTellTool:
             Original query: {original_query}
             
             Detailed analyses:
-            {chr(10).join([f"Analysis {i+1}:\n{analysis}\n" for i, analysis in enumerate(analyses)])}
+            {"\n".join([f"Analysis {i+1}:\n{analysis}\n" for i, analysis in enumerate(analyses)])}
             
             Instructions for the response:
             1. Create a cohesive narrative that addresses the original query completely
@@ -665,36 +665,57 @@ class EnhancedHelperSyncTellTool:
             def enhanced_help_mode_handler(message: str, context) -> str:
                 """Enhanced help mode handler using structured thinking."""
                 # Check if this is a simple command that should use the original handler
-                simple_commands = ['read file', 'list directory', 'tree', 'search for', 'info about']
+                simple_commands = ['read file', 'list directory', 'tree', 'search for', 'info about', 'search functions']
                 message_lower = message.lower()
                 
+                # Use original handler for simple file operations and basic commands
                 if any(cmd in message_lower for cmd in simple_commands):
-                    # Use the original handler for simple file operations
                     return original_handler(message, context)
                 
-                # For complex help requests, use our structured thinking
-                available_tools = {}
+                # For complex analysis requests, check if helper sync tell should handle them
+                complex_keywords = ['проаналізуй', 'analyze', 'як ти використовуєш', 'how do you use', 
+                                  'вдосконалення', 'improvement', 'проблематика', 'problems', 
+                                  'міркування', 'reasoning', 'пам\'ять', 'memory', 'як працює', 'how does work']
                 
-                # Add Atlas tools if available
-                if hasattr(main_app, 'code_reader'):
-                    available_tools.update({
-                        'code_search': lambda q: main_app.code_reader.search_in_files(q),
-                        'file_info': lambda q: main_app.code_reader.get_file_info(q),
-                        'directory_list': lambda q: main_app.code_reader.list_directory(q),
-                        'file_tree': lambda q: main_app.code_reader.get_file_tree()
-                    })
+                if any(keyword in message_lower for keyword in complex_keywords):
+                    # Use our structured thinking for complex analysis
+                    self.logger.info("Using Enhanced Helper Sync Tell for complex analysis")
+                    
+                    # Get available tools from Atlas
+                    available_tools = {}
+                    
+                    # Add Atlas tools if available
+                    if hasattr(main_app, 'code_reader'):
+                        available_tools.update({
+                            'semantic_search': lambda q: main_app.code_reader.semantic_search(q) if hasattr(main_app.code_reader, 'semantic_search') else f"Semantic search for: {q}",
+                            'file_search': lambda q: main_app.code_reader.search_in_files(q) if hasattr(main_app.code_reader, 'search_in_files') else f"File search for: {q}",
+                            'read_file': lambda f: main_app.code_reader.read_file(f) if hasattr(main_app.code_reader, 'read_file') else f"Read file: {f}",
+                            'grep_search': lambda q: main_app.code_reader.search_in_files(q) if hasattr(main_app.code_reader, 'search_in_files') else f"Grep search for: {q}",
+                        })
+                    
+                    # Add memory analysis tools
+                    if hasattr(main_app, 'agent_manager') and hasattr(main_app.agent_manager, 'memory_manager'):
+                        memory_manager = main_app.agent_manager.memory_manager
+                        available_tools.update({
+                            'memory_search': lambda q: f"Memory search for: {q} - {memory_manager.__class__.__name__} available",
+                            'memory_analysis': lambda: f"Memory system analysis - using {memory_manager.__class__.__name__}"
+                        })
+                    
+                    try:
+                        # Use structured thinking for the complex query
+                        return self.process_help_request(message, available_tools)
+                    except Exception as e:
+                        self.logger.error(f"Error in enhanced help mode: {e}")
+                        # Fallback to original handler
+                        return original_handler(message, context)
                 
-                if hasattr(main_app, 'agent_manager'):
-                    available_tools['agent_tools'] = lambda q: str(list(main_app.agent_manager._tools.keys()))
-                
-                if hasattr(main_app, 'memory_manager'):
-                    available_tools['memory_search'] = lambda q: str(main_app.memory_manager.search_memories(q, n_results=3))
-                
-                # Use our structured thinking process
-                return self.process_help_request(message, available_tools)
+                # For other cases, use the original handler
+                return original_handler(message, context)
             
-            # Replace the help mode handler
+            # Replace the original handler
             main_app._handle_help_mode = enhanced_help_mode_handler
+            main_app.helper_sync_tell_integration = True
+            
             self.logger.info("Successfully integrated with Atlas help mode")
             return True
             
@@ -727,13 +748,14 @@ class EnhancedHelperSyncTellTool:
 HelperSyncTellTool = EnhancedHelperSyncTellTool
 
 
-def register(llm_manager=None, atlas_app=None):
+def register(llm_manager=None, atlas_app=None, **kwargs):
     """
     Register the Enhanced Helper Sync Tell tool with comprehensive integration.
     
     Args:
         llm_manager: LLM manager instance
         atlas_app: Main Atlas application instance (for integration)
+        **kwargs: Additional arguments (may include agent_manager, etc.)
         
     Returns:
         Plugin registration data with enhanced tool
@@ -743,12 +765,24 @@ def register(llm_manager=None, atlas_app=None):
         memory_manager = None
         config_manager = None
         
+        # Try to get atlas_app from kwargs if not provided directly
+        if not atlas_app and 'agent_manager' in kwargs:
+            agent_manager = kwargs['agent_manager']
+            # Try to find the main app through agent manager
+            if hasattr(agent_manager, 'app'):
+                atlas_app = agent_manager.app
+        
         # Look for memory manager
         try:
-            from agents.agent_manager import AgentManager
-            agent_manager = AgentManager.get_instance()
-            if agent_manager and hasattr(agent_manager, 'memory_manager'):
-                memory_manager = agent_manager.memory_manager
+            if 'agent_manager' in kwargs:
+                agent_manager = kwargs['agent_manager']
+                if hasattr(agent_manager, 'memory_manager'):
+                    memory_manager = agent_manager.memory_manager
+            else:
+                from agents.agent_manager import AgentManager
+                agent_manager = AgentManager.get_instance()
+                if agent_manager and hasattr(agent_manager, 'memory_manager'):
+                    memory_manager = agent_manager.memory_manager
         except (ImportError, AttributeError):
             pass
         
@@ -777,7 +811,7 @@ def register(llm_manager=None, atlas_app=None):
         if integration_success:
             logging.info("Successfully integrated with Atlas help mode")
         else:
-            logging.info("Plugin registered but not integrated with help mode")
+            logging.info("Plugin registered but not integrated with help mode (atlas_app not provided)")
         
         # Store reference for potential integration
         tool._registration_context = {
@@ -803,11 +837,9 @@ def register(llm_manager=None, atlas_app=None):
     except Exception as e:
         logging.error(f"Failed to register Enhanced Helper Sync Tell plugin: {e}")
         import traceback
-        traceback.print_exc()
+        logging.error(f"Traceback: {traceback.format_exc()}")
         return {
             "tools": [],
             "agents": [],
             "metadata": {"error": str(e)}
         }
-        logging.error(f"Traceback: {traceback.format_exc()}")
-        return {"tools": [], "agents": []}

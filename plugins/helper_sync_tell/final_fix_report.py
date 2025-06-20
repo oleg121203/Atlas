@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-Фінальний звіт про виправлення залежностей macOS.
+Final report on macOS dependencies fix.
 """
 
-print("🍎 ФІНАЛЬНИЙ ЗВІТ: Виправлення залежностей macOS")
+print("🍎 FINAL REPORT: macOS Dependencies Fix")
 print("=" * 55)
 
-print("\n❌ ПРОБЛЕМА:")
-print("   pyobjc-framework-Foundation==11.1 - пакет не існує")
+print("\n❌ PROBLEM:")
+print("   pyobjc-framework-Foundation==11.1 - package does not exist")
 
-print("\n✅ РІШЕННЯ:")
-print("   Видалено неіснуючий пакет pyobjc-framework-Foundation")
-print("   Foundation фреймворк включений в pyobjc-framework-Cocoa")
+print("\n✅ SOLUTION:")
+print("   Removed non-existent pyobjc-framework-Foundation package")
+print("   Foundation framework is included in pyobjc-framework-Cocoa")
 
-print("\n📦 ПОТОЧНІ macOS ЗАЛЕЖНОСТІ:")
+print("\n📦 CURRENT macOS DEPENDENCIES:")
 macos_deps = [
     "pyobjc-core==11.1",
     "pyobjc-framework-Cocoa==11.1 (включає Foundation)",
@@ -25,7 +25,7 @@ macos_deps = [
 for dep in macos_deps:
     print(f"   ✅ {dep}")
 
-print("\n🎯 КРИТИЧНІ ЗАЛЕЖНОСТІ ДЛЯ HELPER SYNC TELL:")
+print("\n🎯 CRITICAL DEPENDENCIES FOR HELPER SYNC TELL:")
 critical_deps = [
     "requests >= 2.32.4",
     "PyYAML >= 6.0.2",
@@ -39,15 +39,15 @@ critical_deps = [
 for dep in critical_deps:
     print(f"   ✅ {dep}")
 
-print("\n✅ РЕЗУЛЬТАТ:")
-print("   requirements-macos.txt ВИПРАВЛЕНО та ГОТОВИЙ")
-print("   Helper Sync Tell плагін може бути встановлений на macOS")
-print("   Всі залежності валідні та доступні")
+print("\n✅ RESULT:")
+print("   requirements-macos.txt FIXED and READY")
+print("   Helper Sync Tell plugin can be installed on macOS")
+print("   All dependencies are valid and available")
 
-print("\n🚀 ІНСТРУКЦІЇ ДЛЯ УСТАНОВКИ:")
-print("   1. Активуйте venv-macos")
-print("   2. Запустіть: pip install -r requirements-macos.txt")
-print("   3. Усі пакети будуть встановлені без помилок")
+print("\n🚀 INSTALLATION INSTRUCTIONS:")
+print("   1. Activate venv-macos")
+print("   2. Run: pip install -r requirements-macos.txt")
+print("   3. All packages will be installed without errors")
 
 print("\n" + "=" * 55)
-print("✅ СТАТУС: ПРОБЛЕМУ ВИРІШЕНО!")
+print("✅ STATUS: PROBLEM RESOLVED!")
