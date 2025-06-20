@@ -41,7 +41,7 @@ def test_response_generation():
     
     ccm = ChatContextManager()
     
-    # Test memory question response
+    #Test memory question response
     message = "Мене цікавить чи забезпечена в тебе пам'ять довгострокова?"
     context = ccm.analyze_message(message)
     prompt = ccm.generate_response_prompt(context, message)
@@ -50,7 +50,7 @@ def test_response_generation():
     print(prompt[:300] + "...")
     print()
     
-    # Test casual greeting response  
+    #Test casual greeting response  
     message2 = "Привіт, як справи?"
     context2 = ccm.analyze_message(message2)
     prompt2 = ccm.generate_response_prompt(context2, message2)

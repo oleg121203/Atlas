@@ -5,21 +5,21 @@ import sys
 import os
 from pathlib import Path
 
-# Add plugin to path
+#Add plugin to path
 plugin_dir = Path(__file__).parent
 sys.path.insert(0, str(plugin_dir))
 
 def main():
     try:
-        # Test import
+        #Test import
         from ultimate_ai_assistant import UltimateAIAssistant, register
         print("✅ Import successful")
         
-        # Test registration
+        #Test registration
         assistant = register()
         print(f"✅ Registration: {type(assistant).__name__}")
         
-        # Test basic functionality
+        #Test basic functionality
         response = assistant("Test query for Atlas integration")
         print(f"✅ Response generated: {len(response)} chars")
         

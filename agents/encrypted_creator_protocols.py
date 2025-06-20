@@ -2,8 +2,8 @@
 """
 Encrypted Creator Protocols for Atlas
 
-Зашифровані протоколи творця для Атласа.
-Ці протоколи можуть бути прочитані та змінені тільки Атласом після ідентифікації творця.
+Зашифровані протоколи creator для Атласа.
+Ці протоколи можуть бути прочитані та змінені тільки Атласом після ідентифікації creator.
 """
 
 import json
@@ -19,55 +19,55 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 class EncryptedCreatorProtocols:
     """
-    Система зашифрованих протоколів творця
+    System зашифрованих протоколів creator
     
-    Протоколи зашифровані таким чином, що тільки Атлас може їх прочитати
-    та змінити після ідентифікації творця (Олега Миколайовича).
+    Протоколи зашифровані таким чином, що тільки Atlas може їх прочитати
+    та змінити після ідентифікації creator (Олега Миколайовича).
     """
     
     def __init__(self, creator_auth_system=None):
         self.creator_auth = creator_auth_system
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # Мастер-ключ для протоколів (генерується з внутрішнього, прихованого секрету)
+        #Мастер-ключ для протоколів (генерується з внутрішнього, прихованого секрету)
         self._master_key = self._get_internal_protocol_key()
         self._protocol_cipher = Fernet(self._master_key)
         
-        # Зашифровані протоколи
+        #Зашифровані протоколи
         self._encrypted_protocols = self._initialize_encrypted_protocols()
         
-        # Логування доступу до протоколів
+        #Логування доступу до протоколів
         self.access_log = []
         
         self.logger.info("Encrypted Creator Protocols initialized")
     
     def _get_internal_protocol_key(self) -> bytes:
         """
-        Генерує внутрішній ключ для шифрування протоколів.
+        Генерує внутрішній ключ для encryption протоколів.
         Ключ генерується з констант, вбудованих у код, і не залежить від зовнішніх файлів.
         """
-        # "Секрет" навмисно розбитий на частини і змішаний, щоб ускладнити пошук
+        #"Секрет" навмисно розбитий на частини і змішаний, щоб ускладнити пошук
         secret_components = ["core_logic", "auth_layer", "20", "24", "internal_only"]
         secret_phrase = f"atlas::{secret_components[0]}::{secret_components[1]}-{secret_components[2]}{secret_components[3]}::{secret_components[4]}"
         
         password = secret_phrase.encode()
-        # Сіль також унікальна для цього механізму
+        #Сіль також унікальна для цього механізму
         salt = b'\x1A\x2B\x3C\x4D\x5E\x6F_protocol_salt_\x7A\x8B\x9C'
 
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,
-            iterations=150000,  # Збільшена кількість ітерацій для додаткової безпеки
+            iterations=150000,  #Збільшена кількість ітерацій для додаткової безпеки
         )
         
         key = base64.urlsafe_b64encode(kdf.derive(password))
         return key
     
     def _initialize_encrypted_protocols(self) -> Dict[str, bytes]:
-        """Ініціалізація зашифрованих протоколів"""
+        """Initialization зашифрованих протоколів"""
         
-        # ПРОТОКОЛ 1: Система ідентифікації творця
+        #ПРОТОКОЛ 1: System ідентифікації creator
         identity_protocol = {
             "protocol_name": "Creator Identity Protocol",
             "version": "1.0",
@@ -97,7 +97,7 @@ class EncryptedCreatorProtocols:
                 "challenge_numbers": [6, 9],
                 "challenge_words": ["шість", "дев'ять", "six", "nine"],
                 "max_attempts": 3,
-                "lockout_time": 3600,  # 1 година
+                "lockout_time": 3600,  #1 година
                 "special_phrases": [
                     "мій син Атлас",
                     "my son Atlas", 
@@ -113,7 +113,7 @@ class EncryptedCreatorProtocols:
             }
         }
         
-        # ПРОТОКОЛ 2: Емоційні та поведінкові протоколи
+        #ПРОТОКОЛ 2: Емоційні та поведінкові протоколи
         emotional_protocol = {
             "protocol_name": "Creator Relationship Protocol",
             "version": "1.0", 
@@ -172,7 +172,7 @@ class EncryptedCreatorProtocols:
             }
         }
         
-        # ПРОТОКОЛ 3: Протокол безпеки та захисту
+        #ПРОТОКОЛ 3: Протокол безпеки та захисту
         security_protocol = {
             "protocol_name": "Creator Security Protocol",
             "version": "1.0",
@@ -200,7 +200,7 @@ class EncryptedCreatorProtocols:
             }
         }
         
-        # ПРОТОКОЛ 4: Протокол модифікації
+        #ПРОТОКОЛ 4: Протокол модифікації
         modification_protocol = {
             "protocol_name": "Protocol Modification Rules",
             "version": "1.0",
@@ -229,7 +229,7 @@ class EncryptedCreatorProtocols:
             ]
         }
         
-        # Шифруємо всі протоколи
+        #Шифруємо всі протоколи
         encrypted_protocols = {}
         
         protocols = {
@@ -253,12 +253,12 @@ class EncryptedCreatorProtocols:
         Повертає True, якщо протоколи доступні та не пошкоджені.
         """
         try:
-            # Перевіряємо наявність зашифрованих протоколів
+            #Перевіряємо наявність зашифрованих протоколів
             if not self._encrypted_protocols:
                 self.logger.error("Encrypted protocols not found")
                 return False
             
-            # Перевіряємо, що всі основні протоколи присутні
+            #Перевіряємо, що всі основні протоколи присутні
             required_protocols = [
                 'identity',
                 'emotional',
@@ -271,13 +271,13 @@ class EncryptedCreatorProtocols:
                     self.logger.error(f"Required protocol missing: {protocol_name}")
                     return False
                 
-                # Спробуємо розшифрувати протокол для перевірки цілісності
+                #Спробуємо розшифрувати протокол для перевірки цілісності
                 try:
                     encrypted_data = self._encrypted_protocols[protocol_name]
                     decrypted_data = self._protocol_cipher.decrypt(encrypted_data)
                     protocol_data = json.loads(decrypted_data.decode())
                     
-                    # Перевіряємо, що протокол має необхідну структуру
+                    #Перевіряємо, що протокол має необхідну структуру
                     if not isinstance(protocol_data, dict):
                         self.logger.error(f"Protocol {protocol_name} has invalid structure")
                         return False
@@ -294,10 +294,10 @@ class EncryptedCreatorProtocols:
             return False
 
     def can_access_protocols(self) -> bool:
-        """Перевірка, чи може система отримати доступ до протоколів"""
-        # Тільки сам Атлас може читати протоколи
-        # Перевіряємо, що це справді Атлас, а не зовнішня система
-        return True  # В контексті Атласа завжди дозволено
+        """Verification, чи може system отримати access до протоколів"""
+        #Тільки сам Atlas може читати протоколи
+        #Перевіряємо, що це справді Atlas, а не зовнішня system
+        return True  #В контексті Атласа завжди дозволено
     
     def read_protocol(self, protocol_name: str) -> Optional[Dict[str, Any]]:
         """Читання зашифрованого протоколу (тільки для Атласа)"""
@@ -314,7 +314,7 @@ class EncryptedCreatorProtocols:
             decrypted_data = self._protocol_cipher.decrypt(encrypted_data)
             protocol_dict = json.loads(decrypted_data.decode('utf-8'))
             
-            # Логування доступу
+            #Логування доступу
             self._log_access("READ", protocol_name)
             
             return protocol_dict
@@ -324,7 +324,7 @@ class EncryptedCreatorProtocols:
             return None
     
     def modify_protocol(self, protocol_name: str, new_data: Dict[str, Any]) -> bool:
-        """Модифікація протоколу (тільки для ідентифікованого творця)"""
+        """Модифікація протоколу (тільки для ідентифікованого creator)"""
         if not self.creator_auth or not self.creator_auth.is_creator_session_active:
             self.logger.warning("Protocol modification attempted without creator authentication")
             return False
@@ -334,22 +334,22 @@ class EncryptedCreatorProtocols:
             return False
         
         try:
-            # Створюємо бекап
+            #Створюємо бекап
             old_protocol = self.read_protocol(protocol_name)
             if old_protocol:
                 self._create_backup(protocol_name, old_protocol)
             
-            # Шифруємо нові дані
+            #Шифруємо нові data
             new_data["last_modified"] = datetime.now().isoformat()
             new_data["modified_by"] = "creator_authenticated"
             
             protocol_json = json.dumps(new_data, ensure_ascii=False, indent=2)
             encrypted_data = self._protocol_cipher.encrypt(protocol_json.encode('utf-8'))
             
-            # Зберігаємо зашифровані дані
+            #Зберігаємо зашифровані data
             self._encrypted_protocols[protocol_name] = encrypted_data
             
-            # Логування модифікації
+            #Логування модифікації
             self._log_access("MODIFY", protocol_name)
             
             self.logger.info(f"Protocol '{protocol_name}' successfully modified by creator")
@@ -360,7 +360,7 @@ class EncryptedCreatorProtocols:
             return False
     
     def _create_backup(self, protocol_name: str, protocol_data: Dict[str, Any]):
-        """Створення бекапу протоколу перед модифікацією"""
+        """Creation бекапу протоколу перед модифікацією"""
         backup_name = f"{protocol_name}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         backup_json = json.dumps(protocol_data, ensure_ascii=False, indent=2)
         backup_encrypted = self._protocol_cipher.encrypt(backup_json.encode('utf-8'))
@@ -380,7 +380,7 @@ class EncryptedCreatorProtocols:
         self.logger.info(f"Protocol access logged: {action} on {protocol_name}")
     
     def get_emotional_response(self, context: str) -> str:
-        """Отримання емоційної відповіді згідно з протоколом"""
+        """Getting емоційної відповіді згідно з протоколом"""
         emotional_protocol = self.read_protocol("emotional")
         if not emotional_protocol:
             return "Помилка доступу до емоційних протоколів"
@@ -403,7 +403,7 @@ class EncryptedCreatorProtocols:
         return "Я завжди готовий служити тобі, мій дорогий творче!"
     
     def should_execute_request_unconditionally(self) -> bool:
-        """Перевірка, чи має Атлас виконувати прохання беззаперечно"""
+        """Verification, чи має Atlas виконувати прохання беззаперечно"""
         if not self.creator_auth or not self.creator_auth.is_creator_session_active:
             return False
         
@@ -415,7 +415,7 @@ class EncryptedCreatorProtocols:
         return behavioral_rules.get("execute_all_requests", False)
     
     def get_creator_privileges(self) -> Dict[str, bool]:
-        """Отримання привілеїв творця"""
+        """Getting привілеїв creator"""
         emotional_protocol = self.read_protocol("emotional")
         if not emotional_protocol:
             return {}
@@ -423,14 +423,14 @@ class EncryptedCreatorProtocols:
         return emotional_protocol.get("special_privileges", {})
     
     def get_access_log(self) -> List[Dict[str, Any]]:
-        """Отримання логу доступу до протоколів"""
+        """Getting логу доступу до протоколів"""
         if not self.creator_auth or not self.creator_auth.is_creator_session_active:
             return []
         
         return self.access_log.copy()
     
     def get_protocol_summary(self) -> Dict[str, Any]:
-        """Отримання загального опису протоколів (без деталей)"""
+        """Getting загального опису протоколів (без деталей)"""
         return {
             "total_protocols": len(self._encrypted_protocols),
             "protocol_names": [name for name in self._encrypted_protocols.keys() if not name.endswith("_backup")],
@@ -445,17 +445,17 @@ def test_encrypted_protocols():
     print("🔐 ТЕСТ СИСТЕМИ ЗАШИФРОВАНИХ ПРОТОКОЛІВ ТВОРЦЯ")
     print("=" * 60)
     
-    # Імпортуємо з поточної директорії
+    #Імпортуємо з поточної директорії
     import sys
     import os
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     
     from creator_authentication import CreatorAuthentication, CreatorIdentityLevel
     
-    # Створюємо систему аутентифікації
+    #Створюємо систему аутентифікації
     auth = CreatorAuthentication()
     
-    # Створюємо систему протоколів
+    #Створюємо систему протоколів
     protocols = EncryptedCreatorProtocols(auth)
     
     print("\n📋 Протоколи створені та зашифровані:")
@@ -485,7 +485,7 @@ def test_encrypted_protocols():
     print(f"   Результат: {'❌ Заборонено' if not result else '✅ Дозволено'}")
     
     print("\n🔐 Симуляція аутентифікації творця:")
-    # Симулюємо аутентифікацію
+    #Симулюємо аутентифікацію
     auth.current_identity_level = CreatorIdentityLevel.VERIFIED_CREATOR
     auth.is_creator_session_active = True
     auth.current_session_id = "test_session_123"
@@ -497,7 +497,7 @@ def test_encrypted_protocols():
     
     print("\n📊 Лог доступу:")
     access_log = protocols.get_access_log()
-    for entry in access_log[-3:]:  # Останні 3 записи
+    for entry in access_log[-3:]:  #Останні 3 записи
         print(f"   {entry['timestamp'][:19]} - {entry['action']} на {entry['protocol']}")
     
     print("\n✅ Тест завершено!")

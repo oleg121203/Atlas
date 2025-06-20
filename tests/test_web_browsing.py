@@ -10,7 +10,7 @@ import time
 import json
 from pathlib import Path
 
-# Add plugin to path
+#Add plugin to path
 plugin_dir = Path(__file__).parent / "plugins" / "web_browsing"
 sys.path.append(str(plugin_dir))
 
@@ -21,14 +21,14 @@ def test_basic_navigation():
     try:
         import plugin as web_plugin
         
-        # Test navigation to AutoRia
+        #Test navigation to AutoRia
         result = web_plugin.navigate_to_url("https://auto.ria.com")
         print(f"Navigation result: {result}")
         
-        # Wait a bit
+        #Wait a bit
         time.sleep(3)
         
-        # Take screenshot
+        #Take screenshot
         screenshot_result = web_plugin.take_screenshot("autoria_homepage.png")
         print(f"Screenshot result: {screenshot_result}")
         
@@ -45,30 +45,30 @@ def test_car_search():
     try:
         import plugin as web_plugin
         
-        # Navigate to AutoRia
+        #Navigate to AutoRia
         print("📍 Navigating to AutoRia...")
         nav_result = web_plugin.navigate_to_url("https://auto.ria.com")
         print(f"Navigation: {nav_result}")
         
-        # Wait for page load
+        #Wait for page load
         print("⏳ Waiting for page to load...")
         wait_result = web_plugin.wait_for_element(".searchForm", 10)
         print(f"Wait result: {wait_result}")
         
-        # Search for Mustang
+        #Search for Mustang
         print("🔍 Searching for Mustang 2024...")
         search_result = web_plugin.search_on_site("Ford Mustang 2024")
         print(f"Search result: {search_result}")
         
-        # Wait for results
+        #Wait for results
         time.sleep(5)
         
-        # Scrape results
+        #Scrape results
         print("📊 Scraping search results...")
         scrape_result = web_plugin.scrape_page_content('["h3", ".price", ".item-char"]')
         print(f"Scraping result: {scrape_result}")
         
-        # Take final screenshot
+        #Take final screenshot
         final_screenshot = web_plugin.take_screenshot("mustang_search_results.png")
         print(f"Final screenshot: {final_screenshot}")
         
@@ -85,12 +85,12 @@ def test_fallback_methods():
     try:
         import plugin as web_plugin
         
-        # Get browser instance
+        #Get browser instance
         browser = web_plugin.get_browser()
         
         print(f"Available methods: {browser.available_methods}")
         
-        # Test each method individually
+        #Test each method individually
         test_url = "https://httpbin.org/get"
         
         for method in browser.available_methods:
@@ -134,7 +134,7 @@ def test_enhanced_browser_agent():
     print("🤖 Testing Enhanced Browser Agent integration...")
     
     try:
-        # Add Atlas agents to path
+        #Add Atlas agents to path
         agents_dir = Path(__file__).parent / "agents"
         sys.path.append(str(agents_dir))
         
@@ -142,7 +142,7 @@ def test_enhanced_browser_agent():
         
         agent = BrowserAgent()
         
-        # Test various commands
+        #Test various commands
         commands = [
             "navigate to https://auto.ria.com",
             "search for Ford Mustang 2024",
@@ -190,7 +190,7 @@ def run_all_tests():
             print(f"❌ FAILED with exception: {e}")
             results.append((test_name, False))
     
-    # Print summary
+    #Print summary
     print("\n" + "=" * 60)
     print("📊 TEST SUMMARY")
     print("=" * 60)

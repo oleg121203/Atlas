@@ -19,13 +19,13 @@ def validate_requirements():
         print("❌ Файл requirements-macos.txt не знайдено!")
         return False
     
-    # Читаємо файл та витягуємо пакети
+    #Читаємо файл та витягуємо пакети
     packages = []
     with open(requirements_file, 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith('#'):
-                # Витягуємо назву пакета (до першого = або >=)
+                #Витягуємо назву пакета (до першого = або >=)
                 if '==' in line:
                     package = line.split('==')[0].strip()
                 elif '>=' in line:
@@ -41,7 +41,7 @@ def validate_requirements():
     print(f"📦 Знайдено {len(packages)} пакетів для перевірки")
     print()
     
-    # Критичні пакети для Helper Sync Tell
+    #Критичні пакети для Helper Sync Tell
     critical_packages = [
         'requests',
         'PyYAML', 
@@ -65,9 +65,9 @@ def validate_requirements():
     
     print()
     
-    # Перевірка проблемних пакетів
+    #Verification проблемних пакетів
     problematic_packages = [
-        'pyobjc-framework-Foundation'  # Цей пакет не існує
+        'pyobjc-framework-Foundation'  #Цей пакет не існує
     ]
     
     print("⚠️  Перевірка потенційно проблемних пакетів:")
@@ -83,7 +83,7 @@ def validate_requirements():
     
     print()
     
-    # Підсумок
+    #Підсумок
     print("📊 ПІДСУМОК ВАЛІДАЦІЇ:")
     if all_critical_present and not problems_found:
         print("✅ Всі критичні пакети присутні")

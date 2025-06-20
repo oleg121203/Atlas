@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-# Try to import PIL safely
+#Try to import PIL safely
 try:
     from PIL import Image
     _PIL_AVAILABLE = True
@@ -16,14 +16,14 @@ except ImportError:
     _PIL_AVAILABLE = False
 
 try:
-    import Vision  # type: ignore
+    import Vision  #type: ignore
     _VISION_AVAILABLE = True
-except Exception:  # pragma: no cover
+except Exception:  #pragma: no cover
     _VISION_AVAILABLE = False
 
-# Try to import pytesseract safely
+#Try to import pytesseract safely
 try:
-    import pytesseract  # type: ignore
+    import pytesseract  #type: ignore
     _PYTESSERACT_AVAILABLE = True
 except ImportError:
     _PYTESSERACT_AVAILABLE = False
@@ -33,7 +33,7 @@ __all__ = ["ocr_image", "ocr_file"]
 
 def _vision_ocr(img: Image.Image) -> str:
     """Perform OCR using macOS Vision framework."""
-    import objc  # type: ignore
+    import objc  #type: ignore
 
     cg_img = img.convert("RGB").toqpixmap().toImage()
     handler = Vision.VNImageRequestHandler.alloc().initWithCGImage_options_(cg_img, None)
@@ -55,7 +55,7 @@ def ocr_image(img: Image.Image) -> str:
         try:
             return _vision_ocr(img)
         except Exception:
-            pass  # fall through
+            pass  #fall through
             
     if _PYTESSERACT_AVAILABLE:
         return pytesseract.image_to_string(img)

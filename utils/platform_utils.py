@@ -5,13 +5,13 @@ import os
 import sys
 from typing import Dict, Any
 
-# Platform detection
+#Platform detection
 CURRENT_OS = platform.system().lower()
 IS_MACOS = CURRENT_OS == 'darwin'
 IS_LINUX = CURRENT_OS == 'linux'
 IS_WINDOWS = CURRENT_OS == 'windows'
 
-# Check if running in headless environment
+#Check if running in headless environment
 IS_HEADLESS = (
     os.environ.get('DISPLAY') is None and IS_LINUX
 ) or (
@@ -39,24 +39,24 @@ def get_platform_info() -> Dict[str, Any]:
 def configure_for_platform():
     """Configure application settings based on platform."""
     if IS_HEADLESS:
-        # Configure matplotlib for headless operation
+        #Configure matplotlib for headless operation
         try:
             import matplotlib
-            matplotlib.use('Agg')  # Use non-interactive backend
+            matplotlib.use('Agg')  #Use non-interactive backend
         except ImportError:
             pass
     
-    # Platform-specific configurations
+    #Platform-specific configurations
     if IS_MACOS:
-        # macOS specific settings
+        #macOS specific settings
         pass
     elif IS_LINUX:
-        # Linux specific settings
+        #Linux specific settings
         if not IS_HEADLESS:
-            # Set up X11 if needed
+            #Set up X11 if needed
             pass
     elif IS_WINDOWS:
-        # Windows specific settings
+        #Windows specific settings
         pass
 
 def get_screenshot_method():
@@ -70,7 +70,7 @@ def get_screenshot_method():
         except ImportError:
             pass
     
-    # Check for PyAutoGUI availability
+    #Check for PyAutoGUI availability
     if not IS_HEADLESS:
         try:
             import pyautogui
@@ -83,5 +83,5 @@ def get_screenshot_method():
     
     return methods[0] if methods else 'dummy'
 
-# Initialize platform configuration on import
+#Initialize platform configuration on import
 configure_for_platform()

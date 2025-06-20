@@ -90,7 +90,7 @@ if __name__ == "__main__":
             decrypt_file(args.data, args.output)
             print(f"File '{args.data}' decrypted to '{args.output}'")
     elif args.action == 'test':
-        # Test the encryption system
+        #Test the encryption system
         test_text = "This is a test security message"
         encrypted = encrypt_text(test_text)
         print(f"Encrypted: {encrypted}")

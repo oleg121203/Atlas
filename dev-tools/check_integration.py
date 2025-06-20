@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-Швидка перевірка інтеграції з реальним Atlas
+Швидка verification інтеграції з реальним Atlas
 """
 
 import sys
 import os
 from pathlib import Path
 
-# Додаємо шляхи
+#Додаємо шляхи
 base_dir = Path("/Users/developer/Documents/Atlas")
 sys.path.insert(0, str(base_dir))
 
 def check_atlas_integration():
-    """Перевірка інтеграції з реальним Atlas"""
+    """Verification інтеграції з реальним Atlas"""
     print("🔍 ПЕРЕВІРКА ІНТЕГРАЦІЇ З ATLAS")
     print("=" * 40)
     
-    # Перевірка наявності файлів
+    #Verification наявності файлів
     files_to_check = [
         "intelligent_mode_detector.py",
         "plugins/helper_sync_tell/advanced_thinking.py",
@@ -31,19 +31,19 @@ def check_atlas_integration():
         else:
             print(f"❌ {file_path} - не знайдено")
     
-    # Перевірка інтеграції advanced_thinking
+    #Verification інтеграції advanced_thinking
     print("\n🔗 Перевірка інтеграції advanced_thinking:")
     try:
         sys.path.insert(0, str(base_dir / "plugins" / "helper_sync_tell"))
         from advanced_thinking import register, AdvancedAIThinkingTool
         
-        # Тест реєстрації
+        #Тест реєстрації
         result = register()
         if result and 'tools' in result:
             tool = result['tools'][0]
             print(f"✅ Advanced thinking tool зареєстровано: {tool.__class__.__name__}")
             
-            # Перевірка capabilities
+            #Verification capabilities
             if hasattr(tool, 'capabilities'):
                 caps = tool.capabilities
                 print(f"📊 Можливості:")
@@ -57,21 +57,21 @@ def check_atlas_integration():
     except Exception as e:
         print(f"❌ Помилка імпорту advanced_thinking: {e}")
     
-    # Перевірка детектора
+    #Verification детектора
     print("\n🧠 Перевірка інтелектуального детектора:")
     try:
         from intelligent_mode_detector import IntelligentModeDetector, ChatMode
         
         detector = IntelligentModeDetector()
         
-        # Швидкий тест
+        #Швидкий тест
         test_result = detector.detect_chat_mode("Проаналізуй систему Atlas")
         print(f"✅ Детектор працює: {test_result.mode.value} (впевненість: {test_result.confidence:.2f})")
         
     except Exception as e:
         print(f"❌ Помилка детектора: {e}")
     
-    # Перевірка main.py
+    #Verification main.py
     print("\n📱 Перевірка main.py:")
     try:
         with open(base_dir / "main.py", 'r', encoding='utf-8') as f:

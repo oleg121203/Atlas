@@ -12,12 +12,12 @@ def test_quartz_fix():
     print("Testing macOS Screenshot Fix")
     print("=" * 40)
     
-    # Check if we're on macOS
+    #Check if we're on macOS
     if sys.platform != 'darwin':
         print("❌ This test is for macOS only")
         return False
     
-    # Test 1: Import check
+    #Test 1: Import check
     print("1. Testing Quartz imports...")
     try:
         from Quartz import (
@@ -30,7 +30,7 @@ def test_quartz_fix():
         print(f"   ❌ Quartz import failed: {e}")
         return False
     
-    # Test 2: CGImage creation
+    #Test 2: CGImage creation
     print("2. Testing CGImage creation...")
     try:
         image_ref = CGWindowListCreateImage(
@@ -45,17 +45,17 @@ def test_quartz_fix():
         print(f"   ❌ CGImage creation failed: {e}")
         return False
     
-    # Test 3: Modern API usage (the fix)
+    #Test 3: Modern API usage (the fix)
     print("3. Testing modern API usage...")
     try:
-        # This should NOT cause the 'width' attribute error anymore
+        #This should NOT cause the 'width' attribute error anymore
         width = CGImageGetWidth(image_ref)
         height = CGImageGetHeight(image_ref)
         bytes_per_row = CGImageGetBytesPerRow(image_ref)
         
         print(f"   ✅ Image properties: {width}x{height}, bytes_per_row: {bytes_per_row}")
         
-        # Test data extraction
+        #Test data extraction
         data_provider = CGImageGetDataProvider(image_ref)
         data = CGDataProviderCopyData(data_provider)
         
@@ -78,16 +78,16 @@ def test_quartz_fix():
         print(f"   ❌ Modern API test failed: {e}")
         return False
     
-    # Test 4: PIL integration
+    #Test 4: PIL integration
     print("4. Testing PIL integration...")
     try:
         from PIL import Image
         
-        # Create PIL Image from buffer
+        #Create PIL Image from buffer
         img = Image.frombuffer("RGBA", (width, height), buffer, "raw", "BGRA", bytes_per_row, 1)
         print(f"   ✅ PIL Image created: {img.size[0]}x{img.size[1]}, mode: {img.mode}")
         
-        # Test RGB conversion
+        #Test RGB conversion
         if img.mode == "RGBA":
             rgb_img = Image.new("RGB", img.size, (255, 255, 255))
             rgb_img.paste(img, mask=img.split()[-1])
@@ -107,13 +107,13 @@ def test_integrated_tool():
     print("=" * 40)
     
     try:
-        # Import our screenshot tool
+        #Import our screenshot tool
         sys.path.insert(0, '.')
         from tools.screenshot_tool import capture_screen
         
         print("1. Screenshot tool imported successfully")
         
-        # Test capture
+        #Test capture
         img = capture_screen()
         if img:
             print(f"2. ✅ Screenshot captured: {img.size[0]}x{img.size[1]} pixels, mode: {img.mode}")
@@ -136,11 +136,11 @@ def main():
     
     success = True
     
-    # Test the core fix
+    #Test the core fix
     if not test_quartz_fix():
         success = False
     
-    # Test the integrated tool
+    #Test the integrated tool
     if not test_integrated_tool():
         success = False
     

@@ -5,7 +5,7 @@ import sys
 import subprocess
 from pathlib import Path
 
-# Add project root to path
+#Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
@@ -79,7 +79,7 @@ class TestTerminalTool(unittest.TestCase):
     @patch('tools.terminal_tool.execute_command')
     def test_execute_script_success(self, mock_execute_command, mock_Path, mock_exists):
         """Test successful execution of a script file."""
-        # Mock path resolution to be consistent
+        #Mock path resolution to be consistent
         mock_Path.return_value.expanduser.return_value.resolve.return_value = '/resolved/script.sh'
         
         mock_result = TerminalResult(success=True, command='bash /resolved/script.sh')

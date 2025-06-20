@@ -7,7 +7,7 @@ import sys
 import os
 import time
 
-# Додаємо Atlas до шляху
+#Додаємо Atlas до шляху
 atlas_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, atlas_dir)
 
@@ -21,24 +21,24 @@ def test_chat():
         from config_manager import ConfigManager
         from logger import Logger
         
-        # Ініціалізація компонентів
+        #Initialization компонентів
         logger = Logger("test_chat")
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
         
-        # Ініціалізація LLM Manager
+        #Initialization LLM Manager
         llm_manager = LLMManager(token_tracker, config_manager)
         print("✅ LLM Manager ініціалізовано")
         
-        # Перевірка доступних провайдерів
+        #Verification доступних провайдерів
         providers = llm_manager.get_available_providers()
         print(f"📋 Доступні провайдери: {list(providers.keys())}")
         
-        # Перевірка поточного провайдера
+        #Verification поточного провайдера
         print(f"🔄 Поточний провайдер: {llm_manager.current_provider}")
         print(f"🤖 Поточна модель: {llm_manager.current_model}")
         
-        # Тест простого чату
+        #Тест простого чату
         if "gemini" in providers:
             print("💬 Тестування чату з Gemini...")
             messages = [{"role": "user", "content": "Скажи просто 'Привіт від Atlas!' і все."}]
@@ -48,7 +48,7 @@ def test_chat():
                 print(f"✅ Відповідь отримано: {response.response_text[:100]}...")
                 print(f"📊 Токени: {response.total_tokens}")
                 
-                # Перевірка, чи немає помилок OpenAI
+                #Verification, чи немає помилок OpenAI
                 if "openai" not in response.response_text.lower() and "error" not in response.response_text.lower():
                     print("✅ Чат працює без помилок OpenAI!")
                 else:
@@ -60,7 +60,7 @@ def test_chat():
         else:
             print("⚠️  Gemini недоступний для тесту")
         
-        # Тест перевірки OpenAI availability
+        #Тест перевірки OpenAI availability
         openai_available = llm_manager.is_provider_available("openai")
         print(f"🔌 OpenAI доступність: {openai_available}")
         

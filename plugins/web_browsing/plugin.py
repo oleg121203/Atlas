@@ -17,7 +17,7 @@ import subprocess
 import sys
 import os
 
-# Cross-platform imports
+#Cross-platform imports
 from utils.platform_utils import IS_MACOS, IS_LINUX, IS_HEADLESS
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class AdvancedWebBrowser:
         self.retry_delay = 2
         self.max_retries = 3
         
-        # Initialize available methods
+        #Initialize available methods
         self.available_methods = self._detect_available_methods()
         logger.info(f"Available web automation methods: {self.available_methods}")
     
@@ -46,7 +46,7 @@ class AdvancedWebBrowser:
         """Detect which automation methods are available"""
         methods = []
         
-        # Check Selenium
+        #Check Selenium
         try:
             import selenium
             from selenium import webdriver
@@ -54,17 +54,17 @@ class AdvancedWebBrowser:
         except ImportError:
             logger.warning("Selenium not available")
         
-        # Check Playwright
+        #Check Playwright
         try:
             import playwright
             methods.append("playwright")
         except ImportError:
             logger.warning("Playwright not available")
         
-        # System events always available
+        #System events always available
         methods.append("system_events")
         
-        # HTTP requests always available
+        #HTTP requests always available
         methods.append("http_requests")
         
         return methods
@@ -86,7 +86,7 @@ class AdvancedWebBrowser:
             options.add_argument("--disable-gpu")
             options.add_argument("--window-size=1920,1080")
             
-            # Try Chrome first, then fallback to other browsers
+            #Try Chrome first, then fallback to other browsers
             try:
                 self.selenium_driver = webdriver.Chrome(options=options)
                 logger.info("Selenium Chrome driver initialized")
@@ -94,7 +94,7 @@ class AdvancedWebBrowser:
             except Exception as e:
                 logger.warning(f"Chrome driver failed: {e}")
                 
-                # Try Firefox
+                #Try Firefox
                 try:
                     from selenium.webdriver.firefox.options import Options as FirefoxOptions
                     firefox_options = FirefoxOptions()
@@ -106,7 +106,7 @@ class AdvancedWebBrowser:
                 except Exception as e:
                     logger.warning(f"Firefox driver failed: {e}")
                     
-                # Try Safari on macOS
+                #Try Safari on macOS
                 if IS_MACOS:
                     try:
                         self.selenium_driver = webdriver.Safari()
@@ -127,7 +127,7 @@ class AdvancedWebBrowser:
             
             self.playwright = sync_playwright().start()
             
-            # Try different browsers
+            #Try different browsers
             for browser_type in ['chromium', 'firefox', 'webkit']:
                 try:
                     browser_launcher = getattr(self.playwright, browser_type)
@@ -172,11 +172,11 @@ class AdvancedWebBrowser:
             import webbrowser
             import pyautogui
             
-            # Open URL in default browser
+            #Open URL in default browser
             webbrowser.open(url)
-            time.sleep(3)  # Wait for browser to open
+            time.sleep(3)  #Wait for browser to open
             
-            # Take screenshot to verify
+            #Take screenshot to verify
             if not IS_HEADLESS:
                 screenshot = pyautogui.screenshot()
                 logger.info("Browser opened via system events")
@@ -193,7 +193,7 @@ class AdvancedWebBrowser:
         """Navigate to URL with multiple fallback methods"""
         logger.info(f"Navigating to: {url}")
         
-        # Ensure URL has protocol
+        #Ensure URL has protocol
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         
@@ -221,7 +221,7 @@ class AdvancedWebBrowser:
                         self.current_method = "system_events"
                 
                 elif method == "http_requests":
-                    # For simple page verification
+                    #For simple page verification
                     import requests
                     response = requests.get(url, timeout=self.timeout)
                     success = response.status_code == 200
@@ -290,16 +290,16 @@ class AdvancedWebBrowser:
             import pyautogui
             
             if image_path and os.path.exists(image_path):
-                # Use image recognition
+                #Use image recognition
                 location = pyautogui.locateOnScreen(image_path, confidence=0.8)
                 if location:
                     center = pyautogui.center(location)
                     return center.x, center.y
             
             if text:
-                # Use OCR to find text (simplified approach)
+                #Use OCR to find text (simplified approach)
                 screenshot = pyautogui.screenshot()
-                # For now, just return center of screen as fallback
+                #For now, just return center of screen as fallback
                 screen_width, screen_height = pyautogui.size()
                 return screen_width // 2, screen_height // 2
                 
@@ -315,7 +315,7 @@ class AdvancedWebBrowser:
         
         for method in self.available_methods:
             if method != self.current_method and self.current_method:
-                continue  # Use current method first
+                continue  #Use current method first
                 
             try:
                 success = False
@@ -386,7 +386,7 @@ class AdvancedWebBrowser:
                         success = True
                 
                 elif method == "system_events":
-                    # First click the field, then type
+                    #First click the field, then type
                     click_result = self.click_element(selector, selector_type)
                     if click_result.get("success"):
                         import pyautogui
@@ -422,7 +422,7 @@ class AdvancedWebBrowser:
         """Perform search on current site"""
         logger.info(f"Searching for: {search_term}")
         
-        # Common search field selectors
+        #Common search field selectors
         if not search_field_selector:
             search_selectors = [
                 'input[type="search"]',
@@ -437,15 +437,15 @@ class AdvancedWebBrowser:
         else:
             search_selectors = [search_field_selector]
         
-        # Try each search selector
+        #Try each search selector
         for selector in search_selectors:
             fill_result = self.fill_form_field(selector, search_term)
             if fill_result.get("success"):
-                # Try to submit
+                #Try to submit
                 if submit_selector:
                     click_result = self.click_element(submit_selector)
                 else:
-                    # Try common submit methods
+                    #Try common submit methods
                     submit_methods = [
                         ('css', 'button[type="submit"]'),
                         ('css', '.search-button'),
@@ -460,7 +460,7 @@ class AdvancedWebBrowser:
                         if click_result.get("success"):
                             break
                     
-                    # If no submit button found, try Enter key
+                    #If no submit button found, try Enter key
                     if not click_result.get("success"):
                         try:
                             import pyautogui
@@ -470,7 +470,7 @@ class AdvancedWebBrowser:
                             pass
                 
                 if click_result.get("success"):
-                    time.sleep(2)  # Wait for search results
+                    time.sleep(2)  #Wait for search results
                     return {
                         "success": True,
                         "search_term": search_term,
@@ -520,7 +520,7 @@ class AdvancedWebBrowser:
                 import requests
                 from bs4 import BeautifulSoup
                 
-                # This requires the last navigated URL
+                #This requires the last navigated URL
                 response = requests.get(self.last_url if hasattr(self, 'last_url') else '')
                 soup = BeautifulSoup(response.content, 'html.parser')
                 
@@ -626,7 +626,7 @@ class AdvancedWebBrowser:
         except Exception as e:
             logger.error(f"Error closing browsers: {e}")
 
-# Global browser instance
+#Global browser instance
 _browser = None
 
 def get_browser() -> AdvancedWebBrowser:
@@ -636,7 +636,7 @@ def get_browser() -> AdvancedWebBrowser:
         _browser = AdvancedWebBrowser()
     return _browser
 
-# Plugin functions that will be registered
+#Plugin functions that will be registered
 def navigate_to_url(url: str) -> str:
     """Navigate to a URL using the most appropriate method available"""
     browser = get_browser()
@@ -669,7 +669,7 @@ def scrape_page_content(selectors: str = None) -> str:
         try:
             selector_list = json.loads(selectors)
         except:
-            selector_list = [selectors]  # Single selector
+            selector_list = [selectors]  #Single selector
     else:
         selector_list = None
     
@@ -726,7 +726,7 @@ def handle_popup(action: str = "accept") -> str:
                 alert.dismiss()
             
         elif browser.current_method == "playwright" and browser.playwright_page:
-            # Playwright handles alerts automatically, but we can set handlers
+            #Playwright handles alerts automatically, but we can set handlers
             if action == "accept":
                 browser.playwright_page.on("dialog", lambda dialog: dialog.accept())
             else:
@@ -792,7 +792,7 @@ def register():
         ]
     }
 
-# Cleanup function
+#Cleanup function
 def cleanup():
     """Cleanup browser resources"""
     global _browser

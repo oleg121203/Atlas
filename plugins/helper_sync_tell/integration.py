@@ -9,11 +9,11 @@ with Atlas's main application flow.
 import logging
 from typing import Dict, Any, Callable, Optional
 
-# Import the tool
+#Import the tool
 try:
     from .plugin import HelperSyncTellTool
 except ImportError:
-    # Fall back to direct import
+    #Fall back to direct import
     from plugin import HelperSyncTellTool
 
 class HelperModeIntegration:
@@ -47,7 +47,7 @@ class HelperModeIntegration:
         """
         self.logger.info(f"Processing help request with structured thinking: {message[:50]}...")
         
-        # Process the request using the helper tool
+        #Process the request using the helper tool
         response = self.helper_tool(message, available_tools)
         
         return response
@@ -64,30 +64,30 @@ class HelperModeIntegration:
             True if patching was successful, False otherwise
         """
         try:
-            # Store the original help mode handler
+            #Store the original help mode handler
             original_handler = main_app._handle_help_mode
             
-            # Define a new handler that uses our tool
+            #Define a new handler that uses our tool
             def enhanced_help_mode_handler(self, message: str, context) -> str:
                 """Enhanced help mode handler using structured thinking."""
-                # Check if the message is a specific command that should use the original handler
+                #Check if the message is a specific command that should use the original handler
                 if any(cmd in message.lower() for cmd in ['read file', 'list directory', 'tree', 'search for', 'info about']):
-                    # Use the original handler for specific commands
+                    #Use the original handler for specific commands
                     return original_handler(message, context)
                 
-                # For normal help requests, use our structured thinking process
+                #For normal help requests, use our structured thinking process
                 available_tools = {
                     "code_reader": lambda q: self.code_reader.search_in_files(q) if hasattr(self, 'code_reader') else None,
-                    "memory_query": lambda q: "Memory not implemented yet" # Replace with actual memory query when available
+                    "memory_query": lambda q: "Memory not implemented yet" #Replace with actual memory query when available
                 }
                 
                 return self.helper_sync_tell_integration.process_help_request(message, available_tools)
             
-            # Create the integration instance and attach it to the main app
+            #Create the integration instance and attach it to the main app
             main_app.helper_sync_tell_integration = self
             
-            # Replace the original handler with our enhanced version
-            # Note: This uses a non-standard but common technique to replace a method
+            #Replace the original handler with our enhanced version
+            #Note: This uses a non-standard but common technique to replace a method
             import types
             main_app._handle_help_mode = types.MethodType(enhanced_help_mode_handler, main_app)
             

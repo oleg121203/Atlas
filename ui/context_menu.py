@@ -19,25 +19,25 @@ class ContextMenu:
     def add_to_widget(self, widget):
         """Add context menu support to a widget."""
         if isinstance(widget, (ctk.CTkEntry, ctk.CTkTextbox)):
-            # For CTk widgets, we need to access the underlying tkinter widget
+            #For CTk widgets, we need to access the underlying tkinter widget
             if hasattr(widget, '_textbox'):
-                # CTkTextbox case
+                #CTkTextbox case
                 inner_widget = widget._textbox
             elif hasattr(widget, '_entry'):
-                # CTkEntry case  
+                #CTkEntry case  
                 inner_widget = widget._entry
             else:
-                # Fallback
+                #Fallback
                 inner_widget = widget
             
-            # Bind right-click for all platforms
+            #Bind right-click for all platforms
             inner_widget.bind("<Button-3>", lambda e: self._show_menu(e, widget))
-            # For macOS, also bind Control+Click
+            #For macOS, also bind Control+Click
             if platform.system() == "Darwin":
                 inner_widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
                 
         elif isinstance(widget, (tk.Text, tk.Entry)):
-            # Direct tkinter widgets
+            #Direct tkinter widgets
             widget.bind("<Button-3>", lambda e: self._show_menu(e, widget))
             if platform.system() == "Darwin":
                 widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
@@ -46,7 +46,7 @@ class ContextMenu:
         """Show the context menu."""
         self.current_widget = widget
         
-        # Create menu if it doesn't exist
+        #Create menu if it doesn't exist
         if self.menu is None:
             self.menu = tk.Menu(widget, tearoff=0)
             self.menu.add_command(label="Вирізати", command=self._cut)
@@ -55,7 +55,7 @@ class ContextMenu:
             self.menu.add_separator()
             self.menu.add_command(label="Виділити все", command=self._select_all)
         
-        # Update menu state based on widget content and selection
+        #Update menu state based on widget content and selection
         self._update_menu_state()
         
         try:
@@ -71,7 +71,7 @@ class ContextMenu:
             return
             
         try:
-            # Check if widget has content
+            #Check if widget has content
             has_content = False
             has_selection = False
             
@@ -90,14 +90,14 @@ class ContextMenu:
                 has_content = bool(content.strip())
                 has_selection = bool(self.current_widget.selection_present())
             
-            # Enable/disable menu items
-            self.menu.entryconfig(0, state="normal" if has_selection else "disabled")  # Cut
-            self.menu.entryconfig(1, state="normal" if has_selection else "disabled")  # Copy
-            self.menu.entryconfig(2, state="normal")  # Paste (always enabled)
-            self.menu.entryconfig(4, state="normal" if has_content else "disabled")  # Select All
+            #Enable/disable menu items
+            self.menu.entryconfig(0, state="normal" if has_selection else "disabled")  #Cut
+            self.menu.entryconfig(1, state="normal" if has_selection else "disabled")  #Copy
+            self.menu.entryconfig(2, state="normal")  #Paste (always enabled)
+            self.menu.entryconfig(4, state="normal" if has_content else "disabled")  #Select All
             
         except (AttributeError, tk.TclError):
-            # Fallback: enable all items
+            #Fallback: enable all items
             for i in [0, 1, 2, 4]:
                 self.menu.entryconfig(i, state="normal")
     
@@ -105,7 +105,7 @@ class ContextMenu:
         """Cut selected text."""
         try:
             if isinstance(self.current_widget, (ctk.CTkTextbox, ctk.CTkEntry)):
-                # First copy, then delete selection
+                #First copy, then delete selection
                 self._copy()
                 if isinstance(self.current_widget, ctk.CTkTextbox):
                     self.current_widget.delete("sel.first", "sel.last")
@@ -134,10 +134,10 @@ class ContextMenu:
         try:
             clipboard_text = self.current_widget.clipboard_get()
             if isinstance(self.current_widget, ctk.CTkTextbox):
-                # Insert at current cursor position
+                #Insert at current cursor position
                 self.current_widget.insert("insert", clipboard_text)
             elif isinstance(self.current_widget, ctk.CTkEntry):
-                # Replace selection or insert at cursor
+                #Replace selection or insert at cursor
                 if self.current_widget.selection_present():
                     self.current_widget.delete("sel.first", "sel.last")
                 self.current_widget.insert("insert", clipboard_text)
@@ -158,7 +158,7 @@ class ContextMenu:
             pass
 
 
-# Global instance for easy access
+#Global instance for easy access
 context_menu = ContextMenu()
 
 
@@ -170,11 +170,11 @@ def enable_context_menu(widget):
 def setup_context_menus_for_container(container):
     """Recursively add context menus to all text widgets in a container."""
     def _recursive_setup(widget):
-        # Add context menu to text widgets
+        #Add context menu to text widgets
         if isinstance(widget, (ctk.CTkEntry, ctk.CTkTextbox)):
             enable_context_menu(widget)
         
-        # Recursively process children
+        #Recursively process children
         try:
             for child in widget.winfo_children():
                 _recursive_setup(child)

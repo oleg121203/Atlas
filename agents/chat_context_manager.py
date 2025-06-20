@@ -19,18 +19,18 @@ logger = logging.getLogger(__name__)
 
 class ChatMode(Enum):
     """Different modes of conversation with Atlas."""
-    CASUAL_CHAT = "casual_chat"      # General conversation
-    SYSTEM_HELP = "system_help"      # System assistance
-    GOAL_SETTING = "goal_setting"    # Task specification
-    TOOL_INQUIRY = "tool_inquiry"    # Tool-related questions
-    STATUS_CHECK = "status_check"    # Status checking
-    CONFIGURATION = "configuration"   # System configuration
-    DEVELOPMENT = "development"      # Development mode (manual switching only)
+    CASUAL_CHAT = "casual_chat"      #General conversation
+    SYSTEM_HELP = "system_help"      #System assistance
+    GOAL_SETTING = "goal_setting"    #Task specification
+    TOOL_INQUIRY = "tool_inquiry"    #Tool-related questions
+    STATUS_CHECK = "status_check"    #Status checking
+    CONFIGURATION = "configuration"   #System configuration
+    DEVELOPMENT = "development"      #Development mode (manual switching only)
 
 class ModeControl(Enum):
     """Mode control types."""
-    AUTO = "auto"         # Automatic detection
-    MANUAL = "manual"     # Manual switching
+    AUTO = "auto"         #Automatic detection
+    MANUAL = "manual"     #Manual switching
 
 @dataclass
 class ChatContext:
@@ -40,7 +40,7 @@ class ChatContext:
     suggested_response_type: str
     context_keywords: List[str]
     requires_system_integration: bool
-    control_type: ModeControl = ModeControl.AUTO  # How the mode was selected
+    control_type: ModeControl = ModeControl.AUTO  #How the mode was selected
 
 class ChatContextManager:
     """Manages chat context and determines appropriate response modes."""
@@ -49,16 +49,16 @@ class ChatContextManager:
         self.conversation_history: List[Dict] = []
         self.current_session_context = {}
         
-        # Enhanced memory integration
+        #Enhanced memory integration
         self.memory_manager = memory_manager
-        # Note: If no memory_manager is provided, some features will be disabled
+        #Note: If no memory_manager is provided, some features will be disabled
         
-        # Mode control settings
+        #Mode control settings
         self.auto_mode_enabled = True
         self.manual_override_mode = None
         self.last_auto_detected_mode = None
         
-        # Development mode settings
+        #Development mode settings
         self.development_mode_features = {
             'debug_logging': True,
             'backup_on_changes': True,
@@ -67,7 +67,7 @@ class ChatContextManager:
             'experimental_features': True
         }
         
-        # Mode-specific memory settings
+        #Mode-specific memory settings
         self.mode_memory_config = {
             ChatMode.CASUAL_CHAT: {'ttl_days': 7, 'max_context': 20},
             ChatMode.SYSTEM_HELP: {'ttl_days': 30, 'max_context': 50},
@@ -78,7 +78,7 @@ class ChatContextManager:
             ChatMode.DEVELOPMENT: {'ttl_days': 180, 'max_context': 200}
         }
         
-        # Initialize patterns and templates
+        #Initialize patterns and templates
         self._initialize_patterns()
         self._initialize_templates()
         
@@ -96,7 +96,7 @@ class ChatContextManager:
     
     def _initialize_patterns(self):
         """Initialize mode detection patterns."""
-        # Patterns for different modes
+        #Patterns for different modes
         self.mode_patterns = {
             ChatMode.CASUAL_CHAT: {
                 'keywords': [
@@ -139,26 +139,26 @@ class ChatContextManager:
                     'memory', 'remember', 'storage', 'recall', 'memorize',
                     'provided', 'supported', 'long-term', 'organized', 'direction',
                     'interested', 'curious', 'want to know', 'wondering',
-                    # Problem analysis keywords
+                    #Problem analysis keywords
                     'problem', 'issue', 'error', 'bug', 'fix', 'solve', 'investigate',
                     'analyze', 'check', 'review', 'find problems', 'find issues',
                     'code quality', 'quality check', 'find errors', 'find bugs',
                     'debug', 'troubleshoot', 'examine', 'inspect',
-                    # Performance analysis keywords
+                    #Performance analysis keywords
                     'performance', 'bottleneck', 'optimization', 'optimize', 
                     'slow', 'fast', 'speed', 'memory usage', 'cpu usage',
                     'performance issues', 'performance problems', 'profiling',
                     'profile code', 'analyze performance', 'check performance',
-                    # Dependency analysis keywords
+                    #Dependency analysis keywords
                     'dependency', 'dependencies', 'architecture', 'structure',
                     'dependency conflicts', 'architectural problems', 'imports',
                     'circular dependencies', 'dependency graph', 'modules',
                     'component dependencies', 'architecture analysis',
-                    # Technical implementation keywords
+                    #Technical implementation keywords
                     'implementation', 'how implemented', 'where implemented',
                     'code structure', 'architecture', 'how works', 'how does it work',
                     'realized', 'implemented', 'possibilities', 'software',
-                    # Code analysis keywords - most specific ones only
+                    #Code analysis keywords - most specific ones only
                     'rebuild index', 'update index', 'show file', 'analyze file',
                     'code analysis', 'structure analysis'
                 ],
@@ -178,11 +178,11 @@ class ChatContextManager:
                     r'\b((?:software|program)\s+(?:possibilities|capabilities))\b',
                     r'\b(find\s+(?:problems|issues|errors|bugs)|check\s+(?:quality|code))\b',
                     r'\b(analyze\s+code|review\s+code|investigate\s+(?:problems|issues))\b',
-                    # Performance analysis patterns
+                    #Performance analysis patterns
                     r'\b(performance\s+(?:issues|problems|analysis|check))\b',
                     r'\b(check\s+(?:for\s+)?performance|analyze\s+performance)\b',
                     r'\b((?:memory|cpu)\s+usage|bottleneck|optimization|profile)\b',
-                    # Dependency analysis patterns
+                    #Dependency analysis patterns
                     r'\b(dependency\s+(?:conflicts|analysis|graph))\b',
                     r'\b(architectural?\s+(?:problems|analysis|issues))\b',
                     r'\b(investigate\s+(?:dependency|dependencies|architecture))\b',
@@ -257,7 +257,7 @@ class ChatContextManager:
     
     def _initialize_templates(self):
         """Initialize response templates."""
-        # Response templates
+        #Response templates
         self.response_templates = {
             ChatMode.SYSTEM_HELP: self._generate_help_response,
             ChatMode.GOAL_SETTING: self._generate_goal_response,
@@ -270,11 +270,11 @@ class ChatContextManager:
     
     def analyze_message(self, message: str, user_context: Dict = None) -> ChatContext:
         """Analyze a message and determine its context."""
-        # If in manual mode, use the override mode
+        #If in manual mode, use the override mode
         if not self.auto_mode_enabled and self.manual_override_mode:
             return ChatContext(
                 mode=self.manual_override_mode,
-                confidence=1.0,  # Manual mode has 100% confidence
+                confidence=1.0,  #Manual mode has 100% confidence
                 suggested_response_type=self._get_response_type(self.manual_override_mode),
                 context_keywords=[],
                 requires_system_integration=self.manual_override_mode in [
@@ -286,12 +286,12 @@ class ChatContextManager:
                 control_type=ModeControl.MANUAL
             )
         
-        # Auto mode - translate to English for analysis if needed
+        #Auto mode - translate to English for analysis if needed
         message_for_analysis = self._simple_translate_to_english(message)
         message_lower = message_for_analysis.lower()
         scores = {}
         
-        # Calculate scores for each mode (except DEVELOPMENT which is manual-only)
+        #Calculate scores for each mode (except DEVELOPMENT which is manual-only)
         analyzable_modes = [mode for mode in self.mode_patterns.keys() 
                            if mode != ChatMode.DEVELOPMENT]
         
@@ -299,20 +299,20 @@ class ChatContextManager:
             patterns = self.mode_patterns[mode]
             score = 0.0
             
-            # Check keywords with higher weight for exact matches
+            #Check keywords with higher weight for exact matches
             keyword_matches = 0
             for keyword in patterns['keywords']:
                 if keyword.lower() in message_lower:
                     keyword_matches += 1
-                    # Bonus for exact word boundaries
+                    #Bonus for exact word boundaries
                     if f" {keyword.lower()} " in f" {message_lower} ":
                         score += 0.1
             
             if keyword_matches > 0:
-                # Equal weight for all modes - no special preference for SYSTEM_HELP
+                #Equal weight for all modes - no special preference for SYSTEM_HELP
                 score += (keyword_matches / len(patterns['keywords'])) * 0.6
             
-            # Check regex patterns with equal weight
+            #Check regex patterns with equal weight
             pattern_matches = sum(1 for pattern in patterns['patterns']
                                 if re.search(pattern, message_lower, re.IGNORECASE))
             if pattern_matches > 0:
@@ -320,32 +320,32 @@ class ChatContextManager:
             
             scores[mode] = score
         
-        # Find the best match
+        #Find the best match
         best_mode = max(scores.keys(), key=lambda k: scores[k])
         confidence = scores[best_mode]
         
-        # Special handling for memory-related questions - boost confidence
+        #Special handling for memory-related questions - boost confidence
         memory_indicators = ['memory', 'remember', 'storage', 'recall', 'organized', 'long-term', 'provided']
         if any(indicator in message_lower for indicator in memory_indicators):
             if best_mode == ChatMode.SYSTEM_HELP:
-                confidence = min(0.9, confidence + 0.3)  # Boost confidence for memory questions
+                confidence = min(0.9, confidence + 0.3)  #Boost confidence for memory questions
         
-        # Special handling for casual greetings and short messages
+        #Special handling for casual greetings and short messages
         if len(message.strip()) <= 20 and any(greeting in message_lower for greeting in [
             'hi', 'hello', 'hey', 'good', 'morning', 'evening'
         ]):
             best_mode = ChatMode.CASUAL_CHAT
             confidence = 0.8
         
-        # Default to casual chat if confidence is too low
-        if confidence < 0.15:  # Lowered threshold
+        #Default to casual chat if confidence is too low
+        if confidence < 0.15:  #Lowered threshold
             best_mode = ChatMode.CASUAL_CHAT
             confidence = 0.5
         
-        # Store last auto-detected mode
+        #Store last auto-detected mode
         self.last_auto_detected_mode = best_mode
         
-        # Determine context keywords
+        #Determine context keywords
         context_keywords = []
         for mode, patterns in self.mode_patterns.items():
             if mode == best_mode:
@@ -353,7 +353,7 @@ class ChatContextManager:
                                   if kw.lower() in message_lower]
                 break
         
-        # Determine if system integration is required
+        #Determine if system integration is required
         requires_integration = best_mode in [
             ChatMode.GOAL_SETTING, 
             ChatMode.STATUS_CHECK, 
@@ -385,8 +385,8 @@ class ChatContextManager:
         This is a placeholder implementation. In a real scenario, this would
         interact with a more sophisticated memory or logging system.
         """
-        # This is a simplified implementation. A more robust solution would involve
-        # a dedicated memory manager, as hinted at in the class's docstrings.
+        #This is a simplified implementation. A more robust solution would involve
+        #a dedicated memory manager, as hinted at in the class's docstrings.
         history_entry = {
             "timestamp": time.time(),
             "message": message,
@@ -396,20 +396,20 @@ class ChatContextManager:
         }
         self.conversation_history.append(history_entry)
         
-        # Optional: Limit history size
-        if len(self.conversation_history) > 100: # Keep last 100 exchanges
+        #Optional: Limit history size
+        if len(self.conversation_history) > 100: #Keep last 100 exchanges
             self.conversation_history.pop(0)
 
     def analyze_message_with_mode_control(self, message: str, system_info: Dict = None) -> ChatContext:
         """Analyze message respecting mode control settings."""
         if not self.auto_mode_enabled and self.manual_override_mode:
-            # Manual mode is active
+            #Manual mode is active
             if self.manual_override_mode == ChatMode.DEVELOPMENT:
                 return self._create_development_context(message)
             else:
                 return self._create_manual_context(message, self.manual_override_mode)
         else:
-            # Auto mode - use normal analysis
+            #Auto mode - use normal analysis
             context = self.analyze_message(message, system_info)
             self.last_auto_detected_mode = context.mode
             return context
@@ -457,17 +457,17 @@ class ChatContextManager:
     def _generate_help_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
         """Generate help-focused response prompt."""
-        # Use translated message for detection
+        #Use translated message for detection
         message_for_analysis = self._simple_translate_to_english(message)
         message_lower = message_for_analysis.lower()
         
-        # Detect specific question patterns for direct answers
+        #Detect specific question patterns for direct answers
         memory_keywords = ['memory', 'remember', 'memorize', 'store', 'recall', 
                           'storage', 'long-term', 'organized', 'direction', 'interested']
         tools_keywords = ['tools', 'instruments', 'functions', 'capabilities']
         modes_keywords = ['modes', 'mode']
         
-        # Direct memory question detection
+        #Direct memory question detection
         if any(word in message_lower for word in memory_keywords):
             return f"""You are Atlas in System Help mode. The user is asking about the memory system implementation.
 
@@ -503,7 +503,7 @@ Use your COMPREHENSIVE ANALYSIS TOOLS to investigate the memory implementation:
 
 Start by using `code_reader_tool` to analyze the memory manager files, then use `professional_analyzer` and `dependency_analyzer` to identify any potential issues."""
 
-        # Direct tools question detection  
+        #Direct tools question detection  
         elif any(word in message_lower for word in tools_keywords):
             return f"""You are Atlas in System Help mode. The user is asking about tools/functions implementation.
 
@@ -538,7 +538,7 @@ Use your COMPREHENSIVE ANALYSIS ARSENAL to investigate tool implementation:
 
 Start by using `file_search` to explore tool directories, then `code_reader_tool` and `dependency_analyzer` to analyze key tool implementations."""
 
-        # Direct modes question detection
+        #Direct modes question detection
         elif any(word in message_lower for word in modes_keywords):
             return f"""You are Atlas. The user is asking about your operating modes.
 
@@ -555,9 +555,9 @@ Explain the different conversation modes directly:
 
 Be direct and focused on modes only."""
 
-        # General help - use professional code analysis for comprehensive understanding
+        #General help - use professional code analysis for comprehensive understanding
         else:
-            # Check if this is a problem analysis or investigation request
+            #Check if this is a problem analysis or investigation request
             investigation_keywords = ['problem', 'issue', 'error', 'bug', 'fix', 'solve', 'investigate', 'analyze', 'check', 'review', 'find']
             is_investigation = any(keyword in message_lower for keyword in investigation_keywords)
             
@@ -660,11 +660,11 @@ Format your response to be encouraging and action-oriented. Start with "🎯 I u
     def _generate_tool_response(self, context: ChatContext, message: str, 
                               system_info: Dict = None) -> str:
         """Generate tool inquiry response prompt."""
-        # Use translated message for better detection
+        #Use translated message for better detection
         message_for_analysis = self._simple_translate_to_english(message)
         message_lower = message_for_analysis.lower()
         
-        # Check if this is a technical implementation question about tools
+        #Check if this is a technical implementation question about tools
         implementation_keywords = ['implemented', 'realized', 'where', 'how', 'code', 'files']
         is_technical_question = any(keyword in message_lower for keyword in implementation_keywords)
         
@@ -705,7 +705,7 @@ ACTIVATE COMPREHENSIVE TOOL ANALYSIS using your advanced arsenal:
 Use your FULL ARSENAL of analysis tools to gather comprehensive information. Provide professional-grade technical details with actual code references, performance insights, and architectural analysis."""
         
         else:
-            # Standard tool list for non-technical questions
+            #Standard tool list for non-technical questions
             available_tools = system_info.get('tools', []) if system_info else []
             return f"""You are Atlas, an autonomous computer assistant. The user is asking about your available tools.
 
@@ -789,7 +789,7 @@ Acknowledge the development command and proceed with execution.
 
     def _simple_translate_to_english(self, message: str) -> str:
         """Simple translation for testing purposes."""
-        # Basic translation mapping for common phrases
+        #Basic translation mapping for common phrases
         translations = {
             'привіт': 'hello',
             'привет': 'hello', 
@@ -839,7 +839,7 @@ Acknowledge the development command and proceed with execution.
             'коду': 'code',
             'код': 'code analyze',
             'помилки': 'errors bugs issues problems',
-            # Problem investigation keywords
+            #Problem investigation keywords
             'проблеми': 'problems issues',
             'проблема': 'problem issue',
             'помилки': 'errors bugs',
@@ -858,10 +858,116 @@ Acknowledge the development command and proceed with execution.
         message_lower = message.lower()
         translated = message_lower
         
-        # Apply translations in order of specificity (longer phrases first)
+        #Apply translations in order of specificity (longer phrases first)
         sorted_translations = sorted(translations.items(), key=lambda x: len(x[0]), reverse=True)
         
         for ukrainian, english in sorted_translations:
             translated = translated.replace(ukrainian, english)
             
         return translated
+    
+    def format_bold(self, text: str) -> str:
+        """
+        Format text as bold
+        
+        Args:
+            text: Text to format
+            
+        Returns:
+            Text formatted as bold (wrapped in ** markdown)
+        """
+        return f"**{text}**"
+    
+    def format_italic(self, text: str) -> str:
+        """
+        Format text as italic
+        
+        Args:
+            text: Text to format
+            
+        Returns:
+            Text formatted as italic (wrapped in * markdown)
+        """
+        return f"*{text}*"
+    
+    def format_underline(self, text: str) -> str:
+        """
+        Format text as underlined
+        
+        Args:
+            text: Text to format
+            
+        Returns:
+            Text formatted as underlined (wrapped in __ markdown)
+        """
+        return f"__{text}__"
+    
+    def format_code(self, text: str) -> str:
+        """
+        Format text as inline code
+        
+        Args:
+            text: Text to format
+            
+        Returns:
+            Text formatted as inline code (wrapped in ` markdown)
+        """
+        return f"`{text}`"
+    
+    def format_code_block(self, text: str, language: str = "") -> str:
+        """
+        Format text as a code block
+        
+        Args:
+            text: Text to format
+            language: Optional language for syntax highlighting
+            
+        Returns:
+            Text formatted as a code block (wrapped in ``` markdown)
+        """
+        return f"```{language}\n{text}\n```"
+    
+    def format_list(self, items: List[str], ordered: bool = False) -> str:
+        """
+        Format items as a list
+        
+        Args:
+            items: List of items to format
+            ordered: If True, create an ordered list, otherwise unordered
+            
+        Returns:
+            Formatted list as markdown
+        """
+        result = []
+        for i, item in enumerate(items, 1):
+            if ordered:
+                result.append(f"{i}. {item}")
+            else:
+                result.append(f"- {item}")
+        return "\n".join(result)
+    
+    def format_quote(self, text: str) -> str:
+        """
+        Format text as a quote
+        
+        Args:
+            text: Text to format
+            
+        Returns:
+            Text formatted as a quote (prefixed with > markdown)
+        """
+        lines = text.split("\n")
+        return "\n".join([f"> {line}" for line in lines])
+    
+    def format_link(self, text: str, url: str) -> str:
+        """
+        Format text as a hyperlink
+        
+        Args:
+            text: Display text for the link
+            url: URL for the link
+            
+        Returns:
+            Text formatted as a markdown link
+        """
+        return f"[{text}]({url})"

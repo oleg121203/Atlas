@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Тест завантаження інструментів при старті Atlas
+Тест loading інструментів при старті Atlas
 """
 
 import os
 import sys
 
-# Додаємо шлях до проекту
+#Додаємо шлях до проекту
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 def test_tools_loading():
-    """Тестуємо завантаження інструментів при старті."""
+    """Тестуємо loading інструментів при старті."""
     print("🔧 ТЕСТ ЗАВАНТАЖЕННЯ ІНСТРУМЕНТІВ")
     print("=" * 50)
     
@@ -24,7 +24,7 @@ def test_tools_loading():
         
         print("📦 Ініціалізація компонентів...")
         
-        # Ініціалізуємо компоненти
+        #Ініціалізуємо компоненти
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker=token_tracker, config_manager=config_manager)
@@ -36,7 +36,7 @@ def test_tools_loading():
         print("\n🔍 Перевірка завантажених інструментів...")
         tools = agent_manager.get_tool_descriptions()
         
-        # Очікувані базові інструменти
+        #Очікувані базові інструменти
         expected_tools = [
             'capture_screen',
             'get_clipboard_text',
@@ -70,12 +70,12 @@ def test_tools_loading():
         print(f"  ✅ Знайдено: {len(found_tools)}")
         print(f"  ❌ Відсутніх: {len(missing_tools)}")
         
-        # Показуємо всі доступні інструменти
+        #Показуємо всі доступні інструменти
         print(f"\n📄 Всі доступні інструменти ({len(tools)}):")
         for tool_name, description in tools.items():
             print(f"  • {tool_name}: {description[:60]}...")
             
-        # Перевіряємо generated інструменти
+        #Перевіряємо generated інструменти
         print("\n🔧 Перевірка згенерованих інструментів...")
         generated_dir = os.path.join(project_root, "tools", "generated")
         if os.path.exists(generated_dir):
@@ -86,7 +86,7 @@ def test_tools_loading():
         else:
             print("  📁 Папка tools/generated не існує")
             
-        # Фінальна оцінка
+        #Фінальна оцінка
         success_rate = len(found_tools) / len(expected_tools) * 100
         print(f"\n🎯 Результат тесту:")
         print(f"  📈 Успішність завантаження: {success_rate:.1f}%")

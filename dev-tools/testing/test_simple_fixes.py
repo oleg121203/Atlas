@@ -6,15 +6,15 @@
 import sys
 sys.path.append('/Users/dev/Documents/autoclicker')
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 def test_api_keys_saving():
-    """Тест збереження та завантаження API ключів."""
+    """Тест storage та loading API ключів."""
     print("🔧 Тестування збереження/завантаження API ключів...")
     
     config_manager = ConfigManager()
     
-    # Створимо тестові налаштування
+    #Створимо тестові settings
     test_settings = {
         "api_keys": {
             "openai": "test_openai_key",
@@ -26,14 +26,14 @@ def test_api_keys_saving():
         "current_provider": "gemini"
     }
     
-    # Збережемо
+    #Збережемо
     config_manager.save(test_settings)
     print("✅ Налаштування збережено")
     
-    # Завантажимо знову
+    #Завантажимо знову
     loaded_settings = config_manager.load()
     
-    # Перевіримо, чи всі ключі на місці
+    #Перевіримо, чи всі ключі на місці
     api_keys = loaded_settings.get("api_keys", {})
     
     expected_keys = ["openai", "gemini", "anthropic", "groq", "mistral"]
@@ -43,11 +43,11 @@ def test_api_keys_saving():
         else:
             print(f"❌ {key}: НЕ ЗНАЙДЕНО")
     
-    # Перевіримо провайдер
+    #Перевіримо провайдер
     provider = loaded_settings.get("current_provider", "")
     print(f"🎯 Провайдер: {provider}")
     
-    # Тест методів отримання ключів
+    #Тест методів getting ключів
     print("\n🔑 Тестування методів отримання ключів:")
     print(f"  openai: {config_manager.get_openai_api_key()}")
     print(f"  gemini: {config_manager.get_gemini_api_key()}")
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print("🚀 Запуск тестів для перевірки виправлень з API ключами...")
     print("=" * 60)
     
-    # Тест API ключів
+    #Тест API ключів
     settings = test_api_keys_saving()
     
     print("\n" + "=" * 60)

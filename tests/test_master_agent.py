@@ -2,7 +2,7 @@ import sys
 import os
 import unittest
 
-# Add project root to the Python path
+#Add project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from unittest.mock import MagicMock, create_autospec
 
@@ -40,27 +40,27 @@ class TestMasterAgent(unittest.TestCase):
 
     def test_prompt_caching_and_invalidation(self):
         """Test that the planning prompt is cached and invalidated correctly."""
-        # Check initial state
+        #Check initial state
         self.assertTrue(self.master_agent._tools_changed)
         self.assertIsNone(self.master_agent.system_prompt_template)
 
-        # 1. First call, prompt should be generated
+        #1. First call, prompt should be generated
         self.master_agent._get_planning_prompt("test goal", [], [])
         self.assertEqual(self.mock_agent_manager.get_tool_list_string.call_count, 1)
 
-        # Check state after first call
+        #Check state after first call
         self.assertFalse(self.master_agent._tools_changed, "Flag _tools_changed should be False after prompt generation")
         self.assertIsNotNone(self.master_agent.system_prompt_template, "system_prompt_template should be set after generation")
     
-        # 2. Second call, prompt should be cached
+        #2. Second call, prompt should be cached
         self.master_agent._get_planning_prompt("another goal", [], [])
         self.assertEqual(self.mock_agent_manager.get_tool_list_string.call_count, 1, "get_tool_list_string should not be called again")
 
-        # 3. Invalidate cache by calling the callback
+        #3. Invalidate cache by calling the callback
         self.master_agent._on_tools_updated()
         self.assertTrue(self.master_agent._tools_changed, "Flag _tools_changed should be True after invalidation")
         
-        # 4. Third call, prompt should be regenerated
+        #4. Third call, prompt should be regenerated
         self.master_agent._get_planning_prompt("third goal", [], [])
         self.assertEqual(self.mock_agent_manager.get_tool_list_string.call_count, 2, "get_tool_list_string should be called again after invalidation")
 

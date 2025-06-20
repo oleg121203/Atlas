@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-# Set up logging to file for debugging
+#Set up logging to file for debugging
 import logging
 logging.basicConfig(
     level=logging.INFO,
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def main():
     logger.info("🚀 Starting Atlas verification test")
     
-    # Check .env file exists
+    #Check .env file exists
     env_file = Path('/workspaces/autoclicker/.env')
     logger.info(f"📁 .env file exists: {env_file.exists()}")
     
@@ -29,13 +29,13 @@ def main():
             content = f.read()
             logger.info(f"📋 .env content preview: {content[:100]}...")
     
-    # Load environment
+    #Load environment
     try:
         from dotenv import load_dotenv
         load_dotenv()
         logger.info("✅ dotenv loaded successfully")
         
-        # Check specific variables
+        #Check specific variables
         gemini_key = os.getenv('GEMINI_API_KEY', '')
         provider = os.getenv('DEFAULT_LLM_PROVIDER', '')
         
@@ -46,7 +46,7 @@ def main():
         logger.error(f"❌ Error loading dotenv: {e}")
         return False
     
-    # Test config manager
+    #Test config manager
     try:
         sys.path.insert(0, '/workspaces/autoclicker')
         from config_manager import ConfigManager

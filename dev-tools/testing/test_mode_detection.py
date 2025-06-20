@@ -7,12 +7,12 @@ from agents.chat_context_manager import ChatContextManager, ChatMode
 from agents.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
 from agents.token_tracker import TokenTracker
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 def test_mode_detection():
     """Test mode detection for various messages"""
     
-    # Initialize managers
+    #Initialize managers
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker)
@@ -22,7 +22,7 @@ def test_mode_detection():
         memory_manager=memory_manager
     )
     
-    # Test messages
+    #Test messages
     test_messages = [
         ("Привіт", "CASUAL_CHAT"),
         ("Tell about your code where long-term memory issue is resolved?", "SYSTEM_HELP"),

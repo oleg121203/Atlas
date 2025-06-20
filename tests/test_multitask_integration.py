@@ -13,7 +13,7 @@ import time
 import threading
 from typing import Dict, Any
 
-# Mock implementations for testing without full dependencies
+#Mock implementations for testing without full dependencies
 class MockLLMManager:
     """Mock LLM manager for testing."""
     
@@ -28,7 +28,7 @@ class MockLLMManager:
             def __init__(self, response):
                 self.response_text = response
         
-        # Simulate different responses based on content
+        #Simulate different responses based on content
         user_msg = str(messages).lower()
         
         if "screenshot" in user_msg:
@@ -100,7 +100,7 @@ class MultitaskIntegrationTest:
         print("Testing memory isolation between tasks...")
         
         try:
-            # Simulate task memory storage
+            #Simulate task memory storage
             task_memories = {
                 "task_1": {
                     "scope": "task_task_1",
@@ -128,14 +128,14 @@ class MultitaskIntegrationTest:
                 }
             }
             
-            # Verify memory isolation
+            #Verify memory isolation
             for task_id, task_data in task_memories.items():
                 scope = task_data["scope"]
                 memories = task_data["memories"]
                 
                 print(f"   📝 Task {task_id}: {len(memories)} memories in scope '{scope}'")
                 
-                # Verify no cross-contamination
+                #Verify no cross-contamination
                 for other_task_id, other_data in task_memories.items():
                     if other_task_id != task_id:
                         other_scope = other_data["scope"]
@@ -143,11 +143,11 @@ class MultitaskIntegrationTest:
             
             print("   ✅ Memory scopes are properly isolated")
             
-            # Test memory retrieval isolation
+            #Test memory retrieval isolation
             for task_id, task_data in task_memories.items():
                 task_memories_count = len(task_data["memories"])
                 
-                # Simulate retrieving only task-specific memories
+                #Simulate retrieving only task-specific memories
                 retrieved = [m for m in task_data["memories"] 
                            if "screenshot" in str(m) and task_id == "task_1" or
                               "weather" in str(m) and task_id == "task_2" or
@@ -167,7 +167,7 @@ class MultitaskIntegrationTest:
         print("Testing concurrent task execution...")
         
         try:
-            # Simulate concurrent task execution
+            #Simulate concurrent task execution
             task_execution_log = []
             execution_lock = threading.Lock()
             
@@ -182,7 +182,7 @@ class MultitaskIntegrationTest:
                         "timestamp": start_time
                     })
                 
-                # Simulate work
+                #Simulate work
                 time.sleep(duration)
                 
                 end_time = time.time()
@@ -194,11 +194,11 @@ class MultitaskIntegrationTest:
                         "duration": end_time - start_time
                     })
             
-            # Start multiple concurrent tasks
+            #Start multiple concurrent tasks
             tasks = [
-                ("task_1", 0.5),  # Fast task
-                ("task_2", 1.0),  # Medium task  
-                ("task_3", 0.8),  # Another medium task
+                ("task_1", 0.5),  #Fast task
+                ("task_2", 1.0),  #Medium task  
+                ("task_3", 0.8),  #Another medium task
             ]
             
             threads = []
@@ -213,26 +213,26 @@ class MultitaskIntegrationTest:
                 thread.start()
                 print(f"   🚀 Started {task_id} (expected duration: {duration}s)")
             
-            # Wait for all tasks to complete
+            #Wait for all tasks to complete
             for thread in threads:
                 thread.join()
             
             overall_duration = time.time() - overall_start
             
-            # Analyze execution
+            #Analyze execution
             completed_tasks = [log for log in task_execution_log if log["event"] == "completed"]
             
             print(f"   ⏱️  Overall execution time: {overall_duration:.2f}s")
             print(f"   📊 Completed tasks: {len(completed_tasks)}")
             
-            # Verify concurrent execution (should be faster than sequential)
+            #Verify concurrent execution (should be faster than sequential)
             sequential_time = sum(duration for _, duration in tasks)
             efficiency = (sequential_time - overall_duration) / sequential_time * 100
             
             print(f"   🚀 Concurrency efficiency: {efficiency:.1f}% time saved")
             
-            # Check that tasks actually ran concurrently
-            if overall_duration < sequential_time * 0.8:  # At least 20% time savings
+            #Check that tasks actually ran concurrently
+            if overall_duration < sequential_time * 0.8:  #At least 20% time savings
                 print("   ✅ Tasks executed concurrently")
                 return True
             else:
@@ -248,7 +248,7 @@ class MultitaskIntegrationTest:
         print("Testing task lifecycle (create, start, pause, resume, cancel)...")
         
         try:
-            # Simulate task lifecycle
+            #Simulate task lifecycle
             class MockTask:
                 def __init__(self, task_id: str, goal: str):
                     self.task_id = task_id
@@ -289,40 +289,40 @@ class MultitaskIntegrationTest:
                         return True
                     return False
             
-            # Test lifecycle operations
+            #Test lifecycle operations
             task = MockTask("test_task", "Test goal execution")
             
-            # Test creation
+            #Test creation
             assert task.status == "pending", "Task should start as pending"
             print("   ✅ Task created successfully")
             
-            # Test start
+            #Test start
             task.start()
             assert task.status == "running", "Task should be running after start"
             assert task.started_at is not None, "Started timestamp should be set"
             print("   ✅ Task started successfully")
             
-            # Test pause
+            #Test pause
             pause_result = task.pause()
             assert pause_result == True, "Pause should succeed"
             assert task.status == "paused", "Task should be paused"
             assert task.paused_at is not None, "Paused timestamp should be set"
             print("   ✅ Task paused successfully")
             
-            # Test resume
+            #Test resume
             resume_result = task.resume()
             assert resume_result == True, "Resume should succeed"
             assert task.status == "running", "Task should be running after resume"
             print("   ✅ Task resumed successfully")
             
-            # Test completion
+            #Test completion
             complete_result = task.complete()
             assert complete_result == True, "Complete should succeed"
             assert task.status == "completed", "Task should be completed"
             assert task.completed_at is not None, "Completed timestamp should be set"
             print("   ✅ Task completed successfully")
             
-            # Test cancellation (create new task for this)
+            #Test cancellation (create new task for this)
             cancel_task = MockTask("cancel_test", "Task to be cancelled")
             cancel_task.start()
             cancel_result = cancel_task.cancel()
@@ -341,16 +341,16 @@ class MultitaskIntegrationTest:
         print("Testing API resource management...")
         
         try:
-            # Simulate API resource manager
+            #Simulate API resource manager
             class MockAPIResourceManager:
                 def __init__(self):
-                    self.limits = {"openai": 5, "ollama": 10}  # requests per minute
+                    self.limits = {"openai": 5, "ollama": 10}  #requests per minute
                     self.counters = {"openai": [], "ollama": []}
                     
                 def can_make_request(self, provider: str) -> bool:
                     current_time = time.time()
                     
-                    # Remove old requests (older than 60 seconds)
+                    #Remove old requests (older than 60 seconds)
                     self.counters[provider] = [
                         req_time for req_time in self.counters[provider]
                         if current_time - req_time < 60
@@ -375,30 +375,30 @@ class MultitaskIntegrationTest:
                         }
                     return stats
             
-            # Test resource management
+            #Test resource management
             api_manager = MockAPIResourceManager()
             
-            # Test normal operation
+            #Test normal operation
             for i in range(3):
                 success = api_manager.register_request("openai")
                 assert success == True, f"Request {i+1} should succeed"
                 print(f"   ✅ Request {i+1} to OpenAI successful")
             
-            # Test rate limiting
-            for i in range(5):  # Try to exceed limit
+            #Test rate limiting
+            for i in range(5):  #Try to exceed limit
                 api_manager.register_request("openai")
             
-            # This should fail due to rate limit
+            #This should fail due to rate limit
             exceeded = api_manager.register_request("openai")
             assert exceeded == False, "Request should fail due to rate limit"
             print("   ✅ Rate limiting working correctly")
             
-            # Test different providers
+            #Test different providers
             ollama_success = api_manager.register_request("ollama")
             assert ollama_success == True, "Ollama request should succeed (different limit)"
             print("   ✅ Different providers have independent limits")
             
-            # Test statistics
+            #Test statistics
             stats = api_manager.get_stats()
             assert "openai" in stats, "Stats should include OpenAI"
             assert "ollama" in stats, "Stats should include Ollama"
@@ -423,7 +423,7 @@ class MultitaskIntegrationTest:
         print("Testing error handling...")
         
         try:
-            # Simulate various error scenarios
+            #Simulate various error scenarios
             error_scenarios = [
                 {
                     "name": "API Timeout",
@@ -456,28 +456,28 @@ class MultitaskIntegrationTest:
                 
                 print(f"   🔥 Simulating {error_name}...")
                 
-                # Simulate error and recovery
+                #Simulate error and recovery
                 try:
-                    # Simulate different recovery strategies
+                    #Simulate different recovery strategies
                     if recovery == "retry_with_backoff":
-                        # Simulate retry logic
+                        #Simulate retry logic
                         for attempt in range(3):
-                            if attempt == 2:  # Succeed on 3rd attempt
+                            if attempt == 2:  #Succeed on 3rd attempt
                                 successful_recoveries += 1
                                 break
-                            time.sleep(0.01)  # Simulated backoff
+                            time.sleep(0.01)  #Simulated backoff
                         
                     elif recovery == "wait_and_retry":
-                        # Simulate waiting for rate limit reset
-                        time.sleep(0.01)  # Simulated wait
+                        #Simulate waiting for rate limit reset
+                        time.sleep(0.01)  #Simulated wait
                         successful_recoveries += 1
                         
                     elif recovery == "cleanup_and_stop":
-                        # Simulate graceful cleanup
+                        #Simulate graceful cleanup
                         successful_recoveries += 1
                         
                     elif recovery == "isolate_and_continue":
-                        # Simulate task isolation
+                        #Simulate task isolation
                         successful_recoveries += 1
                     
                     print(f"   ✅ {error_name} handled successfully")
@@ -488,7 +488,7 @@ class MultitaskIntegrationTest:
             recovery_rate = (successful_recoveries / len(error_scenarios)) * 100
             print(f"   📊 Error recovery rate: {recovery_rate:.1f}%")
             
-            if recovery_rate >= 75:  # At least 75% recovery rate
+            if recovery_rate >= 75:  #At least 75% recovery rate
                 print("   ✅ Error handling is robust")
                 return True
             else:

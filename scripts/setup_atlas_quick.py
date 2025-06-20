@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Atlas Quick Setup Utility
-Швидке налаштування Atlas для macOS з автоматичною конфігурацією
+Швидке settings Atlas для macOS з автоматичною конфігурацією
 """
 
 import os
@@ -11,15 +11,15 @@ import shutil
 from pathlib import Path
 
 def setup_atlas_config():
-    """Автоматичне налаштування Atlas конфігурації"""
+    """Автоматичне settings Atlas конфігурації"""
     print("🍎 Atlas macOS Quick Setup")
     print("=" * 40)
     
-    # 1. Перевіряємо config.ini
+    #1. Перевіряємо config.ini
     if not os.path.exists('config.ini'):
         print("📝 Створення config.ini...")
         
-        # Копіюємо з прикладу або створюємо новий
+        #Копіюємо з прикладу або створюємо new
         if os.path.exists('dev-tools/setup/config.ini.example'):
             shutil.copy('dev-tools/setup/config.ini.example', 'config.ini')
             print("✅ Скопійовано з прикладу")
@@ -29,16 +29,16 @@ def setup_atlas_config():
     else:
         print("✅ config.ini вже існує")
     
-    # 2. Перевіряємо API ключі в .env
+    #2. Перевіряємо API ключі в .env
     setup_api_keys()
     
-    # 3. Налаштовуємо config.ini з правильними значеннями
+    #3. Налаштовуємо config.ini з правильними значеннями
     update_config_ini()
     
-    # 4. Перевіряємо YAML конфігурацію
+    #4. Перевіряємо YAML конфігурацію
     setup_yaml_config()
     
-    # 5. Показуємо фінальний статус
+    #5. Показуємо фінальний status
     show_setup_status()
 
 def create_default_config():
@@ -79,19 +79,19 @@ def create_default_config():
         config.write(configfile)
 
 def setup_api_keys():
-    """Налаштування API ключів з .env файлу"""
+    """Settings API ключів з .env файлу"""
     print("\n🔑 Перевірка API ключів...")
     
     if os.path.exists('.env'):
         with open('.env', 'r') as f:
             env_content = f.read()
         
-        # Перевіряємо наявність ключів
+        #Перевіряємо наявність ключів
         keys_found = {}
         for provider in ['OPENAI', 'GEMINI', 'GROQ', 'MISTRAL']:
             key_pattern = f'{provider}_API_KEY='
             if key_pattern in env_content:
-                # Витягуємо значення ключа
+                #Витягуємо значення ключа
                 for line in env_content.split('\n'):
                     if line.startswith(key_pattern):
                         key_value = line.split('=', 1)[1]
@@ -113,7 +113,7 @@ def update_config_ini():
     config = configparser.ConfigParser()
     config.read('config.ini')
     
-    # Читаємо ключі з .env
+    #Читаємо ключі з .env
     env_keys = {}
     if os.path.exists('.env'):
         with open('.env', 'r') as f:
@@ -122,10 +122,10 @@ def update_config_ini():
                     key, value = line.strip().split('=', 1)
                     env_keys[key] = value
     
-    # Оновлюємо конфігурацію
+    #Оновлюємо конфігурацію
     updates_made = False
     
-    # Gemini API ключ
+    #Gemini API ключ
     if 'GEMINI_API_KEY' in env_keys and env_keys['GEMINI_API_KEY']:
         if not config.has_section('Gemini'):
             config.add_section('Gemini')
@@ -133,7 +133,7 @@ def update_config_ini():
         updates_made = True
         print("✅ Gemini API ключ оновлено")
     
-    # OpenAI API ключ
+    #OpenAI API ключ
     if 'OPENAI_API_KEY' in env_keys and env_keys['OPENAI_API_KEY']:
         if not config.has_section('OpenAI'):
             config.add_section('OpenAI')
@@ -141,7 +141,7 @@ def update_config_ini():
         updates_made = True
         print("✅ OpenAI API ключ оновлено")
     
-    # LLM налаштування
+    #LLM settings
     if not config.has_section('LLM'):
         config.add_section('LLM')
         config.set('LLM', 'provider', 'gemini')
@@ -149,21 +149,21 @@ def update_config_ini():
         updates_made = True
         print("✅ LLM налаштування додано")
     
-    # Зберігаємо зміни
+    #Зберігаємо зміни
     if updates_made:
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
         print("✅ config.ini оновлено")
 
 def setup_yaml_config():
-    """Налаштування YAML конфігурації"""
+    """Settings YAML конфігурації"""
     print("\n🔧 Перевірка YAML конфігурації...")
     
     yaml_path = Path.home() / ".atlas" / "config.yaml"
     yaml_path.parent.mkdir(exist_ok=True)
     
     if not yaml_path.exists():
-        # Створюємо базову YAML конфігурацію
+        #Створюємо базову YAML конфігурацію
         yaml_content = """current_provider: gemini
 current_model: gemini-1.5-flash
 agents:
@@ -188,7 +188,7 @@ security:
   api_usage_threshold: 50
   file_access_threshold: 70
   rules:
-    - "# Example Rule: Deny all shell commands that contain 'rm -rf'"
+    - "#Example Rule: Deny all shell commands that contain 'rm -rf'"
     - "DENY,TERMINAL,.*rm -rf.*"
 """
         
@@ -199,12 +199,12 @@ security:
         print("✅ YAML конфігурація вже існує")
 
 def show_setup_status():
-    """Показати фінальний статус налаштування"""
+    """Показати фінальний status settings"""
     print("\n" + "=" * 40)
     print("📊 Статус налаштування Atlas:")
     print("=" * 40)
     
-    # Перевіряємо файли
+    #Перевіряємо файли
     files_status = {
         'config.ini': os.path.exists('config.ini'),
         '.env': os.path.exists('.env'),
@@ -215,7 +215,7 @@ def show_setup_status():
         status = "✅" if exists else "❌"
         print(f"{status} {file}")
     
-    # Перевіряємо API ключі
+    #Перевіряємо API ключі
     print("\n🔑 API ключі:")
     if os.path.exists('config.ini'):
         config = configparser.ConfigParser()
@@ -238,7 +238,7 @@ def show_setup_status():
 def main():
     """Головна функція"""
     try:
-        # Перехід до директорії Atlas
+        #Перехід до директорії Atlas
         atlas_dir = Path(__file__).parent
         os.chdir(atlas_dir)
         

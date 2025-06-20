@@ -24,8 +24,8 @@ class SecurityRisk:
     
     def __init__(self, risk_type: str, level: str, description: str, 
                  file_path: Optional[str] = None, command: Optional[str] = None):
-        self.risk_type = risk_type  # 'file_access', 'system_command', 'network', etc.
-        self.level = level  # 'Low', 'Medium', 'High', 'Critical'
+        self.risk_type = risk_type  #'file_access', 'system_command', 'network', etc.
+        self.level = level  #'Low', 'Medium', 'High', 'Critical'
         self.description = description
         self.file_path = file_path
         self.command = command
@@ -41,7 +41,7 @@ class EnhancedSecurityAgent(BaseAgent):
         self.config_manager = config_manager
         self.logger = logging.getLogger(__name__)
         
-        # Security settings
+        #Security settings
         self.settings = {
             'file_access_threshold': 'Medium',
             'system_cmd_threshold': 'High',
@@ -59,18 +59,18 @@ class EnhancedSecurityAgent(BaseAgent):
             'log_all_operations': True
         }
         
-        # Monitoring state
+        #Monitoring state
         self.is_monitoring = False
         self.monitored_processes: Set[int] = set()
         self.file_access_log: List[Dict] = []
         self.security_violations: List[SecurityRisk] = []
         self.whitelist_patterns: List[str] = []
         
-        # Load settings if config manager is available
+        #Load settings if config manager is available
         if self.config_manager:
             self.load_security_settings()
         
-        # Start monitoring thread
+        #Start monitoring thread
         self.monitoring_thread = None
         
     def load_security_settings(self):
@@ -107,21 +107,21 @@ class EnhancedSecurityAgent(BaseAgent):
         """Main monitoring loop."""
         while self.is_monitoring:
             try:
-                # Monitor for suspicious activity
+                #Monitor for suspicious activity
                 self._check_running_processes()
                 self._check_recent_file_access()
                 self._check_network_connections()
                 
-                time.sleep(1)  # Check every second
+                time.sleep(1)  #Check every second
             except Exception as e:
                 self.logger.error(f"Error in monitoring loop: {e}")
-                time.sleep(5)  # Wait longer on error
+                time.sleep(5)  #Wait longer on error
     
     def assess_file_access_risk(self, file_path: str, operation: str = "read") -> SecurityRisk:
         """Assess risk level for file access operation."""
         file_path = os.path.abspath(file_path)
         
-        # Check if file is in restricted directories
+        #Check if file is in restricted directories
         for restricted_dir in self.settings['restricted_directories']:
             if file_path.startswith(restricted_dir):
                 return SecurityRisk(
@@ -131,7 +131,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     file_path=file_path
                 )
         
-        # Check for sensitive file types
+        #Check for sensitive file types
         sensitive_patterns = [
             r'\.password$', r'\.key$', r'\.pem$', r'\.p12$', r'\.pfx$',
             r'id_rsa', r'id_dsa', r'id_ecdsa', r'id_ed25519',
@@ -148,7 +148,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     file_path=file_path
                 )
         
-        # Check for system files
+        #Check for system files
         system_patterns = [
             r'/bin/', r'/sbin/', r'/usr/bin/', r'/usr/sbin/',
             r'System32', r'SysWOW64', r'\.exe$', r'\.dll$', r'\.sys$'
@@ -163,7 +163,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     file_path=file_path
                 )
         
-        # Check for write operations to important directories
+        #Check for write operations to important directories
         if operation in ['write', 'delete', 'modify']:
             important_dirs = ['/usr', '/opt', '/Library', 'Program Files']
             for important_dir in important_dirs:
@@ -181,7 +181,7 @@ class EnhancedSecurityAgent(BaseAgent):
         """Assess risk level for system command execution."""
         command_lower = command.lower().strip()
         
-        # Check for dangerous commands
+        #Check for dangerous commands
         for dangerous_cmd in self.settings['dangerous_commands']:
             if dangerous_cmd.lower() in command_lower:
                 return SecurityRisk(
@@ -191,7 +191,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     command=command
                 )
         
-        # Check for privilege escalation
+        #Check for privilege escalation
         privilege_patterns = [
             r'sudo\s+', r'su\s+', r'runas\s+', r'elevate',
             r'net\s+user', r'net\s+localgroup', r'useradd', r'usermod'
@@ -206,7 +206,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     command=command
                 )
         
-        # Check for network commands
+        #Check for network commands
         network_patterns = [
             r'curl\s+', r'wget\s+', r'nc\s+', r'netcat', r'telnet',
             r'ssh\s+', r'scp\s+', r'rsync\s+', r'ftp\s+'
@@ -221,7 +221,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     command=command
                 )
         
-        # Check for file manipulation
+        #Check for file manipulation
         file_patterns = [
             r'mv\s+', r'cp\s+', r'copy\s+', r'move\s+',
             r'chmod\s+', r'chown\s+', r'attrib\s+'
@@ -240,11 +240,11 @@ class EnhancedSecurityAgent(BaseAgent):
     
     def assess_network_risk(self, url: str, operation: str = "request") -> SecurityRisk:
         """Assess risk level for network operations."""
-        # Check for suspicious domains
+        #Check for suspicious domains
         suspicious_patterns = [
-            r'\.tk$', r'\.ml$', r'\.ga$', r'\.cf$',  # Free TLDs often used maliciously
-            r'bit\.ly', r'tinyurl', r'short',  # URL shorteners
-            r'[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+',  # Direct IP addresses
+            r'\.tk$', r'\.ml$', r'\.ga$', r'\.cf$',  #Free TLDs often used maliciously
+            r'bit\.ly', r'tinyurl', r'short',  #URL shorteners
+            r'[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+',  #Direct IP addresses
         ]
         
         for pattern in suspicious_patterns:
@@ -256,7 +256,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     command=f"{operation}: {url}"
                 )
         
-        # Check for non-HTTPS connections
+        #Check for non-HTTPS connections
         if url.startswith('http://') and not url.startswith('http://localhost'):
             return SecurityRisk(
                 'network',
@@ -276,7 +276,7 @@ class EnhancedSecurityAgent(BaseAgent):
             'Critical': 3
         }
         
-        # Get appropriate threshold
+        #Get appropriate threshold
         if risk.risk_type == 'file_access':
             threshold = self.settings['file_access_threshold']
         elif risk.risk_type == 'system_command':
@@ -284,24 +284,24 @@ class EnhancedSecurityAgent(BaseAgent):
         elif risk.risk_type == 'network':
             threshold = self.settings['network_threshold']
         else:
-            threshold = 'Medium'  # Default
+            threshold = 'Medium'  #Default
         
         risk_level = threshold_map.get(risk.level, 0)
         threshold_level = threshold_map.get(threshold, 1)
         
-        # Auto-block critical operations if enabled
+        #Auto-block critical operations if enabled
         if risk.level == 'Critical' and self.settings.get('auto_block_critical', True):
             self.log_security_violation(risk, blocked=True)
             return False
         
-        # Allow if risk is below threshold
+        #Allow if risk is below threshold
         if risk_level <= threshold_level:
             return True
         
-        # Log the violation
+        #Log the violation
         self.log_security_violation(risk, blocked=False)
         
-        # For now, allow but log - in a full implementation, this would prompt user
+        #For now, allow but log - in a full implementation, this would prompt user
         return True
     
     def log_security_violation(self, risk: SecurityRisk, blocked: bool = False):
@@ -319,11 +319,11 @@ class EnhancedSecurityAgent(BaseAgent):
         
         self.security_violations.append(risk)
         
-        # Log to file if enabled
+        #Log to file if enabled
         if self.settings.get('log_all_operations', True):
             self._write_security_log(violation)
         
-        # Send alert for high-risk operations
+        #Send alert for high-risk operations
         if risk.level in ['High', 'Critical']:
             self._send_security_alert(risk, blocked)
     
@@ -352,7 +352,7 @@ class EnhancedSecurityAgent(BaseAgent):
         if risk.command:
             alert_message += f"\nCommand: {risk.command}"
         
-        # Send through connection if available
+        #Send through connection if available
         if self.connection:
             try:
                 self.connection.send({
@@ -367,7 +367,7 @@ class EnhancedSecurityAgent(BaseAgent):
             except Exception as e:
                 self.logger.error(f"Failed to send security alert: {e}")
         
-        # Log the alert
+        #Log the alert
         self.logger.warning(alert_message)
     
     def _check_running_processes(self):
@@ -380,7 +380,7 @@ class EnhancedSecurityAgent(BaseAgent):
                     if process.info['pid'] not in self.monitored_processes:
                         self.monitored_processes.add(process.info['pid'])
                         
-                        # Check for suspicious process names
+                        #Check for suspicious process names
                         process_name = process.info['name'].lower()
                         suspicious_names = [
                             'keylogger', 'stealer', 'miner', 'backdoor',
@@ -400,15 +400,15 @@ class EnhancedSecurityAgent(BaseAgent):
                     continue
                     
         except ImportError:
-            # psutil not available, skip process monitoring
+            #psutil not available, skip process monitoring
             pass
         except Exception as e:
             self.logger.error(f"Error checking processes: {e}")
     
     def _check_recent_file_access(self):
         """Check for recent file access patterns."""
-        # This would integrate with file system monitoring
-        # For now, it's a placeholder for future implementation
+        #This would integrate with file system monitoring
+        #For now, it's a placeholder for future implementation
         pass
     
     def _check_network_connections(self):
@@ -416,23 +416,23 @@ class EnhancedSecurityAgent(BaseAgent):
         try:
             import psutil
             
-            # Try to get network connections with error handling for permission issues
+            #Try to get network connections with error handling for permission issues
             try:
                 connections = psutil.net_connections()
             except psutil.AccessDenied:
-                # Skip network monitoring if we don't have permission
+                #Skip network monitoring if we don't have permission
                 return
             except Exception:
-                # Skip for other permission/access issues
+                #Skip for other permission/access issues
                 return
             
             for conn in connections:
                 if conn.status == 'ESTABLISHED' and conn.raddr:
-                    # Check for connections to suspicious IPs/ports
+                    #Check for connections to suspicious IPs/ports
                     remote_ip = conn.raddr.ip
                     remote_port = conn.raddr.port
                     
-                    # Check for commonly abused ports
+                    #Check for commonly abused ports
                     suspicious_ports = [4444, 5555, 6666, 7777, 8888, 9999, 31337]
                     if remote_port in suspicious_ports:
                         risk = SecurityRisk(
@@ -444,10 +444,10 @@ class EnhancedSecurityAgent(BaseAgent):
                         self.log_security_violation(risk)
                         
         except ImportError:
-            # psutil not available, skip network monitoring
+            #psutil not available, skip network monitoring
             pass
         except Exception as e:
-            # Log error only once per session to avoid spam
+            #Log error only once per session to avoid spam
             if not hasattr(self, '_network_error_logged'):
                 self.logger.warning(f"Network monitoring disabled due to error: {e}")
                 self._network_error_logged = True

@@ -20,26 +20,26 @@ def test_language_detection():
     translation_tool = TranslationTool()
     
     test_cases = [
-        # English
+        #English
         ("Hello, how are you today?", "en"),
         ("Can you help me with this task?", "en"),
         ("What tools are available?", "en"),
         
-        # Ukrainian
+        #Ukrainian
         ("Привіт, як справи?", "uk"),
         ("Чи можеш ти мені допомогти?", "uk"),
         ("Що це за програма?", "uk"),
         ("Зроби скріншот екрана", "uk"),
         ("Покажи мені всі доступні інструменти", "uk"),
         
-        # Russian
+        #Russian
         ("Привет, как дела?", "ru"),
         ("Можешь ли ты мне помочь?", "ru"),
         ("Что это за программа?", "ru"),
         ("Сделай скриншот экрана", "ru"),
         ("Покажи мне все доступные инструменты", "ru"),
         
-        # Mixed/unclear
+        #Mixed/unclear
         ("test 123", "en"),
         ("", "en"),
     ]
@@ -56,14 +56,14 @@ def test_translation_context():
     print("Testing Translation Context Management...")
     print("=" * 50)
     
-    # Mock LLM manager for testing
+    #Mock LLM manager for testing
     class MockLLMManager:
         def chat(self, messages):
             class MockResult:
                 def __init__(self, text):
                     self.response_text = text
             
-            # Simple mock translation
+            #Simple mock translation
             user_msg = messages[-1]["content"]
             if "Привіт" in user_msg:
                 return MockResult("Hello")
@@ -74,12 +74,12 @@ def test_translation_context():
             elif "help" in user_msg and "translate to Ukrainian" in messages[0]["content"]:
                 return MockResult("допомогти")
             else:
-                return MockResult(user_msg)  # No translation
+                return MockResult(user_msg)  #No translation
     
     mock_llm = MockLLMManager()
     translation_manager = ChatTranslationManager(mock_llm)
     
-    # Test Ukrainian message processing
+    #Test Ukrainian message processing
     ukrainian_message = "Привіт! Чи можеш ти мені допомогти?"
     processed_msg, context = translation_manager.process_incoming_message(ukrainian_message)
     
@@ -89,7 +89,7 @@ def test_translation_context():
     print(f"Requires translation: {context.requires_response_translation}")
     print()
     
-    # Test response translation
+    #Test response translation
     english_response = "Of course! I'm here to help you with any questions or tasks."
     translated_response = translation_manager.process_outgoing_response(english_response)
     
@@ -97,7 +97,7 @@ def test_translation_context():
     print(f"Translated response: {translated_response}")
     print()
     
-    # Test English message (no translation needed)
+    #Test English message (no translation needed)
     english_message = "What tools are available?"
     processed_msg2, context2 = translation_manager.process_incoming_message(english_message)
     
@@ -114,9 +114,9 @@ def test_translation_status():
     translation_tool = TranslationTool()
     
     test_messages = [
-        "Привіт, як справи?",  # Ukrainian
-        "Hello, how are you?",  # English
-        "Привет, что делаешь?",  # Russian
+        "Привіт, як справи?",  #Ukrainian
+        "Hello, how are you?",  #English
+        "Привет, что делаешь?",  #Russian
     ]
     
     for msg in test_messages:

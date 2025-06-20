@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Тест завантаження дефолтного провайдера з .env файлу
+Тест loading дефолтного провайдера з .env файлу
 """
 import os
 import sys
 from pathlib import Path
 
-# Add project root to Python path
+#Add project root to Python path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
@@ -14,19 +14,19 @@ def test_env_loading():
     print("🔧 Тест завантаження дефолтного провайдера з .env")
     print("=" * 50)
     
-    # 1. Завантажити .env як це робить main.py
+    #1. Завантажити .env як це робить main.py
     from dotenv import load_dotenv
     print("📁 Завантажуємо .env файл...")
     load_dotenv()
     
-    # 2. Перевірити змінні середовища
+    #2. Перевірити змінні середовища
     print("\n🌍 Змінні середовища після завантаження .env:")
     provider_env = os.getenv('DEFAULT_LLM_PROVIDER', 'НЕ ЗНАЙДЕНО')
     model_env = os.getenv('DEFAULT_LLM_MODEL', 'НЕ ЗНАЙДЕНО')
     print(f"   DEFAULT_LLM_PROVIDER: {provider_env}")
     print(f"   DEFAULT_LLM_MODEL: {model_env}")
     
-    # 3. Перевірити ConfigManager
+    #3. Перевірити ConfigManager
     print("\n⚙️ ConfigManager (як в програмі):")
     from config_manager import ConfigManager
     config = ConfigManager()
@@ -36,14 +36,14 @@ def test_env_loading():
     print(f"   get_current_provider(): {provider_config}")
     print(f"   get_current_model(): {model_config}")
     
-    # 4. Перевірити API ключі
+    #4. Перевірити API ключі
     print("\n🔑 API ключі:")
     gemini_key = config.get_gemini_api_key()
     mistral_key = config.get_mistral_api_key()
     print(f"   Gemini: {'✓ Є' if gemini_key else '✗ Немає'}")
     print(f"   Mistral: {'✓ Є' if mistral_key else '✗ Немає'}")
     
-    # 5. Тест LLMManager ініціалізації
+    #5. Тест LLMManager ініціалізації
     print("\n🤖 LLMManager ініціалізація:")
     try:
         from agents.llm_manager import LLMManager

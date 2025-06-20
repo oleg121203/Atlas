@@ -21,8 +21,8 @@ class TextAgent(BaseAgent):
         summarization_prompt = f"Please summarize the following text concisely:\n\n---\n{prompt}\n---" 
 
         try:
-            # For now, we use the default provider configured in LLMManager.
-            # A more advanced implementation could specify a provider/model.
+            #For now, we use the default provider configured in LLMManager.
+            #A more advanced implementation could specify a provider/model.
             summary = self.llm_manager.chat(summarization_prompt)
             self.logger.info("Text summarization successful.")
             return summary

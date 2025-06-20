@@ -4,7 +4,7 @@ from typing import Any, Dict, Union
 
 import yaml
 
-from logger import get_logger
+from utils.logger import get_logger
 
 logger = get_logger()
 
@@ -61,7 +61,7 @@ class ConfigManager:
         """Get OpenAI API key from .env file, config, or environment."""
         import os
         config = self.load()
-        # Пріоритет: .env файл → конфіг → змінні середовища
+        #Пріоритет: .env файл → конфіг → змінні середовища
         key = (os.getenv('OPENAI_API_KEY', '') or 
                config.get('openai_api_key', '') or
                config.get('api_keys', {}).get('openai', ''))
@@ -71,7 +71,7 @@ class ConfigManager:
         """Get Gemini API key from .env file, config, or environment."""
         import os
         config = self.load()
-        # Пріоритет: .env файл → конфіг → змінні середовища
+        #Пріоритет: .env файл → конфіг → змінні середовища
         key = (os.getenv('GEMINI_API_KEY', '') or 
                config.get('gemini_api_key', '') or
                config.get('api_keys', {}).get('gemini', ''))
@@ -81,7 +81,7 @@ class ConfigManager:
         """Get Groq API key from .env file, config, or environment."""
         import os
         config = self.load()
-        # Пріоритет: .env файл → конфіг → змінні середовища
+        #Пріоритет: .env файл → конфіг → змінні середовища
         key = (os.getenv('GROQ_API_KEY', '') or 
                config.get('groq_api_key', '') or
                config.get('api_keys', {}).get('groq', ''))
@@ -91,7 +91,7 @@ class ConfigManager:
         """Get Mistral API key from .env file, config, or environment."""
         import os
         config = self.load()
-        # Пріоритет: .env файл → конфіг → змінні середовища
+        #Пріоритет: .env файл → конфіг → змінні середовища
         key = (os.getenv('MISTRAL_API_KEY', '') or 
                config.get('mistral_api_key', '') or
                config.get('api_keys', {}).get('mistral', ''))
@@ -101,7 +101,7 @@ class ConfigManager:
         """Get current LLM provider from .env file or config."""
         import os
         config = self.load()
-        # Пріоритет: .env файл → конфіг
+        #Пріоритет: .env файл → конфіг
         return (os.getenv('DEFAULT_LLM_PROVIDER', '') or 
                 config.get('current_provider', 'gemini'))
 
@@ -109,7 +109,7 @@ class ConfigManager:
         """Get current LLM model from .env file or config."""
         import os
         config = self.load()
-        # Пріоритет: .env файл → конфіг
+        #Пріоритет: .env файл → конфіг
         return (os.getenv('DEFAULT_LLM_MODEL', '') or 
                 config.get('current_model', 'gemini-1.5-flash'))
 
@@ -121,7 +121,7 @@ class ConfigManager:
         """Get a setting from config with fallback to default."""
         config = self.load()
         
-        # Handle API keys specially
+        #Handle API keys specially
         if key == 'groq_api_key':
             return self.get_groq_api_key()
         elif key == 'mistral_api_key':
@@ -152,7 +152,7 @@ class ConfigManager:
                 config['current_model'] = model
                 logger.info(f"Set LLM model to: {model}")
             
-            # Save to disk
+            #Save to disk
             self.save(config)
             logger.info(f"✅ LLM configuration updated: provider={provider}, model={model}")
             return True
@@ -166,17 +166,17 @@ class ConfigManager:
         try:
             config = self.load()
             
-            # Initialize api_keys section if it doesn't exist
+            #Initialize api_keys section if it doesn't exist
             if 'api_keys' not in config:
                 config['api_keys'] = {}
             
-            # Set the API key
+            #Set the API key
             config['api_keys'][provider.lower()] = api_key
             
-            # Also set in the direct key format for backwards compatibility
+            #Also set in the direct key format for backwards compatibility
             config[f'{provider.lower()}_api_key'] = api_key
             
-            # Save to disk
+            #Save to disk
             self.save(config)
             logger.info(f"✅ Set {provider} API key")
             return True
@@ -201,9 +201,13 @@ class ConfigManager:
                 "api_usage_threshold": 50,
                 "file_access_threshold": 70,
                 "rules": [
-                    "# Example Rule: Deny all shell commands that contain 'rm -rf'",
+                    "#Example Rule: Deny all shell commands that contain 'rm -rf'",
                     "DENY,TERMINAL,.*rm -rf.*"
                 ]
             },
         }
         self.save(default_cfg)
+
+
+#Global instance for backward compatibility
+config_manager = ConfigManager()

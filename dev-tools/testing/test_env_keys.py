@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Тест завантаження ключів та провайдера з .env файлу
+Тест loading ключів та провайдера з .env файлу
 """
 
 import os
@@ -10,12 +10,12 @@ def test_env_loading():
     print("🔍 Перевірка завантаження з .env файлу")
     print("=" * 50)
     
-    # 1. Перевірити наявність .env файлу
+    #1. Перевірити наявність .env файлу
     env_file = Path('.env')
     if env_file.exists():
         print(f"✅ .env файл знайдено: {env_file.absolute()}")
         
-        # Показати вміст
+        #Показати вміст
         with open(env_file, 'r') as f:
             content = f.read()
         print("📄 Вміст .env файлу:")
@@ -26,7 +26,7 @@ def test_env_loading():
     
     print("\n" + "=" * 50)
     
-    # 2. Завантажити .env
+    #2. Завантажити .env
     try:
         from dotenv import load_dotenv
         print("✅ python-dotenv імпортовано")
@@ -40,7 +40,7 @@ def test_env_loading():
         print(f"❌ Помилка завантаження .env: {e}")
         return False
     
-    # 3. Перевірити змінні середовища
+    #3. Перевірити змінні середовища
     print("\n🔑 Перевірка API ключів:")
     api_keys = {
         'OPENAI_API_KEY': os.getenv('OPENAI_API_KEY'),
@@ -51,7 +51,7 @@ def test_env_loading():
     
     for key, value in api_keys.items():
         if value:
-            # Приховати ключ, показати тільки перші та останні символи
+            #Приховати ключ, показати тільки перші та останні символи
             if len(value) > 10:
                 display = f"{value[:8]}...{value[-4:]}"
             else:
@@ -74,14 +74,14 @@ def test_env_loading():
     
     print("\n" + "=" * 50)
     
-    # 4. Тестувати ConfigManager
+    #4. Тестувати ConfigManager
     print("🔧 Тестування ConfigManager:")
     try:
         from config_manager import ConfigManager
         config = ConfigManager()
         print("✅ ConfigManager створено")
         
-        # Тестувати методи отримання ключів
+        #Тестувати методи getting ключів
         print("\n📋 Методи ConfigManager:")
         
         gemini_key = config.get_gemini_api_key()
@@ -112,7 +112,7 @@ def test_env_loading():
     
     print("\n🎯 Висновок:")
     
-    # Підрахувати, скільки ключів встановлено
+    #Підрахувати, скільки ключів встановлено
     valid_keys = sum(1 for v in api_keys.values() if v and v not in ['', 'your_real_gemini_key_here', 'your_real_mistral_key_here', 'your_real_groq_key_here'])
     total_keys = len(api_keys)
     

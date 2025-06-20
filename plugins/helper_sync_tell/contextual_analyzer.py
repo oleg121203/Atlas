@@ -25,14 +25,14 @@ import time
 
 class ContextDimension(Enum):
     """Different dimensions of context analysis."""
-    DOMAIN = "domain"                   # Technical/business domain
-    INTENT = "intent"                   # User's underlying goal
-    URGENCY = "urgency"                 # Time sensitivity
-    COMPLEXITY = "complexity"           # Problem complexity level
-    INTERACTION_STYLE = "interaction_style"  # Preferred communication style
-    KNOWLEDGE_LEVEL = "knowledge_level"      # User's expertise level
-    EMOTIONAL_TONE = "emotional_tone"        # Emotional context
-    CULTURAL = "cultural"               # Cultural considerations
+    DOMAIN = "domain"                   #Technical/business domain
+    INTENT = "intent"                   #User's underlying goal
+    URGENCY = "urgency"                 #Time sensitivity
+    COMPLEXITY = "complexity"           #Problem complexity level
+    INTERACTION_STYLE = "interaction_style"  #Preferred communication style
+    KNOWLEDGE_LEVEL = "knowledge_level"      #User's expertise level
+    EMOTIONAL_TONE = "emotional_tone"        #Emotional context
+    CULTURAL = "cultural"               #Cultural considerations
 
 
 class IntentCategory(Enum):
@@ -49,11 +49,11 @@ class IntentCategory(Enum):
 
 class UrgencyLevel(Enum):
     """Levels of urgency."""
-    CRITICAL = "critical"      # Immediate attention needed
-    HIGH = "high"             # Prompt response required
-    MEDIUM = "medium"         # Standard response time
-    LOW = "low"               # Can be handled leisurely
-    BACKGROUND = "background" # Non-time-sensitive
+    CRITICAL = "critical"      #Immediate attention needed
+    HIGH = "high"             #Prompt response required
+    MEDIUM = "medium"         #Standard response time
+    LOW = "low"               #Can be handled leisurely
+    BACKGROUND = "background" #Non-time-sensitive
 
 
 @dataclass
@@ -68,13 +68,13 @@ class ContextProfile:
     emotional_tone: str = "neutral"
     cultural_factors: List[str] = field(default_factory=list)
     
-    # Contextual metadata
+    #Contextual metadata
     previous_interactions: List[str] = field(default_factory=list)
     related_topics: List[str] = field(default_factory=list)
     constraints: List[str] = field(default_factory=list)
     preferences: Dict[str, Any] = field(default_factory=dict)
     
-    # Confidence scores
+    #Confidence scores
     confidence_scores: Dict[str, float] = field(default_factory=dict)
     uncertainty_areas: List[str] = field(default_factory=list)
 
@@ -101,19 +101,19 @@ class AdvancedContextualAnalyzer:
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         
-        # Context learning and adaptation
+        #Context learning and adaptation
         self.domain_patterns = self._initialize_domain_patterns()
         self.intent_classifiers = self._initialize_intent_classifiers()
         self.style_indicators = self._initialize_style_indicators()
         self.complexity_markers = self._initialize_complexity_markers()
         
-        # Contextual memory
+        #Contextual memory
         self.context_history = []
         self.learned_patterns = defaultdict(list)
         self.user_preferences = {}
         self.domain_expertise = {}
         
-        # Performance tracking
+        #Performance tracking
         self.analysis_stats = {
             "total_analyses": 0,
             "successful_adaptations": 0,
@@ -219,7 +219,7 @@ class AdvancedContextualAnalyzer:
     def _initialize_complexity_markers(self) -> Dict[str, float]:
         """Initialize complexity assessment markers."""
         return {
-            # High complexity indicators
+            #High complexity indicators
             "multi-step": 0.8,
             "integration": 0.7,
             "architecture": 0.8,
@@ -228,13 +228,13 @@ class AdvancedContextualAnalyzer:
             "complex": 0.9,
             "sophisticated": 0.8,
             
-            # Medium complexity indicators
+            #Medium complexity indicators
             "analysis": 0.5,
             "implementation": 0.6,
             "configuration": 0.5,
             "customization": 0.6,
             
-            # Low complexity indicators
+            #Low complexity indicators
             "simple": 0.2,
             "basic": 0.3,
             "easy": 0.2,
@@ -250,44 +250,44 @@ class AdvancedContextualAnalyzer:
         """
         additional_context = additional_context or {}
         
-        # Initialize context profile
+        #Initialize context profile
         profile = ContextProfile()
         
-        # Analyze domain
+        #Analyze domain
         profile.domain = self._analyze_domain(query, additional_context)
         
-        # Classify intent
+        #Classify intent
         profile.intent = self._classify_intent(query, additional_context)
         
-        # Assess urgency
+        #Assess urgency
         profile.urgency = self._assess_urgency(query, additional_context)
         
-        # Calculate complexity
+        #Calculate complexity
         profile.complexity_score = self._calculate_complexity(query, additional_context)
         
-        # Infer knowledge level
+        #Infer knowledge level
         profile.knowledge_level = self._infer_knowledge_level(query, additional_context)
         
-        # Determine interaction style
+        #Determine interaction style
         profile.interaction_style = self._determine_interaction_style(query, additional_context)
         
-        # Analyze emotional tone
+        #Analyze emotional tone
         profile.emotional_tone = self._analyze_emotional_tone(query, additional_context)
         
-        # Extract constraints and preferences
+        #Extract constraints and preferences
         profile.constraints = self._extract_constraints(query, additional_context)
         profile.preferences = self._extract_preferences(query, additional_context)
         
-        # Identify related topics
+        #Identify related topics
         profile.related_topics = self._identify_related_topics(query, additional_context)
         
-        # Calculate confidence scores
+        #Calculate confidence scores
         profile.confidence_scores = self._calculate_confidence_scores(profile, query)
         
-        # Identify uncertainty areas
+        #Identify uncertainty areas
         profile.uncertainty_areas = self._identify_uncertainty_areas(profile, query)
         
-        # Update statistics
+        #Update statistics
         self.analysis_stats["total_analyses"] += 1
         
         return profile
@@ -300,10 +300,10 @@ class AdvancedContextualAnalyzer:
         for domain, keywords in self.domain_patterns.items():
             score = sum(1 for keyword in keywords if keyword in query_lower)
             if score > 0:
-                # Weight by keyword frequency and relevance
+                #Weight by keyword frequency and relevance
                 domain_scores[domain] = score / len(keywords)
         
-        # Consider context hints
+        #Consider context hints
         if "domain_hint" in context:
             suggested_domain = context["domain_hint"]
             if suggested_domain in domain_scores:
@@ -311,7 +311,7 @@ class AdvancedContextualAnalyzer:
             else:
                 domain_scores[suggested_domain] = 0.3
         
-        # Return highest scoring domain or default
+        #Return highest scoring domain or default
         if domain_scores:
             return max(domain_scores.items(), key=lambda x: x[1])[0]
         return "general"
@@ -326,17 +326,17 @@ class AdvancedContextualAnalyzer:
             if score > 0:
                 intent_scores[intent] = score
         
-        # Consider question patterns
+        #Consider question patterns
         if query.strip().endswith('?'):
             if any(word in query_lower for word in ['what', 'how', 'why', 'when', 'where']):
                 intent_scores[IntentCategory.INFORMATION_SEEKING] = intent_scores.get(IntentCategory.INFORMATION_SEEKING, 0) + 2
         
-        # Consider imperative patterns
+        #Consider imperative patterns
         imperative_patterns = ['create', 'make', 'build', 'implement', 'fix', 'solve']
         if any(pattern in query_lower for pattern in imperative_patterns):
             intent_scores[IntentCategory.TASK_COMPLETION] = intent_scores.get(IntentCategory.TASK_COMPLETION, 0) + 1
         
-        # Return highest scoring intent or default
+        #Return highest scoring intent or default
         if intent_scores:
             return max(intent_scores.items(), key=lambda x: x[1])[0]
         return IntentCategory.INFORMATION_SEEKING
@@ -345,23 +345,23 @@ class AdvancedContextualAnalyzer:
         """Assess the urgency level of the query."""
         query_lower = query.lower()
         
-        # Critical urgency indicators
+        #Critical urgency indicators
         if any(word in query_lower for word in ['urgent', 'emergency', 'critical', 'asap', 'immediately']):
             return UrgencyLevel.CRITICAL
         
-        # High urgency indicators
+        #High urgency indicators
         if any(word in query_lower for word in ['quickly', 'fast', 'soon', 'deadline', 'time-sensitive']):
             return UrgencyLevel.HIGH
         
-        # Low urgency indicators
+        #Low urgency indicators
         if any(word in query_lower for word in ['when convenient', 'no rush', 'sometime', 'eventually']):
             return UrgencyLevel.LOW
         
-        # Background indicators
+        #Background indicators
         if any(word in query_lower for word in ['background', 'research', 'explore', 'curious']):
             return UrgencyLevel.BACKGROUND
         
-        # Consider context hints
+        #Consider context hints
         if "urgency_hint" in context:
             urgency_mapping = {
                 "critical": UrgencyLevel.CRITICAL,
@@ -377,32 +377,32 @@ class AdvancedContextualAnalyzer:
     def _calculate_complexity(self, query: str, context: Dict[str, Any]) -> float:
         """Calculate complexity score based on various indicators."""
         query_lower = query.lower()
-        complexity_score = 0.5  # Base complexity
+        complexity_score = 0.5  #Base complexity
         
-        # Word count influence
+        #Word count influence
         word_count = len(query.split())
-        complexity_score += min(0.3, word_count / 100)  # Cap at 0.3
+        complexity_score += min(0.3, word_count / 100)  #Cap at 0.3
         
-        # Complexity markers
+        #Complexity markers
         for marker, weight in self.complexity_markers.items():
             if marker in query_lower:
-                complexity_score += (weight - 0.5) * 0.3  # Normalize influence
+                complexity_score += (weight - 0.5) * 0.3  #Normalize influence
         
-        # Multi-part questions
+        #Multi-part questions
         if '?' in query and query.count('?') > 1:
             complexity_score += 0.2
         
-        # Conditional statements
+        #Conditional statements
         if any(word in query_lower for word in ['if', 'when', 'unless', 'provided', 'assuming']):
             complexity_score += 0.15
         
-        # Technical terminology density
+        #Technical terminology density
         tech_terms = sum(1 for word in query_lower.split() 
                         if len(word) > 8 or word.endswith(('ing', 'tion', 'ism', 'ity')))
         if tech_terms > 3:
             complexity_score += min(0.2, tech_terms / 20)
         
-        # Context hints
+        #Context hints
         if "complexity_hint" in context:
             hinted_complexity = context["complexity_hint"]
             if isinstance(hinted_complexity, (int, float)):
@@ -414,7 +414,7 @@ class AdvancedContextualAnalyzer:
         """Infer the user's knowledge level in the domain."""
         query_lower = query.lower()
         
-        # Beginner indicators
+        #Beginner indicators
         beginner_phrases = [
             "i'm new to", "beginner", "just started", "don't know much",
             "explain like", "simple terms", "basic", "introduction"
@@ -422,7 +422,7 @@ class AdvancedContextualAnalyzer:
         if any(phrase in query_lower for phrase in beginner_phrases):
             return "beginner"
         
-        # Advanced indicators
+        #Advanced indicators
         advanced_phrases = [
             "advanced", "expert", "professional", "optimization", "architecture",
             "implementation details", "under the hood", "internals"
@@ -430,7 +430,7 @@ class AdvancedContextualAnalyzer:
         if any(phrase in query_lower for phrase in advanced_phrases):
             return "advanced"
         
-        # Expert indicators
+        #Expert indicators
         expert_phrases = [
             "research", "publication", "thesis", "dissertation", "cutting edge",
             "state of the art", "novel approach"
@@ -438,7 +438,7 @@ class AdvancedContextualAnalyzer:
         if any(phrase in query_lower for phrase in expert_phrases):
             return "expert"
         
-        # Context hints
+        #Context hints
         if "knowledge_level_hint" in context:
             return context["knowledge_level_hint"]
         
@@ -463,19 +463,19 @@ class AdvancedContextualAnalyzer:
         """Analyze emotional tone of the query."""
         query_lower = query.lower()
         
-        # Frustrated/stressed indicators
+        #Frustrated/stressed indicators
         if any(word in query_lower for word in ['frustrated', 'stuck', 'confused', 'difficult', 'struggling']):
             return "frustrated"
         
-        # Excited/enthusiastic indicators
+        #Excited/enthusiastic indicators
         if any(word in query_lower for word in ['excited', 'amazing', 'awesome', 'love', 'fantastic']):
             return "enthusiastic"
         
-        # Concerned/worried indicators
+        #Concerned/worried indicators
         if any(word in query_lower for word in ['worried', 'concerned', 'afraid', 'nervous', 'unsure']):
             return "concerned"
         
-        # Professional/neutral indicators
+        #Professional/neutral indicators
         if any(word in query_lower for word in ['please', 'kindly', 'appreciate', 'thank you']):
             return "professional"
         
@@ -486,23 +486,23 @@ class AdvancedContextualAnalyzer:
         constraints = []
         query_lower = query.lower()
         
-        # Time constraints
+        #Time constraints
         if any(word in query_lower for word in ['by', 'before', 'within', 'deadline']):
             constraints.append("time_constraint")
         
-        # Budget constraints
+        #Budget constraints
         if any(word in query_lower for word in ['budget', 'cost', 'price', 'free', 'cheap']):
             constraints.append("budget_constraint")
         
-        # Technology constraints
+        #Technology constraints
         if any(word in query_lower for word in ['using', 'with', 'must use', 'required']):
             constraints.append("technology_constraint")
         
-        # Platform constraints
+        #Platform constraints
         if any(word in query_lower for word in ['linux', 'windows', 'macos', 'mobile', 'web']):
             constraints.append("platform_constraint")
         
-        # Size/scale constraints
+        #Size/scale constraints
         if any(word in query_lower for word in ['small', 'large', 'simple', 'complex', 'minimal']):
             constraints.append("scale_constraint")
         
@@ -513,21 +513,21 @@ class AdvancedContextualAnalyzer:
         preferences = {}
         query_lower = query.lower()
         
-        # Communication preferences
+        #Communication preferences
         if "detailed" in query_lower or "comprehensive" in query_lower:
             preferences["detail_level"] = "high"
         elif "brief" in query_lower or "summary" in query_lower:
             preferences["detail_level"] = "low"
         
-        # Example preferences
+        #Example preferences
         if "example" in query_lower or "sample" in query_lower:
             preferences["include_examples"] = True
         
-        # Step-by-step preferences
+        #Step-by-step preferences
         if "step by step" in query_lower or "guide" in query_lower:
             preferences["format"] = "step_by_step"
         
-        # Visual preferences
+        #Visual preferences
         if "diagram" in query_lower or "visual" in query_lower or "chart" in query_lower:
             preferences["include_visuals"] = True
         
@@ -538,40 +538,40 @@ class AdvancedContextualAnalyzer:
         related_topics = []
         query_lower = query.lower()
         
-        # Extract potential topics using simple heuristics
+        #Extract potential topics using simple heuristics
         words = query_lower.split()
         potential_topics = [word for word in words if len(word) > 4 and word.isalpha()]
         
-        # Filter and score topics
+        #Filter and score topics
         for topic in potential_topics:
             if topic in self.learned_patterns:
                 related_topics.append(topic)
         
-        # Add context-suggested topics
+        #Add context-suggested topics
         if "related_topics" in context:
             related_topics.extend(context["related_topics"])
         
-        return list(set(related_topics))  # Remove duplicates
+        return list(set(related_topics))  #Remove duplicates
     
     def _calculate_confidence_scores(self, profile: ContextProfile, query: str) -> Dict[str, float]:
         """Calculate confidence scores for different aspects of the analysis."""
         confidence_scores = {}
         
-        # Domain confidence
+        #Domain confidence
         domain_keywords = self.domain_patterns.get(profile.domain, [])
         domain_matches = sum(1 for keyword in domain_keywords if keyword in query.lower())
         confidence_scores["domain"] = min(1.0, domain_matches / max(1, len(domain_keywords) * 0.3))
         
-        # Intent confidence
+        #Intent confidence
         intent_patterns = self.intent_classifiers.get(profile.intent, [])
         intent_matches = sum(1 for pattern in intent_patterns if pattern in query.lower())
         confidence_scores["intent"] = min(1.0, intent_matches / max(1, len(intent_patterns) * 0.2))
         
-        # Complexity confidence
+        #Complexity confidence
         complexity_indicators = sum(1 for marker in self.complexity_markers if marker in query.lower())
         confidence_scores["complexity"] = min(1.0, complexity_indicators / 3)
         
-        # Overall confidence
+        #Overall confidence
         confidence_scores["overall"] = sum(confidence_scores.values()) / len(confidence_scores)
         
         return confidence_scores
@@ -580,20 +580,20 @@ class AdvancedContextualAnalyzer:
         """Identify areas of uncertainty in the contextual analysis."""
         uncertainty_areas = []
         
-        # Low confidence areas
+        #Low confidence areas
         for aspect, confidence in profile.confidence_scores.items():
             if confidence < 0.5:
                 uncertainty_areas.append(f"low_confidence_{aspect}")
         
-        # Ambiguous language
+        #Ambiguous language
         if any(word in query.lower() for word in ['maybe', 'perhaps', 'might', 'possibly']):
             uncertainty_areas.append("ambiguous_language")
         
-        # Multiple possible interpretations
+        #Multiple possible interpretations
         if len(query.split('or')) > 1:
             uncertainty_areas.append("multiple_interpretations")
         
-        # Vague requirements
+        #Vague requirements
         if any(word in query.lower() for word in ['something', 'anything', 'somehow', 'some way']):
             uncertainty_areas.append("vague_requirements")
         
@@ -603,7 +603,7 @@ class AdvancedContextualAnalyzer:
         """Generate actionable insights based on contextual analysis."""
         insights = []
         
-        # Complexity-based insights
+        #Complexity-based insights
         if profile.complexity_score > 0.7:
             insights.append(ContextualInsight(
                 insight_type="complexity",
@@ -617,7 +617,7 @@ class AdvancedContextualAnalyzer:
                 evidence=[f"Complexity score: {profile.complexity_score:.2f}"]
             ))
         
-        # Urgency-based insights
+        #Urgency-based insights
         if profile.urgency in [UrgencyLevel.CRITICAL, UrgencyLevel.HIGH]:
             insights.append(ContextualInsight(
                 insight_type="urgency",
@@ -631,7 +631,7 @@ class AdvancedContextualAnalyzer:
                 evidence=[f"Urgency level: {profile.urgency.value}"]
             ))
         
-        # Knowledge level insights
+        #Knowledge level insights
         if profile.knowledge_level == "beginner":
             insights.append(ContextualInsight(
                 insight_type="knowledge_level",
@@ -646,7 +646,7 @@ class AdvancedContextualAnalyzer:
                 evidence=[f"Knowledge level: {profile.knowledge_level}"]
             ))
         
-        # Style adaptation insights
+        #Style adaptation insights
         if profile.interaction_style == "technical":
             insights.append(ContextualInsight(
                 insight_type="interaction_style",
@@ -674,7 +674,7 @@ class AdvancedContextualAnalyzer:
             "urgency_handling": "standard"
         }
         
-        # Adapt based on profile
+        #Adapt based on profile
         if profile.knowledge_level == "beginner":
             strategy["detail_level"] = "high"
             strategy["examples"] = True
@@ -696,7 +696,7 @@ class AdvancedContextualAnalyzer:
         elif profile.interaction_style == "formal":
             strategy["tone"] = "formal"
         
-        # Apply insights
+        #Apply insights
         for insight in insights:
             if insight.insight_type == "complexity":
                 strategy["structure"] = "step_by_step"

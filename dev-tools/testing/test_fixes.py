@@ -6,17 +6,17 @@
 import sys
 sys.path.append('/Users/dev/Documents/autoclicker')
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from agents.llm_manager import LLMManager
 
 def test_api_keys_saving():
-    """Тест збереження та завантаження API ключів."""
+    """Тест storage та loading API ключів."""
     print("🔧 Тестування збереження/завантаження API ключів...")
     
     config_manager = ConfigManager()
     
-    # Створимо тестові налаштування
+    #Створимо тестові settings
     test_settings = {
         "api_keys": {
             "openai": "test_openai_key",
@@ -28,14 +28,14 @@ def test_api_keys_saving():
         "current_provider": "gemini"
     }
     
-    # Збережемо
+    #Збережемо
     config_manager.save(test_settings)
     print("✅ Налаштування збережено")
     
-    # Завантажимо знову
+    #Завантажимо знову
     loaded_settings = config_manager.load()
     
-    # Перевіримо, чи всі ключі на місці
+    #Перевіримо, чи всі ключі на місці
     api_keys = loaded_settings.get("api_keys", {})
     
     expected_keys = ["openai", "gemini", "anthropic", "groq", "mistral"]
@@ -45,7 +45,7 @@ def test_api_keys_saving():
         else:
             print(f"❌ {key}: НЕ ЗНАЙДЕНО")
     
-    # Перевіримо провайдер
+    #Перевіримо провайдер
     provider = loaded_settings.get("current_provider", "")
     print(f"🎯 Провайдер: {provider}")
     
@@ -60,7 +60,7 @@ def test_memory_manager():
     
     memory_manager = EnhancedMemoryManager(llm_manager, config_manager)
     
-    # Тест add_memory_for_agent
+    #Тест add_memory_for_agent
     try:
         memory_id = memory_manager.add_memory_for_agent(
             agent_type=MemoryScope.CHAT_CONTEXT,
@@ -72,7 +72,7 @@ def test_memory_manager():
     except Exception as e:
         print(f"❌ add_memory_for_agent НЕ працює: {e}")
     
-    # Тест store_memory (старий API)
+    #Тест store_memory (старий API)
     try:
         memory_id = memory_manager.store_memory(
             agent_name="chat_context",
@@ -84,7 +84,7 @@ def test_memory_manager():
     except Exception as e:
         print(f"❌ store_memory НЕ працює: {e}")
         
-    # Тест retrieve_memories
+    #Тест retrieve_memories
     try:
         memories = memory_manager.retrieve_memories(
             agent_name="chat_context",
@@ -113,13 +113,13 @@ if __name__ == "__main__":
     print("🚀 Запуск тестів для перевірки виправлень Atlas...")
     print("=" * 60)
     
-    # Тест 1: API ключі
+    #Тест 1: API ключі
     settings = test_api_keys_saving()
     
-    # Тест 2: Memory Manager
+    #Тест 2: Memory Manager
     test_memory_manager()
     
-    # Тест 3: LLM Manager
+    #Тест 3: LLM Manager
     test_llm_manager_providers()
     
     print("\n" + "=" * 60)

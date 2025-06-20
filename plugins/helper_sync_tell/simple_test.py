@@ -6,7 +6,7 @@ Simple test for Helper Sync Tell plugin registration.
 import sys
 import os
 
-# Add current directory to path
+#Add current directory to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 

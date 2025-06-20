@@ -19,15 +19,15 @@ class ScreenAgent(BaseAgent):
     def execute_task(self, prompt: str, context: Dict[str, Any]) -> str:
         self.logger.info(f"Executing screen task: '{prompt}'")
 
-        # Simple parsing for now. A real implementation would use LLM-based intent recognition.
+        #Simple parsing for now. A real implementation would use LLM-based intent recognition.
         if "capture" in prompt.lower() or "screenshot" in prompt.lower():
             try:
                 image = capture_screen()
-                # In a real scenario, this image would be passed to another tool or agent.
-                # For now, we just confirm it was taken.
+                #In a real scenario, this image would be passed to another tool or agent.
+                #For now, we just confirm it was taken.
                 self.logger.info(f"Screen captured successfully. Image size: {image.size}")
                 
-                # Store observation in memory if available
+                #Store observation in memory if available
                 if self.memory_manager:
                     self.memory_manager.add_memory_for_agent(
                         agent_type=MemoryScope.SCREEN_AGENT,
@@ -40,7 +40,7 @@ class ScreenAgent(BaseAgent):
             except Exception as e:
                 self.logger.error(f"Failed to capture screen: {e}")
                 
-                # Store error in memory if available
+                #Store error in memory if available
                 if self.memory_manager:
                     self.memory_manager.add_memory_for_agent(
                         agent_type=MemoryScope.SCREEN_AGENT,

@@ -8,11 +8,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Додаємо шлях до проекту
+#Додаємо шлях до проекту
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 from agents.llm_manager import LLMManager
 
 def test_complete_system():
@@ -20,14 +20,14 @@ def test_complete_system():
     print("🎯 ФІНАЛЬНИЙ ТЕСТ СИСТЕМИ ATLAS")
     print("=" * 50)
     
-    # Створюємо тимчасовий ConfigManager
+    #Створюємо тимчасовий ConfigManager
     with tempfile.TemporaryDirectory() as tmpdir:
         config_path = Path(tmpdir) / "test_config.yaml"
         config_manager = ConfigManager(config_path)
         
         print("🔑 Тестування API ключів...")
         
-        # Встановлюємо правильні API ключі (довші за 10 символів)
+        #Встановлюємо правильні API ключі (довші за 10 символів)
         api_keys = {
             'openai_api_key': 'sk-1234567890abcdef1234567890abcdef12345678',
             'gemini_api_key': 'AIzaSy1234567890abcdef1234567890abcdef12',
@@ -35,12 +35,12 @@ def test_complete_system():
             'groq_api_key': 'gsk_1234567890abcdef1234567890abcdef123456'
         }
         
-        # Зберігаємо через ConfigManager
+        #Зберігаємо через ConfigManager
         print("  💾 Збереження через ConfigManager...")
         for key, value in api_keys.items():
             config_manager.set_setting(key, value)
             
-        # Встановлюємо провайдер та модель
+        #Встановлюємо провайдер та модель
         config_manager.set_setting('current_provider', 'gemini')
         config_manager.set_setting('current_model', 'gemini-1.5-flash')
         
@@ -54,7 +54,7 @@ def test_complete_system():
                 print(f"    ❌ {key}: очікували '{expected_value}', отримали '{actual_value}'")
                 all_good = False
                 
-        # Тестуємо LLMManager з правильними ключами
+        #Тестуємо LLMManager з правильними ключами
         print("\n🤖 Тестування LLMManager...")
         try:
             from agents.token_tracker import TokenTracker
@@ -62,7 +62,7 @@ def test_complete_system():
             llm_manager = LLMManager(token_tracker=token_tracker, config_manager=config_manager)
             print("    ✅ LLMManager створено успішно")
             
-            # Тестуємо провайдери
+            #Тестуємо провайдери
             available_providers = llm_manager.get_available_providers()
             print(f"    📋 Доступні провайдери: {available_providers}")
             
@@ -70,7 +70,7 @@ def test_complete_system():
             print(f"    ❌ Помилка в LLMManager: {e}")
             all_good = False
             
-        # Тестуємо завантаження після перезапуску
+        #Тестуємо loading після перезапуску
         print("\n🔄 Тестування перезавантаження...")
         new_config_manager = ConfigManager(config_path)
         
@@ -82,7 +82,7 @@ def test_complete_system():
                 print(f"    ❌ {key}: втрачено після перезапуску")
                 all_good = False
                 
-        # Фінальна перевірка
+        #Фінальна verification
         print("\n" + "=" * 50)
         if all_good:
             print("🎉 ВСІ ТЕСТИ ПРОЙШЛИ УСПІШНО!")

@@ -28,7 +28,7 @@ class PerformanceIssue:
     file_path: str
     line_number: int
     issue_type: str
-    severity: str  # 'critical', 'high', 'medium', 'low'
+    severity: str  #'critical', 'high', 'medium', 'low'
     description: str
     suggestion: str
     impact_estimate: str
@@ -69,7 +69,7 @@ class PerformanceProfiler:
             '.DS_Store', 'unused', 'monitoring/logs'
         }
         
-        # Performance issue patterns
+        #Performance issue patterns
         self.performance_patterns = {
             'blocking_calls': {
                 'patterns': [
@@ -77,7 +77,7 @@ class PerformanceProfiler:
                     r'input\s*\(',
                     r'requests\.get\([^)]*timeout=None',
                     r'subprocess\.run\([^)]*timeout=None',
-                    r'\.join\(\)\s*$'  # Thread joins without timeout
+                    r'\.join\(\)\s*$'  #Thread joins without timeout
                 ],
                 'severity': 'high',
                 'description': 'Potentially blocking operation',
@@ -98,10 +98,10 @@ class PerformanceProfiler:
             
             'memory_inefficient': {
                 'patterns': [
-                    r'\.append\(.*\)\s*$',  # In loops
-                    r'\[\s*\].*for.*in.*for.*in',  # Nested list comprehensions
-                    r'\.copy\(\).*\.copy\(\)',  # Multiple copies
-                    r'json\.loads\(.*\.read\(\)\)',  # Loading large JSON
+                    r'\.append\(.*\)\s*$',  #In loops
+                    r'\[\s*\].*for.*in.*for.*in',  #Nested list comprehensions
+                    r'\.copy\(\).*\.copy\(\)',  #Multiple copies
+                    r'json\.loads\(.*\.read\(\)\)',  #Loading large JSON
                 ],
                 'severity': 'medium',
                 'description': 'Memory inefficient operation',
@@ -110,10 +110,10 @@ class PerformanceProfiler:
             
             'expensive_operations': {
                 'patterns': [
-                    r'\.sort\(\).*\.sort\(\)',  # Multiple sorts
-                    r'regex\.compile\(.*\).*in.*for',  # Regex in loops
-                    r'open\(.*\).*in.*for',  # File operations in loops
-                    r'\.find\(.*\).*in.*for',  # String searches in loops
+                    r'\.sort\(\).*\.sort\(\)',  #Multiple sorts
+                    r'regex\.compile\(.*\).*in.*for',  #Regex in loops
+                    r'open\(.*\).*in.*for',  #File operations in loops
+                    r'\.find\(.*\).*in.*for',  #String searches in loops
                 ],
                 'severity': 'high',
                 'description': 'Expensive operation in loop or repeated context',
@@ -122,9 +122,9 @@ class PerformanceProfiler:
             
             'database_antipatterns': {
                 'patterns': [
-                    r'\.execute\(.*\).*in.*for',  # Queries in loops
-                    r'SELECT \*',  # Select all
-                    r'\.fetchall\(\).*len\(',  # Count with fetchall
+                    r'\.execute\(.*\).*in.*for',  #Queries in loops
+                    r'SELECT \*',  #Select all
+                    r'\.fetchall\(\).*len\(',  #Count with fetchall
                 ],
                 'severity': 'critical',
                 'description': 'Database performance anti-pattern',
@@ -136,24 +136,24 @@ class PerformanceProfiler:
         """Perform comprehensive performance analysis."""
         self.logger.info("Starting performance analysis...")
         
-        # 1. Static code analysis for performance issues
+        #1. Static code analysis for performance issues
         issues = self._analyze_static_performance()
         
-        # 2. System metrics
+        #2. System metrics
         system_metrics = self._get_system_metrics()
         
-        # 3. Memory analysis
+        #3. Memory analysis
         memory_usage = self._analyze_memory_usage()
         
-        # 4. Runtime profiling (optional)
+        #4. Runtime profiling (optional)
         function_profiles = []
         if profile_runtime:
             function_profiles = self._profile_runtime_performance()
         
-        # 5. Generate recommendations
+        #5. Generate recommendations
         recommendations = self._generate_performance_recommendations(issues, system_metrics)
         
-        # 6. Create summary
+        #6. Create summary
         summary = self._create_performance_summary(issues, system_metrics, memory_usage)
         
         return PerformanceReport(
@@ -169,7 +169,7 @@ class PerformanceProfiler:
         """Analyze code for static performance issues."""
         issues = []
         
-        # Find all Python files
+        #Find all Python files
         python_files = [f for f in self.root_path.rglob("*.py") 
                        if not any(excluded in f.parts for excluded in self.excluded_dirs)]
         
@@ -188,15 +188,15 @@ class PerformanceProfiler:
                 content = f.read()
                 lines = content.split('\n')
             
-            # Pattern-based analysis
+            #Pattern-based analysis
             for category, config in self.performance_patterns.items():
                 for pattern in config['patterns']:
                     for line_num, line in enumerate(lines, 1):
                         if re.search(pattern, line):
-                            # Check if it's in a loop context for certain patterns
+                            #Check if it's in a loop context for certain patterns
                             in_loop = self._is_in_loop_context(lines, line_num)
                             
-                            # Adjust severity based on context
+                            #Adjust severity based on context
                             severity = config['severity']
                             description = config['description']
                             if category in ['memory_inefficient', 'expensive_operations'] and in_loop:
@@ -215,7 +215,7 @@ class PerformanceProfiler:
                             )
                             issues.append(issue)
             
-            # AST-based analysis for more complex patterns
+            #AST-based analysis for more complex patterns
             ast_issues = self._analyze_ast_performance(file_path, content)
             issues.extend(ast_issues)
             
@@ -226,7 +226,7 @@ class PerformanceProfiler:
     
     def _is_in_loop_context(self, lines: List[str], line_num: int) -> bool:
         """Check if a line is within a loop context."""
-        # Look backwards for loop keywords
+        #Look backwards for loop keywords
         loop_keywords = ['for ', 'while ']
         indent_level = len(lines[line_num - 1]) - len(lines[line_num - 1].lstrip())
         
@@ -266,7 +266,7 @@ class PerformanceProfiler:
             issues.extend(analyzer.issues)
             
         except SyntaxError:
-            pass  # Skip files with syntax errors
+            pass  #Skip files with syntax errors
         except Exception as e:
             self.logger.warning(f"AST analysis failed for {file_path}: {e}")
         
@@ -275,19 +275,19 @@ class PerformanceProfiler:
     def _get_system_metrics(self) -> Dict[str, Any]:
         """Get current system performance metrics."""
         try:
-            # CPU information
+            #CPU information
             cpu_percent = psutil.cpu_percent(interval=1)
             cpu_count = psutil.cpu_count()
             cpu_freq = psutil.cpu_freq()
             
-            # Memory information
+            #Memory information
             memory = psutil.virtual_memory()
             swap = psutil.swap_memory()
             
-            # Disk information
+            #Disk information
             disk = psutil.disk_usage('/')
             
-            # Process information
+            #Process information
             process = psutil.Process()
             process_memory = process.memory_info()
             
@@ -320,10 +320,10 @@ class PerformanceProfiler:
     def _analyze_memory_usage(self) -> Dict[str, Any]:
         """Analyze memory usage patterns."""
         try:
-            # Start memory tracing
+            #Start memory tracing
             tracemalloc.start()
             
-            # Get current memory snapshot
+            #Get current memory snapshot
             snapshot = tracemalloc.take_snapshot()
             top_stats = snapshot.statistics('lineno')
             
@@ -333,7 +333,7 @@ class PerformanceProfiler:
                 'allocation_count': len(top_stats)
             }
             
-            # Top memory allocations
+            #Top memory allocations
             for stat in top_stats[:10]:
                 memory_analysis['top_memory_allocations'].append({
                     'file': stat.traceback.format()[0] if stat.traceback else 'Unknown',
@@ -352,8 +352,8 @@ class PerformanceProfiler:
         profiles = []
         
         try:
-            # This would need to be integrated with actual Atlas runtime
-            # For now, return empty list as it requires runtime execution
+            #This would need to be integrated with actual Atlas runtime
+            #For now, return empty list as it requires runtime execution
             self.logger.info("Runtime profiling requires actual execution context")
             
         except Exception as e:
@@ -366,7 +366,7 @@ class PerformanceProfiler:
         """Generate performance optimization recommendations."""
         recommendations = []
         
-        # Issue-based recommendations
+        #Issue-based recommendations
         critical_issues = [i for i in issues if i.severity == 'critical']
         high_issues = [i for i in issues if i.severity == 'high']
         
@@ -376,7 +376,7 @@ class PerformanceProfiler:
         if high_issues:
             recommendations.append(f"⚠️ **HIGH PRIORITY**: Address {len(high_issues)} high-impact performance issues")
         
-        # Issue category recommendations
+        #Issue category recommendations
         issue_categories = defaultdict(int)
         for issue in issues:
             issue_categories[issue.issue_type] += 1
@@ -390,14 +390,14 @@ class PerformanceProfiler:
         if issue_categories['database_antipatterns'] > 0:
             recommendations.append("🗄️ **Database Optimization**: Implement database query optimization")
         
-        # System-based recommendations
+        #System-based recommendations
         if system_metrics.get('memory', {}).get('used_percent', 0) > 80:
             recommendations.append("💾 **Memory Optimization**: High memory usage detected, consider memory optimization")
         
         if system_metrics.get('cpu', {}).get('usage_percent', 0) > 80:
             recommendations.append("⚡ **CPU Optimization**: High CPU usage detected, profile CPU-intensive operations")
         
-        # General recommendations
+        #General recommendations
         recommendations.extend([
             "📊 **Profiling**: Use cProfile for detailed function-level performance analysis",
             "🔍 **Monitoring**: Implement performance monitoring in production",
@@ -416,7 +416,7 @@ class PerformanceProfiler:
         medium_count = len([i for i in issues if i.severity == 'medium'])
         low_count = len([i for i in issues if i.severity == 'low'])
         
-        # Performance score calculation
+        #Performance score calculation
         performance_score = 100
         performance_score -= critical_count * 25
         performance_score -= high_count * 15
@@ -462,11 +462,11 @@ Process Memory: {system_metrics.get('process', {}).get('memory_mb', 'N/A'):.1f} 
         report = []
         report.append("⚡ **Atlas Performance Analysis Report**\n")
         
-        # Summary
+        #Summary
         report.append(analysis.summary)
         report.append("")
         
-        # Critical Issues
+        #Critical Issues
         critical_issues = [i for i in analysis.issues if i.severity == 'critical']
         if critical_issues:
             report.append("## 🚨 **Critical Performance Issues**")
@@ -478,7 +478,7 @@ Process Memory: {system_metrics.get('process', {}).get('memory_mb', 'N/A'):.1f} 
                 report.append(f"- **Fix**: {issue.suggestion}")
                 report.append("")
         
-        # Performance Hotspots
+        #Performance Hotspots
         issue_categories = defaultdict(list)
         for issue in analysis.issues:
             issue_categories[issue.issue_type].append(issue)
@@ -487,7 +487,7 @@ Process Memory: {system_metrics.get('process', {}).get('memory_mb', 'N/A'):.1f} 
             report.append("## 🔥 **Performance Hotspots**")
             for category, issues in sorted(issue_categories.items(), key=lambda x: len(x[1]), reverse=True):
                 report.append(f"**{category.replace('_', ' ').title()}**: {len(issues)} issues")
-                # Show top 3 files with most issues in this category
+                #Show top 3 files with most issues in this category
                 file_counts = defaultdict(int)
                 for issue in issues:
                     file_counts[issue.file_path] += 1
@@ -496,7 +496,7 @@ Process Memory: {system_metrics.get('process', {}).get('memory_mb', 'N/A'):.1f} 
                     report.append(f"  - `{file_path}`: {count} issues")
             report.append("")
         
-        # System Performance
+        #System Performance
         if analysis.system_metrics:
             report.append("## 💻 **System Performance**")
             cpu = analysis.system_metrics.get('cpu', {})
@@ -508,7 +508,7 @@ Process Memory: {system_metrics.get('process', {}).get('memory_mb', 'N/A'):.1f} 
             report.append(f"- **Process Memory**: {process.get('memory_mb', 'N/A'):.1f} MB ({process.get('memory_percent', 'N/A'):.1f}%)")
             report.append("")
         
-        # Recommendations
+        #Recommendations
         if analysis.recommendations:
             report.append("## 💡 **Performance Optimization Recommendations**")
             for rec in analysis.recommendations:
@@ -530,7 +530,7 @@ class PerformanceASTAnalyzer(ast.NodeVisitor):
         """Analyze for loops."""
         self.loop_depth += 1
         
-        # Check for nested loops
+        #Check for nested loops
         if self.loop_depth > 2:
             self.issues.append(PerformanceIssue(
                 file_path=self.file_path,
@@ -554,7 +554,7 @@ class PerformanceASTAnalyzer(ast.NodeVisitor):
     
     def visit_FunctionDef(self, node):
         """Analyze function complexity."""
-        # Count decision points
+        #Count decision points
         complexity = 1
         for child in ast.walk(node):
             if isinstance(child, (ast.If, ast.While, ast.For, ast.ExceptHandler)):
@@ -569,12 +569,12 @@ class PerformanceASTAnalyzer(ast.NodeVisitor):
                 description=f'Function {node.name} has high complexity ({complexity})',
                 suggestion='Break down into smaller functions',
                 impact_estimate='Medium - Affects maintainability and performance',
-                code_snippet=f'def {node.name}(...): # complexity: {complexity}'
+                code_snippet=f'def {node.name}(...): #complexity: {complexity}'
             ))
         
         self.generic_visit(node)
 
-# Integration functions
+#Integration functions
 def analyze_performance() -> str:
     """Analyze Atlas performance and return report."""
     profiler = PerformanceProfiler()
@@ -594,7 +594,7 @@ def find_performance_issues(severity: str = 'all') -> str:
         return f"✅ No {severity} performance issues found."
     
     report = [f"⚡ **Performance Issues ({severity})**\n"]
-    for issue in issues[:20]:  # Limit to top 20
+    for issue in issues[:20]:  #Limit to top 20
         report.append(f"**{issue.file_path}:{issue.line_number}**")
         report.append(f"- {issue.description}")
         report.append(f"- Impact: {issue.impact_estimate}")
@@ -604,6 +604,6 @@ def find_performance_issues(severity: str = 'all') -> str:
     return "\n".join(report)
 
 if __name__ == "__main__":
-    # Test the profiler
+    #Test the profiler
     profiler = PerformanceProfiler()
     print(profiler.generate_performance_report())

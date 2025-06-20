@@ -10,7 +10,7 @@ import os
 import tempfile
 import shutil
 
-# Додаємо шлях до батьківської директорії
+#Додаємо шлях до батьківської директорії
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_with_damaged_protocols():
@@ -20,10 +20,10 @@ def test_with_damaged_protocols():
         
         print("Тест 1: Створення екземпляра з пошкодженими протоколами...")
         
-        # Створюємо модифікований клас з пошкодженими протоколами
+        #Створюємо модифікований клас з пошкодженими протоколами
         class DamagedProtocols(EncryptedCreatorProtocols):
             def _initialize_encrypted_protocols(self):
-                # Повертаємо пусті протоколи
+                #Повертаємо пусті протоколи
                 return {}
         
         damaged_protocols = DamagedProtocols()
@@ -36,7 +36,7 @@ def test_with_damaged_protocols():
         else:
             print("❌ Не вдалося виявити пошкоджені протоколи")
             
-        return not integrity_ok  # Повертаємо True, якщо протоколи правильно виявлені як пошкоджені
+        return not integrity_ok  #Повертаємо True, якщо протоколи правильно виявлені як пошкоджені
         
     except Exception as e:
         print(f"❌ Помилка при тестуванні: {e}")
@@ -47,7 +47,7 @@ def test_main_security_fail():
     try:
         print("Тест 3: Симуляція запуску Atlas з пошкодженими протоколами...")
         
-        # Імітуємо функцію перевірки з main.py
+        #Імітуємо функцію перевірки з main.py
         from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
         
         class DamagedProtocols(EncryptedCreatorProtocols):
@@ -73,11 +73,11 @@ if __name__ == "__main__":
     print("=== Тестування безпеки з пошкодженими протоколами ===")
     print()
     
-    # Тестуємо з пошкодженими протоколами
+    #Тестуємо з пошкодженими протоколами
     damaged_test_ok = test_with_damaged_protocols()
     print()
     
-    # Тестуємо відмову запуску
+    #Тестуємо відмову запуску
     main_fail_ok = test_main_security_fail()
     print()
     

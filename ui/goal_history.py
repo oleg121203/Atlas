@@ -22,7 +22,7 @@ class GoalHistoryManager:
         self.history_file = os.path.join(data_dir, "goal_history.json")
         self.history = self.load_history()
         
-        # Ensure data directory exists
+        #Ensure data directory exists
         os.makedirs(data_dir, exist_ok=True)
     
     def load_history(self) -> List[Dict[str, Any]]:
@@ -105,16 +105,16 @@ class GoalHistoryWindow:
     
     def __init__(self, parent, goal_callback=None):
         self.parent = parent
-        self.goal_callback = goal_callback  # Callback to execute selected goals
+        self.goal_callback = goal_callback  #Callback to execute selected goals
         
-        # Create window
+        #Create window
         self.window = ctk.CTkToplevel(parent)
         self.window.title("Goal History")
         self.window.geometry("1200x700")
         self.window.transient(parent)
         self.window.grab_set()
         
-        # Initialize history manager
+        #Initialize history manager
         self.history_manager = GoalHistoryManager()
         self.selected_goal = None
         
@@ -123,15 +123,15 @@ class GoalHistoryWindow:
     
     def setup_ui(self):
         """Setup the goal history UI."""
-        # Configure main grid
+        #Configure main grid
         self.window.grid_columnconfigure(0, weight=2)
         self.window.grid_columnconfigure(1, weight=1)
         self.window.grid_rowconfigure(0, weight=1)
         
-        # Left panel - History list
+        #Left panel - History list
         self.setup_history_list_panel()
         
-        # Right panel - Goal details and actions
+        #Right panel - Goal details and actions
         self.setup_goal_details_panel()
     
     def setup_history_list_panel(self):
@@ -141,12 +141,12 @@ class GoalHistoryWindow:
         list_frame.grid_columnconfigure(0, weight=1)
         list_frame.grid_rowconfigure(2, weight=1)
         
-        # Title
+        #Title
         ctk.CTkLabel(list_frame, text="Goal History", font=("Arial", 16, "bold")).grid(
             row=0, column=0, sticky="w", padx=10, pady=(10, 5)
         )
         
-        # Search and filter frame
+        #Search and filter frame
         search_frame = ctk.CTkFrame(list_frame)
         search_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
         search_frame.grid_columnconfigure(1, weight=1)
@@ -167,15 +167,15 @@ class GoalHistoryWindow:
         )
         filter_combo.grid(row=0, column=2, padx=(5, 10), pady=5)
         
-        # History tree frame
+        #History tree frame
         tree_frame = ctk.CTkFrame(list_frame)
         tree_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
         
-        # Create Treeview
+        #Create Treeview
         columns = ("ID", "Goal", "Status", "Date", "Time", "Duration")
         self.history_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=20)
         
-        # Configure columns
+        #Configure columns
         self.history_tree.heading("ID", text="ID")
         self.history_tree.heading("Goal", text="Goal")
         self.history_tree.heading("Status", text="Status")
@@ -190,7 +190,7 @@ class GoalHistoryWindow:
         self.history_tree.column("Time", width=80)
         self.history_tree.column("Duration", width=80)
         
-        # Scrollbars
+        #Scrollbars
         tree_scroll_y = ttk.Scrollbar(tree_frame, orient="vertical", command=self.history_tree.yview)
         tree_scroll_x = ttk.Scrollbar(tree_frame, orient="horizontal", command=self.history_tree.xview)
         self.history_tree.configure(yscrollcommand=tree_scroll_y.set, xscrollcommand=tree_scroll_x.set)
@@ -202,11 +202,11 @@ class GoalHistoryWindow:
         tree_frame.grid_columnconfigure(0, weight=1)
         tree_frame.grid_rowconfigure(0, weight=1)
         
-        # Bind selection event
+        #Bind selection event
         self.history_tree.bind("<<TreeviewSelect>>", self.on_goal_select)
         self.history_tree.bind("<Double-1>", self.on_goal_double_click)
         
-        # Bottom buttons
+        #Bottom buttons
         buttons_frame = ctk.CTkFrame(list_frame)
         buttons_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
         
@@ -240,12 +240,12 @@ class GoalHistoryWindow:
         details_frame.grid_columnconfigure(0, weight=1)
         details_frame.grid_rowconfigure(1, weight=1)
         
-        # Title
+        #Title
         ctk.CTkLabel(details_frame, text="Goal Details", font=("Arial", 16, "bold")).grid(
             row=0, column=0, sticky="w", padx=10, pady=(10, 5)
         )
         
-        # Goal text display
+        #Goal text display
         text_frame = ctk.CTkFrame(details_frame)
         text_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
         
@@ -256,40 +256,40 @@ class GoalHistoryWindow:
         self.goal_text = ctk.CTkTextbox(text_frame, height=200)
         self.goal_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         
-        # Goal metadata
+        #Goal metadata
         meta_frame = ctk.CTkFrame(details_frame)
         meta_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
         meta_frame.grid_columnconfigure(1, weight=1)
         
-        # Status
+        #Status
         ctk.CTkLabel(meta_frame, text="Status:", font=("Arial", 10, "bold")).grid(
             row=0, column=0, sticky="w", padx=10, pady=2
         )
         self.status_label = ctk.CTkLabel(meta_frame, text="-")
         self.status_label.grid(row=0, column=1, sticky="w", padx=10, pady=2)
         
-        # Execution time
+        #Execution time
         ctk.CTkLabel(meta_frame, text="Duration:", font=("Arial", 10, "bold")).grid(
             row=1, column=0, sticky="w", padx=10, pady=2
         )
         self.duration_label = ctk.CTkLabel(meta_frame, text="-")
         self.duration_label.grid(row=1, column=1, sticky="w", padx=10, pady=2)
         
-        # Steps
+        #Steps
         ctk.CTkLabel(meta_frame, text="Steps:", font=("Arial", 10, "bold")).grid(
             row=2, column=0, sticky="w", padx=10, pady=2
         )
         self.steps_label = ctk.CTkLabel(meta_frame, text="-")
         self.steps_label.grid(row=2, column=1, sticky="w", padx=10, pady=2)
         
-        # Error message (if any)
+        #Error message (if any)
         ctk.CTkLabel(meta_frame, text="Error:", font=("Arial", 10, "bold")).grid(
             row=3, column=0, sticky="w", padx=10, pady=2
         )
         self.error_label = ctk.CTkLabel(meta_frame, text="-", wraplength=200)
         self.error_label.grid(row=3, column=1, sticky="w", padx=10, pady=2)
         
-        # Action buttons
+        #Action buttons
         actions_frame = ctk.CTkFrame(details_frame)
         actions_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
         
@@ -331,28 +331,28 @@ class GoalHistoryWindow:
         )
         self.delete_button.pack(fill="x", pady=2)
         
-        # Initially disable buttons
+        #Initially disable buttons
         self.update_button_states(False)
     
     def refresh_history(self):
         """Refresh the history display."""
-        # Clear existing items
+        #Clear existing items
         for item in self.history_tree.get_children():
             self.history_tree.delete(item)
         
-        # Reload from file
+        #Reload from file
         self.history_manager.load_history()
         
-        # Apply filters
+        #Apply filters
         search_term = self.search_var.get().lower()
         status_filter = self.filter_var.get()
         
-        # Filter and display goals
+        #Filter and display goals
         filtered_goals = self.history_manager.filter_by_status(status_filter)
         if search_term:
             filtered_goals = [g for g in filtered_goals if search_term in g["goal"].lower()]
         
-        # Sort by timestamp (newest first)
+        #Sort by timestamp (newest first)
         filtered_goals.sort(key=lambda x: x["timestamp"], reverse=True)
         
         for goal in filtered_goals:
@@ -360,12 +360,12 @@ class GoalHistoryWindow:
             date_str = timestamp.strftime("%Y-%m-%d")
             time_str = timestamp.strftime("%H:%M:%S")
             
-            # Format duration
+            #Format duration
             duration_str = "-"
             if goal.get("execution_time"):
                 duration_str = f"{goal['execution_time']:.1f}s"
             
-            # Truncate goal text for display
+            #Truncate goal text for display
             goal_display = goal["goal"][:60] + "..." if len(goal["goal"]) > 60 else goal["goal"]
             
             self.history_tree.insert("", "end", values=(
@@ -412,28 +412,28 @@ class GoalHistoryWindow:
         
         goal = self.selected_goal
         
-        # Update goal text
+        #Update goal text
         self.goal_text.delete(1.0, tk.END)
         self.goal_text.insert(1.0, goal["goal"])
         
-        # Update metadata labels
+        #Update metadata labels
         self.status_label.configure(text=goal["status"])
         
-        # Duration
+        #Duration
         if goal.get("execution_time"):
             duration_text = f"{goal['execution_time']:.2f} seconds"
         else:
             duration_text = "Unknown"
         self.duration_label.configure(text=duration_text)
         
-        # Steps
+        #Steps
         if goal.get("steps_completed") is not None and goal.get("total_steps") is not None:
             steps_text = f"{goal['steps_completed']}/{goal['total_steps']}"
         else:
             steps_text = "Unknown"
         self.steps_label.configure(text=steps_text)
         
-        # Error message
+        #Error message
         error_text = goal.get("error_message", "-") or "-"
         if len(error_text) > 50:
             error_text = error_text[:50] + "..."
@@ -456,11 +456,11 @@ class GoalHistoryWindow:
         goal_text = self.selected_goal["goal"]
         self.window.destroy()
         
-        # Call the callback to execute the goal
+        #Call the callback to execute the goal
         if self.goal_callback:
             self.goal_callback(goal_text)
         else:
-            # Fallback: show a message
+            #Fallback: show a message
             messagebox.showinfo("Goal History", f"Goal selected for execution:\n{goal_text[:100]}...")
     
     def edit_and_run(self):
@@ -468,7 +468,7 @@ class GoalHistoryWindow:
         if not self.selected_goal:
             return
         
-        # Get edited text
+        #Get edited text
         goal_text = self.goal_text.get(1.0, tk.END).strip()
         
         if not goal_text:
@@ -477,11 +477,11 @@ class GoalHistoryWindow:
         
         self.window.destroy()
         
-        # Call the callback to execute the edited goal
+        #Call the callback to execute the edited goal
         if self.goal_callback:
             self.goal_callback(goal_text)
         else:
-            # Fallback: show a message
+            #Fallback: show a message
             messagebox.showinfo("Goal History", f"Edited goal selected for execution:\n{goal_text[:100]}...")
     
     def copy_goal(self):
@@ -509,7 +509,7 @@ class GoalHistoryWindow:
                 self.selected_goal = None
                 self.refresh_history()
                 
-                # Clear details
+                #Clear details
                 self.goal_text.delete(1.0, tk.END)
                 self.status_label.configure(text="-")
                 self.duration_label.configure(text="-")
@@ -549,7 +549,7 @@ class GoalHistoryWindow:
                 self.history_manager.save_history()
                 self.refresh_history()
                 
-                # Clear details
+                #Clear details
                 self.selected_goal = None
                 self.goal_text.delete(1.0, tk.END)
                 self.status_label.configure(text="-")

@@ -12,19 +12,19 @@ sys.path.append(os.path.dirname(__file__))
 
 from agents.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
-from config_manager import ConfigManager
-from logger import Logger
+from utils.config_manager import ConfigManager
+from utils.logger import Logger
 
 def test_llm_manager():
     """Test LLM manager functionality"""
     print("🤖 Testing LLM Manager Configuration...")
     
-    # Initialize components
+    #Initialize components
     logger = Logger("test_llm_manager")
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     
-    # Test LLM Manager initialization
+    #Test LLM Manager initialization
     try:
         llm_manager = LLMManager(token_tracker, config_manager)
         print("✅ LLM Manager initialized successfully")
@@ -32,7 +32,7 @@ def test_llm_manager():
         print(f"❌ Failed to initialize LLM Manager: {e}")
         return False
     
-    # Test available providers
+    #Test available providers
     try:
         providers = llm_manager.get_available_providers()
         print(f"✅ Available providers: {list(providers.keys())}")
@@ -54,7 +54,7 @@ def test_llm_manager():
         print(f"❌ Error getting providers: {e}")
         return False
     
-    # Test current provider/model
+    #Test current provider/model
     try:
         current_provider = llm_manager.current_provider
         current_model = llm_manager.current_model
@@ -64,17 +64,17 @@ def test_llm_manager():
         print(f"❌ Error getting current provider/model: {e}")
         return False
     
-    # Test provider/model validation
+    #Test provider/model validation
     try:
-        # Test valid combination
+        #Test valid combination
         provider, model = llm_manager._validate_provider_model("gemini", "gemini-1.5-flash")
         print(f"✅ Valid combination: {provider}/{model}")
         
-        # Test invalid model for valid provider
+        #Test invalid model for valid provider
         provider, model = llm_manager._validate_provider_model("gemini", "gpt-4")
         print(f"✅ Auto-corrected invalid model: {provider}/{model}")
         
-        # Test invalid provider (should fallback)
+        #Test invalid provider (should fallback)
         provider, model = llm_manager._validate_provider_model("invalid_provider", "invalid_model")
         print(f"✅ Fallback for invalid provider: {provider}/{model}")
         
@@ -82,7 +82,7 @@ def test_llm_manager():
         print(f"❌ Error in provider/model validation: {e}")
         return False
     
-    # Test simple chat if Gemini is available
+    #Test simple chat if Gemini is available
     if "gemini" in providers and llm_manager.gemini_client:
         try:
             print("🗣️ Testing simple chat with Gemini...")

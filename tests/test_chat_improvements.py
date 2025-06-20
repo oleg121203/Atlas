@@ -12,11 +12,11 @@ def test_chat_improvements():
         from agents.chat_context_manager import ChatContextManager, ChatMode
         print("✅ Успішно імпортований ChatContextManager")
         
-        # Ініціалізація
+        #Initialization
         manager = ChatContextManager()
         print("✅ ChatContextManager ініціалізований")
         
-        # Тест 1: Питання про пам'ять (українською)
+        #Тест 1: Питання про пам'ять (українською)
         test_message = "Мене цікавить чи забезпечена в тебе пам'ять довгострокова і з розмежуванням по напрямку чату?"
         context = manager.analyze_message(test_message)
         
@@ -26,12 +26,12 @@ def test_chat_improvements():
         print(f"Впевненість: {context.confidence:.2f}")
         print(f"Ключові слова: {context.context_keywords}")
         
-        # Тест генерації відповіді
+        #Тест генерації відповіді
         if context.mode == ChatMode.SYSTEM_HELP:
             response_prompt = manager._generate_help_response(context, test_message)
             print(f"Згенерований промпт містить специфічну інформацію про пам'ять: {'memory' in response_prompt.lower()}")
         
-        # Тест 2: Просте привітання
+        #Тест 2: Просте привітання
         test_message2 = "Привіт друже, як тебе звати?"
         context2 = manager.analyze_message(test_message2)
         
@@ -40,7 +40,7 @@ def test_chat_improvements():
         print(f"Детектований режим: {context2.mode.value}")
         print(f"Впевненість: {context2.confidence:.2f}")
         
-        # Тест 3: Питання про інструменти
+        #Тест 3: Питання про інструменти
         test_message3 = "Які інструменти у вас є?"
         context3 = manager.analyze_message(test_message3)
         

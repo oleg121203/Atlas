@@ -7,7 +7,7 @@ import chromadb
 from chromadb import EmbeddingFunction
 
 from agents.llm_manager import LLMManager
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 from monitoring.metrics_manager import metrics_manager
 
 

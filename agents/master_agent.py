@@ -18,7 +18,7 @@ from agents.llm_manager import LLMManager
 from agents.screen_agent import ScreenAgent
 from agents.system_interaction_agent import SystemInteractionAgent
 from agents.text_agent import TextAgent
-from logger import get_logger
+from utils.logger import get_logger
 from monitoring.metrics_manager import metrics_manager
 
 
@@ -52,33 +52,33 @@ class MasterAgent:
         self.agent_manager = agent_manager
         self.memory_manager = memory_manager
         self.status_callback = status_callback
-        self.creator_auth = creator_auth  # Додано систему аутентифікації творця
+        self.creator_auth = creator_auth  #Додано систему аутентифікації creator
         self.stop_event = threading.Event()
         self.last_executed_plan: Optional[Dict[str, Any]] = None
         self.system_prompt_template: Optional[str] = None
-        self._tools_changed = True  # Force prompt regeneration on first run
+        self._tools_changed = True  #Force prompt regeneration on first run
         self.last_goal: Optional[str] = None
         self.last_plan: Optional[Dict[str, Any]] = None
         self.execution_context: Dict[str, Any] = {}
         self.retry_count = 0
 
-        # State for goal clarification
+        #State for goal clarification
         self.is_clarifying = False
         self.clarification_question: Optional[str] = None
 
-        # Set the callback on the agent manager to receive tool updates
+        #Set the callback on the agent manager to receive tool updates
         self.agent_manager.master_agent_update_callback = self._on_tools_updated
 
-        if not self.agent_manager._agents: # Check internal agent dict
+        if not self.agent_manager._agents: #Check internal agent dict
             self._register_default_agents()
         self.logger.info("MasterAgent initialized with creator authentication")
 
     def run(self, goal: str, master_prompt: str, options: Dict[str, Any]) -> None:
         """Starts the agent's execution loop in a new thread."""
         
-        # Перевірка на чутливі операції для аутентифікованого творця
+        #Verification на чутливі операції для аутентифікованого creator
         if self.creator_auth and self.creator_auth.is_creator_session_active:
-            # Створець аутентифікований - беззаперечне виконання
+            #Створець аутентифікований - беззаперечне виконання
             if self.creator_auth.should_execute_unconditionally():
                 self.logger.info("Executing goal unconditionally for authenticated creator")
                 if self.status_callback:
@@ -142,7 +142,7 @@ class MasterAgent:
             self.is_running = False
             self.is_paused = False
         if self.thread:
-            self.thread.join() # Wait for the thread to finish
+            self.thread.join() #Wait for the thread to finish
         self.logger.info("MasterAgent stopped.")
 
     def continue_with_feedback(self, instruction: str) -> None:
@@ -152,7 +152,7 @@ class MasterAgent:
                 self.logger.warning("Agent is not paused, cannot process feedback.")
                 return
             self.feedback_instruction = instruction
-            self.is_paused = False  # This un-pauses the waiting loop in run_once
+            self.is_paused = False  #This un-pauses the waiting loop in run_once
         self.logger.info(f"Resuming execution with user instruction: {instruction}")
 
     def _extract_json_from_response(self, text: str) -> Optional[str]:
@@ -207,18 +207,18 @@ class MasterAgent:
             json_response = self._extract_json_from_response(llm_result.response_text)
             if not json_response:
                 self.logger.error(f"Failed to extract valid JSON from decomposition response: {llm_result.response_text}")
-                return [goal] # Fallback to original goal
+                return [goal] #Fallback to original goal
 
             sub_goals = json.loads(json_response)
             if isinstance(sub_goals, list) and all(isinstance(g, str) for g in sub_goals):
                 return sub_goals
             else:
                 self.logger.error(f"Decomposition response is not a list of strings: {sub_goals}")
-                return [goal] # Fallback to original goal
+                return [goal] #Fallback to original goal
 
         except json.JSONDecodeError as e:
             self.logger.error(f"JSON decoding failed for decomposition: {e}\nResponse was: {llm_result.response_text}", exc_info=True)
-            return [goal] # Fallback to original goal
+            return [goal] #Fallback to original goal
         except Exception as e:
             self.logger.error(f"An unexpected error occurred during goal decomposition: {e}", exc_info=True)
             return None
@@ -232,11 +232,11 @@ class MasterAgent:
             
             original_goal = self.goals[-1]
             clarified_goal = f"{original_goal} (User clarification: {clarification})"
-            self.goals[-1] = clarified_goal # Update the current goal
+            self.goals[-1] = clarified_goal #Update the current goal
             
             self.is_clarifying = False
             self.clarification_question = None
-            self.is_paused = False # Resume execution
+            self.is_paused = False #Resume execution
             self.logger.info(f"Clarification received. New goal: {clarified_goal}")
             if self.status_callback:
                 self.status_callback({"type": "info", "content": "Clarification received. Resuming..."})
@@ -303,7 +303,7 @@ Your response must be ONLY the JSON object.
         context_summary = json.dumps(context, indent=2)
 
         if isinstance(error, ToolNotFoundError):
-            # The tool doesn't exist. The recovery goal should be to create it.
+            #The tool doesn't exist. The recovery goal should be to create it.
             return (
                 f"The plan failed because the tool '{failed_step.get('tool')}' does not exist. "
                 f"The original sub-goal was: '{original_goal}'.\n"
@@ -315,7 +315,7 @@ Your response must be ONLY the JSON object.
             )
         
         elif isinstance(error, InvalidToolArgumentsError):
-            # The arguments were wrong. The recovery goal should be to fix them.
+            #The arguments were wrong. The recovery goal should be to fix them.
             return (
                 f"The plan failed at step '{failed_step.get('description')}' due to invalid arguments for the tool '{failed_step.get('tool')}'.\n"
                 f"The original sub-goal was: '{original_goal}'.\n"
@@ -326,7 +326,7 @@ Your response must be ONLY the JSON object.
             )
 
         else:
-            # For all other errors, use the generic recovery approach.
+            #For all other errors, use the generic recovery approach.
             self.logger.warning(f"Using generic recovery for an unrecognized error type: {type(error).__name__}")
             return self._create_recovery_goal(original_goal, plan, failed_step, error, context)
 
@@ -347,7 +347,7 @@ Your response must be ONLY the JSON object.
         """Runs the full agent loop once for a given goal, including decomposition and recovery."""
         if self.status_callback:
             self.status_callback({"type": "info", "content": f"Received goal: {goal}"})
-        # 1. Check for ambiguity
+        #1. Check for ambiguity
         is_ambiguous, question = self._check_goal_ambiguity(goal)
         if is_ambiguous:
             self.logger.info(f"Goal is ambiguous. Asking for clarification: {question}")
@@ -356,16 +356,16 @@ Your response must be ONLY the JSON object.
             if self.status_callback:
                 self.status_callback({"type": "request_clarification", "content": question})
 
-            self.pause()  # Pause to wait for clarification
-            # The loop will wait here until provide_clarification is called
+            self.pause()  #Pause to wait for clarification
+            #The loop will wait here until provide_clarification is called
             while self.is_paused and self.is_running:
                 time.sleep(0.5)
 
-            if not self.is_running:  # Check if stop was called while waiting
+            if not self.is_running:  #Check if stop was called while waiting
                 return
 
-            # The goal is updated in provide_clarification, so we re-assign it here
-            goal = self.goals[-1]  # The clarified goal is the new last goal
+            #The goal is updated in provide_clarification, so we re-assign it here
+            goal = self.goals[-1]  #The clarified goal is the new last goal
             self.logger.info(f"Resuming with clarified goal: {goal}")
 
         self.last_goal = goal
@@ -437,7 +437,7 @@ Your response must be ONLY the JSON object.
                             sub_goal_achieved = True
                             continue
                         
-                        # New instructions from user
+                        #New instructions from user
                         self.logger.info(f"User provided new instructions: {feedback}")
                         if self.status_callback:
                             self.status_callback({"type": "info", "content": "User provided new instructions. Retrying..."})
@@ -446,7 +446,7 @@ Your response must be ONLY the JSON object.
                         self.execution_context = {}
                         continue
                 else:
-                    # Success
+                    #Success
                     self.logger.info(f"Sub-goal '{sub_goal}' executed successfully!")
                     if self.status_callback:
                         self.status_callback({"type": "success", "content": f"Sub-goal '{sub_goal}' executed successfully!"})
@@ -486,7 +486,7 @@ Your response must be ONLY the JSON object.
         """Constructs the system prompt for the planning LLM."""
         tools_string = self.agent_manager.get_tool_list_string()
 
-        # Process feedback
+        #Process feedback
         feedback_context = "No past attempts on record for this goal."
         if feedback:
             feedback_items = []
@@ -507,7 +507,7 @@ Your response must be ONLY the JSON object.
             if feedback_items:
                 feedback_context = "\n".join(feedback_items)
 
-        # Process knowledge
+        #Process knowledge
         general_context = "No relevant general knowledge found."
         if knowledge:
             knowledge_items = [f"- (From collection: {mem.get('collection', 'general')}) {mem.get('content', 'N/A')}" for mem in knowledge]

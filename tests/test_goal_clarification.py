@@ -4,7 +4,7 @@ import os
 from unittest.mock import MagicMock, patch
 import json
 
-# Add the project root to the Python path
+#Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from agents.master_agent import MasterAgent
@@ -30,20 +30,20 @@ class TestGoalClarification(unittest.TestCase):
     def test_clear_goal_does_not_trigger_clarification(self):
         """Verify that a clear, unambiguous goal proceeds without clarification."""
         clear_goal = "Take a screenshot of the entire screen."
-        # Mock the LLM to return a non-ambiguous response
+        #Mock the LLM to return a non-ambiguous response
         mock_response = LLMResult(response_text=json.dumps({"is_ambiguous": False, "question": ""}), tool_calls=None)
         self.mock_llm_manager.chat.return_value = mock_response
 
-        # Mock the decomposition to prevent further execution
+        #Mock the decomposition to prevent further execution
         with patch.object(self.master_agent, '_decompose_goal', return_value=[clear_goal]) as mock_decompose:
             self.master_agent.run_once(clear_goal)
 
-            # Assert that clarification was NOT requested
+            #Assert that clarification was NOT requested
             self.assertFalse(self.master_agent.is_clarifying)
             self.assertIsNone(self.master_agent.clarification_question)
             self.mock_status_callback.assert_any_call({"type": "info", "content": "Checking goal for ambiguity..."})
             
-            # Check that the status callback for clarification was not called
+            #Check that the status callback for clarification was not called
             clarification_call_found = any(
                 call.args[0].get("type") == "request_clarification"
                 for call in self.mock_status_callback.call_args_list
@@ -55,15 +55,15 @@ class TestGoalClarification(unittest.TestCase):
         """Verify that an ambiguous goal correctly triggers the clarification process."""
         ambiguous_goal = "Process the document."
         clarification_question = "Which document do you mean, and what does 'process' entail?"
-        # Mock the LLM to return an ambiguous response
+        #Mock the LLM to return an ambiguous response
         mock_response = LLMResult(response_text=json.dumps({"is_ambiguous": True, "question": clarification_question}), tool_calls=None)
         self.mock_llm_manager.chat.return_value = mock_response
 
-        # We don't need to mock decomposition as it should pause before that
-        self.master_agent.is_running = True # Simulate running state
+        #We don't need to mock decomposition as it should pause before that
+        self.master_agent.is_running = True #Simulate running state
         self.master_agent.run_once(ambiguous_goal)
 
-        # Assert that clarification was requested
+        #Assert that clarification was requested
         self.assertTrue(self.master_agent.is_clarifying)
         self.assertEqual(self.master_agent.clarification_question, clarification_question)
         self.assertTrue(self.master_agent.is_paused)
@@ -75,35 +75,35 @@ class TestGoalClarification(unittest.TestCase):
         user_clarification = "I want you to summarize the text content of '/path/to/my/file.txt'"
         clarified_goal = f"{ambiguous_goal} (User clarification: {user_clarification})"
 
-        # Initial ambiguous response
+        #Initial ambiguous response
         ambiguous_response = LLMResult(response_text=json.dumps({"is_ambiguous": True, "question": "Which file?"}), tool_calls=None)
         self.mock_llm_manager.chat.return_value = ambiguous_response
 
         self.master_agent.is_running = True
         self.master_agent.goals = [ambiguous_goal]
 
-        # Run to the point of asking for clarification
-        # We need to run this in a way that doesn't block the test
-        with patch.object(self.master_agent, 'pause', lambda: None): # Prevent real pausing
+        #Run to the point of asking for clarification
+        #We need to run this in a way that doesn't block the test
+        with patch.object(self.master_agent, 'pause', lambda: None): #Prevent real pausing
             self.master_agent.run_once(ambiguous_goal)
 
-        # Manually provide clarification
+        #Manually provide clarification
         self.master_agent.provide_clarification(user_clarification)
 
-        # Assert state after clarification
+        #Assert state after clarification
         self.assertFalse(self.master_agent.is_clarifying)
         self.assertFalse(self.master_agent.is_paused)
         self.assertEqual(self.master_agent.goals[-1], clarified_goal)
 
-        # Now, mock the next step (ambiguity check for the *new* goal) to be clear
+        #Now, mock the next step (ambiguity check for the *new* goal) to be clear
         clear_response = LLMResult(response_text=json.dumps({"is_ambiguous": False, "question": ""}), tool_calls=None)
         self.mock_llm_manager.chat.return_value = clear_response
 
-        # Mock decomposition to check if it's called with the new goal
+        #Mock decomposition to check if it's called with the new goal
         with patch.object(self.master_agent, '_decompose_goal', return_value=[clarified_goal]) as mock_decompose:
-            # The execution continues inside run_once after the pause loop
-            # To simulate this, we can't call run_once again. We need to check the state.
-            # This part is tricky to test without threading. Let's check the goal was updated.
+            #The execution continues inside run_once after the pause loop
+            #To simulate this, we can't call run_once again. We need to check the state.
+            #This part is tricky to test without threading. Let's check the goal was updated.
             self.assertEqual(self.master_agent.goals[-1], clarified_goal)
 
 

@@ -8,7 +8,7 @@ import sys
 import os
 from pathlib import Path
 
-# Додаємо шляхи
+#Додаємо шляхи
 base_dir = Path("/Users/developer/Documents/Atlas")
 sys.path.insert(0, str(base_dir))
 sys.path.insert(0, str(base_dir / "plugins" / "helper_sync_tell"))
@@ -20,10 +20,10 @@ def test_thinking_quality():
     print("🧠 ТЕСТ ЯКОСТІ АЛГОРИТМУ ДУМАННЯ")
     print("=" * 50)
     
-    # Створення інструменту
+    #Creation інструменту
     tool = AdvancedAIThinkingTool()
     
-    # Тестові запити різних типів
+    #Тестові запити різних типів
     test_queries = [
         {
             "query": "Проаналізуй архітектуру пам'яті в Atlas та запропонуй покращення",
@@ -55,42 +55,42 @@ def test_thinking_quality():
         print("-" * 40)
         
         try:
-            # Фаза 1: Аналіз контексту
+            #Фаза 1: Аналіз контексту
             context = tool.analyze_query_context(test['query'])
             print(f"📊 Контекст: домен={context.domain}, складність={context.complexity_level}/5")
             
-            # Фаза 2: Вибір стратегії
+            #Фаза 2: Вибір стратегії
             strategy = tool.select_thinking_strategy(test['query'], context)
             strategy_correct = strategy == test['expected_strategy']
             print(f"🎯 Стратегія: {strategy.value} {'✅' if strategy_correct else '❌'}")
             
-            # Фаза 3: Генерація питань
+            #Фаза 3: Generation питань
             questions = tool.generate_strategic_questions(test['query'], strategy, context)
             print(f"❓ Питань згенеровано: {len(questions)}")
             
             if questions:
                 print("📋 Стратегічні питання:")
-                for j, q in enumerate(questions[:3], 1):  # Показуємо перші 3
+                for j, q in enumerate(questions[:3], 1):  #Показуємо перші 3
                     print(f"   {j}. {q}")
                 if len(questions) > 3:
                     print(f"   ... та ще {len(questions) - 3} питань")
             
-            # Оцінка якості
+            #Оцінка якості
             quality_score = 0
             
-            # Оцінка стратегії
+            #Оцінка стратегії
             if strategy_correct:
                 quality_score += 25
             
-            # Оцінка кількості питань
+            #Оцінка кількості питань
             if 3 <= len(questions) <= 7:
                 quality_score += 25
             
-            # Оцінка контексту
+            #Оцінка контексту
             if context.complexity_level > 1:
                 quality_score += 25
             
-            # Оцінка специфічності питань
+            #Оцінка специфічності питань
             if questions and all(len(q) > 20 for q in questions):
                 quality_score += 25
             
@@ -112,7 +112,7 @@ def test_thinking_quality():
                 'quality_score': 0
             })
     
-    # Підсумок результатів
+    #Підсумок результатів
     print("\n" + "=" * 50)
     print("📊 ПІДСУМОК ТЕСТУВАННЯ ЯКОСТІ")
     print("=" * 50)
@@ -152,13 +152,13 @@ def test_meta_cognition():
     
     tool = AdvancedAIThinkingTool()
     
-    # Тест складного запиту
+    #Тест складного запиту
     complex_query = "Як система мета-когнітивного аналізу в Atlas може самовдосконалюватися?"
     
     try:
         context = tool.analyze_query_context(complex_query)
         
-        # Мета-когнітивний аналіз
+        #Мета-когнітивний аналіз
         analysis, confidence, uncertainties = tool.analyze_with_meta_cognition(
             complex_query, {}, context
         )
@@ -172,16 +172,16 @@ def test_meta_cognition():
             for unc in uncertainties[:3]:
                 print(f"   • {unc}")
         
-        # Оцінка мета-когнітивності
+        #Оцінка мета-когнітивності
         meta_score = 0
         
-        if 0.1 <= confidence <= 0.9:  # Реалістична оцінка
+        if 0.1 <= confidence <= 0.9:  #Реалістична оцінка
             meta_score += 30
         
-        if uncertainties:  # Виявлення невизначеностей
+        if uncertainties:  #Виявлення невизначеностей
             meta_score += 40
         
-        if len(analysis) > 100:  # Детальний аналіз
+        if len(analysis) > 100:  #Детальний аналіз
             meta_score += 30
         
         print(f"📊 Мета-когнітивна оцінка: {meta_score}%")
@@ -205,7 +205,7 @@ def performance_test():
     start_time = time.time()
     
     try:
-        # Базові операції
+        #Базові операції
         context = tool.analyze_query_context(query)
         strategy = tool.select_thinking_strategy(query, context)
         questions = tool.generate_strategic_questions(query, strategy, context)
@@ -217,7 +217,7 @@ def performance_test():
         print(f"🔧 Стратегія: {strategy.value}")
         print(f"❓ Питань: {len(questions)}")
         
-        # Оцінка швидкості
+        #Оцінка швидкості
         if processing_time < 1.0:
             print("🚀 ШВИДКО! Обробка за < 1 сек")
             return True
@@ -233,7 +233,7 @@ def performance_test():
         return False
 
 if __name__ == "__main__":
-    # Запуск всіх тестів
+    #Запуск всіх тестів
     quality_ok = test_thinking_quality()
     meta_ok = test_meta_cognition()
     perf_ok = performance_test()

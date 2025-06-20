@@ -6,7 +6,7 @@ import os
 sys.path.insert(0, '/Users/developer/Documents/Atlas')
 os.chdir('/Users/developer/Documents/Atlas')
 
-# Тест імпортів
+#Тест імпортів
 print("1. Тестую імпорти...")
 
 try:

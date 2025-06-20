@@ -27,22 +27,22 @@ from collections import defaultdict, deque
 
 class CognitiveMode(Enum):
     """Different cognitive processing modes."""
-    ANALYTICAL = "analytical"           # Deep logical analysis
-    INTUITIVE = "intuitive"            # Pattern recognition and heuristics
-    REFLECTIVE = "reflective"          # Self-examination and meta-analysis
-    CREATIVE = "creative"              # Novel solution generation
-    COLLABORATIVE = "collaborative"    # Multi-perspective integration
-    SYSTEMATIC = "systematic"          # Methodical step-by-step processing
+    ANALYTICAL = "analytical"           #Deep logical analysis
+    INTUITIVE = "intuitive"            #Pattern recognition and heuristics
+    REFLECTIVE = "reflective"          #Self-examination and meta-analysis
+    CREATIVE = "creative"              #Novel solution generation
+    COLLABORATIVE = "collaborative"    #Multi-perspective integration
+    SYSTEMATIC = "systematic"          #Methodical step-by-step processing
 
 
 class EpistemicState(Enum):
     """Knowledge state awareness."""
-    CERTAIN = "certain"                # High confidence in knowledge
-    UNCERTAIN = "uncertain"            # Acknowledged uncertainty
-    UNKNOWN = "unknown"                # Recognized knowledge gap
-    CONFLICTED = "conflicted"          # Contradictory information
-    PARTIAL = "partial"                # Incomplete understanding
-    EVOLVING = "evolving"              # Understanding in flux
+    CERTAIN = "certain"                #High confidence in knowledge
+    UNCERTAIN = "uncertain"            #Acknowledged uncertainty
+    UNKNOWN = "unknown"                #Recognized knowledge gap
+    CONFLICTED = "conflicted"          #Contradictory information
+    PARTIAL = "partial"                #Incomplete understanding
+    EVOLVING = "evolving"              #Understanding in flux
 
 
 @dataclass
@@ -87,25 +87,25 @@ class MetaCognitiveEngine:
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         
-        # Core cognitive state
+        #Core cognitive state
         self.current_mode = CognitiveMode.ANALYTICAL
         self.epistemic_state = EpistemicState.UNCERTAIN
         self.confidence_level = 0.5
         self.processing_depth = 1
         
-        # Meta-cognitive tracking
+        #Meta-cognitive tracking
         self.cognitive_history = deque(maxlen=50)
         self.reasoning_traces = []
         self.strategy_effectiveness = defaultdict(lambda: {"success": 0, "total": 0})
         self.uncertainty_map = {}
         self.knowledge_gaps = set()
         
-        # Adaptive parameters
+        #Adaptive parameters
         self.attention_weights = defaultdict(float)
         self.strategy_preferences = {}
         self.confidence_calibration = {}
         
-        # Performance metrics
+        #Performance metrics
         self.meta_stats = {
             "total_queries": 0,
             "successful_adaptations": 0,
@@ -138,12 +138,12 @@ class MetaCognitiveEngine:
             "processing_strategy": "standard"
         }
         
-        # Analyze query structure and content
+        #Analyze query structure and content
         query_lower = query.lower()
         word_count = len(query.split())
         sentence_count = len([s for s in query.split('.') if s.strip()])
         
-        # Complexity indicators
+        #Complexity indicators
         complexity_indicators = {
             "multi_part": bool(re.search(r'\b(and|also|additionally|furthermore|moreover)\b', query_lower)),
             "conditional": bool(re.search(r'\b(if|when|unless|provided|assuming)\b', query_lower)),
@@ -154,12 +154,12 @@ class MetaCognitiveEngine:
             "meta": bool(re.search(r'\b(think|analyze|consider|evaluate|assess)\b', query_lower))
         }
         
-        # Calculate cognitive load
+        #Calculate cognitive load
         base_load = min(5, max(1, word_count / 10))
         complexity_multiplier = 1 + sum(complexity_indicators.values()) * 0.3
         complexity_analysis["cognitive_load"] = min(5, base_load * complexity_multiplier)
         
-        # Determine reasoning types needed
+        #Determine reasoning types needed
         if complexity_indicators["causal"]:
             complexity_analysis["reasoning_types"].append("causal")
         if complexity_indicators["comparative"]:
@@ -169,7 +169,7 @@ class MetaCognitiveEngine:
         if complexity_indicators["meta"]:
             complexity_analysis["reasoning_types"].append("meta-cognitive")
         
-        # Identify knowledge domains
+        #Identify knowledge domains
         domain_keywords = {
             "technical": ["code", "programming", "system", "algorithm", "api", "database"],
             "analytical": ["analyze", "evaluate", "assess", "examine", "investigate"],
@@ -182,7 +182,7 @@ class MetaCognitiveEngine:
             if any(kw in query_lower for kw in keywords):
                 complexity_analysis["knowledge_domains"].append(domain)
         
-        # Recommend cognitive mode
+        #Recommend cognitive mode
         if complexity_indicators["meta"] or "meta-cognitive" in complexity_analysis["reasoning_types"]:
             complexity_analysis["recommended_mode"] = CognitiveMode.REFLECTIVE
         elif complexity_indicators["comparative"] and len(complexity_analysis["knowledge_domains"]) > 1:
@@ -192,7 +192,7 @@ class MetaCognitiveEngine:
         elif complexity_analysis["cognitive_load"] > 3:
             complexity_analysis["recommended_mode"] = CognitiveMode.SYSTEMATIC
         
-        # Identify uncertainty factors
+        #Identify uncertainty factors
         uncertainty_keywords = ["might", "possibly", "unclear", "unknown", "uncertain", "maybe"]
         if any(kw in query_lower for kw in uncertainty_keywords):
             complexity_analysis["uncertainty_factors"].append("explicit_uncertainty")
@@ -200,7 +200,7 @@ class MetaCognitiveEngine:
         if not complexity_analysis["knowledge_domains"]:
             complexity_analysis["uncertainty_factors"].append("domain_ambiguity")
         
-        # Meta-requirements assessment
+        #Meta-requirements assessment
         if complexity_analysis["cognitive_load"] > 3:
             complexity_analysis["meta_requirements"].append("iterative_refinement")
         if len(complexity_analysis["reasoning_types"]) > 2:
@@ -228,7 +228,7 @@ class MetaCognitiveEngine:
             "success_criteria": {}
         }
         
-        # Attention focus based on knowledge domains
+        #Attention focus based on knowledge domains
         domains = query_analysis.get("knowledge_domains", [])
         for domain in domains:
             weight = self.attention_weights.get(domain, 1.0)
@@ -238,7 +238,7 @@ class MetaCognitiveEngine:
                 "priority": min(5, max(1, int(weight * 3)))
             })
         
-        # Reasoning sequence based on complexity
+        #Reasoning sequence based on complexity
         reasoning_types = query_analysis.get("reasoning_types", [])
         if "meta-cognitive" in reasoning_types:
             strategy_selection["reasoning_sequence"].extend([
@@ -260,7 +260,7 @@ class MetaCognitiveEngine:
                 "difference_highlighting"
             ])
         
-        # Uncertainty handling strategy
+        #Uncertainty handling strategy
         uncertainty_factors = query_analysis.get("uncertainty_factors", [])
         if uncertainty_factors:
             if "explicit_uncertainty" in uncertainty_factors:
@@ -270,14 +270,14 @@ class MetaCognitiveEngine:
             else:
                 strategy_selection["uncertainty_handling"] = "confidence_qualification"
         
-        # Adaptation triggers
+        #Adaptation triggers
         if query_analysis.get("cognitive_load", 1) > 3:
             strategy_selection["adaptation_triggers"].append("complexity_overload")
         
         if len(reasoning_types) > 2:
             strategy_selection["adaptation_triggers"].append("strategy_coordination_needed")
         
-        # Success criteria
+        #Success criteria
         strategy_selection["success_criteria"] = {
             "minimum_confidence": 0.7,
             "knowledge_gap_tolerance": 0.3,
@@ -303,7 +303,7 @@ class MetaCognitiveEngine:
             "meta_insights": []
         }
         
-        # Assess cognitive load
+        #Assess cognitive load
         current_load = step_info.get("processing_load", self.processing_depth)
         if current_load > 4:
             monitoring_result["cognitive_health"] = "overloaded"
@@ -312,7 +312,7 @@ class MetaCognitiveEngine:
             monitoring_result["cognitive_health"] = "underutilized"
             monitoring_result["recommended_adjustments"].append("increase_processing_depth")
         
-        # Track confidence evolution
+        #Track confidence evolution
         current_confidence = step_info.get("confidence", self.confidence_level)
         if hasattr(self, '_last_confidence'):
             confidence_change = current_confidence - self._last_confidence
@@ -323,15 +323,15 @@ class MetaCognitiveEngine:
                 monitoring_result["confidence_trend"] = "improving"
         self._last_confidence = current_confidence
         
-        # Analyze attention distribution
+        #Analyze attention distribution
         attention_focus = step_info.get("attention_focus", [])
         for focus_item in attention_focus:
             domain = focus_item.get("domain", "unknown")
             weight = focus_item.get("weight", 1.0)
             monitoring_result["attention_distribution"][domain] = weight
         
-        # Check for adaptation triggers
-        if step_info.get("processing_time", 0) > 30:  # seconds
+        #Check for adaptation triggers
+        if step_info.get("processing_time", 0) > 30:  #seconds
             monitoring_result["adaptation_needed"] = True
             monitoring_result["recommended_adjustments"].append("processing_optimization")
         
@@ -339,7 +339,7 @@ class MetaCognitiveEngine:
             monitoring_result["adaptation_needed"] = True
             monitoring_result["recommended_adjustments"].append("knowledge_gap_addressing")
         
-        # Generate meta-insights
+        #Generate meta-insights
         if monitoring_result["cognitive_health"] == "overloaded":
             monitoring_result["meta_insights"].append(
                 "Cognitive overload detected - consider breaking down the problem into smaller components"
@@ -361,7 +361,7 @@ class MetaCognitiveEngine:
         adapted_strategy = current_strategy.copy()
         adaptations_made = []
         
-        # Process recommended adjustments
+        #Process recommended adjustments
         adjustments = monitoring_result.get("recommended_adjustments", [])
         
         for adjustment in adjustments:
@@ -379,7 +379,7 @@ class MetaCognitiveEngine:
                 adaptations_made.append("Enhanced uncertainty tracking and resolution")
             
             elif adjustment == "processing_optimization":
-                # Switch to more efficient mode if possible
+                #Switch to more efficient mode if possible
                 if adapted_strategy["primary_mode"] == CognitiveMode.SYSTEMATIC:
                     adapted_strategy["primary_mode"] = CognitiveMode.ANALYTICAL
                     adaptations_made.append("Switched to more efficient analytical mode")
@@ -388,7 +388,7 @@ class MetaCognitiveEngine:
                 adapted_strategy["reasoning_sequence"].insert(0, "knowledge_gap_identification")
                 adaptations_made.append("Added explicit knowledge gap identification")
         
-        # Update strategy effectiveness tracking
+        #Update strategy effectiveness tracking
         if adaptations_made:
             self.meta_stats["successful_adaptations"] += 1
             
@@ -415,13 +415,13 @@ class MetaCognitiveEngine:
         if not reasoning_trace:
             return commentary
         
-        # Analyze reasoning coherence
+        #Analyze reasoning coherence
         confidence_values = [trace.confidence_change for trace in reasoning_trace]
         if confidence_values:
             confidence_variance = sum((c - sum(confidence_values)/len(confidence_values))**2 for c in confidence_values) / len(confidence_values)
             commentary["coherence_score"] = max(0, 1 - confidence_variance)
         
-        # Assess uncertainty handling
+        #Assess uncertainty handling
         uncertainty_mentions = sum(1 for trace in reasoning_trace if "uncertain" in trace.epistemic_update.lower())
         total_steps = len(reasoning_trace)
         if uncertainty_mentions / total_steps > 0.3:
@@ -429,7 +429,7 @@ class MetaCognitiveEngine:
         elif uncertainty_mentions / total_steps < 0.1:
             commentary["uncertainty_handling"] = "insufficient"
         
-        # Evaluate strategic effectiveness
+        #Evaluate strategic effectiveness
         strategies_used = set(trace.reasoning_type for trace in reasoning_trace)
         for strategy in strategies_used:
             strategy_traces = [t for t in reasoning_trace if t.reasoning_type == strategy]
@@ -440,7 +440,7 @@ class MetaCognitiveEngine:
                 "effectiveness": "high" if avg_confidence_change > 0.1 else "moderate" if avg_confidence_change > 0 else "low"
             }
         
-        # Identify improvement opportunities
+        #Identify improvement opportunities
         if commentary["coherence_score"] < 0.6:
             commentary["improvement_opportunities"].append("Improve reasoning coherence and consistency")
         
@@ -454,7 +454,7 @@ class MetaCognitiveEngine:
         if low_effectiveness_strategies:
             commentary["improvement_opportunities"].append(f"Reconsider use of strategies: {', '.join(low_effectiveness_strategies)}")
         
-        # Generate meta-insights
+        #Generate meta-insights
         commentary["meta_insights"].append(f"Reasoning process involved {total_steps} steps across {len(strategies_used)} strategies")
         
         if commentary["coherence_score"] > 0.8:
@@ -463,7 +463,7 @@ class MetaCognitiveEngine:
         if uncertainty_mentions > 0:
             commentary["meta_insights"].append(f"Appropriately acknowledged uncertainty in {uncertainty_mentions} steps")
         
-        # Epistemic assessment
+        #Epistemic assessment
         final_trace = reasoning_trace[-1] if reasoning_trace else None
         if final_trace:
             commentary["epistemic_assessment"] = {
@@ -494,11 +494,11 @@ class MetaCognitiveEngine:
     
     def update_cognitive_state(self, new_information: Dict[str, Any]):
         """Update cognitive state based on new information."""
-        # Update confidence level
+        #Update confidence level
         if "confidence_update" in new_information:
             self.confidence_level = max(0, min(1, new_information["confidence_update"]))
         
-        # Update epistemic state
+        #Update epistemic state
         if "epistemic_update" in new_information:
             epistemic_info = new_information["epistemic_update"]
             if "uncertain" in epistemic_info.lower():
@@ -508,15 +508,15 @@ class MetaCognitiveEngine:
             elif "certain" in epistemic_info.lower():
                 self.epistemic_state = EpistemicState.CERTAIN
         
-        # Update knowledge gaps
+        #Update knowledge gaps
         if "knowledge_gaps" in new_information:
             self.knowledge_gaps.update(new_information["knowledge_gaps"])
         
-        # Update uncertainty map
+        #Update uncertainty map
         if "uncertainty_updates" in new_information:
             self.uncertainty_map.update(new_information["uncertainty_updates"])
         
-        # Store cognitive snapshot
+        #Store cognitive snapshot
         snapshot = self.create_cognitive_snapshot()
         self.cognitive_history.append(snapshot)
         

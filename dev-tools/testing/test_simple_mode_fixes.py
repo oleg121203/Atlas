@@ -15,31 +15,31 @@ def test_mode_fixes_simple():
     print("🔧 Простий тест виправлень системи режимів")
     print("=" * 50)
     
-    # Створити без залежностей
+    #Створити без залежностей
     chat_manager = ChatContextManager(memory_manager=None)
     
-    # Тестові повідомлення
+    #Тестові повідомлення
     test_cases = [
-        # Простий привіт - має бути CASUAL_CHAT
+        #Простий привіт - має бути CASUAL_CHAT
         ("Привіт", "CASUAL_CHAT"),
         ("Hi", "CASUAL_CHAT"),
         ("Hello", "CASUAL_CHAT"),
         
-        # Короткі повідомлення - CASUAL_CHAT
+        #Короткі повідомлення - CASUAL_CHAT
         ("Дякую", "CASUAL_CHAT"),
         ("OK", "CASUAL_CHAT"),
         ("👍", "CASUAL_CHAT"),
         
-        # Питання про погоду - НЕ SYSTEM_HELP
+        #Питання про погоду - НЕ SYSTEM_HELP
         ("яка погода зараз у Львові?", "CASUAL_CHAT"),
         ("What's the weather?", "CASUAL_CHAT"),
         
-        # Тільки специфічні питання про Atlas - SYSTEM_HELP  
+        #Тільки специфічні питання про Atlas - SYSTEM_HELP  
         ("What are Atlas capabilities?", "SYSTEM_HELP"),
         ("Tell me about Atlas modes", "SYSTEM_HELP"),
         ("About Atlas system", "SYSTEM_HELP"),
         
-        # Завдання - GOAL_SETTING
+        #Завдання - GOAL_SETTING
         ("Take a screenshot", "GOAL_SETTING"),
         ("Open calculator", "GOAL_SETTING"),
         ("Click on button", "GOAL_SETTING"),
@@ -78,7 +78,7 @@ def test_mode_fixes_simple():
     else:
         print("⚠️  ПОТРІБНІ ДОДАТКОВІ ВИПРАВЛЕННЯ.")
     
-    # Тест скидання
+    #Тест скидання
     print("\n🔄 Тестування скидання...")
     try:
         chat_manager.reset_context()

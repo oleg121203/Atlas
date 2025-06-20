@@ -9,31 +9,31 @@ import sys
 import os
 import unittest.mock
 
-# Add the project root to the path
+#Add the project root to the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def mock_gui_modules():
     """Mock GUI modules to prevent import errors during testing."""
-    # Mock PyAutoGUI and related modules
+    #Mock PyAutoGUI and related modules
     sys.modules['pyautogui'] = unittest.mock.MagicMock()
     sys.modules['mouseinfo'] = unittest.mock.MagicMock()
     sys.modules['Xlib'] = unittest.mock.MagicMock()
     sys.modules['Xlib.display'] = unittest.mock.MagicMock()
     
-    # Mock screenshot tool
+    #Mock screenshot tool
     mock_capture_screen = unittest.mock.MagicMock()
     mock_capture_screen.return_value = b'fake_screenshot_data'
     
-    # Create a mock module for screenshot_tool
+    #Create a mock module for screenshot_tool
     mock_screenshot_module = unittest.mock.MagicMock()
     mock_screenshot_module.capture_screen = mock_capture_screen
     sys.modules['tools.screenshot_tool'] = mock_screenshot_module
 
-# Set up mocks before importing any real modules
+#Set up mocks before importing any real modules
 mock_gui_modules()
 
-# Now import the modules we want to test
-from config_manager import ConfigManager
+#Now import the modules we want to test
+from utils.config_manager import ConfigManager
 from agents.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
 from agents.chat_context_manager import ChatContextManager
@@ -54,7 +54,7 @@ class TestEnhancedMemoryManagerFix(unittest.TestCase):
             config_manager=self.config_manager
         )
         
-        # Verify the memory manager was created successfully
+        #Verify the memory manager was created successfully
         self.assertIsNotNone(memory_manager)
         self.assertEqual(memory_manager.llm_manager, self.llm_manager)
         self.assertEqual(memory_manager.config_manager, self.config_manager)
@@ -68,7 +68,7 @@ class TestEnhancedMemoryManagerFix(unittest.TestCase):
         
         chat_context_manager = ChatContextManager(memory_manager=memory_manager)
         
-        # Verify the chat context manager was created successfully
+        #Verify the chat context manager was created successfully
         self.assertIsNotNone(chat_context_manager)
         self.assertEqual(chat_context_manager.memory_manager, memory_manager)
     
@@ -76,14 +76,14 @@ class TestEnhancedMemoryManagerFix(unittest.TestCase):
         """Test that ChatContextManager can be created without a memory_manager."""
         chat_context_manager = ChatContextManager()
         
-        # Verify the chat context manager was created successfully
+        #Verify the chat context manager was created successfully
         self.assertIsNotNone(chat_context_manager)
-        # memory_manager should be None when not provided
+        #memory_manager should be None when not provided
         self.assertIsNone(chat_context_manager.memory_manager)
     
     def test_atlas_app_simulation(self):
         """Test simulating the AtlasApp initialization sequence."""
-        # This simulates the exact sequence that happens in AtlasApp.__init__
+        #This simulates the exact sequence that happens in AtlasApp.__init__
         config_manager = ConfigManager()
         llm_manager = LLMManager(config_manager)
         memory_manager = EnhancedMemoryManager(
@@ -92,20 +92,20 @@ class TestEnhancedMemoryManagerFix(unittest.TestCase):
         )
         chat_context_manager = ChatContextManager(memory_manager=memory_manager)
         
-        # Verify all components were created successfully
+        #Verify all components were created successfully
         self.assertIsNotNone(config_manager)
         self.assertIsNotNone(llm_manager)
         self.assertIsNotNone(memory_manager)
         self.assertIsNotNone(chat_context_manager)
         
-        # Verify the dependencies are correctly set
+        #Verify the dependencies are correctly set
         self.assertEqual(memory_manager.llm_manager, llm_manager)
         self.assertEqual(memory_manager.config_manager, config_manager)
         self.assertEqual(chat_context_manager.memory_manager, memory_manager)
 
 
 if __name__ == '__main__':
-    # Suppress info messages during testing
+    #Suppress info messages during testing
     import logging
     logging.getLogger().setLevel(logging.ERROR)
     

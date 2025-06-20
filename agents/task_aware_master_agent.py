@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 from agents.agent_manager import AgentManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from agents.master_agent import MasterAgent as BaseMasterAgent, TaskExecutionError
-from logger import get_logger
+from utils.logger import get_logger
 
 
 class TaskAwareMasterAgent(BaseMasterAgent):
@@ -48,12 +48,12 @@ class TaskAwareMasterAgent(BaseMasterAgent):
         """
         super().__init__(llm_manager, agent_manager, memory_manager, status_callback)
         
-        # Task isolation properties
+        #Task isolation properties
         self.task_id = task_id or f"task_{int(time.time())}"
         self.memory_scope = memory_scope or f"task_{self.task_id}"
         self.api_resource_manager = api_resource_manager
         
-        # Task-specific execution context
+        #Task-specific execution context
         self.task_execution_context: Dict[str, Any] = {}
         self.task_metadata: Dict[str, Any] = {
             "task_id": self.task_id,
@@ -62,7 +62,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             "isolated": True
         }
         
-        # Cancellation support
+        #Cancellation support
         self.cancellation_requested = threading.Event()
         
         self.logger.info(f"TaskAwareMasterAgent initialized with task_id={self.task_id}, scope={self.memory_scope}")
@@ -99,23 +99,23 @@ class TaskAwareMasterAgent(BaseMasterAgent):
     
     def _make_llm_request(self, messages: List[Dict], provider: str = "openai") -> Optional[Any]:
         """Make LLM request with resource management and cancellation support."""
-        # Check for cancellation
+        #Check for cancellation
         if self.is_cancellation_requested():
             self.logger.info(f"LLM request cancelled for task {self.task_id}")
             return None
         
-        # Wait for API availability
+        #Wait for API availability
         if not self._wait_for_api_availability(provider):
             self.logger.warning(f"API not available for task {self.task_id}")
             return None
         
-        # Add task context to messages
+        #Add task context to messages
         enhanced_messages = self._add_task_context_to_messages(messages)
         
         try:
             result = self.llm_manager.chat(enhanced_messages)
             
-            # Store the interaction in task-specific memory
+            #Store the interaction in task-specific memory
             self._store_task_interaction(messages, result)
             
             return result
@@ -126,10 +126,10 @@ class TaskAwareMasterAgent(BaseMasterAgent):
     
     def _add_task_context_to_messages(self, messages: List[Dict]) -> List[Dict]:
         """Add task-specific context to LLM messages."""
-        # Clone messages to avoid modifying original
+        #Clone messages to avoid modifying original
         enhanced_messages = messages.copy()
         
-        # Add task context to system message if present
+        #Add task context to system message if present
         if enhanced_messages and enhanced_messages[0].get("role") == "system":
             system_content = enhanced_messages[0]["content"]
             task_context = f"\n\n[Task Context: ID={self.task_id}, Scope={self.memory_scope}]"
@@ -147,7 +147,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
                 "task_metadata": self.task_metadata
             }
             
-            # Store using task-specific scope
+            #Store using task-specific scope
             if isinstance(self.memory_manager, EnhancedMemoryManager):
                 self.memory_manager.store_memory(
                     agent_name=self.memory_scope,
@@ -198,7 +198,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
     
     def run_with_isolation(self, goal: str, master_prompt: str, options: Dict[str, Any]) -> Dict[str, Any]:
         """Run the agent with full task isolation."""
-        # Set up task metadata
+        #Set up task metadata
         task_metadata = {
             "goal": goal,
             "prompt": master_prompt,
@@ -207,19 +207,19 @@ class TaskAwareMasterAgent(BaseMasterAgent):
         }
         self.set_task_metadata(task_metadata)
         
-        # Store task start
+        #Store task start
         self._store_task_progress("task_start", "running", {"goal": goal})
         
         try:
-            # Check for previous similar tasks
+            #Check for previous similar tasks
             similar_tasks = self._get_task_specific_memories(MemoryType.SUCCESS, goal, limit=3)
             if similar_tasks:
                 self.logger.info(f"Found {len(similar_tasks)} similar completed tasks")
             
-            # Run the main execution with cancellation checks
+            #Run the main execution with cancellation checks
             result = self._run_with_cancellation_support(goal, master_prompt, options)
             
-            # Store completion
+            #Store completion
             completion_status = "completed" if result.get("success", False) else "failed"
             self._store_task_progress("task_complete", completion_status, result)
             
@@ -238,7 +238,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
     def _run_with_cancellation_support(self, goal: str, master_prompt: str, options: Dict[str, Any]) -> Dict[str, Any]:
         """Run agent execution with regular cancellation checks."""
         
-        # Override the base run method with cancellation support
+        #Override the base run method with cancellation support
         with self.state_lock:
             if self.is_running:
                 return {"success": False, "error": "Agent already running"}
@@ -253,7 +253,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             self.is_paused = False
         
         try:
-            # Execute the main loop with cancellation checks
+            #Execute the main loop with cancellation checks
             return self._execution_loop_with_cancellation()
             
         finally:
@@ -266,14 +266,14 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             while self.goals and not self.is_cancellation_requested():
                 current_goal = self.goals.pop(0)
                 
-                # Check for cancellation before each goal
+                #Check for cancellation before each goal
                 if self.is_cancellation_requested():
                     return {"success": False, "error": "Task cancelled", "task_id": self.task_id}
                 
-                # Store goal start
+                #Store goal start
                 self._store_task_progress("goal_start", "running", {"goal": current_goal})
                 
-                # Execute goal with cancellation checks
+                #Execute goal with cancellation checks
                 success = self._execute_goal_with_cancellation(current_goal)
                 
                 if not success:
@@ -291,19 +291,19 @@ class TaskAwareMasterAgent(BaseMasterAgent):
     def _execute_goal_with_cancellation(self, goal: str) -> bool:
         """Execute a single goal with cancellation support."""
         try:
-            # This is a simplified version - in reality, you'd implement
-            # the full goal execution logic with cancellation checks
+            #This is a simplified version - in reality, you'd implement
+            #the full goal execution logic with cancellation checks
             
-            # Check cancellation before major operations
+            #Check cancellation before major operations
             if self.is_cancellation_requested():
                 return False
             
-            # Decompose goal (with cancellation checks)
+            #Decompose goal (with cancellation checks)
             sub_goals = self._decompose_goal_with_cancellation(goal)
             if not sub_goals:
                 return False
             
-            # Execute each sub-goal
+            #Execute each sub-goal
             for sub_goal in sub_goals:
                 if self.is_cancellation_requested():
                     return False
@@ -323,7 +323,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
         if self.is_cancellation_requested():
             return None
         
-        # Use the parent's decomposition method but with our LLM request method
+        #Use the parent's decomposition method but with our LLM request method
         try:
             decomposition_prompt = f"""You are a helpful assistant that breaks down complex goals into a series of smaller, manageable sub-goals. 
             Analyze the following user goal. If the goal is simple and can be accomplished in a single plan (e.g., 'take a screenshot', 'check the weather'), respond with a JSON array containing only the original goal. 
@@ -337,7 +337,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             llm_result = self._make_llm_request(messages)
             
             if not llm_result or not llm_result.response_text:
-                return [goal]  # Fallback to original goal
+                return [goal]  #Fallback to original goal
             
             json_response = self._extract_json_from_response(llm_result.response_text)
             if not json_response:
@@ -359,17 +359,17 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             return False
         
         try:
-            # Store sub-goal start
+            #Store sub-goal start
             self._store_task_progress("sub_goal_start", "running", {"sub_goal": sub_goal})
             
-            # Here you would implement the actual sub-goal execution
-            # For now, we'll simulate it
-            time.sleep(0.1)  # Simulate work
+            #Here you would implement the actual sub-goal execution
+            #For now, we'll simulate it
+            time.sleep(0.1)  #Simulate work
             
             if self.is_cancellation_requested():
                 return False
             
-            # Store sub-goal completion
+            #Store sub-goal completion
             self._store_task_progress("sub_goal_complete", "completed", {"sub_goal": sub_goal})
             
             return True
@@ -390,7 +390,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             "is_cancelled": self.is_cancellation_requested()
         }
         
-        # Analyze operation types
+        #Analyze operation types
         operations = {}
         for memory in memories:
             content = memory.get("content", {})
@@ -402,26 +402,26 @@ class TaskAwareMasterAgent(BaseMasterAgent):
         return summary
 
 
-# Example usage
+#Example usage
 def demo_task_aware_agent():
     """Demonstrate TaskAwareMasterAgent functionality."""
     print("🧪 TaskAwareMasterAgent Demo - Isolated Memory")
     print("=" * 60)
     
-    # This would normally be initialized through the TaskManager
-    # but we'll create a simple demo here
+    #This would normally be initialized through the TaskManager
+    #but we'll create a simple demo here
     
     try:
         from agents.llm_manager import LLMManager
         from agents.agent_manager import AgentManager
         from agents.enhanced_memory_manager import EnhancedMemoryManager
         
-        # Initialize components
+        #Initialize components
         llm_manager = LLMManager()
         agent_manager = AgentManager()
         memory_manager = EnhancedMemoryManager()
         
-        # Create two isolated agents for different tasks
+        #Create two isolated agents for different tasks
         agent1 = TaskAwareMasterAgent(
             llm_manager=llm_manager,
             agent_manager=agent_manager,
@@ -442,7 +442,7 @@ def demo_task_aware_agent():
         print(f"   Agent 1: {agent1.task_id} (scope: {agent1.memory_scope})")
         print(f"   Agent 2: {agent2.task_id} (scope: {agent2.memory_scope})")
         
-        # Simulate task execution
+        #Simulate task execution
         result1 = agent1.run_with_isolation(
             "Take a screenshot",
             "Complete the screenshot task efficiently",
@@ -459,7 +459,7 @@ def demo_task_aware_agent():
         print(f"   Task 1: {result1}")
         print(f"   Task 2: {result2}")
         
-        # Show memory isolation
+        #Show memory isolation
         summary1 = agent1.get_task_summary()
         summary2 = agent2.get_task_summary()
         

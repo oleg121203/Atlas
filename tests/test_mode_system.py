@@ -49,29 +49,29 @@ def test_manual_mode_switching():
     
     context_manager = ChatContextManager()
     
-    # Test switching to manual mode
+    #Test switching to manual mode
     print(f"Initial auto mode: {context_manager.is_auto_mode}")
     
-    # Switch to manual chat mode
+    #Switch to manual chat mode
     context_manager.set_manual_mode(ChatMode.CASUAL_CHAT)
     print(f"After manual switch - Auto mode: {context_manager.is_auto_mode}")
     print(f"Current mode: {context_manager.current_mode}")
     
-    # Test that manual mode overrides detection
+    #Test that manual mode overrides detection
     system_info = {'tools': [], 'agents': []}
     
-    test_message = "Take a screenshot"  # Would normally be GOAL_SETTING
+    test_message = "Take a screenshot"  #Would normally be GOAL_SETTING
     context = context_manager.analyze_message(test_message, system_info)
     
     print(f"Message: '{test_message}'")
     print(f"Detected mode: {context.mode.value} (should be casual_chat in manual mode)")
     print()
     
-    # Test toggling back to auto
+    #Test toggling back to auto
     context_manager.toggle_auto_mode()
     print(f"After toggle - Auto mode: {context_manager.is_auto_mode}")
     
-    # Now it should detect properly
+    #Now it should detect properly
     context = context_manager.analyze_message(test_message, system_info)
     print(f"Same message in auto mode: {context.mode.value}")
     print()
@@ -83,13 +83,13 @@ def test_development_mode():
     
     context_manager = ChatContextManager()
     
-    # Switch to development mode
+    #Switch to development mode
     context_manager.set_manual_mode(ChatMode.DEVELOPMENT)
     
     print(f"Auto mode: {context_manager.is_auto_mode}")
     print(f"Current mode: {context_manager.current_mode}")
     
-    # Test development mode response generation
+    #Test development mode response generation
     system_info = {
         'tools': ['capture_screen', 'execute_command', 'create_tool'],
         'agents': ['master_agent', 'security_agent']
@@ -119,21 +119,21 @@ def test_mode_persistence():
     
     context_manager = ChatContextManager()
     
-    # Test state tracking
+    #Test state tracking
     states = []
     
-    # Auto mode
+    #Auto mode
     states.append(("Auto mode", context_manager.is_auto_mode, context_manager.current_mode))
     
-    # Manual chat
+    #Manual chat
     context_manager.set_manual_mode(ChatMode.CASUAL_CHAT)
     states.append(("Manual chat", context_manager.is_auto_mode, context_manager.current_mode))
     
-    # Manual development
+    #Manual development
     context_manager.set_manual_mode(ChatMode.DEVELOPMENT)
     states.append(("Manual dev", context_manager.is_auto_mode, context_manager.current_mode))
     
-    # Back to auto
+    #Back to auto
     context_manager.toggle_auto_mode()
     states.append(("Back to auto", context_manager.is_auto_mode, context_manager.current_mode))
     

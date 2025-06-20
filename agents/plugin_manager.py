@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from agents.agent_manager import AgentManager
     from agents.llm_manager import LLMManager
 
-from logger import get_logger
+from utils.logger import get_logger
 
 
 class PluginManager:
@@ -20,8 +20,8 @@ class PluginManager:
     def __init__(self, agent_manager: AgentManager, plugin_dir: str = "plugins"):
         self.plugin_dir = Path(plugin_dir)
         self.agent_manager = agent_manager
-        # The plugins dict stores all metadata, including the loaded tools for each plugin
-        # Structure: { "plugin_folder_name": { "manifest": {...}, "module": <module>, "tools": [...] } }
+        #The plugins dict stores all metadata, including the loaded tools for each plugin
+        #Structure: { "plugin_folder_name": { "manifest": {...}, "module": <module>, "tools": [...] } }
         self.plugins: Dict[str, Dict[str, Any]] = {}
         self.logger = get_logger()
 
@@ -62,10 +62,10 @@ class PluginManager:
                 if hasattr(module, "register") and callable(module.register):
                     try:
                         sig = inspect.signature(module.register)
-                        # Enhanced parameter detection for better plugin integration
+                        #Enhanced parameter detection for better plugin integration
                         param_names = list(sig.parameters.keys())
                         
-                        # Prepare arguments based on plugin requirements
+                        #Prepare arguments based on plugin requirements
                         call_args = {}
                         if 'llm_manager' in param_names:
                             call_args['llm_manager'] = llm_manager
@@ -74,12 +74,12 @@ class PluginManager:
                         if 'agent_manager' in param_names:
                             call_args['agent_manager'] = self.agent_manager
                         
-                        # Call with appropriate arguments
+                        #Call with appropriate arguments
                         if len(sig.parameters) > 0:
                             if call_args:
                                 registration_data = module.register(**call_args)
                             else:
-                                # Fallback to positional arguments for backward compatibility
+                                #Fallback to positional arguments for backward compatibility
                                 registration_data = module.register(llm_manager)
                         else:
                             registration_data = module.register()
@@ -91,7 +91,7 @@ class PluginManager:
                         tools = registration_data.get("tools", [])
                         agents = registration_data.get("agents", [])
                     elif isinstance(registration_data, list):
-                        # For backward compatibility with plugins returning only a list of tools
+                        #For backward compatibility with plugins returning only a list of tools
                         tools = registration_data
                     
                     self.logger.info(
@@ -105,7 +105,7 @@ class PluginManager:
                     "agents": agents,
                 }
 
-                # Auto-enable the plugin after successful discovery
+                #Auto-enable the plugin after successful discovery
                 self.enable_plugin(plugin_name)
 
             except Exception as e:
@@ -128,13 +128,13 @@ class PluginManager:
             tools = plugin_data.get("tools", [])
             agents = plugin_data.get("agents", [])
             
-            # Register tools
+            #Register tools
             for tool in tools:
                 if hasattr(tool, '__name__'):
                     tool_name = tool.__name__
                     self.agent_manager.add_tool(tool_name, tool, getattr(tool, '__doc__', ''))
                     
-            # Register agents (if any)
+            #Register agents (if any)
             for agent in agents:
                 if hasattr(agent, 'name'):
                     self.agent_manager.add_agent(agent.name, agent)
@@ -157,7 +157,7 @@ class PluginManager:
             tools = plugin_data.get("tools", [])
             agents = plugin_data.get("agents", [])
             
-            # Unregister tools
+            #Unregister tools
             for tool in tools:
                 if hasattr(tool, '__name__'):
                     tool_name = tool.__name__
@@ -166,7 +166,7 @@ class PluginManager:
                     elif hasattr(self.agent_manager, '_tools') and tool_name in self.agent_manager._tools:
                         del self.agent_manager._tools[tool_name]
                         
-            # Unregister agents (if any)
+            #Unregister agents (if any)
             for agent in agents:
                 if hasattr(agent, 'name') and hasattr(self.agent_manager, 'remove_agent'):
                     self.agent_manager.remove_agent(agent.name)
@@ -186,7 +186,7 @@ class PluginManager:
         plugin_data = self.plugins[plugin_name]
         tools = plugin_data.get("tools", [])
         
-        # Check if plugin tools are registered
+        #Check if plugin tools are registered
         enabled = False
         if tools and hasattr(self.agent_manager, '_tools'):
             for tool in tools:

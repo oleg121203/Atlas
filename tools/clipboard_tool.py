@@ -9,20 +9,20 @@ import time
 from dataclasses import dataclass
 from typing import Optional, Any
 
-# Try to import pyperclip safely for headless environments
+#Try to import pyperclip safely for headless environments
 try:
-    import pyperclip  # type: ignore
+    import pyperclip  #type: ignore
     _PYPERCLIP_AVAILABLE = True
 except ImportError:
     _PYPERCLIP_AVAILABLE = False
 
 try:
-    from AppKit import NSPasteboard, NSStringPboardType, NSImage  # type: ignore
+    from AppKit import NSPasteboard, NSStringPboardType, NSImage  #type: ignore
     _APPKIT_AVAILABLE = True
 except ImportError:
     _APPKIT_AVAILABLE = False
 
-from logger import get_logger
+from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -54,11 +54,11 @@ def get_clipboard_text() -> ClipboardResult:
             raise RuntimeError("No clipboard access available (missing pyperclip and AppKit)")
             
         if _APPKIT_AVAILABLE:
-            # Use native macOS clipboard
+            #Use native macOS clipboard
             pasteboard = NSPasteboard.generalPasteboard()
             text = pasteboard.stringForType_(NSStringPboardType)
         elif _PYPERCLIP_AVAILABLE:
-            # Fallback to pyperclip
+            #Fallback to pyperclip
             text = pyperclip.paste()
         else:
             raise RuntimeError("No clipboard access available")
@@ -107,12 +107,12 @@ def set_clipboard_text(text: str) -> ClipboardResult:
             raise RuntimeError("No clipboard access available (missing pyperclip and AppKit)")
             
         if _APPKIT_AVAILABLE:
-            # Use native macOS clipboard
+            #Use native macOS clipboard
             pasteboard = NSPasteboard.generalPasteboard()
             pasteboard.clearContents()
             pasteboard.setString_forType_(text, NSStringPboardType)
         elif _PYPERCLIP_AVAILABLE:
-            # Fallback to pyperclip
+            #Fallback to pyperclip
             pyperclip.copy(text)
         else:
             raise RuntimeError("No clipboard access available")
@@ -158,7 +158,7 @@ def get_clipboard_image() -> ClipboardResult:
         pasteboard = NSPasteboard.generalPasteboard()
         image_types = pasteboard.types()
         
-        # Check for image types
+        #Check for image types
         if "public.png" in image_types:
             image_data = pasteboard.dataForType_("public.png")
         elif "public.tiff" in image_types:
@@ -210,7 +210,7 @@ def set_clipboard_image(image_data: bytes, image_type: str = "png") -> Clipboard
         pasteboard = NSPasteboard.generalPasteboard()
         pasteboard.clearContents()
         
-        # Set appropriate type
+        #Set appropriate type
         if image_type.lower() == "png":
             pasteboard.setData_forType_(image_data, "public.png")
         elif image_type.lower() == "tiff":
@@ -252,11 +252,11 @@ def clear_clipboard() -> ClipboardResult:
     
     try:
         if _APPKIT_AVAILABLE:
-            # Use native macOS clipboard
+            #Use native macOS clipboard
             pasteboard = NSPasteboard.generalPasteboard()
             pasteboard.clearContents()
         else:
-            # Fallback to setting empty string
+            #Fallback to setting empty string
             pyperclip.copy("")
         
         execution_time = time.time() - start_time

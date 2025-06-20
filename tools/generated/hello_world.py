@@ -16,7 +16,7 @@ def hello_world(message: str = "Hello, World!") -> str:
     """
     return f"Test tool says: {message}"
 
-# Tool registration metadata
+#Tool registration metadata
 __tool_name__ = "hello_world"
 __tool_description__ = "A simple test tool that returns a greeting message"
 __tool_function__ = hello_world

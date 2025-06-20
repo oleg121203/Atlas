@@ -19,12 +19,12 @@ from typing import List, Dict, Any, Optional, Callable, Union
 import sys
 import json
 
-# Use Atlas platform detection utilities
+#Use Atlas platform detection utilities
 try:
     from utils.platform_utils import IS_MACOS, IS_LINUX, IS_HEADLESS, get_platform_info
     PLATFORM_UTILS_AVAILABLE = True
 except ImportError:
-    # Fallback platform detection
+    #Fallback platform detection
     import platform
     import os
     IS_MACOS = platform.system().lower() == 'darwin'
@@ -41,13 +41,13 @@ except ImportError:
             'is_headless': IS_HEADLESS
         }
 
-# Try to import memory manager components
+#Try to import memory manager components
 try:
     from agents.enhanced_memory_manager import MemoryScope, MemoryType
     MEMORY_INTEGRATION_AVAILABLE = True
 except ImportError:
     MEMORY_INTEGRATION_AVAILABLE = False
-    # Dummy classes for fallback
+    #Dummy classes for fallback
     class MemoryScope:
         DEPUTY_AGENT = "deputy_agent"
         HELPER_SYSTEM = "helper_system"
@@ -85,20 +85,20 @@ class EnhancedHelperSyncTellTool:
         self.description = "Enhances responses through structured multi-step thinking and analysis"
         self.version = "2.0.0"
         
-        # Core components
+        #Core components
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         self.config_manager = config_manager
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # Platform and compatibility info
+        #Platform and compatibility info
         self.platform_info = get_platform_info()
         self.capabilities = self._assess_capabilities()
         
-        # Configuration
+        #Configuration
         self.config = self._load_configuration()
         
-        # Performance tracking
+        #Performance tracking
         self.performance_stats = {
             "queries_processed": 0,
             "average_response_time": 0.0,
@@ -123,7 +123,7 @@ class EnhancedHelperSyncTellTool:
             "linux_features": IS_LINUX
         }
         
-        # Check Python version compatibility
+        #Check Python version compatibility
         python_version = sys.version_info
         capabilities["python_312_plus"] = python_version >= (3, 12)
         capabilities["python_313_plus"] = python_version >= (3, 13)
@@ -146,14 +146,14 @@ class EnhancedHelperSyncTellTool:
         
         if self.config_manager:
             try:
-                # Try to load plugin-specific configuration using different methods
+                #Try to load plugin-specific configuration using different methods
                 plugin_config = {}
                 if hasattr(self.config_manager, 'get'):
                     plugin_config = self.config_manager.get('helper_sync_tell', {})
                 elif hasattr(self.config_manager, 'get_section'):
                     plugin_config = self.config_manager.get_section('helper_sync_tell', {})
                 elif hasattr(self.config_manager, 'config') and hasattr(self.config_manager.config, 'get'):
-                    # Try accessing through config attribute
+                    #Try accessing through config attribute
                     if self.config_manager.config.has_section('helper_sync_tell'):
                         plugin_config = dict(self.config_manager.config.items('helper_sync_tell'))
                 
@@ -215,7 +215,7 @@ class EnhancedHelperSyncTellTool:
         """Validate that the query is suitable for processing."""
         if not query or not query.strip():
             return False
-        if len(query.strip()) < 10:  # Too short for meaningful breakdown
+        if len(query.strip()) < 10:  #Too short for meaningful breakdown
             return False
         return True
     
@@ -233,7 +233,7 @@ class EnhancedHelperSyncTellTool:
             return [query]
         
         if not self.capabilities["llm_generation"]:
-            # Simple heuristic-based breakdown for fallback
+            #Simple heuristic-based breakdown for fallback
             return self._heuristic_breakdown(query)
         
         try:
@@ -257,21 +257,21 @@ class EnhancedHelperSyncTellTool:
             
             response = self.llm_manager.generate_text(prompt)
             
-            # Enhanced extraction of numbered questions
+            #Enhanced extraction of numbered questions
             sub_questions = []
             for line in response.split("\n"):
                 line = line.strip()
-                # Look for numbered patterns: "1.", "1)", "1 -", etc.
+                #Look for numbered patterns: "1.", "1)", "1 -", etc.
                 if line and len(line) > 3:
                     if (line[0].isdigit() and line[1:3] in [". ", ") ", " -", "- "]):
-                        # Extract the question part
+                        #Extract the question part
                         question = line[2:].strip() if line[1] == "." else line[3:].strip()
                         if question and len(question) > 5:
-                            # Clean up the question
+                            #Clean up the question
                             question = question.rstrip("?") + "?" if not question.endswith("?") else question
                             sub_questions.append(question)
             
-            # Validate the breakdown
+            #Validate the breakdown
             if len(sub_questions) < min_questions or len(sub_questions) > max_questions:
                 self.logger.warning(f"Breakdown resulted in {len(sub_questions)} questions, expected {min_questions}-{max_questions}")
                 if not sub_questions:
@@ -286,16 +286,16 @@ class EnhancedHelperSyncTellTool:
     
     def _heuristic_breakdown(self, query: str) -> List[str]:
         """Fallback heuristic-based query breakdown."""
-        # Simple heuristic: look for "and", "or", question words
+        #Simple heuristic: look for "and", "or", question words
         keywords = ["what", "how", "why", "when", "where", "who", "which"]
         
-        # Split on "and" if it appears to separate different aspects
+        #Split on "and" if it appears to separate different aspects
         if " and " in query.lower():
             parts = [part.strip() for part in query.split(" and ")]
             if len(parts) <= self.config["max_sub_questions"]:
                 return [part + "?" if not part.endswith("?") else part for part in parts if len(part) > 10]
         
-        # If query contains multiple question words, try to extract aspects
+        #If query contains multiple question words, try to extract aspects
         if sum(1 for kw in keywords if kw in query.lower()) > 1:
             return [
                 f"What are the key aspects of: {query}?",
@@ -303,7 +303,7 @@ class EnhancedHelperSyncTellTool:
                 f"What are the implications of: {query}?"
             ]
         
-        # Default fallback
+        #Default fallback
         return [query]
     
     def analyze_sub_question(self, sub_question: str, available_tools: Dict[str, Callable]) -> str:
@@ -320,7 +320,7 @@ class EnhancedHelperSyncTellTool:
         start_time = time.time()
         
         try:
-            # Use available tools with better selection logic
+            #Use available tools with better selection logic
             tool_results = {}
             relevant_tools = self._select_relevant_tools(sub_question, available_tools)
             
@@ -329,14 +329,14 @@ class EnhancedHelperSyncTellTool:
                     tool_fn = available_tools[tool_name]
                     result = tool_fn(sub_question)
                     if result:
-                        # Limit result size but preserve important information
+                        #Limit result size but preserve important information
                         max_length = self.config["max_tool_response_length"]
                         result_str = str(result)
                         if len(result_str) > max_length:
                             result_str = result_str[:max_length] + "... [truncated]"
                         tool_results[tool_name] = result_str
                         
-                        # Track tool usage
+                        #Track tool usage
                         if tool_name not in self.performance_stats["tool_usage_count"]:
                             self.performance_stats["tool_usage_count"][tool_name] = 0
                         self.performance_stats["tool_usage_count"][tool_name] += 1
@@ -345,7 +345,7 @@ class EnhancedHelperSyncTellTool:
                     self.logger.debug(f"Tool {tool_name} failed for question '{sub_question}': {e}")
                     tool_results[tool_name] = f"Tool error: {str(e)[:100]}"
             
-            # Generate analysis using LLM if available
+            #Generate analysis using LLM if available
             if self.capabilities["llm_generation"]:
                 if tool_results:
                     analysis_prompt = f"""
@@ -380,7 +380,7 @@ class EnhancedHelperSyncTellTool:
                     Analysis:
                     """
                 
-                # Use the correct LLM method
+                #Use the correct LLM method
                 try:
                     messages = [{"role": "user", "content": analysis_prompt}]
                     response = self.llm_manager.chat(messages)
@@ -392,7 +392,7 @@ class EnhancedHelperSyncTellTool:
                         analysis = str(response)
                 except Exception as llm_error:
                     self.logger.warning(f"LLM generation failed: {llm_error}")
-                    # Fallback to simple analysis
+                    #Fallback to simple analysis
                     if tool_results:
                         analysis_parts = [f"Analysis of '{sub_question}':"]
                         for tool, result in tool_results.items():
@@ -401,7 +401,7 @@ class EnhancedHelperSyncTellTool:
                     else:
                         analysis = f"Analysis of '{sub_question}': This question requires investigation of [key aspects that would need detailed examination]."
             else:
-                # Fallback analysis without LLM
+                #Fallback analysis without LLM
                 if tool_results:
                     analysis_parts = [f"Analysis of '{sub_question}':"]
                     for tool, result in tool_results.items():
@@ -410,7 +410,7 @@ class EnhancedHelperSyncTellTool:
                 else:
                     analysis = f"Analysis of '{sub_question}': No specific analysis tools available, but this question requires attention to [key aspects that would need investigation]."
             
-            # Track performance
+            #Track performance
             processing_time = time.time() - start_time
             self.logger.debug(f"Analyzed sub-question in {processing_time:.2f}s using {len(tool_results)} tools")
             
@@ -425,7 +425,7 @@ class EnhancedHelperSyncTellTool:
         if not available_tools:
             return []
         
-        # Simple keyword-based tool selection
+        #Simple keyword-based tool selection
         question_lower = question.lower()
         tool_keywords = {
             'code_search': ['code', 'function', 'class', 'method', 'implementation', 'source'],
@@ -437,16 +437,16 @@ class EnhancedHelperSyncTellTool:
         
         relevant_tools = []
         for tool_name in available_tools.keys():
-            # Check if tool has associated keywords
+            #Check if tool has associated keywords
             if tool_name in tool_keywords:
                 keywords = tool_keywords[tool_name]
                 if any(keyword in question_lower for keyword in keywords):
                     relevant_tools.append(tool_name)
             else:
-                # If no keywords defined, consider it potentially relevant
+                #If no keywords defined, consider it potentially relevant
                 relevant_tools.append(tool_name)
         
-        # Limit the number of tools to avoid overwhelming the analysis
+        #Limit the number of tools to avoid overwhelming the analysis
         return relevant_tools[:3]
     
     def synthesize_response(self, original_query: str, analyses: List[str]) -> str:
@@ -464,7 +464,7 @@ class EnhancedHelperSyncTellTool:
             return "I apologize, but I wasn't able to analyze your question properly."
         
         if not self.capabilities["llm_generation"]:
-            # Enhanced fallback synthesis
+            #Enhanced fallback synthesis
             return self._fallback_synthesis(original_query, analyses)
         
         try:
@@ -489,7 +489,7 @@ class EnhancedHelperSyncTellTool:
             Comprehensive response:
             """
             
-            # Use the correct LLM method
+            #Use the correct LLM method
             try:
                 messages = [{"role": "user", "content": synthesis_prompt}]
                 llm_response = self.llm_manager.chat(messages)
@@ -503,7 +503,7 @@ class EnhancedHelperSyncTellTool:
                 self.logger.warning(f"LLM synthesis failed: {llm_error}")
                 response = self._fallback_synthesis(original_query, analyses)
             
-            # Optional refinement if enabled
+            #Optional refinement if enabled
             if self.config["response_refinement"] and response != self._fallback_synthesis(original_query, analyses):
                 response = self._refine_response(original_query, response)
             
@@ -554,7 +554,7 @@ class EnhancedHelperSyncTellTool:
             Refined response:
             """
             
-            # Use the correct LLM method
+            #Use the correct LLM method
             try:
                 messages = [{"role": "user", "content": refinement_prompt}]
                 llm_response = self.llm_manager.chat(messages)
@@ -592,11 +592,11 @@ class EnhancedHelperSyncTellTool:
         self.logger.info(f"Starting enhanced structured thinking process {thought_id}")
         
         try:
-            # Validate and preprocess the query
+            #Validate and preprocess the query
             if not self._validate_query(query):
                 return "I need a more detailed question to provide a comprehensive analysis."
             
-            # Store initial query
+            #Store initial query
             self._store_thinking_step(
                 thought_id, 
                 "initial_query", 
@@ -604,7 +604,7 @@ class EnhancedHelperSyncTellTool:
                 {"query_length": len(query), "available_tools": list(available_tools.keys())}
             )
             
-            # Step 1: Break down the query
+            #Step 1: Break down the query
             self.logger.debug(f"Breaking down query: {query}")
             sub_questions = self.break_down_query(query)
             self._store_thinking_step(
@@ -615,14 +615,14 @@ class EnhancedHelperSyncTellTool:
                 {"sub_question_count": len(sub_questions)}
             )
             
-            # Step 2: Analyze each sub-question
+            #Step 2: Analyze each sub-question
             analyses = []
             for i, sub_question in enumerate(sub_questions):
                 self.logger.debug(f"Analyzing sub-question {i+1}/{len(sub_questions)}: {sub_question}")
                 analysis = self.analyze_sub_question(sub_question, available_tools)
                 analyses.append(analysis)
                 
-                # Store individual analysis
+                #Store individual analysis
                 self._store_thinking_step(
                     thought_id, 
                     f"analysis_{i+1}", 
@@ -630,11 +630,11 @@ class EnhancedHelperSyncTellTool:
                     {"sub_question_index": i+1, "analysis_length": len(analysis)}
                 )
             
-            # Step 3: Synthesize comprehensive response
+            #Step 3: Synthesize comprehensive response
             self.logger.debug("Synthesizing comprehensive response")
             final_response = self.synthesize_response(query, analyses)
             
-            # Store final response
+            #Store final response
             self._store_thinking_step(
                 thought_id, 
                 "final_response", 
@@ -642,7 +642,7 @@ class EnhancedHelperSyncTellTool:
                 {"response_length": len(final_response)}
             )
             
-            # Update performance statistics
+            #Update performance statistics
             processing_time = time.time() - start_time
             self.performance_stats["queries_processed"] += 1
             self.performance_stats["average_response_time"] = (
@@ -658,7 +658,7 @@ class EnhancedHelperSyncTellTool:
             error_msg = f"I apologize, but I encountered an error while processing your question: {str(e)}"
             self.logger.error(f"Error in structured thinking process {thought_id}: {e}")
             
-            # Store error for debugging
+            #Store error for debugging
             self._store_thinking_step(
                 thought_id, 
                 "error", 
@@ -680,11 +680,11 @@ class EnhancedHelperSyncTellTool:
         Returns:
             Comprehensive response using structured thinking
         """
-        # Add Atlas-specific tools to the available tools
+        #Add Atlas-specific tools to the available tools
         if available_tools is None:
             available_tools = {}
         
-        # Use the main processing method
+        #Use the main processing method
         return self(message, available_tools)
     
     def integrate_with_atlas_help_mode(self, main_app) -> bool:
@@ -698,7 +698,7 @@ class EnhancedHelperSyncTellTool:
             True if integration successful, False otherwise
         """
         try:
-            # Get the original help mode handler
+            #Get the original help mode handler
             if not hasattr(main_app, '_handle_help_mode'):
                 self.logger.warning("Atlas app does not have _handle_help_mode method")
                 return False
@@ -707,27 +707,27 @@ class EnhancedHelperSyncTellTool:
             
             def enhanced_help_mode_handler(message: str, context) -> str:
                 """Enhanced help mode handler using structured thinking."""
-                # Check if this is a simple command that should use the original handler
+                #Check if this is a simple command that should use the original handler
                 simple_commands = ['read file', 'list directory', 'tree', 'search for', 'info about', 'search functions']
                 message_lower = message.lower()
                 
-                # Use original handler for simple file operations and basic commands
+                #Use original handler for simple file operations and basic commands
                 if any(cmd in message_lower for cmd in simple_commands):
                     return original_handler(message, context)
                 
-                # For complex analysis requests, check if helper sync tell should handle them
+                #For complex analysis requests, check if helper sync tell should handle them
                 complex_keywords = ['проаналізуй', 'analyze', 'як ти використовуєш', 'how do you use', 
                                   'вдосконалення', 'improvement', 'проблематика', 'problems', 
                                   'міркування', 'reasoning', 'пам\'ять', 'memory', 'як працює', 'how does work']
                 
                 if any(keyword in message_lower for keyword in complex_keywords):
-                    # Use our structured thinking for complex analysis
+                    #Use our structured thinking for complex analysis
                     self.logger.info("Using Enhanced Helper Sync Tell for complex analysis")
                     
-                    # Get available tools from Atlas
+                    #Get available tools from Atlas
                     available_tools = {}
                     
-                    # Add Atlas tools if available
+                    #Add Atlas tools if available
                     if hasattr(main_app, 'code_reader'):
                         available_tools.update({
                             'semantic_search': lambda q: main_app.code_reader.semantic_search(q) if hasattr(main_app.code_reader, 'semantic_search') else f"Semantic search for: {q}",
@@ -736,7 +736,7 @@ class EnhancedHelperSyncTellTool:
                             'grep_search': lambda q: main_app.code_reader.search_in_files(q) if hasattr(main_app.code_reader, 'search_in_files') else f"Grep search for: {q}",
                         })
                     
-                    # Add memory analysis tools
+                    #Add memory analysis tools
                     if hasattr(main_app, 'agent_manager') and hasattr(main_app.agent_manager, 'memory_manager'):
                         memory_manager = main_app.agent_manager.memory_manager
                         available_tools.update({
@@ -745,17 +745,17 @@ class EnhancedHelperSyncTellTool:
                         })
                     
                     try:
-                        # Use structured thinking for the complex query
+                        #Use structured thinking for the complex query
                         return self.process_help_request(message, available_tools)
                     except Exception as e:
                         self.logger.error(f"Error in enhanced help mode: {e}")
-                        # Fallback to original handler
+                        #Fallback to original handler
                         return original_handler(message, context)
                 
-                # For other cases, use the original handler
+                #For other cases, use the original handler
                 return original_handler(message, context)
             
-            # Replace the original handler
+            #Replace the original handler
             main_app._handle_help_mode = enhanced_help_mode_handler
             main_app.helper_sync_tell_integration = True
             
@@ -787,7 +787,7 @@ class EnhancedHelperSyncTellTool:
         self.logger.info("Performance statistics reset")
 
 
-# Create alias for backward compatibility
+#Create alias for backward compatibility
 HelperSyncTellTool = EnhancedHelperSyncTellTool
 
 
@@ -804,18 +804,18 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         Plugin registration data with enhanced tool
     """
     try:
-        # Try to get additional components
+        #Try to get additional components
         memory_manager = None
         config_manager = None
         
-        # Try to get atlas_app from kwargs if not provided directly
+        #Try to get atlas_app from kwargs if not provided directly
         if not atlas_app and 'agent_manager' in kwargs:
             agent_manager = kwargs['agent_manager']
-            # Try to find the main app through agent manager
+            #Try to find the main app through agent manager
             if hasattr(agent_manager, 'app'):
                 atlas_app = agent_manager.app
         
-        # Look for memory manager
+        #Look for memory manager
         try:
             if 'agent_manager' in kwargs:
                 agent_manager = kwargs['agent_manager']
@@ -829,21 +829,21 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         except (ImportError, AttributeError):
             pass
         
-        # Look for config manager
+        #Look for config manager
         try:
             from config_manager import ConfigManager
             config_manager = ConfigManager()
         except ImportError:
             pass
         
-        # Create the enhanced tool
+        #Create the enhanced tool
         tool = EnhancedHelperSyncTellTool(
             llm_manager=llm_manager,
             memory_manager=memory_manager,
             config_manager=config_manager
         )
         
-        # Attempt integration with Atlas app if provided
+        #Attempt integration with Atlas app if provided
         integration_success = False
         if atlas_app:
             integration_success = tool.integrate_with_atlas_help_mode(atlas_app)
@@ -856,7 +856,7 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         else:
             logging.info("Plugin registered but not integrated with help mode (atlas_app not provided)")
         
-        # Store reference for potential integration
+        #Store reference for potential integration
         tool._registration_context = {
             "llm_manager": llm_manager,
             "memory_manager": memory_manager,

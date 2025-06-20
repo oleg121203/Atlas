@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 from typing import Dict, Any
 
-# Add parent directory to Python path
+#Add parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.chat_context_manager import ChatContextManager, ChatMode, ChatContext, ModeControl
@@ -28,11 +28,11 @@ class ChatMemoryDemo:
     """Demonstration of the enhanced chat memory system."""
     
     def __init__(self):
-        # Create temporary database for demo
+        #Create temporary database for demo
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = Path(self.temp_dir) / "demo_chroma"
         
-        # Initialize managers
+        #Initialize managers
         self.memory_manager = EnhancedMemoryManager(db_path=str(self.db_path))
         self.chat_manager = ChatContextManager(memory_manager=self.memory_manager)
         
@@ -46,7 +46,7 @@ class ChatMemoryDemo:
         print("1️⃣  CHAT MODES DEMONSTRATION")
         print("-" * 40)
         
-        # Define realistic conversation scenarios
+        #Define realistic conversation scenarios
         scenarios = [
             {
                 'mode': ChatMode.CASUAL_CHAT,
@@ -82,13 +82,13 @@ class ChatMemoryDemo:
             }
         ]
         
-        # Store conversations for each mode
+        #Store conversations for each mode
         for scenario in scenarios:
             mode = scenario['mode']
             print(f"💬 {mode.value.upper()} Mode:")
             
             for user_msg, assistant_msg in scenario['conversations']:
-                # Create appropriate context
+                #Create appropriate context
                 context = ChatContext(
                     mode=mode,
                     confidence=0.95,
@@ -98,7 +98,7 @@ class ChatMemoryDemo:
                     control_type=ModeControl.MANUAL if mode == ChatMode.DEVELOPMENT else ModeControl.AUTO
                 )
                 
-                # Store in memory
+                #Store in memory
                 self.chat_manager.update_conversation_history(
                     user_msg, assistant_msg, context,
                     metadata={'demo': True, 'timestamp': time.time()}
@@ -116,7 +116,7 @@ class ChatMemoryDemo:
         print("2️⃣  MEMORY RETRIEVAL & ISOLATION")
         print("-" * 40)
         
-        # Test queries across different modes
+        #Test queries across different modes
         test_queries = [
             ("screenshot", "Looking for screenshot-related conversations"),
             ("help", "Looking for help-related conversations"),
@@ -131,7 +131,7 @@ class ChatMemoryDemo:
                 memories = self.chat_manager.retrieve_conversation_context(mode, query, limit=3)
                 print(f"   {mode.value}: {len(memories)} memories found")
                 
-                # Show sample memory if found
+                #Show sample memory if found
                 if memories:
                     sample = memories[0]
                     content = sample.get('content', {})
@@ -218,7 +218,7 @@ class ChatMemoryDemo:
         print("6️⃣  MEMORY SYSTEM STATISTICS")
         print("-" * 40)
         
-        # Get comprehensive memory stats
+        #Get comprehensive memory stats
         memory_stats = self.memory_manager.get_memory_stats()
         
         print("💾 Memory Database Statistics:")
@@ -235,7 +235,7 @@ class ChatMemoryDemo:
         
         print(f"\n📊 Total Memories: {total_entries}")
         
-        # Chat-specific statistics
+        #Chat-specific statistics
         print("\n💬 Chat System Statistics:")
         chat_history_length = len(self.chat_manager.conversation_history)
         print(f"   In-memory history: {chat_history_length} entries")
@@ -257,18 +257,18 @@ class ChatMemoryDemo:
         print("   🌍 Global cleanup")
         print("   📊 Memory optimization")
         
-        # Simulate cleanup
+        #Simulate cleanup
         print("\n🧹 Performing cleanup simulation...")
         
-        # Global cleanup
+        #Global cleanup
         self.chat_manager.cleanup_old_conversations()
         print("   ✅ Global conversation cleanup completed")
         
-        # Mode-specific cleanup  
+        #Mode-specific cleanup  
         self.chat_manager.cleanup_old_conversations(ChatMode.CASUAL_CHAT)
         print("   ✅ Casual chat cleanup completed")
         
-        # Memory manager cleanup
+        #Memory manager cleanup
         cleaned = self.memory_manager.cleanup_expired_memories()
         print(f"   ✅ Memory manager cleanup: {cleaned} expired entries removed")
         

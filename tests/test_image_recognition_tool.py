@@ -4,7 +4,7 @@ import os
 import sys
 import numpy as np
 
-# Add project root to path
+#Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
@@ -19,7 +19,7 @@ class TestImageRecognitionTool(unittest.TestCase):
     def test_find_template_success(self, mock_minMaxLoc, mock_matchTemplate, mock_imread):
         """Test find_template_in_image finds a match successfully."""
         mock_imread.return_value = np.zeros((100, 100), dtype=np.uint8)
-        mock_minMaxLoc.return_value = (0, 0.9, (0, 0), (50, 50)) # min_val, max_val, min_loc, max_loc
+        mock_minMaxLoc.return_value = (0, 0.9, (0, 0), (50, 50)) #min_val, max_val, min_loc, max_loc
         
         result = find_template_in_image('template.png', 'image.png', threshold=0.8)
         

@@ -15,7 +15,7 @@ def test_config_manager():
         from config_manager import ConfigManager
         config_mgr = ConfigManager()
         
-        # Test the new method
+        #Test the new method
         result = config_mgr.set_llm_provider_and_model("gemini", "gemini-1.5-flash")
         if result:
             print("✅ ConfigManager.set_llm_provider_and_model() works!")
@@ -23,7 +23,7 @@ def test_config_manager():
             print("❌ ConfigManager.set_llm_provider_and_model() failed!")
             return False
             
-        # Test getting current settings
+        #Test getting current settings
         provider = config_mgr.get_current_provider()
         model = config_mgr.get_current_model()
         print(f"✅ Current provider: {provider}")
@@ -42,7 +42,7 @@ def test_utils_config_manager():
     try:
         from utils.config_manager import config_manager
         
-        # Test the new method
+        #Test the new method
         result = config_manager.set_llm_provider_and_model("gemini", "gemini-1.5-flash")
         if result:
             print("✅ utils ConfigManager.set_llm_provider_and_model() works!")
@@ -61,18 +61,18 @@ def test_llm_manager():
     print("\n🧪 Testing LLM Manager...")
     
     try:
-        # Import necessary modules
+        #Import necessary modules
         from agents.token_tracker import TokenTracker
         from agents.llm_manager import LLMManager
         
-        # Create instances
+        #Create instances
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker)
         
         print(f"✅ LLM Manager initialized")
         print(f"✅ Current provider: {llm_manager.current_provider}")
         
-        # Test basic chat with a simple message
+        #Test basic chat with a simple message
         messages = [{"role": "user", "content": "Привіт! Як справи?"}]
         
         print("🔍 Testing Gemini chat...")
@@ -99,15 +99,15 @@ def main():
     
     success = True
     
-    # Test ConfigManager
+    #Test ConfigManager
     if not test_config_manager():
         success = False
     
-    # Test utils ConfigManager
+    #Test utils ConfigManager
     if not test_utils_config_manager():
         success = False
     
-    # Test LLM Manager
+    #Test LLM Manager
     if not test_llm_manager():
         success = False
     

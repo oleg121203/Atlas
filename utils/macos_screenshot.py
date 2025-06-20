@@ -9,39 +9,39 @@ from typing import Optional
 def capture_screen_native_macos(save_to: Optional[Path] = None) -> Image.Image:
     """Capture screen using native macOS screencapture command."""
     try:
-        # Create temporary file for screenshot
+        #Create temporary file for screenshot
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
             tmp_path = tmp_file.name
         
-        # Use native macOS screencapture command
+        #Use native macOS screencapture command
         result = subprocess.run([
             'screencapture', 
-            '-x',  # Do not play sounds
-            '-t', 'png',  # Format
+            '-x',  #Do not play sounds
+            '-t', 'png',  #Format
             tmp_path
         ], capture_output=True, text=True)
         
         if result.returncode != 0:
             raise Exception(f"screencapture failed: {result.stderr}")
         
-        # Load image with PIL
+        #Load image with PIL
         img = Image.open(tmp_path)
         
-        # Convert to RGB if needed (screencapture usually outputs RGB)
+        #Convert to RGB if needed (screencapture usually outputs RGB)
         if img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # Save to final destination if requested
+        #Save to final destination if requested
         if save_to:
             img.save(save_to)
         
-        # Clean up temporary file
+        #Clean up temporary file
         Path(tmp_path).unlink(missing_ok=True)
         
         return img
         
     except Exception as e:
-        # Clean up on error
+        #Clean up on error
         if 'tmp_path' in locals():
             Path(tmp_path).unlink(missing_ok=True)
         raise Exception(f"Native macOS screenshot failed: {e}")
@@ -49,18 +49,18 @@ def capture_screen_native_macos(save_to: Optional[Path] = None) -> Image.Image:
 def capture_screen_applescript() -> Image.Image:
     """Capture screen using AppleScript (alternative method)."""
     try:
-        # Create temporary file
+        #Create temporary file
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
             tmp_path = tmp_file.name
         
-        # AppleScript to take screenshot
+        #AppleScript to take screenshot
         applescript = f'''
         tell application "System Events"
             set desktop_picture to (do shell script "screencapture -x '{tmp_path}'")
         end tell
         '''
         
-        # Execute AppleScript
+        #Execute AppleScript
         result = subprocess.run([
             'osascript', '-e', applescript
         ], capture_output=True, text=True)
@@ -68,12 +68,12 @@ def capture_screen_applescript() -> Image.Image:
         if result.returncode != 0:
             raise Exception(f"AppleScript screenshot failed: {result.stderr}")
         
-        # Load and return image
+        #Load and return image
         img = Image.open(tmp_path)
         if img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # Clean up
+        #Clean up
         Path(tmp_path).unlink(missing_ok=True)
         
         return img
@@ -87,7 +87,7 @@ def test_screenshot_methods():
     """Test available screenshot methods on macOS."""
     methods = []
     
-    # Test native screencapture
+    #Test native screencapture
     try:
         capture_screen_native_macos()
         methods.append('native_screencapture')
@@ -95,7 +95,7 @@ def test_screenshot_methods():
     except Exception as e:
         print(f"❌ Native screencapture: {e}")
     
-    # Test AppleScript
+    #Test AppleScript
     try:
         capture_screen_applescript()
         methods.append('applescript')

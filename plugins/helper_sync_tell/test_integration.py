@@ -6,7 +6,7 @@ Test Enhanced Helper Sync Tell Plugin Integration
 import sys
 import os
 
-# Add the Atlas root directory to path
+#Add the Atlas root directory to path
 atlas_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, atlas_root)
 
@@ -18,7 +18,7 @@ try:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import plugin
     
-    # Test basic registration
+    #Test basic registration
     result = plugin.register()
     print(f"✅ Basic registration successful")
     print(f"   Tools: {len(result.get('tools', []))}")
@@ -40,7 +40,7 @@ try:
     
     mock_app = MockAtlasApp()
     
-    # Test registration with mock app
+    #Test registration with mock app
     result_with_app = plugin.register(atlas_app=mock_app)
     print(f"✅ Registration with mock app successful")
     
@@ -55,11 +55,11 @@ try:
     if result_with_app.get('tools'):
         tool = result_with_app['tools'][0]
         
-        # Test a complex query
+        #Test a complex query
         test_query = "Проаналізуй як працює довготривала пам'ять в Атлас"
         
         try:
-            # Test without tools
+            #Test without tools
             response = tool(test_query)
             print(f"✅ Enhanced thinking test successful")
             print(f"   Response length: {len(response)} characters")

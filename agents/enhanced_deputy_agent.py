@@ -25,10 +25,10 @@ class Task:
         self.id = task_id
         self.type = task_type
         self.parameters = parameters
-        self.priority = priority  # 1-10, where 1 is highest priority
+        self.priority = priority  #1-10, where 1 is highest priority
         self.created_by = created_by
         self.created_at = datetime.now()
-        self.status = "pending"  # pending, running, completed, failed
+        self.status = "pending"  #pending, running, completed, failed
         self.result = None
         self.error_message = None
         self.attempts = 0
@@ -52,18 +52,18 @@ class EnhancedDeputyAgent(BaseAgent):
         self.agent_manager = agent_manager
         self.logger = logging.getLogger(__name__)
         
-        # Task management
+        #Task management
         self.task_queue = queue.PriorityQueue()
         self.running_tasks: Dict[str, Task] = {}
         self.completed_tasks: List[Task] = []
         self.failed_tasks: List[Task] = []
         
-        # Worker threads
+        #Worker threads
         self.max_workers = 3
         self.workers: List[threading.Thread] = []
         self.is_running = False
         
-        # Capabilities
+        #Capabilities
         self.capabilities = {
             'file_monitoring': True,
             'system_monitoring': True,
@@ -75,33 +75,33 @@ class EnhancedDeputyAgent(BaseAgent):
             'log_analysis': True
         }
         
-        # Monitoring settings
+        #Monitoring settings
         self.monitoring_intervals = {
-            'system_health': 60,  # seconds
+            'system_health': 60,  #seconds
             'file_changes': 30,
             'log_analysis': 300,
             'cleanup': 3600
         }
         
-        # Background monitoring threads
+        #Background monitoring threads
         self.monitoring_threads: Dict[str, threading.Thread] = {}
         
-        # Data storage
+        #Data storage
         self.data_dir = "data/deputy"
         os.makedirs(self.data_dir, exist_ok=True)
         
-        # Load persistent data
+        #Load persistent data
         self.load_persistent_data()
     
     def load_persistent_data(self):
         """Load persistent data from disk."""
         try:
-            # Load completed tasks history
+            #Load completed tasks history
             history_file = os.path.join(self.data_dir, "task_history.json")
             if os.path.exists(history_file):
                 with open(history_file, 'r') as f:
                     history_data = json.load(f)
-                    # Convert to Task objects (simplified - just keep as dict for now)
+                    #Convert to Task objects (simplified - just keep as dict for now)
                     self.completed_tasks = history_data.get('completed', [])
                     self.failed_tasks = history_data.get('failed', [])
         except Exception as e:
@@ -112,9 +112,9 @@ class EnhancedDeputyAgent(BaseAgent):
         try:
             history_file = os.path.join(self.data_dir, "task_history.json")
             
-            # Convert tasks to serializable format
+            #Convert tasks to serializable format
             completed_data = []
-            for task in self.completed_tasks[-100:]:  # Keep last 100 tasks
+            for task in self.completed_tasks[-100:]:  #Keep last 100 tasks
                 if isinstance(task, Task):
                     completed_data.append({
                         'id': task.id,
@@ -130,7 +130,7 @@ class EnhancedDeputyAgent(BaseAgent):
                     completed_data.append(task)
             
             failed_data = []
-            for task in self.failed_tasks[-50:]:  # Keep last 50 failed tasks
+            for task in self.failed_tasks[-50:]:  #Keep last 50 failed tasks
                 if isinstance(task, Task):
                     failed_data.append({
                         'id': task.id,
@@ -162,13 +162,13 @@ class EnhancedDeputyAgent(BaseAgent):
         self.is_running = True
         super().start()
         
-        # Start worker threads
+        #Start worker threads
         for i in range(self.max_workers):
             worker = threading.Thread(target=self._worker_loop, name=f"DeputyWorker-{i}", daemon=True)
             worker.start()
             self.workers.append(worker)
         
-        # Start monitoring threads
+        #Start monitoring threads
         self.start_monitoring_tasks()
         
         self.logger.info(f"Deputy Agent started with {self.max_workers} workers")
@@ -177,14 +177,14 @@ class EnhancedDeputyAgent(BaseAgent):
         """Stop the Deputy Agent and its workers."""
         self.is_running = False
         
-        # Stop monitoring
+        #Stop monitoring
         self.stop_monitoring_tasks()
         
-        # Wait for workers to finish
+        #Wait for workers to finish
         for worker in self.workers:
             worker.join(timeout=5)
         
-        # Save persistent data
+        #Save persistent data
         self.save_persistent_data()
         
         super().stop()
@@ -194,13 +194,13 @@ class EnhancedDeputyAgent(BaseAgent):
         """Main worker loop for processing tasks."""
         while self.is_running:
             try:
-                # Get next task from queue (blocks for up to 1 second)
+                #Get next task from queue (blocks for up to 1 second)
                 try:
                     priority, task = self.task_queue.get(timeout=1)
                 except queue.Empty:
                     continue
                 
-                # Execute the task
+                #Execute the task
                 self._execute_task(task)
                 self.task_queue.task_done()
                 
@@ -219,7 +219,7 @@ class EnhancedDeputyAgent(BaseAgent):
         try:
             self.logger.info(f"Executing task {task.id}: {task.type}")
             
-            # Route to appropriate handler
+            #Route to appropriate handler
             if task.type == "file_monitoring":
                 result = self._handle_file_monitoring(task)
             elif task.type == "system_health_check":
@@ -237,7 +237,7 @@ class EnhancedDeputyAgent(BaseAgent):
             else:
                 raise ValueError(f"Unknown task type: {task.type}")
             
-            # Task completed successfully
+            #Task completed successfully
             task.status = "completed"
             task.result = result
             task.completed_at = datetime.now()
@@ -247,14 +247,14 @@ class EnhancedDeputyAgent(BaseAgent):
             self.logger.info(f"Task {task.id} completed successfully in {task.actual_duration:.2f}s")
             
         except Exception as e:
-            # Task failed
+            #Task failed
             task.status = "failed"
             task.error_message = str(e)
             task.completed_at = datetime.now()
             
             self.logger.error(f"Task {task.id} failed: {e}")
             
-            # Retry if attempts remaining
+            #Retry if attempts remaining
             if task.attempts < task.max_attempts:
                 task.status = "pending"
                 self.add_task(task.type, task.parameters, task.priority, task.created_by, task)
@@ -263,7 +263,7 @@ class EnhancedDeputyAgent(BaseAgent):
                 self.failed_tasks.append(task)
         
         finally:
-            # Remove from running tasks
+            #Remove from running tasks
             if task.id in self.running_tasks:
                 del self.running_tasks[task.id]
     
@@ -283,18 +283,18 @@ class EnhancedDeputyAgent(BaseAgent):
     
     def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Get the status of a specific task."""
-        # Check running tasks
+        #Check running tasks
         if task_id in self.running_tasks:
             task = self.running_tasks[task_id]
             return self._task_to_dict(task)
         
-        # Check completed tasks
+        #Check completed tasks
         for task in self.completed_tasks:
             if (isinstance(task, Task) and task.id == task_id) or \
                (isinstance(task, dict) and task.get('id') == task_id):
                 return self._task_to_dict(task)
         
-        # Check failed tasks
+        #Check failed tasks
         for task in self.failed_tasks:
             if (isinstance(task, Task) and task.id == task_id) or \
                (isinstance(task, dict) and task.get('id') == task_id):
@@ -320,11 +320,11 @@ class EnhancedDeputyAgent(BaseAgent):
                 'error_message': task.error_message
             }
         else:
-            return task  # Already a dict
+            return task  #Already a dict
     
     def start_monitoring_tasks(self):
         """Start background monitoring tasks."""
-        # System health monitoring
+        #System health monitoring
         if self.capabilities['system_monitoring']:
             self.monitoring_threads['system_health'] = threading.Thread(
                 target=self._periodic_system_health_check,
@@ -332,7 +332,7 @@ class EnhancedDeputyAgent(BaseAgent):
             )
             self.monitoring_threads['system_health'].start()
         
-        # Log analysis
+        #Log analysis
         if self.capabilities['log_analysis']:
             self.monitoring_threads['log_analysis'] = threading.Thread(
                 target=self._periodic_log_analysis,
@@ -340,7 +340,7 @@ class EnhancedDeputyAgent(BaseAgent):
             )
             self.monitoring_threads['log_analysis'].start()
         
-        # Cleanup tasks
+        #Cleanup tasks
         if self.capabilities['cleanup_tasks']:
             self.monitoring_threads['cleanup'] = threading.Thread(
                 target=self._periodic_cleanup,
@@ -350,7 +350,7 @@ class EnhancedDeputyAgent(BaseAgent):
     
     def stop_monitoring_tasks(self):
         """Stop background monitoring tasks."""
-        # Monitoring threads will stop when self.is_running becomes False
+        #Monitoring threads will stop when self.is_running becomes False
         for name, thread in self.monitoring_threads.items():
             if thread.is_alive():
                 thread.join(timeout=2)
@@ -363,7 +363,7 @@ class EnhancedDeputyAgent(BaseAgent):
                 time.sleep(self.monitoring_intervals['system_health'])
             except Exception as e:
                 self.logger.error(f"Error in system health monitoring: {e}")
-                time.sleep(60)  # Wait a minute on error
+                time.sleep(60)  #Wait a minute on error
     
     def _periodic_log_analysis(self):
         """Periodically analyze logs for issues."""
@@ -373,7 +373,7 @@ class EnhancedDeputyAgent(BaseAgent):
                 time.sleep(self.monitoring_intervals['log_analysis'])
             except Exception as e:
                 self.logger.error(f"Error in log analysis monitoring: {e}")
-                time.sleep(300)  # Wait 5 minutes on error
+                time.sleep(300)  #Wait 5 minutes on error
     
     def _periodic_cleanup(self):
         """Periodically perform cleanup tasks."""
@@ -383,16 +383,16 @@ class EnhancedDeputyAgent(BaseAgent):
                 time.sleep(self.monitoring_intervals['cleanup'])
             except Exception as e:
                 self.logger.error(f"Error in cleanup monitoring: {e}")
-                time.sleep(3600)  # Wait an hour on error
+                time.sleep(3600)  #Wait an hour on error
     
-    # Task handlers
+    #Task handlers
     
     def _handle_file_monitoring(self, task: Task) -> Dict[str, Any]:
         """Handle file monitoring tasks."""
         parameters = task.parameters
         watch_path = parameters.get('path', '.')
         
-        # Simple file monitoring implementation
+        #Simple file monitoring implementation
         file_info = {}
         if os.path.exists(watch_path):
             if os.path.isfile(watch_path):
@@ -404,7 +404,7 @@ class EnhancedDeputyAgent(BaseAgent):
                 }
             elif os.path.isdir(watch_path):
                 for root, dirs, files in os.walk(watch_path):
-                    for file in files[:10]:  # Limit to first 10 files
+                    for file in files[:10]:  #Limit to first 10 files
                         file_path = os.path.join(root, file)
                         try:
                             stat = os.stat(file_path)
@@ -428,7 +428,7 @@ class EnhancedDeputyAgent(BaseAgent):
             'checks': {}
         }
         
-        # Check disk space
+        #Check disk space
         try:
             import shutil
             total, used, free = shutil.disk_usage('.')
@@ -441,7 +441,7 @@ class EnhancedDeputyAgent(BaseAgent):
         except Exception as e:
             health_data['checks']['disk_space'] = {'error': str(e)}
         
-        # Check memory usage (if psutil available)
+        #Check memory usage (if psutil available)
         try:
             import psutil
             memory = psutil.virtual_memory()
@@ -455,7 +455,7 @@ class EnhancedDeputyAgent(BaseAgent):
         except Exception as e:
             health_data['checks']['memory'] = {'error': str(e)}
         
-        # Check running processes count
+        #Check running processes count
         try:
             import psutil
             health_data['checks']['processes'] = {
@@ -477,7 +477,7 @@ class EnhancedDeputyAgent(BaseAgent):
             return {'error': 'No LLM manager available or no query provided'}
         
         try:
-            # Perform research using LLM
+            #Perform research using LLM
             research_prompt = f"Research and provide detailed information about: {query}"
             response = self.llm_manager.get_completion(research_prompt)
             
@@ -496,10 +496,10 @@ class EnhancedDeputyAgent(BaseAgent):
         data = parameters.get('data', {})
         
         if data_type == 'log_aggregation':
-            # Aggregate log data
+            #Aggregate log data
             return self._aggregate_log_data(data)
         elif data_type == 'metrics_calculation':
-            # Calculate metrics
+            #Calculate metrics
             return self._calculate_metrics(data)
         else:
             return {'error': f'Unknown data processing type: {data_type}'}
@@ -515,7 +515,7 @@ class EnhancedDeputyAgent(BaseAgent):
         }
         
         if cleanup_type in ['general', 'logs']:
-            # Clean old log files
+            #Clean old log files
             log_dir = 'logs'
             if os.path.exists(log_dir):
                 cutoff_date = datetime.now() - timedelta(days=30)
@@ -539,7 +539,7 @@ class EnhancedDeputyAgent(BaseAgent):
                 })
         
         if cleanup_type in ['general', 'temp']:
-            # Clean temporary files
+            #Clean temporary files
             temp_dirs = ['temp', 'tmp', '__pycache__']
             for temp_dir in temp_dirs:
                 if os.path.exists(temp_dir):
@@ -586,14 +586,14 @@ class EnhancedDeputyAgent(BaseAgent):
                         lines = f.readlines()
                         analysis_results['log_files_analyzed'] += 1
                         
-                        for i, line in enumerate(lines[-1000:]):  # Check last 1000 lines
+                        for i, line in enumerate(lines[-1000:]):  #Check last 1000 lines
                             for pattern in error_patterns:
                                 if pattern in line:
                                     analysis_results['issues_found'].append({
                                         'file': log_file,
                                         'line_number': len(lines) - 1000 + i,
                                         'pattern': pattern,
-                                        'line': line.strip()[:200]  # Truncate long lines
+                                        'line': line.strip()[:200]  #Truncate long lines
                                     })
                                     break
                 except Exception as e:
@@ -615,8 +615,8 @@ class EnhancedDeputyAgent(BaseAgent):
         message = parameters.get('message', '')
         notification_type = parameters.get('type', 'info')
         
-        # For now, just log the notification
-        # In a full implementation, this would send actual notifications
+        #For now, just log the notification
+        #In a full implementation, this would send actual notifications
         self.logger.info(f"Notification ({notification_type}): {message}")
         
         return {
@@ -628,7 +628,7 @@ class EnhancedDeputyAgent(BaseAgent):
     
     def _aggregate_log_data(self, data: Dict) -> Dict[str, Any]:
         """Aggregate log data for analysis."""
-        # Placeholder implementation
+        #Placeholder implementation
         return {
             'aggregated_entries': len(data.get('entries', [])),
             'timestamp': datetime.now().isoformat()
@@ -636,7 +636,7 @@ class EnhancedDeputyAgent(BaseAgent):
     
     def _calculate_metrics(self, data: Dict) -> Dict[str, Any]:
         """Calculate metrics from data."""
-        # Placeholder implementation
+        #Placeholder implementation
         return {
             'metrics_calculated': True,
             'data_points': len(data.get('points', [])),
@@ -689,7 +689,7 @@ class EnhancedDeputyAgent(BaseAgent):
             }
         
         elif msg_type == 'delegate_task':
-            # Handle task delegation from MasterAgent
+            #Handle task delegation from MasterAgent
             task_type = data.get('task_type')
             parameters = data.get('parameters', {})
             priority = data.get('priority', 5)
@@ -708,12 +708,12 @@ class EnhancedDeputyAgent(BaseAgent):
             parameters = {}
             
         try:
-            # Create a task object
+            #Create a task object
             from datetime import datetime
             task_id = f"{task}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             task_obj = Task(task_id, task, parameters, priority=1, created_by="direct")
             
-            # Execute immediately
+            #Execute immediately
             self._execute_task(task_obj)
             
             return {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Тест завантаження .env файлу та API ключів
+Тест loading .env файлу та API ключів
 """
 
 import os
@@ -10,12 +10,12 @@ def test_env_loading():
     print("🧪 Тестування завантаження .env файлу")
     print("=" * 50)
     
-    # Імпорт та завантаження
+    #Імпорт та loading
     try:
         from dotenv import load_dotenv
         print("✅ python-dotenv імпортовано")
         
-        # Завантажити .env
+        #Завантажити .env
         env_file = Path('.env')
         if env_file.exists():
             print(f"✅ .env файл знайдено: {env_file.absolute()}")
@@ -25,7 +25,7 @@ def test_env_loading():
             print("❌ .env файл не знайдено")
             return False
             
-        # Перевірити ключі
+        #Перевірити ключі
         keys_to_check = [
             "OPENAI_API_KEY",
             "GEMINI_API_KEY", 
@@ -39,7 +39,7 @@ def test_env_loading():
         for key in keys_to_check:
             value = os.getenv(key, '')
             if value:
-                # Не показувати повні ключі
+                #Не показувати повні ключі
                 if 'API_KEY' in key:
                     display_value = f"{value[:8]}..." if len(value) > 8 else value
                 else:
@@ -51,14 +51,14 @@ def test_env_loading():
         
         print(f"\n📊 Знайдено {len(found_keys)} з {len(keys_to_check)} змінних")
         
-        # Тест ConfigManager
+        #Тест ConfigManager
         print("\n🔧 Тестування ConfigManager...")
         try:
             from config_manager import ConfigManager
             config = ConfigManager()
             print("✅ ConfigManager ініціалізовано")
             
-            # Тест методів
+            #Тест методів
             provider = config.get_current_provider()
             model = config.get_current_model()
             gemini_key = config.get_gemini_api_key()

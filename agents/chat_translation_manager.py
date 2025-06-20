@@ -46,13 +46,13 @@ class ChatTranslationManager:
         """
         context = ChatTranslationContext()
         
-        # Detect user language and translate if needed
+        #Detect user language and translate if needed
         user_language = self.translation_tool.get_user_language(message)
         context.user_language = user_language
         context.original_message = message
         
         if self.translation_tool.should_translate_message(message):
-            # Translate to English for internal processing
+            #Translate to English for internal processing
             translation_result = self.translation_tool.translate_to_english(message)
             
             context.translated_message = translation_result.text
@@ -60,16 +60,16 @@ class ChatTranslationManager:
             
             logger.info(f"Translated incoming message from {user_language}: '{message[:50]}...' -> '{translation_result.text[:50]}...'")
             
-            # Store context for this session
+            #Store context for this session
             self.active_sessions[session_id] = context
             
             return translation_result.text, context
         else:
-            # No translation needed
+            #No translation needed
             context.translated_message = message
             context.requires_response_translation = False
             
-            # Store context anyway for consistency
+            #Store context anyway for consistency
             self.active_sessions[session_id] = context
             
             return message, context
@@ -90,7 +90,7 @@ class ChatTranslationManager:
         if not context or not context.requires_response_translation:
             return response
         
-        # Translate response back to user's language
+        #Translate response back to user's language
         translation_result = self.translation_tool.translate_from_english(response, context.user_language)
         
         logger.info(f"Translated outgoing response to {context.user_language}: '{response[:50]}...' -> '{translation_result.text[:50]}...'")

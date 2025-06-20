@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch, call
 import os
 import sys
 
-# Add project root to path
+#Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
@@ -21,7 +21,7 @@ class TestFullWorkflow(unittest.TestCase):
         """Simulate a workflow: open a website, capture text, and save it."""
         goal = "Open 'https://example.com', find the main headline, and save it to 'headline.txt'."
 
-        # 1. Mock the generated plan from the LLM
+        #1. Mock the generated plan from the LLM
         mock_plan = [
             {"agent": "Browser Agent", "prompt": "Open the URL 'https://example.com'"},
             {"agent": "Screen Agent", "prompt": "Capture the main headline text from the current screen"},
@@ -29,7 +29,7 @@ class TestFullWorkflow(unittest.TestCase):
         ]
         self.master_agent._generate_plan = MagicMock(return_value=mock_plan)
 
-        # 2. Mock the results from each specialized agent's execution
+        #2. Mock the results from each specialized agent's execution
         mock_browser_agent = self.master_agent.agents.get_agent("Browser Agent")
         mock_browser_agent.execute_task = MagicMock(return_value={"status": "success", "message": "URL opened"})
 
@@ -39,16 +39,16 @@ class TestFullWorkflow(unittest.TestCase):
         mock_system_agent = self.master_agent.agents.get_agent("System Interaction Agent")
         mock_system_agent.execute_task = MagicMock(return_value={"status": "success", "message": "File saved"})
 
-        # 3. Run the agent and wait for completion
+        #3. Run the agent and wait for completion
         self.master_agent.run(goal, master_prompt="Full Workflow Test", options={"is_cyclic": False})
         if self.master_agent.thread:
             self.master_agent.thread.join(timeout=5)
 
-        # 4. Assertions
-        # Verify the plan was generated once
+        #4. Assertions
+        #Verify the plan was generated once
         self.master_agent._generate_plan.assert_called_once_with(goal, error_context=None)
 
-        # Verify each agent was called in the correct order with the correct prompt
+        #Verify each agent was called in the correct order with the correct prompt
         expected_calls = [
             call(prompt="Open the URL 'https://example.com'", context={}),
             call(prompt="Capture the main headline text from the current screen", context={'last_result': {"status": "success", "message": "URL opened"}}),

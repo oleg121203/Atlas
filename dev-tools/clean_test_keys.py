@@ -20,7 +20,7 @@ def clean_test_keys():
         if 'api_keys' not in settings:
             settings['api_keys'] = {}
         
-        # Тестові ключі для видалення
+        #Тестові ключі для deletion
         test_keys = ['111', 'test', 'demo', 'example', 'test_openai_key', 'test_gemini_key', 'test_mistral_key']
         
         cleaned = []
@@ -35,7 +35,7 @@ def clean_test_keys():
             else:
                 print(f"✅ {provider}: {'Встановлено' if current_key else 'Порожньо'}")
         
-        # Зберегти конфігурацію
+        #Зберегти конфігурацію
         config.save(settings)
         
         if cleaned:

@@ -21,8 +21,8 @@ from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, M
 from agents.master_agent import MasterAgent
 from agents.llm_manager import LLMManager
 from agents.agent_manager import AgentManager
-from config_manager import ConfigManager
-from logger import get_logger
+from utils.config_manager import ConfigManager
+from utils.logger import get_logger
 
 
 class TaskStatus(Enum):
@@ -55,22 +55,22 @@ class TaskInstance:
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     
-    # Execution context
+    #Execution context
     execution_context: Dict[str, Any] = field(default_factory=dict)
     memory_scope: str = ""
     thread: Optional[threading.Thread] = None
     
-    # Task configuration
+    #Task configuration
     options: Dict[str, Any] = field(default_factory=dict)
     max_retries: int = 3
     retry_count: int = 0
     
-    # Results and errors
+    #Results and errors
     result: Optional[Any] = None
     error: Optional[str] = None
     progress: float = 0.0
     
-    # Callbacks
+    #Callbacks
     status_callback: Optional[Callable] = None
     progress_callback: Optional[Callable] = None
     
@@ -91,8 +91,8 @@ class APIResourceManager:
             provider_limits: Dict mapping provider names to requests per minute
         """
         self.provider_limits = provider_limits or {
-            "openai": 60,    # requests per minute
-            "ollama": 300,   # higher limit for local
+            "openai": 60,    #requests per minute
+            "ollama": 300,   #higher limit for local
             "anthropic": 50
         }
         
@@ -100,7 +100,7 @@ class APIResourceManager:
         self.request_locks: Dict[str, threading.Lock] = {}
         self.logger = get_logger()
         
-        # Initialize locks for each provider
+        #Initialize locks for each provider
         for provider in self.provider_limits:
             self.request_locks[provider] = threading.Lock()
     
@@ -112,17 +112,17 @@ class APIResourceManager:
         with self.request_locks[provider]:
             current_time = time.time()
             
-            # Initialize counter if needed
+            #Initialize counter if needed
             if provider not in self.request_counters:
                 self.request_counters[provider] = []
             
-            # Remove requests older than 1 minute
+            #Remove requests older than 1 minute
             self.request_counters[provider] = [
                 req_time for req_time in self.request_counters[provider]
                 if current_time - req_time < 60
             ]
             
-            # Check if we can make another request
+            #Check if we can make another request
             return len(self.request_counters[provider]) < self.provider_limits[provider]
     
     def register_request(self, provider: str) -> bool:
@@ -158,7 +158,7 @@ class APIResourceManager:
         for provider in self.provider_limits:
             with self.request_locks[provider]:
                 if provider in self.request_counters:
-                    # Count recent requests
+                    #Count recent requests
                     recent_requests = [
                         req_time for req_time in self.request_counters[provider]
                         if current_time - req_time < 60
@@ -200,7 +200,7 @@ class TaskManager:
         self.running_tasks: Dict[str, TaskInstance] = {}
         self.completed_tasks: List[str] = []
         
-        # Managers
+        #Managers
         if llm_manager is None:
             from agents.token_tracker import TokenTracker
             token_tracker = TokenTracker()
@@ -220,11 +220,11 @@ class TaskManager:
         )
         self.api_resource_manager = APIResourceManager()
         
-        # Synchronization
+        #Synchronization
         self.tasks_lock = threading.Lock()
         self.shutdown_event = threading.Event()
         
-        # Task scheduler thread
+        #Task scheduler thread
         self.scheduler_thread = threading.Thread(target=self._task_scheduler, daemon=True)
         self.scheduler_running = True
         
@@ -242,12 +242,12 @@ class TaskManager:
         self.scheduler_running = False
         self.shutdown_event.set()
         
-        # Stop all running tasks
+        #Stop all running tasks
         with self.tasks_lock:
             for task_id, task in list(self.running_tasks.items()):
                 self.cancel_task(task_id)
         
-        # Wait for scheduler to finish
+        #Wait for scheduler to finish
         if self.scheduler_thread.is_alive():
             self.scheduler_thread.join(timeout=10)
         
@@ -287,7 +287,7 @@ class TaskManager:
             self.tasks[task_id] = task
             self.task_queue.put(task_id)
         
-        # Store task creation in memory
+        #Store task creation in memory
         self._store_task_event(task_id, "created", {"goal": goal, "priority": priority.value})
         
         self.logger.info(f"Created task {task_id}: {goal[:50]}...")
@@ -319,7 +319,7 @@ class TaskManager:
             task = self.tasks.get(task_id)
             if task and task.status == TaskStatus.PAUSED:
                 task.status = TaskStatus.PENDING
-                self.task_queue.put(task_id)  # Re-queue the task
+                self.task_queue.put(task_id)  #Re-queue the task
                 self._store_task_event(task_id, "resumed")
                 self.logger.info(f"Resumed task {task_id}")
                 return True
@@ -332,13 +332,13 @@ class TaskManager:
             if task and task.status in [TaskStatus.PENDING, TaskStatus.RUNNING, TaskStatus.PAUSED]:
                 task.status = TaskStatus.CANCELLED
                 
-                # Stop the thread if running
+                #Stop the thread if running
                 if task.thread and task.thread.is_alive():
-                    # Note: Python doesn't support forceful thread termination
-                    # The task should check for cancellation status periodically
+                    #Note: Python doesn't support forceful thread termination
+                    #The task should check for cancellation status periodically
                     pass
                 
-                # Remove from running tasks
+                #Remove from running tasks
                 if task_id in self.running_tasks:
                     del self.running_tasks[task_id]
                 
@@ -377,30 +377,30 @@ class TaskManager:
         
         while self.scheduler_running and not self.shutdown_event.is_set():
             try:
-                # Check if we can start more tasks
+                #Check if we can start more tasks
                 if len(self.running_tasks) < self.max_concurrent_tasks:
                     try:
-                        # Get next task from queue (with timeout)
+                        #Get next task from queue (with timeout)
                         task_id = self.task_queue.get(timeout=1.0)
                         
                         with self.tasks_lock:
                             task = self.tasks.get(task_id)
                             
                             if task and task.status == TaskStatus.PENDING:
-                                # Check API availability
+                                #Check API availability
                                 provider = self._get_task_provider(task)
                                 if self.api_resource_manager.can_make_request(provider):
                                     self._start_task(task)
                                 else:
-                                    # Re-queue if API not available
+                                    #Re-queue if API not available
                                     self.task_queue.put(task_id)
                                     self.logger.debug(f"Re-queued task {task_id} - API not available")
                     
                     except Empty:
-                        # No tasks in queue, continue
+                        #No tasks in queue, continue
                         pass
                 
-                # Clean up completed tasks from running_tasks
+                #Clean up completed tasks from running_tasks
                 completed_task_ids = []
                 with self.tasks_lock:
                     for task_id, task in list(self.running_tasks.items()):
@@ -411,7 +411,7 @@ class TaskManager:
                     if task_id in self.running_tasks:
                         del self.running_tasks[task_id]
                 
-                time.sleep(0.5)  # Small delay to prevent busy waiting
+                time.sleep(0.5)  #Small delay to prevent busy waiting
                 
             except Exception as e:
                 self.logger.error(f"Error in task scheduler: {e}", exc_info=True)
@@ -424,10 +424,10 @@ class TaskManager:
         task.status = TaskStatus.RUNNING
         task.started_at = datetime.now()
         
-        # Create isolated agent instances for this task
+        #Create isolated agent instances for this task
         isolated_agents = self._create_isolated_agents(task.memory_scope)
         
-        # Create and start task thread
+        #Create and start task thread
         task.thread = threading.Thread(
             target=self._execute_task,
             args=(task, isolated_agents),
@@ -445,45 +445,45 @@ class TaskManager:
         try:
             self.logger.info(f"Executing task {task.task_id}: {task.goal}")
             
-            # Get the isolated master agent
+            #Get the isolated master agent
             master_agent = isolated_agents['master_agent']
             
-            # Set up status callback that updates task progress
+            #Set up status callback that updates task progress
             def task_status_callback(status_info):
                 if task.status_callback:
                     task.status_callback(status_info)
                 
-                # Update task progress if available
+                #Update task progress if available
                 if 'progress' in status_info:
                     task.progress = status_info['progress']
                     if task.progress_callback:
                         task.progress_callback(task.progress)
             
-            # Execute the goal using isolated master agent
+            #Execute the goal using isolated master agent
             master_agent.run(
                 goal=task.goal,
                 master_prompt=task.options.get('prompt', "Complete the given goal efficiently."),
                 options=task.options
             )
             
-            # Wait for completion or check for cancellation
+            #Wait for completion or check for cancellation
             while master_agent.is_running and task.status == TaskStatus.RUNNING:
                 time.sleep(0.5)
                 
-                # Check if task was cancelled
+                #Check if task was cancelled
                 if task.status == TaskStatus.CANCELLED:
                     master_agent.stop()
                     break
             
-            # Determine final status
+            #Determine final status
             if task.status == TaskStatus.CANCELLED:
                 task.result = "Task was cancelled"
             elif master_agent.is_running:
-                # Something went wrong
+                #Something went wrong
                 task.status = TaskStatus.FAILED
                 task.error = "Task execution incomplete"
             else:
-                # Task completed successfully
+                #Task completed successfully
                 task.status = TaskStatus.COMPLETED
                 task.result = "Task completed successfully"
                 task.progress = 100.0
@@ -510,14 +510,14 @@ class TaskManager:
     
     def _create_isolated_agents(self, memory_scope: str) -> Dict[str, Any]:
         """Create isolated agent instances for a task."""
-        # Create a new master agent with isolated memory
+        #Create a new master agent with isolated memory
         master_agent = MasterAgent(
             llm_manager=self.llm_manager,
             agent_manager=self.agent_manager,
-            memory_manager=self.memory_manager,  # Will use task-specific scope
+            memory_manager=self.memory_manager,  #Will use task-specific scope
         )
         
-        # Set the memory scope for isolation
+        #Set the memory scope for isolation
         master_agent.memory_scope = memory_scope
         
         return {
@@ -526,7 +526,7 @@ class TaskManager:
     
     def _get_task_provider(self, task: TaskInstance) -> str:
         """Get the LLM provider for a task."""
-        # This could be configurable per task
+        #This could be configurable per task
         return task.options.get('provider', 'openai')
     
     def _store_task_event(self, task_id: str, event_type: str, metadata: Dict[str, Any] = None):
@@ -551,18 +551,18 @@ class TaskManager:
             self.logger.warning(f"Failed to store task event: {e}")
 
 
-# Example usage and demo
+#Example usage and demo
 def demo_task_manager():
     """Demonstrate the TaskManager functionality."""
     print("🚀 TaskManager Demo - Multiple Concurrent Goals")
     print("=" * 60)
     
-    # Initialize task manager
+    #Initialize task manager
     task_manager = TaskManager(max_concurrent_tasks=3)
     task_manager.start()
     
     try:
-        # Create multiple tasks
+        #Create multiple tasks
         tasks = []
         
         task1_id = task_manager.create_task(
@@ -586,10 +586,10 @@ def demo_task_manager():
         tasks.append(task3_id)
         print(f"✅ Created Task 3: {task3_id}")
         
-        # Monitor task execution
+        #Monitor task execution
         print(f"\n📊 Monitoring task execution...")
         
-        for i in range(20):  # Monitor for 20 seconds
+        for i in range(20):  #Monitor for 20 seconds
             stats = task_manager.get_task_statistics()
             running_tasks = task_manager.get_running_tasks()
             
@@ -600,13 +600,13 @@ def demo_task_manager():
                 for task_id, task in running_tasks.items():
                     print(f"   🏃 {task_id}: {task.goal[:40]}... ({task.status.value})")
             
-            # Check if all tasks are done
+            #Check if all tasks are done
             if stats['running'] == 0 and stats['pending'] == 0:
                 break
                 
             time.sleep(1)
         
-        # Final statistics
+        #Final statistics
         print(f"\n📈 Final Statistics:")
         final_stats = task_manager.get_task_statistics()
         for key, value in final_stats.items():
@@ -628,7 +628,7 @@ def demo_task_manager():
                 if task.error:
                     print(f"      Error: {task.error}")
         
-        # API Usage Statistics
+        #API Usage Statistics
         print(f"\n🌐 API Usage Statistics:")
         api_stats = final_stats['api_stats']
         for provider, stats in api_stats.items():

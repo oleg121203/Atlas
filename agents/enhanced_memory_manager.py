@@ -14,7 +14,7 @@ import chromadb
 from chromadb import EmbeddingFunction
 
 from agents.llm_manager import LLMManager
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 from monitoring.metrics_manager import metrics_manager
 
 
@@ -46,7 +46,7 @@ class MemoryType(Enum):
     KNOWLEDGE = "knowledge"
     TEMPORARY = "temporary"
     
-    # Chat-specific types for mode isolation
+    #Chat-specific types for mode isolation
     CASUAL_CHAT = "casual_chat"
     GOALS = "goals"
     GOAL_SETTING = "goal_setting"
@@ -59,7 +59,7 @@ class MemoryType(Enum):
     CONFIGURATION_CHAT = "configuration_chat"
     DEBUG_INFO = "debug_info"
     
-    # Development mode types
+    #Development mode types
     DEV_OPERATIONS = "dev_operations"
     EXPERIMENTS = "experiments"
     DEBUG_SESSIONS = "debug_sessions"
@@ -70,9 +70,9 @@ class MemoryConfig:
     """Configuration for memory collections"""
     scope: MemoryScope
     memory_type: MemoryType
-    ttl_hours: Optional[int] = None  # Time-to-live in hours
-    max_entries: Optional[int] = None  # Maximum entries before cleanup
-    auto_archive: bool = False  # Auto-archive old entries
+    ttl_hours: Optional[int] = None  #Time-to-live in hours
+    max_entries: Optional[int] = None  #Maximum entries before cleanup
+    auto_archive: bool = False  #Auto-archive old entries
 
 
 class EnhancedMemoryManager:
@@ -86,7 +86,7 @@ class EnhancedMemoryManager:
         db_path = self.config_manager.get_app_data_path("memory")
         self.client = chromadb.PersistentClient(path=str(db_path))
         
-        # Initialize memory configurations
+        #Initialize memory configurations
         self._init_memory_configs()
         
         self.logger.info(f"EnhancedMemoryManager initialized. Database path: {db_path}")
@@ -94,7 +94,7 @@ class EnhancedMemoryManager:
     def _init_memory_configs(self):
         """Initialize predefined memory configurations"""
         self.memory_configs = {
-            # Agent-specific memories
+            #Agent-specific memories
             "master_agent_plans": MemoryConfig(MemoryScope.MASTER_AGENT, MemoryType.PLAN, ttl_hours=24*7),
             "master_agent_feedback": MemoryConfig(MemoryScope.MASTER_AGENT, MemoryType.FEEDBACK, ttl_hours=24*30),
             "screen_agent_observations": MemoryConfig(MemoryScope.SCREEN_AGENT, MemoryType.OBSERVATION, ttl_hours=24),
@@ -102,17 +102,17 @@ class EnhancedMemoryManager:
             "security_agent_events": MemoryConfig(MemoryScope.SECURITY_AGENT, MemoryType.OBSERVATION, ttl_hours=24*7),
             "deputy_agent_monitoring": MemoryConfig(MemoryScope.DEPUTY_AGENT, MemoryType.OBSERVATION, ttl_hours=24),
             
-            # User data
+            #User data
             "user_feedback": MemoryConfig(MemoryScope.USER_DATA, MemoryType.FEEDBACK, ttl_hours=24*30),
             "user_preferences": MemoryConfig(MemoryScope.USER_DATA, MemoryType.PREFERENCE),
             "user_sessions": MemoryConfig(MemoryScope.USER_DATA, MemoryType.SESSION, ttl_hours=24*7),
             
-            # System knowledge
+            #System knowledge
             "successful_patterns": MemoryConfig(MemoryScope.SYSTEM_KNOWLEDGE, MemoryType.SUCCESS),
             "error_solutions": MemoryConfig(MemoryScope.SYSTEM_KNOWLEDGE, MemoryType.ERROR),
             "system_knowledge": MemoryConfig(MemoryScope.SYSTEM_KNOWLEDGE, MemoryType.KNOWLEDGE),
             
-            # Temporary memories
+            #Temporary memories
             "current_session": MemoryConfig(MemoryScope.TEMPORARY, MemoryType.SESSION, ttl_hours=1),
             "recent_actions": MemoryConfig(MemoryScope.TEMPORARY, MemoryType.TEMPORARY, ttl_hours=2),
         }
@@ -151,11 +151,11 @@ class EnhancedMemoryManager:
                     metadata: Optional[Dict[str, Any]] = None,
                     ttl_days: Optional[int] = None) -> str:
         """Store memory - alias for add_memory_for_agent for backwards compatibility."""
-        # Convert agent_name string to MemoryScope enum
+        #Convert agent_name string to MemoryScope enum
         try:
             agent_scope = MemoryScope(agent_name.lower().replace(' ', '_'))
         except ValueError:
-            # Fallback to GLOBAL if agent name not recognized
+            #Fallback to GLOBAL if agent name not recognized
             agent_scope = MemoryScope.GLOBAL
             
         collection_name = f"{agent_scope.value}_{memory_type.value}"
@@ -171,14 +171,14 @@ class EnhancedMemoryManager:
         doc_id = str(uuid.uuid4())
         final_metadata = metadata or {}
         
-        # Add standard metadata
+        #Add standard metadata
         final_metadata.update({
             'timestamp': time.time(),
             'collection': collection_name,
             'id': doc_id
         })
         
-        # Add TTL if configured
+        #Add TTL if configured
         if collection_name in self.memory_configs:
             config = self.memory_configs[collection_name]
             if config.ttl_hours:
@@ -192,7 +192,7 @@ class EnhancedMemoryManager:
         
         self.logger.info(f"Added memory to '{collection_name}' with ID: {doc_id}")
         
-        # Check if cleanup is needed
+        #Check if cleanup is needed
         self._maybe_cleanup_collection(collection_name)
         
         return doc_id
@@ -203,11 +203,11 @@ class EnhancedMemoryManager:
                          query: str, 
                          limit: int = 10) -> List[Dict[str, Any]]:
         """Retrieve memories - alias for search_memories_for_agent for backwards compatibility."""
-        # Convert agent_name string to MemoryScope enum
+        #Convert agent_name string to MemoryScope enum
         try:
             agent_scope = MemoryScope(agent_name.lower().replace(' ', '_'))
         except ValueError:
-            # Fallback to GLOBAL if agent name not recognized
+            #Fallback to GLOBAL if agent name not recognized
             agent_scope = MemoryScope.GLOBAL
             
         return self.search_memories_for_agent(agent_scope, memory_type, query, limit)
@@ -221,7 +221,7 @@ class EnhancedMemoryManager:
         if memory_type:
             collection_names = [f"{agent_type.value}_{memory_type.value}"]
         else:
-            # Search all collections for this agent
+            #Search all collections for this agent
             collection_names = [name for name in self.memory_configs.keys() 
                               if name.startswith(agent_type.value)]
         
@@ -267,7 +267,7 @@ class EnhancedMemoryManager:
                 
                 results = collection.query(
                     query_embeddings=[query_embedding],
-                    n_results=min(n_results * 2, count),  # Get more to filter
+                    n_results=min(n_results * 2, count),  #Get more to filter
                     include=["metadatas", "documents", "distances"]
                 )
                 
@@ -279,7 +279,7 @@ class EnhancedMemoryManager:
                 for i in range(len(ids)):
                     metadata = metadatas[i] if metadatas else {}
                     
-                    # Filter expired memories
+                    #Filter expired memories
                     if 'expires_at' in metadata and metadata['expires_at'] < current_time:
                         continue
                     
@@ -289,10 +289,10 @@ class EnhancedMemoryManager:
                         "metadata": metadata,
                         "distance": distances[i],
                         "collection": collection.name,
-                        "relevance": 1 - distances[i]  # Convert distance to relevance
+                        "relevance": 1 - distances[i]  #Convert distance to relevance
                     })
             
-            # Sort by relevance and limit results
+            #Sort by relevance and limit results
             sorted_results = sorted(all_results, key=lambda x: x['distance'])
             final_results = sorted_results[:n_results]
             
@@ -319,11 +319,11 @@ class EnhancedMemoryManager:
         try:
             count = collection.count()
             
-            # Clean up expired entries
+            #Clean up expired entries
             if config.ttl_hours:
                 self._cleanup_expired_memories(collection)
             
-            # Clean up if max entries exceeded
+            #Clean up if max entries exceeded
             if config.max_entries and count > config.max_entries:
                 self._cleanup_old_memories(collection, config.max_entries)
                 
@@ -335,7 +335,7 @@ class EnhancedMemoryManager:
         try:
             current_time = time.time()
             
-            # Get all documents with metadata
+            #Get all documents with metadata
             all_data = collection.get(include=["metadatas"])
             ids_to_delete = []
             
@@ -358,16 +358,16 @@ class EnhancedMemoryManager:
             if count <= max_entries:
                 return
                 
-            # Get all documents with timestamps
+            #Get all documents with timestamps
             all_data = collection.get(include=["metadatas"])
             
-            # Sort by timestamp and delete oldest
+            #Sort by timestamp and delete oldest
             entries_with_time = []
             for i, metadata in enumerate(all_data['metadatas']):
                 timestamp = metadata.get('timestamp', 0) if metadata else 0
                 entries_with_time.append((timestamp, all_data['ids'][i]))
             
-            entries_with_time.sort()  # Oldest first
+            entries_with_time.sort()  #Oldest first
             
             entries_to_delete = count - max_entries
             ids_to_delete = [entry[1] for entry in entries_with_time[:entries_to_delete]]
@@ -397,7 +397,7 @@ class EnhancedMemoryManager:
                 stats['total_memories'] += count
                 stats['collections'][coll.name] = count
                 
-                # Categorize by scope and type
+                #Categorize by scope and type
                 for scope in MemoryScope:
                     if coll.name.startswith(scope.value):
                         stats['memory_by_scope'][scope.value] = stats['memory_by_scope'].get(scope.value, 0) + count

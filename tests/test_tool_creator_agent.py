@@ -15,7 +15,7 @@ class TestToolCreatorAgent(unittest.TestCase):
         
         self.mock_llm_manager = MagicMock(spec=LLMManager)
         self.agent = ToolCreatorAgent(llm_manager=self.mock_llm_manager, tool_dir=self.tool_dir)
-        self.agent.logger = MagicMock() # Mock logger to suppress output during tests
+        self.agent.logger = MagicMock() #Mock logger to suppress output during tests
 
     def tearDown(self):
         """Clean up the test environment after each test."""

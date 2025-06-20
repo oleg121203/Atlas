@@ -9,7 +9,7 @@ import logging
 from typing import Optional, Dict, Any, TYPE_CHECKING, List
 
 from agents.llm_manager import LLMManager
-from logger import get_logger
+from utils.logger import get_logger
 
 if TYPE_CHECKING:
     from agents.memory_manager import MemoryManager
@@ -89,12 +89,12 @@ def get_current_weather(city: str) -> Dict[str, Any]:
     Returns:
         A dictionary containing weather data, or an error message.
     '''
-    # This is an example and requires a real API key.
+    #This is an example and requires a real API key.
     base_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {{"q": city, "appid": "YOUR_API_KEY", "units": "metric"}}
     try:
         response = requests.get(base_url, params=params)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response.raise_for_status()  #Raise an exception for bad status codes
         return response.json()
     except requests.exceptions.RequestException as e:
         return {{"error": "Failed to retrieve weather data: " + str(e)}}

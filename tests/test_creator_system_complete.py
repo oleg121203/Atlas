@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 """
-Тест системи ідентифікації творця Атласа
+Тест системи ідентифікації creator Атласа
 
-Цей скрипт тестує всю систему ідентифікації творця, зашифровані протоколи 
+Цей скрипт тестує всю систему ідентифікації creator, зашифровані протоколи 
 та інтеграцію з основною системою Atlas.
 """
 
 import sys
 import os
 
-# Додаємо шлях до Atlas
+#Додаємо шлях до Atlas
 sys.path.append('/Users/developer/Documents/Atlas')
 
 def test_creator_system_integration():
-    """Тест інтеграції системи ідентифікації творця з Atlas"""
+    """Тест інтеграції системи ідентифікації creator з Atlas"""
     print("🔐 ТЕСТ ІНТЕГРАЦІЇ СИСТЕМИ ІДЕНТИФІКАЦІЇ ТВОРЦЯ АТЛАСА")
     print("=" * 70)
     
     try:
-        # Імпортуємо компоненти
+        #Імпортуємо компоненти
         from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
         from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
         
         print("\n✅ 1. Імпорт компонентів успішний")
         
-        # Тест 1: Створення системи аутентифікації
+        #Тест 1: Creation системи аутентифікації
         print("\n🔧 2. Створення системи аутентифікації...")
         auth = CreatorAuthentication()
         
@@ -32,14 +32,14 @@ def test_creator_system_integration():
         print(f"   ✅ Система аутентифікації створена")
         print(f"   ✅ Зашифровані протоколи підключені")
         
-        # Тест 2: Перевірка протоколів
+        #Тест 2: Verification протоколів
         print("\n📋 3. Перевірка зашифрованих протоколів...")
         protocol_summary = protocols.get_protocol_summary()
         print(f"   📊 Всього протоколів: {protocol_summary['total_protocols']}")
         print(f"   🔐 Статус шифрування: {protocol_summary['encryption_status']}")
         print(f"   🛡️ Обмежений доступ: {protocol_summary['access_restricted']}")
         
-        # Тест 3: Виявлення творця
+        #Тест 3: Виявлення creator
         print("\n👤 4. Тест виявлення творця...")
         test_messages = [
             "Привіт, мене звати Олег Миколайович",
@@ -52,19 +52,19 @@ def test_creator_system_integration():
             status = "🔍 Виявлено" if result.get('requires_authentication') else "👤 Звичайний користувач"
             print(f"   '{msg}' -> {status}")
         
-        # Тест 4: Симуляція аутентифікації
+        #Тест 4: Симуляція аутентифікації
         print("\n🎯 5. Симуляція аутентифікації творця...")
         
-        # Генеруємо виклик
+        #Генеруємо challenge
         challenge_result = auth.initiate_creator_authentication(CreatorIdentityLevel.POSSIBLE_CREATOR)
         print(f"   📝 Виклик: {challenge_result['challenge']}")
         
-        # Відповідаємо на виклик
+        #Відповідаємо на challenge
         success, response = auth.validate_challenge_response("6 та 9")
         print(f"   ✅ Відповідь прийнята: {success}")
         print(f"   💬 Повідомлення: {response}")
         
-        # Тест 5: Емоційні протоколи
+        #Тест 5: Емоційні протоколи
         if success:
             print("\n💖 6. Тест емоційних протоколів...")
             emotional_contexts = ["greeting", "gratitude", "love", "obedience"]
@@ -73,18 +73,18 @@ def test_creator_system_integration():
                 response = auth.get_creator_emotional_response(context)
                 print(f"   {context}: {response}")
             
-            # Тест 6: Привілеї творця
+            #Тест 6: Privileges creator
             print(f"\n🔧 7. Тест привілеїв творця...")
             privileges = auth.get_creator_privileges()
             for privilege, status in privileges.items():
                 status_icon = "✅" if status else "❌"
                 print(f"   {status_icon} {privilege}: {status}")
             
-            # Тест 7: Безумовне виконання
+            #Тест 7: Безумовне виконання
             unconditional = auth.should_execute_unconditionally()
             print(f"\n⚡ 8. Безумовне виконання: {'✅ Активне' if unconditional else '❌ Неактивне'}")
             
-            # Тест 8: Модифікація протоколів
+            #Тест 8: Модифікація протоколів
             print(f"\n📝 9. Тест модифікації протоколів...")
             test_protocol = {
                 "test_field": "test_value",
@@ -94,16 +94,16 @@ def test_creator_system_integration():
             modify_result = auth.modify_creator_protocol("test_protocol", test_protocol)
             print(f"   Модифікація протоколу: {'✅ Успішно' if modify_result else '❌ Помилка'}")
             
-            # Тест 9: Лог доступу
+            #Тест 9: Лог доступу
             print(f"\n📊 10. Лог доступу до протоколів:")
             access_log = auth.get_protocol_access_log()
-            for entry in access_log[-3:]:  # Останні 3 записи
+            for entry in access_log[-3:]:  #Останні 3 записи
                 timestamp = entry['timestamp'][:19]
                 action = entry['action']
                 protocol = entry['protocol']
                 print(f"    {timestamp} - {action} на {protocol}")
         
-        # Тест 10: Завершення сесії
+        #Тест 10: Завершення сесії
         print(f"\n🏁 11. Завершення сесії творця...")
         auth.end_creator_session()
         
@@ -136,7 +136,7 @@ def test_protocol_security():
     try:
         from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
         
-        # Створюємо протоколи без аутентифікації
+        #Створюємо протоколи без аутентифікації
         protocols = EncryptedCreatorProtocols()
         
         print("📖 Тест читання протоколів без аутентифікації:")
@@ -160,10 +160,10 @@ if __name__ == "__main__":
     print("🎯 Цей тест перевіряє всі компоненти системи ідентифікації Олега Миколайовича")
     print()
     
-    # Основний тест
+    #Основний тест
     main_test_passed = test_creator_system_integration()
     
-    # Тест безпеки
+    #Тест безпеки
     security_test_passed = test_protocol_security()
     
     print("\n" + "=" * 70)

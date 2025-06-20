@@ -7,7 +7,7 @@ import sys
 import os
 from pathlib import Path
 
-# Додаємо шляхи
+#Додаємо шляхи
 base_dir = Path("/Users/developer/Documents/Atlas")
 sys.path.insert(0, str(base_dir))
 sys.path.insert(0, str(base_dir / "plugins" / "helper_sync_tell"))
@@ -19,13 +19,13 @@ def test_plugin_integration():
     
     issues = []
     
-    # 1. Перевірка реєстрації плагіна
+    #1. Verification реєстрації плагіна
     print("\n1. Перевірка реєстрації плагіна...")
     
     try:
         from advanced_thinking import register, AdvancedAIThinkingTool
         
-        # Імітація Atlas app
+        #Імітація Atlas app
         class MockAtlasApp:
             def __init__(self):
                 self.advanced_ai_thinking_integration = False
@@ -36,13 +36,13 @@ def test_plugin_integration():
         
         mock_app = MockAtlasApp()
         
-        # Тест реєстрації
+        #Тест реєстрації
         result = register(atlas_app=mock_app)
         
         if result and 'tools' in result and result['tools']:
             print("✅ Плагін успішно зареєстровано")
             
-            # Перевірка інтеграції
+            #Verification інтеграції
             if hasattr(mock_app, 'advanced_ai_thinking_integration') and mock_app.advanced_ai_thinking_integration:
                 print("✅ Інтеграція з help mode успішна")
             else:
@@ -56,25 +56,25 @@ def test_plugin_integration():
         import traceback
         traceback.print_exc()
     
-    # 2. Перевірка роботи help mode handler
+    #2. Verification роботи help mode handler
     print("\n2. Перевірка роботи help mode handler...")
     
     try:
-        # Створення інструменту
+        #Creation інструменту
         tool = AdvancedAIThinkingTool()
         
-        # Тест інтеграції з mock app
+        #Тест інтеграції з mock app
         success = tool.integrate_with_atlas_help_mode(mock_app)
         
         if success:
             print("✅ Help mode handler інтегровано")
             
-            # Тест обробки складних запитів
+            #Тест обробки складних запитів
             test_queries = [
                 "Проаналізуй архітектуру системи",
                 "Як покращити продуктивність Atlas?",
                 "Що не так з модулем пам'яті?",
-                "read file main.py",  # Простий запит - має йти до оригінального handler
+                "read file main.py",  #Простий запит - має йти до оригінального handler
             ]
             
             print("\n📋 Тестування обробки запитів:")
@@ -98,11 +98,11 @@ def test_plugin_integration():
     except Exception as e:
         issues.append(f"❌ Помилка тестування help mode: {e}")
     
-    # 3. Перевірка системи детекції режимів
+    #3. Verification системи детекції режимів
     print("\n3. Перевірка системи детекції режимів...")
     
     try:
-        # Тест поточної системи детекції
+        #Тест поточної системи детекції
         current_keywords = [
             'проаналізуй', 'analyze', 'як ти використовуєш', 'how do you use',
             'вдосконалення', 'improvement', 'покращення', 'enhance',
@@ -118,11 +118,11 @@ def test_plugin_integration():
         print(f"   • Складні ключові слова: {len(current_keywords)}")
         print(f"   • Прості ключові слова: {len(simple_keywords)}")
         
-        # Тест конфліктів
+        #Тест конфліктів
         conflicting_queries = [
-            "search for architecture patterns",  # може плутати
-            "analyze file structure",  # може плутати
-            "how does memory manager work?",  # складний аналіз
+            "search for architecture patterns",  #може плутати
+            "analyze file structure",  #може плутати
+            "how does memory manager work?",  #складний аналіз
         ]
         
         print(f"\n⚠️  Потенційні конфлікти:")
@@ -139,7 +139,7 @@ def test_plugin_integration():
     except Exception as e:
         issues.append(f"❌ Помилка аналізу детекції: {e}")
     
-    # Підсумок
+    #Підсумок
     print("\n" + "=" * 60)
     print("📊 ПІДСУМОК ТЕСТУВАННЯ ІНТЕГРАЦІЇ")
     print("=" * 60)
@@ -159,20 +159,20 @@ def analyze_current_detection_system():
     print("\n🔍 АНАЛІЗ ПОТОЧНОЇ СИСТЕМИ ДЕТЕКЦІЇ")
     print("=" * 60)
     
-    # Читаємо поточну реалізацію
+    #Читаємо поточну реалізацію
     try:
         from advanced_thinking import AdvancedAIThinkingTool
         
-        # Тест системи детекції з файлу
+        #Тест системи детекції з файлу
         advanced_thinking_file = base_dir / "plugins" / "helper_sync_tell" / "advanced_thinking.py"
         content = advanced_thinking_file.read_text()
         
-        # Витягуємо ключові слова з коду
+        #Витягуємо ключові слова з коду
         import re
         
         print("📋 Поточні ключові слова для advanced thinking:")
         
-        # Знаходимо секцію з advanced_keywords
+        #Знаходимо секцію з advanced_keywords
         adv_match = re.search(r'advanced_keywords\s*=\s*\[(.*?)\]', content, re.DOTALL)
         if adv_match:
             keywords_text = adv_match.group(1)
@@ -187,7 +187,7 @@ def analyze_current_detection_system():
         for cmd in simple_commands:
             print(f"   • {cmd}")
         
-        # Аналіз проблем
+        #Аналіз проблем
         print("\n⚠️  ВИЯВЛЕНІ ПРОБЛЕМИ:")
         print("1. Ключові слова перетинаються:")
         print("   • 'search' є в обох системах")

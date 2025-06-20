@@ -8,10 +8,10 @@ from typing import Optional
 def setup_macos_environment():
     """Set up macOS-specific environment variables and configurations."""
     
-    # Set up PATH for Homebrew installations
+    #Set up PATH for Homebrew installations
     homebrew_paths = [
-        "/opt/homebrew/bin",  # Apple Silicon Macs
-        "/usr/local/bin",     # Intel Macs
+        "/opt/homebrew/bin",  #Apple Silicon Macs
+        "/usr/local/bin",     #Intel Macs
     ]
     
     current_path = os.environ.get("PATH", "")
@@ -19,7 +19,7 @@ def setup_macos_environment():
         if os.path.exists(path) and path not in current_path:
             os.environ["PATH"] = f"{path}:{current_path}"
     
-    # Set up Python path for proper imports
+    #Set up Python path for proper imports
     current_dir = Path(__file__).parent.parent
     if str(current_dir) not in sys.path:
         sys.path.insert(0, str(current_dir))
@@ -29,7 +29,7 @@ def configure_macos_gui():
     try:
         import customtkinter as ctk
         
-        # Set appearance mode based on system setting
+        #Set appearance mode based on system setting
         try:
             import darkdetect
             if darkdetect.isDark():
@@ -37,10 +37,10 @@ def configure_macos_gui():
             else:
                 ctk.set_appearance_mode("light")
         except ImportError:
-            # Default to system setting if darkdetect not available
+            #Default to system setting if darkdetect not available
             ctk.set_appearance_mode("system")
         
-        # Use system color theme
+        #Use system color theme
         ctk.set_default_color_theme("blue")
         
     except ImportError:
@@ -56,13 +56,13 @@ def get_macos_app_support_dir() -> Path:
 def configure_macos_screenshot():
     """Configure screenshot capabilities for macOS."""
     screenshot_config = {
-        'method': 'quartz',  # Prefer native Quartz
+        'method': 'quartz',  #Prefer native Quartz
         'fallback': 'pyautogui',
         'save_format': 'PNG',
         'default_location': get_macos_app_support_dir() / "screenshots"
     }
     
-    # Create screenshots directory
+    #Create screenshots directory
     screenshot_config['default_location'].mkdir(parents=True, exist_ok=True)
     
     return screenshot_config
@@ -89,7 +89,7 @@ def setup_macos_dock_icon():
         import tkinter as tk
         from pathlib import Path
         
-        # Look for icon file
+        #Look for icon file
         icon_paths = [
             Path(__file__).parent.parent / "assets" / "icon.icns",
             Path(__file__).parent.parent / "assets" / "icon.png",
@@ -104,6 +104,6 @@ def setup_macos_dock_icon():
     
     return None
 
-# Initialize macOS-specific settings when imported
+#Initialize macOS-specific settings when imported
 if sys.platform == "darwin":
     setup_macos_environment()

@@ -8,7 +8,7 @@ import sys
 import os
 from pathlib import Path
 
-# Add Atlas to path
+#Add Atlas to path
 atlas_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(atlas_root))
 
@@ -17,20 +17,20 @@ def test_atlas_helper_integration():
     print("🔧 Testing Atlas Helper Mode Integration...")
     
     try:
-        # Import Atlas main app components
+        #Import Atlas main app components
         from main import AtlasApp
         from config_manager import ConfigManager
         
-        # Initialize basic Atlas components
+        #Initialize basic Atlas components
         config_manager = ConfigManager()
         
-        # Create a minimal atlas app instance
+        #Create a minimal atlas app instance
         atlas_app = AtlasApp()
         
-        # Import and register the plugin
+        #Import and register the plugin
         from plugins.helper_sync_tell.plugin import register
         
-        # Register the plugin with Atlas
+        #Register the plugin with Atlas
         success = register(atlas_app)
         
         if success:
@@ -38,12 +38,12 @@ def test_atlas_helper_integration():
         else:
             print("⚠️  Plugin registration returned False")
         
-        # Test plugin discovery through Atlas
+        #Test plugin discovery through Atlas
         plugin_manager = getattr(atlas_app, 'plugin_manager', None)
         if plugin_manager:
             print(f"✅ Atlas plugin manager available: {type(plugin_manager)}")
             
-            # Check if our plugin is registered
+            #Check if our plugin is registered
             plugins = getattr(plugin_manager, 'plugins', {})
             if 'helper_sync_tell' in plugins:
                 print("✅ Helper Sync Tell plugin found in Atlas registry")
@@ -52,12 +52,12 @@ def test_atlas_helper_integration():
         else:
             print("⚠️  Atlas plugin manager not available")
         
-        # Test helper mode integration
+        #Test helper mode integration
         helper_mode = getattr(atlas_app, 'helper_mode', None)
         if helper_mode:
             print("✅ Atlas helper mode available")
             
-            # Check if our plugin hooks are registered
+            #Check if our plugin hooks are registered
             hooks = getattr(helper_mode, 'hooks', {})
             if hooks:
                 print(f"✅ Helper mode hooks available: {list(hooks.keys())}")
@@ -80,13 +80,13 @@ def test_end_to_end_scenario():
     print("\n🎯 Testing End-to-End Scenario...")
     
     try:
-        # Import the plugin directly
+        #Import the plugin directly
         from plugins.helper_sync_tell.plugin import EnhancedHelperSyncTellTool
         
-        # Create plugin instance
+        #Create plugin instance
         plugin = EnhancedHelperSyncTellTool()
         
-        # Test a complex query that should trigger structured thinking
+        #Test a complex query that should trigger structured thinking
         complex_query = """
         I need to build a modern web application that includes:
         1. User authentication and authorization
@@ -105,7 +105,7 @@ def test_end_to_end_scenario():
         print(f"✅ Query processed successfully")
         print(f"   Response length: {len(result)} characters")
         
-        # Check for structured thinking elements
+        #Check for structured thinking elements
         result_lower = result.lower()
         structure_indicators = [
             'step', 'analysis', 'breakdown', 'approach', 'strategy',
@@ -117,7 +117,7 @@ def test_end_to_end_scenario():
         print(f"   Structured thinking indicators found: {len(found_indicators)}")
         print(f"   Indicators: {', '.join(found_indicators[:5])}{'...' if len(found_indicators) > 5 else ''}")
         
-        # Check response quality
+        #Check response quality
         has_multiple_sections = result.count('\n\n') >= 2
         has_recommendations = 'recommend' in result_lower or 'suggest' in result_lower
         has_technical_details = any(tech in result_lower for tech in 
@@ -127,7 +127,7 @@ def test_end_to_end_scenario():
         print(f"   Contains recommendations: {'✅' if has_recommendations else '❌'}")
         print(f"   Technical details included: {'✅' if has_technical_details else '❌'}")
         
-        # Print a sample of the response
+        #Print a sample of the response
         print(f"\n📄 Response Sample (first 300 chars):")
         print("-" * 50)
         print(result[:300] + "..." if len(result) > 300 else result)
@@ -150,11 +150,11 @@ def main():
     tests_passed = 0
     total_tests = 2
     
-    # Test 1: Atlas integration
+    #Test 1: Atlas integration
     if test_atlas_helper_integration():
         tests_passed += 1
     
-    # Test 2: End-to-end scenario
+    #Test 2: End-to-end scenario
     if test_end_to_end_scenario():
         tests_passed += 1
     

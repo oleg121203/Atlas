@@ -85,7 +85,7 @@ class ProfessionalCodeAnalyzer:
             'performance_issues': {
                 'patterns': [
                     r'for\s+\w+\s+in\s+range\(len\(',
-                    r'\.append\(.*\)\s*$',  # In loops
+                    r'\.append\(.*\)\s*$',  #In loops
                     r'time\.sleep\(\d+\)',
                     r'requests\.get\(.*timeout=None',
                     r'while\s+True:(?!\s*#\s*break)',
@@ -118,11 +118,11 @@ class ProfessionalCodeAnalyzer:
             
             'code_quality': {
                 'patterns': [
-                    r'def\s+\w+\(.*\):(?:\s*\n){3,}',  # Empty functions
+                    r'def\s+\w+\(.*\):(?:\s*\n){3,}',  #Empty functions
                     r'TODO|FIXME|HACK|XXX',
-                    r'print\(',  # Debug prints
+                    r'print\(',  #Debug prints
                     r'import\s+\*',
-                    r'lambda.*:.*lambda',  # Complex lambdas
+                    r'lambda.*:.*lambda',  #Complex lambdas
                 ],
                 'severity': Severity.LOW,
                 'description': 'Code quality improvement opportunity'
@@ -134,7 +134,7 @@ class ProfessionalCodeAnalyzer:
         issues = []
         metrics = {}
         
-        # 1. File-level analysis
+        #1. File-level analysis
         python_files = self._find_python_files(root_path)
         
         for file_path in python_files:
@@ -144,21 +144,21 @@ class ProfessionalCodeAnalyzer:
             file_issues = await self._analyze_file(file_path)
             issues.extend(file_issues)
         
-        # 2. Architecture analysis
+        #2. Architecture analysis
         arch_issues = await self._analyze_architecture(root_path)
         issues.extend(arch_issues)
         
-        # 3. Dependency analysis
+        #3. Dependency analysis
         dep_issues = await self._analyze_dependencies(root_path)
         issues.extend(dep_issues)
         
-        # 4. Calculate metrics
+        #4. Calculate metrics
         metrics = self._calculate_metrics(python_files, issues)
         
-        # 5. Generate recommendations
+        #5. Generate recommendations
         recommendations = self._generate_recommendations(issues, metrics)
         
-        # 6. Create summary
+        #6. Create summary
         summary = self._create_summary(issues, metrics)
         
         return AnalysisResult(
@@ -176,7 +176,7 @@ class ProfessionalCodeAnalyzer:
             content = file_path.read_text(encoding='utf-8')
             lines = content.split('\n')
             
-            # Pattern-based analysis
+            #Pattern-based analysis
             for category, config in self.patterns.items():
                 for pattern in config['patterns']:
                     for line_num, line in enumerate(lines, 1):
@@ -195,7 +195,7 @@ class ProfessionalCodeAnalyzer:
                             )
                             issues.append(issue)
             
-            # AST-based analysis
+            #AST-based analysis
             ast_issues = self._analyze_ast(file_path, content)
             issues.extend(ast_issues)
             
@@ -211,7 +211,7 @@ class ProfessionalCodeAnalyzer:
         try:
             tree = ast.parse(content)
             
-            # Complexity analysis
+            #Complexity analysis
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
                     complexity = self._calculate_complexity(node)
@@ -249,9 +249,9 @@ class ProfessionalCodeAnalyzer:
         """Analyze overall architecture patterns."""
         issues = []
         
-        # Check for circular imports
-        # Check for proper separation of concerns
-        # Check for design pattern violations
+        #Check for circular imports
+        #Check for proper separation of concerns
+        #Check for design pattern violations
         
         return issues
     
@@ -285,7 +285,7 @@ class ProfessionalCodeAnalyzer:
                 if not line or line.startswith('#'):
                     continue
                 
-                # Check for pinned versions
+                #Check for pinned versions
                 if '==' not in line and '>=' not in line:
                     issues.append(Issue(
                         type=IssueType.DEPENDENCY,
@@ -324,7 +324,7 @@ class ProfessionalCodeAnalyzer:
     
     def _calculate_complexity(self, node: ast.FunctionDef) -> int:
         """Calculate cyclomatic complexity of a function."""
-        complexity = 1  # Base complexity
+        complexity = 1  #Base complexity
         
         for child in ast.walk(node):
             if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor)):
@@ -365,12 +365,12 @@ class ProfessionalCodeAnalyzer:
             'quality_score': 0
         }
         
-        # Count issue types
+        #Count issue types
         for issue in issues:
             issue_type = issue.type.value
             metrics['issue_types'][issue_type] = metrics['issue_types'].get(issue_type, 0) + 1
         
-        # Calculate quality score (0-100)
+        #Calculate quality score (0-100)
         base_score = 100
         base_score -= metrics['critical_issues'] * 20
         base_score -= metrics['high_issues'] * 10
@@ -385,23 +385,23 @@ class ProfessionalCodeAnalyzer:
         """Generate actionable recommendations."""
         recommendations = []
         
-        # Critical issues first
+        #Critical issues first
         critical_count = metrics['critical_issues']
         if critical_count > 0:
             recommendations.append(f"🚨 URGENT: Fix {critical_count} critical issues immediately")
         
-        # High priority issues
+        #High priority issues
         high_count = metrics['high_issues']
         if high_count > 0:
             recommendations.append(f"⚠️ HIGH PRIORITY: Address {high_count} high-priority issues")
         
-        # Most common issue types
+        #Most common issue types
         issue_types = metrics['issue_types']
         if issue_types:
             most_common = max(issue_types.items(), key=lambda x: x[1])
             recommendations.append(f"📊 Focus on {most_common[0]} issues ({most_common[1]} found)")
         
-        # Quality score based recommendations
+        #Quality score based recommendations
         quality_score = metrics['quality_score']
         if quality_score < 50:
             recommendations.append("🔧 Consider major refactoring - quality score is low")
@@ -446,7 +446,7 @@ class ProfessionalCodeAnalyzer:
         else:
             return "Poor code quality. Major refactoring required before deployment."
 
-# Integration functions for Chat Context Manager
+#Integration functions for Chat Context Manager
 def create_professional_analysis_prompt(focus_area: str, user_question: str) -> str:
     """Create prompt for professional code analysis."""
     return f"""You are Atlas Professional Code Analyzer - an expert system for deep codebase investigation.

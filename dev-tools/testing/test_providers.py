@@ -6,16 +6,16 @@
 import sys
 sys.path.append('/Users/dev/Documents/autoclicker')
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
-# Імпортуємо тільки частину LLMManager, що нас цікавить
+#Імпортуємо тільки частину LLMManager, що нас цікавить
 def test_provider_availability():
     """Тест доступності провайдерів без ініціалізації memory manager."""
     print("🤖 Тестування доступності провайдерів...")
     
     config_manager = ConfigManager()
     
-    # Перевіримо, які ключі доступні
+    #Перевіримо, які ключі доступні
     providers_with_keys = []
     
     if config_manager.get_openai_api_key():
@@ -30,7 +30,7 @@ def test_provider_availability():
     if config_manager.get_setting('mistral_api_key'):
         providers_with_keys.append("mistral")
     
-    # Ollama завжди доступний (локальний)
+    #Ollama завжди доступний (локальний)
     providers_with_keys.append("ollama")
     
     print(f"🎯 Провайдери з доступними ключами: {providers_with_keys}")

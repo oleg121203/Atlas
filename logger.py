@@ -14,7 +14,7 @@ LOG_FILE_PATH = LOG_DIR / "atlas.log.jsonl"
 
 
 class JsonLFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:  # noqa: D401
+    def format(self, record: logging.LogRecord) -> str:  #noqa: D401
         payload: Dict[str, Any] = {
             "ts": self.formatTime(record, datefmt="%Y-%m-%dT%H:%M:%S"),
             "level": record.levelname.lower(),
@@ -27,7 +27,7 @@ class JsonLFormatter(logging.Formatter):
 def get_logger(name: str = "atlas") -> Logger:
     logger = logging.getLogger(name)
     if logger.handlers:
-        return logger  # already configured
+        return logger  #already configured
 
     logger.setLevel(logging.INFO)
 

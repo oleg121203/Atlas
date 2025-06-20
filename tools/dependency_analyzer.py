@@ -22,11 +22,11 @@ class DependencyInfo:
     """Information about a dependency relationship."""
     source_file: str
     target_module: str
-    import_type: str  # 'import', 'from_import', 'relative_import'
+    import_type: str  #'import', 'from_import', 'relative_import'
     line_number: int
     is_external: bool
     is_relative: bool
-    dependency_level: int = 0  # 0=direct, 1=indirect, etc.
+    dependency_level: int = 0  #0=direct, 1=indirect, etc.
 
 @dataclass
 class ModuleInfo:
@@ -65,7 +65,7 @@ class DependencyAnalyzer:
             '.DS_Store', 'unused', 'monitoring/logs'
         }
         
-        # Initialize NetworkX graph for dependency analysis
+        #Initialize NetworkX graph for dependency analysis
         self.dependency_graph = nx.DiGraph()
         self.modules = {}
         
@@ -73,28 +73,28 @@ class DependencyAnalyzer:
         """Perform comprehensive architectural analysis."""
         self.logger.info("Starting architectural analysis...")
         
-        # 1. Discover all Python modules
+        #1. Discover all Python modules
         python_files = self._find_python_files()
         
-        # 2. Analyze each module
+        #2. Analyze each module
         for file_path in python_files:
             module_info = self._analyze_module(file_path)
             if module_info:
                 self.modules[module_info.module_name] = module_info
                 
-        # 3. Build dependency graph
+        #3. Build dependency graph
         self._build_dependency_graph()
         
-        # 4. Detect circular dependencies
+        #4. Detect circular dependencies
         circular_deps = self._find_circular_dependencies()
         
-        # 5. Categorize dependencies
+        #5. Categorize dependencies
         external_deps, internal_deps = self._categorize_dependencies()
         
-        # 6. Calculate dependency layers
+        #6. Calculate dependency layers
         dependency_layers = self._calculate_dependency_layers()
         
-        # 7. Calculate metrics
+        #7. Calculate metrics
         metrics = self._calculate_architectural_metrics()
         
         return ArchitecturalAnalysis(
@@ -139,7 +139,7 @@ class DependencyAnalyzer:
                 classes=analyzer.classes,
                 functions=analyzer.functions,
                 dependencies=analyzer.dependencies,
-                dependents=[],  # Will be filled later
+                dependents=[],  #Will be filled later
                 complexity_score=len(analyzer.classes) + len(analyzer.functions)
             )
             
@@ -149,16 +149,16 @@ class DependencyAnalyzer:
     
     def _build_dependency_graph(self):
         """Build dependency graph using NetworkX."""
-        # Add all modules as nodes
+        #Add all modules as nodes
         for module_name, module_info in self.modules.items():
             self.dependency_graph.add_node(module_name, **asdict(module_info))
             
-        # Add dependency edges
+        #Add dependency edges
         for module_name, module_info in self.modules.items():
             for dependency in module_info.dependencies:
                 if dependency in self.modules:
                     self.dependency_graph.add_edge(module_name, dependency)
-                    # Add to dependents list
+                    #Add to dependents list
                     self.modules[dependency].dependents.append(module_name)
     
     def _find_circular_dependencies(self) -> List[List[str]]:
@@ -180,7 +180,7 @@ class DependencyAnalyzer:
                 if dep in self.modules:
                     internal_deps.add(dep)
                 else:
-                    # Check if it's a standard library or external package
+                    #Check if it's a standard library or external package
                     if self._is_external_dependency(dep):
                         external_deps.add(dep)
         
@@ -188,7 +188,7 @@ class DependencyAnalyzer:
     
     def _is_external_dependency(self, module_name: str) -> bool:
         """Check if a module is an external dependency."""
-        # Standard library modules (simplified check)
+        #Standard library modules (simplified check)
         stdlib_modules = {
             'os', 'sys', 'json', 'time', 'datetime', 'collections', 'typing',
             'pathlib', 'dataclasses', 'logging', 're', 'subprocess', 'threading',
@@ -205,10 +205,10 @@ class DependencyAnalyzer:
         layers = defaultdict(list)
         
         try:
-            # Calculate topological sort to determine layers
+            #Calculate topological sort to determine layers
             topo_order = list(nx.topological_sort(self.dependency_graph))
             
-            # Assign layers based on longest path from nodes with no dependencies
+            #Assign layers based on longest path from nodes with no dependencies
             for node in topo_order:
                 predecessors = list(self.dependency_graph.predecessors(node))
                 if not predecessors:
@@ -220,7 +220,7 @@ class DependencyAnalyzer:
                     layers[max_pred_layer + 1].append(node)
                     
         except nx.NetworkXError:
-            # If graph has cycles, fall back to simple approach
+            #If graph has cycles, fall back to simple approach
             for node in self.dependency_graph.nodes():
                 in_degree = self.dependency_graph.in_degree(node)
                 layers[in_degree].append(node)
@@ -239,15 +239,15 @@ class DependencyAnalyzer:
         total_modules = len(self.modules)
         total_dependencies = sum(len(m.dependencies) for m in self.modules.values())
         
-        # Coupling metrics
-        afferent_coupling = {}  # Ca - incoming dependencies
-        efferent_coupling = {}  # Ce - outgoing dependencies
+        #Coupling metrics
+        afferent_coupling = {}  #Ca - incoming dependencies
+        efferent_coupling = {}  #Ce - outgoing dependencies
         
         for module_name, module_info in self.modules.items():
             afferent_coupling[module_name] = len(module_info.dependents)
             efferent_coupling[module_name] = len(module_info.dependencies)
         
-        # Instability metrics (I = Ce / (Ca + Ce))
+        #Instability metrics (I = Ce / (Ca + Ce))
         instability = {}
         for module_name in self.modules:
             ca = afferent_coupling[module_name]
@@ -257,7 +257,7 @@ class DependencyAnalyzer:
             else:
                 instability[module_name] = 0
         
-        # Calculate complexity distribution
+        #Calculate complexity distribution
         complexity_scores = [m.complexity_score for m in self.modules.values()]
         avg_complexity = sum(complexity_scores) / len(complexity_scores) if complexity_scores else 0
         
@@ -303,7 +303,7 @@ class DependencyAnalyzer:
         report = []
         report.append("🏗️ **Atlas Architectural Analysis Report**\n")
         
-        # Overview
+        #Overview
         report.append("## 📊 **Project Overview**")
         report.append(f"- **Total Modules**: {analysis.metrics['total_modules']}")
         report.append(f"- **Total Dependencies**: {analysis.metrics['total_dependencies']}")
@@ -311,7 +311,7 @@ class DependencyAnalyzer:
         report.append(f"- **Dependency Density**: {analysis.metrics['dependency_density']:.3f}")
         report.append("")
         
-        # Circular Dependencies
+        #Circular Dependencies
         if analysis.circular_dependencies:
             report.append("## 🔄 **Circular Dependencies** ⚠️")
             for i, cycle in enumerate(analysis.circular_dependencies, 1):
@@ -320,17 +320,17 @@ class DependencyAnalyzer:
         else:
             report.append("## ✅ **No Circular Dependencies Found**\n")
         
-        # Dependency Layers
+        #Dependency Layers
         report.append("## 🏢 **Architectural Layers**")
         for layer, modules in sorted(analysis.dependency_layers.items()):
             report.append(f"**Layer {layer}** ({len(modules)} modules):")
-            for module in sorted(modules)[:10]:  # Show first 10
+            for module in sorted(modules)[:10]:  #Show first 10
                 report.append(f"  - `{module}`")
             if len(modules) > 10:
                 report.append(f"  - ... and {len(modules) - 10} more")
             report.append("")
         
-        # Most Connected Modules
+        #Most Connected Modules
         report.append("## 🔗 **Most Connected Modules**")
         coupling_data = [(name, analysis.metrics['afferent_coupling'][name] + analysis.metrics['efferent_coupling'][name])
                         for name in analysis.modules.keys()]
@@ -343,7 +343,7 @@ class DependencyAnalyzer:
             report.append(f"- **`{module}`**: {total_coupling} connections (Ca:{ca}, Ce:{ce}, I:{instability:.2f})")
         report.append("")
         
-        # External Dependencies
+        #External Dependencies
         if analysis.external_dependencies:
             report.append("## 📦 **External Dependencies**")
             for dep in sorted(analysis.external_dependencies)[:20]:
@@ -352,7 +352,7 @@ class DependencyAnalyzer:
                 report.append(f"- ... and {len(analysis.external_dependencies) - 20} more")
             report.append("")
         
-        # Complexity Analysis
+        #Complexity Analysis
         complexity_dist = analysis.metrics['cyclomatic_complexity_distribution']
         report.append("## 📈 **Complexity Distribution**")
         report.append(f"- **Low Complexity** (≤5): {complexity_dist['low']} modules")
@@ -361,7 +361,7 @@ class DependencyAnalyzer:
         report.append(f"- **Very High Complexity** (>30): {complexity_dist['very_high']} modules")
         report.append("")
         
-        # Recommendations
+        #Recommendations
         report.append("## 💡 **Architectural Recommendations**")
         if analysis.circular_dependencies:
             report.append("- 🚨 **Critical**: Resolve circular dependencies to improve maintainability")
@@ -426,7 +426,7 @@ class ModuleASTAnalyzer(ast.NodeVisitor):
         self.exports.append(node.name)
         self.generic_visit(node)
 
-# Integration function for Chat Context Manager
+#Integration function for Chat Context Manager
 def analyze_dependencies(focus_area: str = None) -> str:
     """Analyze project dependencies and architecture."""
     analyzer = DependencyAnalyzer()
@@ -445,7 +445,7 @@ def find_circular_dependencies() -> str:
         report.append(f"**Cycle {i}**: {' → '.join(cycle)} → {cycle[0]}")
         report.append("")
         
-        # Suggest how to break the cycle
+        #Suggest how to break the cycle
         report.append(f"**💡 Suggestion for Cycle {i}**:")
         report.append("- Consider using dependency injection")
         report.append("- Extract common functionality to a shared module")
@@ -455,6 +455,6 @@ def find_circular_dependencies() -> str:
     return "\n".join(report)
 
 if __name__ == "__main__":
-    # Test the analyzer
+    #Test the analyzer
     analyzer = DependencyAnalyzer()
     print(analyzer.generate_dependency_report())

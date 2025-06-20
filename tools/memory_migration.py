@@ -17,7 +17,7 @@ except ImportError:
 from agents.memory_manager import MemoryManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from agents.llm_manager import LLMManager
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 
 class MemoryMigrator:
@@ -26,17 +26,17 @@ class MemoryMigrator:
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # Initialize managers
+        #Initialize managers
         self.config_manager = ConfigManager()
         self.llm_manager = LLMManager(self.config_manager)
         self.old_memory = MemoryManager(self.llm_manager, self.config_manager)
         self.new_memory = EnhancedMemoryManager(self.llm_manager, self.config_manager)
         
-        # Migration mapping
+        #Migration mapping
         self.collection_mapping = {
-            'user_feedback': 'user_feedback',  # Keep the same
-            'successful_plans': 'master_agent_plans',  # Move to agent-specific
-            # Add more mappings as needed
+            'user_feedback': 'user_feedback',  #Keep the same
+            'successful_plans': 'master_agent_plans',  #Move to agent-specific
+            #Add more mappings as needed
         }
     
     def analyze_current_structure(self) -> Dict[str, Any]:
@@ -74,27 +74,27 @@ class MemoryMigrator:
     def migrate_collection(self, old_name: str, new_name: str) -> int:
         """Migrate a single collection to new structure"""
         try:
-            # Get old collection
+            #Get old collection
             old_collection = self.old_memory.client.get_collection(
                 name=old_name,
                 embedding_function=self.old_memory._get_embedding_function()
             )
             
-            # Get all data from old collection
+            #Get all data from old collection
             all_data = old_collection.get(include=["documents", "metadatas", "embeddings"])
             
             if not all_data['ids']:
                 self.logger.info(f"Collection '{old_name}' is empty, skipping migration")
                 return 0
             
-            # Add to new collection with enhanced metadata
+            #Add to new collection with enhanced metadata
             migrated_count = 0
             
             for i, doc_id in enumerate(all_data['ids']):
                 content = all_data['documents'][i]
                 old_metadata = all_data['metadatas'][i] if all_data['metadatas'] else {}
                 
-                # Enhance metadata for new structure
+                #Enhance metadata for new structure
                 new_metadata = old_metadata.copy()
                 new_metadata.update({
                     'migrated_from': old_name,
@@ -102,7 +102,7 @@ class MemoryMigrator:
                     'original_id': doc_id
                 })
                 
-                # Add to new collection
+                #Add to new collection
                 self.new_memory.add_memory(content, new_name, new_metadata)
                 migrated_count += 1
             
@@ -124,17 +124,17 @@ class MemoryMigrator:
         }
         
         try:
-            # Analyze current structure
+            #Analyze current structure
             analysis = self.analyze_current_structure()
             self.logger.info(f"Starting migration of {analysis['total_memories']} memories from {analysis['total_collections']} collections")
             
-            # Create backup if requested
+            #Create backup if requested
             if backup_old:
                 backup_path = self._create_backup()
                 migration_results['backup_created'] = backup_path is not None
                 migration_results['backup_path'] = backup_path
             
-            # Migrate known collections
+            #Migrate known collections
             for old_name, new_name in self.collection_mapping.items():
                 try:
                     migrated = self.migrate_collection(old_name, new_name)
@@ -148,11 +148,11 @@ class MemoryMigrator:
                     migration_results['errors'].append(error_msg)
                     self.logger.error(error_msg)
             
-            # Handle unmapped collections
+            #Handle unmapped collections
             collections = self.old_memory.client.list_collections()
             for coll in collections:
                 if coll.name not in self.collection_mapping:
-                    # Try to auto-categorize
+                    #Try to auto-categorize
                     new_name = self._auto_categorize_collection(coll.name)
                     if new_name:
                         try:
@@ -182,7 +182,7 @@ class MemoryMigrator:
         """Auto-categorize unknown collections"""
         name_lower = collection_name.lower()
         
-        # Agent-specific patterns
+        #Agent-specific patterns
         if 'master' in name_lower or 'plan' in name_lower:
             return 'master_agent_plans'
         elif 'screen' in name_lower:
@@ -194,7 +194,7 @@ class MemoryMigrator:
         elif 'deputy' in name_lower:
             return 'deputy_agent_monitoring'
         
-        # Data type patterns
+        #Data type patterns
         elif 'feedback' in name_lower:
             return 'user_feedback'
         elif 'preference' in name_lower:
@@ -206,7 +206,7 @@ class MemoryMigrator:
         elif 'success' in name_lower:
             return 'successful_patterns'
         
-        # Default to system knowledge
+        #Default to system knowledge
         return 'system_knowledge'
     
     def _create_backup(self) -> str:
@@ -218,7 +218,7 @@ class MemoryMigrator:
             timestamp = int(time.time())
             backup_path = backup_dir / f"memory_backup_{timestamp}"
             
-            # Copy current database
+            #Copy current database
             import shutil
             current_db_path = self.config_manager.get_app_data_path("memory")
             shutil.copytree(current_db_path, backup_path)
@@ -240,7 +240,7 @@ def main():
     print("🧠 Atlas Memory Migration Tool")
     print("=" * 40)
     
-    # Analyze current structure
+    #Analyze current structure
     analysis = migrator.analyze_current_structure()
     print(f"Current memory structure:")
     print(f"  Total collections: {analysis['total_collections']}")
@@ -254,13 +254,13 @@ def main():
     
     print()
     
-    # Ask for confirmation
+    #Ask for confirmation
     response = input("Proceed with migration? (y/N): ").strip().lower()
     if response != 'y':
         print("Migration cancelled.")
         return
     
-    # Run migration
+    #Run migration
     print("\n🚀 Starting migration...")
     results = migrator.migrate_all(backup_old=True)
     

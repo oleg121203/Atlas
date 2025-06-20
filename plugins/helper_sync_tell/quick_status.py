@@ -7,7 +7,7 @@ print("=" * 60)
 print("🎉 Helper Sync Tell Plugin - Final Status")
 print("=" * 60)
 
-# Check plugin files exist
+#Check plugin files exist
 import os
 plugin_dir = "/workspaces/Atlas/plugins/helper_sync_tell"
 files_to_check = [

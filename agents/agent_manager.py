@@ -4,7 +4,7 @@ import importlib.util
 import inspect
 from typing import Dict, Any, List, Callable
 
-from logger import get_logger
+from utils.logger import get_logger
 from agents.llm_manager import LLMManager
 from agents.tool_creator_agent import ToolCreatorAgent
 from monitoring.metrics_manager import metrics_manager
@@ -33,30 +33,30 @@ class AgentManager:
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         self.master_agent_update_callback = master_agent_update_callback
-        self.plugin_manager = None  # Will be set later to avoid circular dependency
+        self.plugin_manager = None  #Will be set later to avoid circular dependency
 
-        # Keep track of which tools are dynamically loaded
+        #Keep track of which tools are dynamically loaded
         self._generated_tools: List[str] = []
 
-        # Initialize and register the ToolCreatorAgent's create_tool method
+        #Initialize and register the ToolCreatorAgent's create_tool method
         self.tool_creator = ToolCreatorAgent(llm_manager=self.llm_manager, memory_manager=self.memory_manager)
         self.add_tool("create_tool", self.tool_creator.create_tool, "Creates a new Python tool function from a description, saves it to a file, and makes it available for use.")
 
-        # Load tools from the generated directory
+        #Load tools from the generated directory
         self.reload_generated_tools()
         
-        # Load built-in tools
+        #Load built-in tools
         self.load_builtin_tools()
 
     def clear_tools(self):
         """Clears all registered tools except the essential ones."""
-        # Preserve essential tools if needed, or clear completely
-        # For now, let's assume we clear and re-add the most basic tool
+        #Preserve essential tools if needed, or clear completely
+        #For now, let's assume we clear and re-add the most basic tool
         self.tools = {}
         self.tool_descriptions = {}
         self.logger.info("All tools have been cleared from the AgentManager.")
 
-        # Re-register the essential 'create_tool'
+        #Re-register the essential 'create_tool'
         from agents.tool_creator_agent import ToolCreatorAgent
         tool_creator = ToolCreatorAgent(self.llm_manager, self.memory_manager)
         self.add_tool(
@@ -65,10 +65,10 @@ class AgentManager:
             tool_creator.create_tool.__doc__
         )
         
-        # Reload generated tools after clearing
+        #Reload generated tools after clearing
         self.reload_generated_tools()
         
-        # Reload built-in tools after clearing
+        #Reload built-in tools after clearing
         self.load_builtin_tools()
 
     def reload_generated_tools(self, directory: str = "tools/generated"):
@@ -76,7 +76,7 @@ class AgentManager:
         self.logger.info(f"Reloading generated tools from '{directory}'...")
         start_time = time.perf_counter()
         
-        # Unregister all previously loaded generated tools
+        #Unregister all previously loaded generated tools
         for tool_name in self._generated_tools:
             if tool_name in self._tools:
                 del self._tools[tool_name]
@@ -110,11 +110,11 @@ class AgentManager:
                 except (SyntaxError, ImportError, AttributeError, Exception) as e:
                     self.logger.error(f"Failed to load tool from {file_path} due to an error: {e}. Skipping this file.", exc_info=True)
         
-        # Notify the master agent that the tool list has been updated
+        #Notify the master agent that the tool list has been updated
         end_time = time.perf_counter()
         self.logger.info(f"Finished reloading tools in {end_time - start_time:.4f} seconds.")
 
-        # Notify the master agent that the tool list has been updated
+        #Notify the master agent that the tool list has been updated
         if self.master_agent_update_callback:
             self.logger.info("Notifying MasterAgent of tool updates.")
             self.master_agent_update_callback()
@@ -130,7 +130,7 @@ class AgentManager:
             if not silent_overwrite:
                 self.logger.warning(f"Tool '{name}' is already registered. It will be overwritten.")
         
-        # Store the function and its description (or docstring)
+        #Store the function and its description (or docstring)
         if description:
             doc = description
         else:
@@ -145,7 +145,7 @@ class AgentManager:
         for name, tool_data in self._tools.items():
             docstring = tool_data.get("doc")
             if docstring:
-                # Clean up the docstring
+                #Clean up the docstring
                 clean_doc = " ".join(docstring.split())
                 tool_docs.append(f"- {name}: {clean_doc}")
             else:
@@ -164,7 +164,7 @@ class AgentManager:
         func_spec = inspect.getfullargspec(func)
 
         try:
-            # This is a basic check. For production, a more robust validation (e.g., with Pydantic) would be better.
+            #This is a basic check. For production, a more robust validation (e.g., with Pydantic) would be better.
             for arg_name in args:
                 if arg_name not in func_spec.args:
                     self.logger.warning(f"Argument '{arg_name}' is not a valid argument for tool '{tool_name}'.")
@@ -179,7 +179,7 @@ class AgentManager:
             )
         except Exception as e:
             self.logger.error(f"Error executing tool {tool_name}: {e}", exc_info=True)
-            # Re-raise as a generic exception to be caught by the master agent
+            #Re-raise as a generic exception to be caught by the master agent
             raise
             return f"Error: {e}"
 
@@ -221,7 +221,7 @@ class AgentManager:
             if tool_name in self._generated_tools:
                 self._generated_tools.remove(tool_name)
 
-            # Notify the master agent of the change
+            #Notify the master agent of the change
             if self.master_agent_update_callback:
                 self.master_agent_update_callback()
 
@@ -232,13 +232,13 @@ class AgentManager:
         """Load built-in tools from the tools directory."""
         self.logger.info("Loading built-in tools...")
         
-        # Import and register built-in tools
+        #Import and register built-in tools
         try:
-            # Screenshot tool
+            #Screenshot tool
             from tools.screenshot_tool import capture_screen
             self.add_tool("capture_screen", capture_screen, "Capture a screenshot of the screen and save it to a file")
             
-            # Clipboard tool
+            #Clipboard tool
             from tools.clipboard_tool import get_clipboard_text, set_clipboard_text, get_clipboard_image, set_clipboard_image, clear_clipboard
             self.add_tool("get_clipboard_text", get_clipboard_text, "Get text content from clipboard")
             self.add_tool("set_clipboard_text", set_clipboard_text, "Set text content to clipboard")
@@ -246,24 +246,24 @@ class AgentManager:
             self.add_tool("set_clipboard_image", set_clipboard_image, "Set image content to clipboard")
             self.add_tool("clear_clipboard", clear_clipboard, "Clear clipboard content")
             
-            # Mouse and keyboard tool
+            #Mouse and keyboard tool
             from tools.mouse_keyboard_tool import click_at, move_mouse, type_text, press_key
             self.add_tool("click_at", click_at, "Click mouse at specified coordinates")
             self.add_tool("move_mouse", move_mouse, "Move mouse to specified coordinates")
             self.add_tool("type_text", type_text, "Type text using keyboard")
             self.add_tool("press_key", press_key, "Press a specific key")
             
-            # OCR tool
+            #OCR tool
             from tools.ocr_tool import ocr_image, ocr_file
             self.add_tool("ocr_image", ocr_image, "Extract text from an image using OCR")
             self.add_tool("ocr_file", ocr_file, "Extract text from an image file using OCR")
             
-            # Image recognition tool
+            #Image recognition tool
             from tools.image_recognition_tool import find_template_in_image, find_object_in_image
             self.add_tool("find_template_in_image", find_template_in_image, "Find a template image within a larger image")
             self.add_tool("find_object_in_image", find_object_in_image, "Find objects in an image using cascade classifier")
             
-            # Terminal tool
+            #Terminal tool
             from tools.terminal_tool import execute_command, execute_script, get_environment, change_directory, kill_process
             self.add_tool("execute_command", execute_command, "Execute a shell command")
             self.add_tool("execute_script", execute_script, "Execute a script file")
@@ -271,20 +271,20 @@ class AgentManager:
             self.add_tool("change_directory", change_directory, "Change working directory")
             self.add_tool("kill_process", kill_process, "Kill a process by PID")
             
-            # Notification tool
+            #Notification tool
             from tools.notification_tool import NotificationManager
             notif_manager = NotificationManager()
             self.add_tool("send_email", notif_manager.send_email, "Send an email notification")
             self.add_tool("send_telegram", notif_manager.send_telegram, "Send a Telegram notification")
             self.add_tool("send_sms", notif_manager.send_sms, "Send an SMS notification")
             
-            # Translation tool (for internal use, not exposed to user directly)
+            #Translation tool (for internal use, not exposed to user directly)
             from tools.translation_tool import create_translation_tool
             translation_tool = create_translation_tool(self.llm_manager)
             self.add_tool("translate_text", translation_tool.translate_with_llm, "Translate text between languages")
             self.add_tool("detect_language", translation_tool.detect_language, "Detect the language of input text")
             
-            # Count only the actual built-in tools
+            #Count only the actual built-in tools
             builtin_tool_count = len([name for name in self._tools.keys() if name in [
                 "capture_screen", "get_clipboard_text", "set_clipboard_text", "get_clipboard_image", 
                 "set_clipboard_image", "clear_clipboard", "click_at", "move_mouse", "type_text", 
@@ -302,7 +302,7 @@ class AgentManager:
         """Returns a list of dictionaries with details about all tools (built-in and generated)."""
         details = []
         
-        # Add generated tools
+        #Add generated tools
         for tool_name in self._generated_tools:
             if tool_name in self._tools:
                 tool_func = self._tools[tool_name]
@@ -315,7 +315,7 @@ class AgentManager:
                     "source": "User generated"
                 })
         
-        # Add built-in tools
+        #Add built-in tools
         builtin_tools = {
             "capture_screen": "Screenshot Tool",
             "get_clipboard_text": "Clipboard Tool",
@@ -354,7 +354,7 @@ class AgentManager:
                     "source": tool_category
                 })
         
-        # Add essential tools
+        #Add essential tools
         essential_tools = ["create_tool"]
         for tool_name in essential_tools:
             if tool_name in self._tools and tool_name not in [t["name"] for t in details]:
@@ -367,13 +367,13 @@ class AgentManager:
                     "source": "Tool Creator Agent"
                 })
         
-        # Add plugin tools
+        #Add plugin tools
         if self.plugin_manager:
             try:
                 for plugin_name, plugin_data in self.plugin_manager.get_all_plugins().items():
                     plugin_tools = plugin_data.get("tools", [])
                     for tool_func in plugin_tools:
-                        # Now tools should be functions with __name__ attribute
+                        #Now tools should be functions with __name__ attribute
                         if hasattr(tool_func, '__name__'):
                             tool_name = tool_func.__name__
                             if tool_name in self._tools and tool_name not in [t["name"] for t in details]:
@@ -387,13 +387,13 @@ class AgentManager:
             except Exception as e:
                 self.logger.warning(f"Error processing plugin tools for UI display: {e}")
 
-        # Debug: Print tool counts for troubleshooting
+        #Debug: Print tool counts for troubleshooting
         generated_count = len([d for d in details if d["type"] == "generated"])
         builtin_count = len([d for d in details if d["type"] == "built-in"])
         essential_count = len([d for d in details if d["type"] == "essential"])
         plugin_count = len([d for d in details if d["type"] == "plugin"])
         
-        # Debug: Print tool counts for troubleshooting
+        #Debug: Print tool counts for troubleshooting
         generated_count = len([d for d in details if d["type"] == "generated"])
         builtin_count = len([d for d in details if d["type"] == "built-in"])
         essential_count = len([d for d in details if d["type"] == "essential"])

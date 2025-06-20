@@ -7,7 +7,7 @@ import sys
 import os
 from pathlib import Path
 
-# Додаємо шляхи
+#Додаємо шляхи
 base_dir = Path("/Users/developer/Documents/Atlas")
 sys.path.insert(0, str(base_dir))
 sys.path.insert(0, str(base_dir / "plugins" / "helper_sync_tell"))
@@ -19,14 +19,14 @@ def test_final_integration():
     
     results = {"passed": 0, "total": 0, "issues": []}
     
-    # 1. Тест інтелектуального детектора
+    #1. Тест інтелектуального детектора
     print("\n1. Тест інтелектуального детектора...")
     
     try:
         from intelligent_mode_detector import IntelligentModeDetector, ChatMode
         detector = IntelligentModeDetector()
         
-        # Критичні тести
+        #Критичні тести
         critical_tests = [
             ("read file main.py", False, "Simple file read"),
             ("Проаналізуй архітектуру Atlas", True, "Complex analysis"),
@@ -51,19 +51,19 @@ def test_final_integration():
         results["issues"].append(f"Помилка детектора: {e}")
         print(f"❌ Помилка тестування детектора: {e}")
     
-    # 2. Тест інтеграції з advanced_thinking
+    #2. Тест інтеграції з advanced_thinking
     print("\n2. Тест інтеграції з advanced_thinking...")
     
     try:
         from advanced_thinking import AdvancedAIThinkingTool
         
-        # Mock Atlas app з інтелектуальним детектором
+        #Mock Atlas app з інтелектуальним детектором
         class MockAdvancedAtlasApp:
             def __init__(self):
                 self.advanced_ai_thinking_integration = False
                 self._original_handle_help_mode = None
                 
-                # Mock code_reader
+                #Mock code_reader
                 class MockCodeReader:
                     def semantic_search(self, query):
                         return f"Semantic search results for: {query}"
@@ -82,7 +82,7 @@ def test_final_integration():
         mock_app = MockAdvancedAtlasApp()
         tool = AdvancedAIThinkingTool()
         
-        # Тест інтеграції
+        #Тест інтеграції
         integration_success = tool.integrate_with_atlas_help_mode(mock_app)
         
         if integration_success:
@@ -94,7 +94,7 @@ def test_final_integration():
         
         results["total"] += 1
         
-        # Тест обробки запитів
+        #Тест обробки запитів
         test_messages = [
             ("read file config.py", "Original simple handler", "Simple command routing"),
             ("Проаналізуй систему пам'яті", "Фаза 1: Контекстний аналіз", "Advanced thinking routing"),
@@ -124,7 +124,7 @@ def test_final_integration():
         results["issues"].append(f"Помилка інтеграції: {e}")
         print(f"❌ Помилка тестування інтеграції: {e}")
     
-    # 3. Тест продуктивності
+    #3. Тест продуктивності
     print("\n3. Тест продуктивності детекції...")
     
     try:
@@ -148,7 +148,7 @@ def test_final_integration():
         end_time = time.time()
         avg_time = (end_time - start_time) / len(test_messages)
         
-        if avg_time < 0.01:  # Менше 10мс на запит
+        if avg_time < 0.01:  #Менше 10мс на запит
             print(f"✅ Продуктивність відмінна: {avg_time*1000:.2f}мс на запит")
             results["passed"] += 1
         else:
@@ -161,7 +161,7 @@ def test_final_integration():
         results["issues"].append(f"Помилка тесту продуктивності: {e}")
         print(f"❌ Помилка тесту продуктивності: {e}")
     
-    # Підсумок
+    #Підсумок
     print("\n" + "=" * 60)
     print("📊 ПІДСУМОК ФІНАЛЬНОГО ТЕСТУВАННЯ")
     print("=" * 60)
@@ -225,7 +225,7 @@ def demonstrate_intelligent_detection():
             print(f"   💭 Обґрунтування: {result.reasoning[:80]}...")
             print()
         
-        # Статистика
+        #Статистика
         stats = detector.get_detection_stats()
         print("📈 Статистика детекції:")
         for mode, count in stats["mode_counts"].items():

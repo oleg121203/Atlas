@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Перевірка залежностей macOS для плагіна Helper Sync Tell.
+Verification залежностей macOS для плагіна Helper Sync Tell.
 """
 
 import sys
 from pathlib import Path
 
-# Список залежностей, які потребує плагін Helper Sync Tell
+#Список залежностей, які потребує плагін Helper Sync Tell
 PLUGIN_DEPENDENCIES = {
-    # Основні Python пакети (стандартна бібліотека)
+    #Основні Python пакети (стандартна бібліотека)
     "logging": {"type": "stdlib", "required": True},
     "time": {"type": "stdlib", "required": True},
     "uuid": {"type": "stdlib", "required": True},
@@ -18,18 +18,18 @@ PLUGIN_DEPENDENCIES = {
     "os": {"type": "stdlib", "required": True},
     "typing": {"type": "stdlib", "required": True},
     
-    # Зовнішні залежності для повної функціональності
+    #Зовнішні залежності для повної функціональності
     "requests": {"type": "external", "required": False, "purpose": "HTTP requests for LLM APIs"},
     "PyYAML": {"type": "external", "required": False, "purpose": "Configuration file parsing"},
     "openai": {"type": "external", "required": False, "purpose": "OpenAI API integration"},
     "google-generativeai": {"type": "external", "required": False, "purpose": "Gemini API integration"},
     
-    # macOS специфічні залежності
+    #macOS специфічні залежності
     "pyobjc-core": {"type": "macos", "required": False, "purpose": "macOS native integration"},
     "pyobjc-framework-Cocoa": {"type": "macos", "required": False, "purpose": "macOS GUI integration (includes Foundation)"},
     "pyobjc-framework-Quartz": {"type": "macos", "required": False, "purpose": "macOS display and graphics"},
     
-    # Atlas залежності (внутрішні)
+    #Atlas залежності (внутрішні)
     "agents": {"type": "atlas", "required": False, "purpose": "Atlas agent system integration"},
     "config_manager": {"type": "atlas", "required": False, "purpose": "Atlas configuration management"},
     "utils": {"type": "atlas", "required": False, "purpose": "Atlas utility functions"},
@@ -41,7 +41,7 @@ def check_macos_requirements():
     print("🔍 Перевірка залежностей macOS для Helper Sync Tell Plugin")
     print("=" * 60)
     
-    # Читаємо requirements-macos.txt
+    #Читаємо requirements-macos.txt
     requirements_file = Path("/workspaces/Atlas/requirements-macos.txt")
     if not requirements_file.exists():
         print("❌ Файл requirements-macos.txt не знайдено!")
@@ -50,7 +50,7 @@ def check_macos_requirements():
     with open(requirements_file, 'r', encoding='utf-8') as f:
         requirements_content = f.read().lower()
     
-    # Розділяємо залежності за категоріями
+    #Розділяємо залежності за категоріями
     stdlib_deps = {k: v for k, v in PLUGIN_DEPENDENCIES.items() if v["type"] == "stdlib"}
     external_deps = {k: v for k, v in PLUGIN_DEPENDENCIES.items() if v["type"] == "external"}
     macos_deps = {k: v for k, v in PLUGIN_DEPENDENCIES.items() if v["type"] == "macos"}
@@ -86,7 +86,7 @@ def check_macos_requirements():
     for dep, info in atlas_deps.items():
         print(f"   ℹ️  {dep} - внутрішня залежність Atlas ({info['purpose']})")
     
-    # Перевіряємо додаткові macOS залежності, які можуть бути корисними
+    #Перевіряємо додаткові macOS залежності, які можуть бути корисними
     additional_macos_deps = {
         "pyobjc-framework-ApplicationServices": "Покращені API для скриншотів",
         "pyobjc-framework-CoreServices": "Інтеграція з системними сервісами macOS",
@@ -99,7 +99,7 @@ def check_macos_requirements():
         else:
             print(f"   ⚠️  {dep} - відсутній ({purpose})")
     
-    # Висновки
+    #Висновки
     print("\n" + "=" * 60)
     print("📊 ПІДСУМОК ПЕРЕВІРКИ:")
     

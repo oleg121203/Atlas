@@ -7,7 +7,7 @@ sys.path.append('.')
 
 print('🧪 Testing Atlas enhanced components (simplified)...')
 
-# Test imports
+#Test imports
 try:
     from ui.status_panel import StatusPanel
     from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
@@ -22,34 +22,34 @@ except Exception as e:
     traceback.print_exc()
     sys.exit(1)
 
-# Test basic component classes exist and have expected methods
+#Test basic component classes exist and have expected methods
 try:
-    # Check StatusPanel class
+    #Check StatusPanel class
     assert hasattr(StatusPanel, '__init__'), "StatusPanel missing __init__"
     assert hasattr(StatusPanel, 'update_status'), "StatusPanel missing update_status"
     print('✅ StatusPanel class structure verified')
     
-    # Check EnhancedPluginManagerWindow class
+    #Check EnhancedPluginManagerWindow class
     assert hasattr(EnhancedPluginManagerWindow, '__init__'), "EnhancedPluginManagerWindow missing __init__"
     assert hasattr(EnhancedPluginManagerWindow, 'refresh_plugins_list'), "EnhancedPluginManagerWindow missing refresh_plugins_list"
     print('✅ EnhancedPluginManagerWindow class structure verified')
     
-    # Check GoalHistoryManager class
+    #Check GoalHistoryManager class
     assert hasattr(GoalHistoryManager, '__init__'), "GoalHistoryManager missing __init__"
     assert hasattr(GoalHistoryManager, 'add_goal'), "GoalHistoryManager missing add_goal"
     print('✅ GoalHistoryManager class structure verified')
     
-    # Check EnhancedSettingsView class
+    #Check EnhancedSettingsView class
     assert hasattr(EnhancedSettingsView, '__init__'), "EnhancedSettingsView missing __init__"
     assert hasattr(EnhancedSettingsView, 'load_settings'), "EnhancedSettingsView missing load_settings"
     print('✅ EnhancedSettingsView class structure verified')
     
-    # Check EnhancedSecurityAgent class
+    #Check EnhancedSecurityAgent class
     assert hasattr(EnhancedSecurityAgent, '__init__'), "EnhancedSecurityAgent missing __init__"
     assert hasattr(EnhancedSecurityAgent, 'assess_file_access_risk'), "EnhancedSecurityAgent missing assess_file_access_risk"
     print('✅ EnhancedSecurityAgent class structure verified')
     
-    # Check EnhancedDeputyAgent class
+    #Check EnhancedDeputyAgent class
     assert hasattr(EnhancedDeputyAgent, '__init__'), "EnhancedDeputyAgent missing __init__"
     assert hasattr(EnhancedDeputyAgent, 'add_task'), "EnhancedDeputyAgent missing add_task"
     print('✅ EnhancedDeputyAgent class structure verified')

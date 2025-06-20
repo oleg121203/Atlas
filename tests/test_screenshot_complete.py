@@ -14,7 +14,7 @@ def test_imports():
     print("TESTING IMPORTS")
     print("=" * 60)
     
-    # Test basic imports
+    #Test basic imports
     modules = [
         ('PIL', 'from PIL import Image'),
         ('pathlib', 'from pathlib import Path'),
@@ -29,7 +29,7 @@ def test_imports():
         except Exception as e:
             print(f"❌ {name}: {e}")
     
-    # Test macOS specific imports
+    #Test macOS specific imports
     print("\nmacOS-specific imports:")
     try:
         from Quartz import (
@@ -50,7 +50,7 @@ def test_native_screencapture():
     print("=" * 60)
     
     try:
-        # Check if screencapture command exists
+        #Check if screencapture command exists
         result = subprocess.run(['which', 'screencapture'], capture_output=True, text=True)
         if result.returncode != 0:
             print("❌ screencapture command not found")
@@ -58,7 +58,7 @@ def test_native_screencapture():
         
         print(f"✅ screencapture found at: {result.stdout.strip()}")
         
-        # Test actual screenshot
+        #Test actual screenshot
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
             tmp_path = tmp_file.name
         
@@ -70,7 +70,7 @@ def test_native_screencapture():
             print(f"❌ screencapture failed: {result.stderr}")
             return False
         
-        # Check if file was created and load it
+        #Check if file was created and load it
         if not Path(tmp_path).exists():
             print("❌ Screenshot file was not created")
             return False
@@ -78,7 +78,7 @@ def test_native_screencapture():
         img = Image.open(tmp_path)
         print(f"✅ Screenshot captured: {img.size[0]}x{img.size[1]} pixels")
         
-        # Clean up
+        #Clean up
         Path(tmp_path).unlink(missing_ok=True)
         return True
         
@@ -102,7 +102,7 @@ def test_quartz_capture():
         
         print("✅ Quartz imports successful")
         
-        # Create screenshot
+        #Create screenshot
         image_ref = CGWindowListCreateImage(
             CGRectInfinite, kCGWindowListOptionOnScreenOnly, CGMainDisplayID(), kCGWindowImageDefault
         )
@@ -113,18 +113,18 @@ def test_quartz_capture():
         
         print("✅ CGImage created successfully")
         
-        # Get image properties
+        #Get image properties
         width = CGImageGetWidth(image_ref)
         height = CGImageGetHeight(image_ref)
         bytes_per_row = CGImageGetBytesPerRow(image_ref)
         
         print(f"✅ Image properties: {width}x{height}, bytes_per_row: {bytes_per_row}")
         
-        # Get image data
+        #Get image data
         data_provider = CGImageGetDataProvider(image_ref)
         data = CGDataProviderCopyData(data_provider)
         
-        # Convert to bytes
+        #Convert to bytes
         if hasattr(data, 'bytes'):
             buffer = data.bytes()
         else:
@@ -132,11 +132,11 @@ def test_quartz_capture():
         
         print(f"✅ Image data extracted: {len(buffer)} bytes")
         
-        # Create PIL Image
+        #Create PIL Image
         img = Image.frombuffer("RGBA", (width, height), buffer, "raw", "BGRA", bytes_per_row, 1)
         print(f"✅ PIL Image created: {img.size[0]}x{img.size[1]} pixels, mode: {img.mode}")
         
-        # Convert to RGB
+        #Convert to RGB
         if img.mode == "RGBA":
             rgb_img = Image.new("RGB", img.size, (255, 255, 255))
             rgb_img.paste(img, mask=img.split()[-1])
@@ -160,7 +160,7 @@ def test_applescript_capture():
     print("=" * 60)
     
     try:
-        # Check if osascript exists
+        #Check if osascript exists
         result = subprocess.run(['which', 'osascript'], capture_output=True, text=True)
         if result.returncode != 0:
             print("❌ osascript command not found")
@@ -168,11 +168,11 @@ def test_applescript_capture():
         
         print(f"✅ osascript found at: {result.stdout.strip()}")
         
-        # Create temporary file
+        #Create temporary file
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
             tmp_path = tmp_file.name
         
-        # Simple AppleScript that just calls screencapture
+        #Simple AppleScript that just calls screencapture
         applescript = f'do shell script "screencapture -x \\"{tmp_path}\\""'
         
         result = subprocess.run([
@@ -183,7 +183,7 @@ def test_applescript_capture():
             print(f"❌ AppleScript failed: {result.stderr}")
             return False
         
-        # Check file and load image
+        #Check file and load image
         if not Path(tmp_path).exists():
             print("❌ AppleScript screenshot file not created")
             return False
@@ -191,7 +191,7 @@ def test_applescript_capture():
         img = Image.open(tmp_path)
         print(f"✅ AppleScript screenshot: {img.size[0]}x{img.size[1]} pixels")
         
-        # Clean up
+        #Clean up
         Path(tmp_path).unlink(missing_ok=True)
         return True
         
@@ -210,7 +210,7 @@ def test_pyautogui():
         import pyautogui
         print("✅ PyAutoGUI imported successfully")
         
-        # Test screenshot
+        #Test screenshot
         screenshot = pyautogui.screenshot()
         print(f"✅ PyAutoGUI screenshot: {screenshot.size[0]}x{screenshot.size[1]} pixels")
         return True
@@ -230,22 +230,22 @@ def test_integrated_screenshot():
     print("=" * 60)
     
     try:
-        # Add current directory to path to import our module
+        #Add current directory to path to import our module
         sys.path.insert(0, str(Path(__file__).parent))
         from tools.screenshot_tool import capture_screen
         
         print("✅ Screenshot tool imported")
         
-        # Test capture
+        #Test capture
         img = capture_screen()
         print(f"✅ Integrated screenshot: {img.size[0]}x{img.size[1]} pixels, mode: {img.mode}")
         
-        # Test saving
+        #Test saving
         test_file = Path("test_screenshot.png")
         img.save(test_file)
         print(f"✅ Screenshot saved to {test_file}")
         
-        # Clean up
+        #Clean up
         test_file.unlink(missing_ok=True)
         return True
         
@@ -264,7 +264,7 @@ def main():
         print("❌ This script is designed for macOS (darwin)")
         return
     
-    # Run all tests
+    #Run all tests
     results = []
     
     results.append(("Imports", test_imports()))
@@ -274,7 +274,7 @@ def main():
     results.append(("PyAutoGUI", test_pyautogui()))
     results.append(("Integrated tool", test_integrated_screenshot()))
     
-    # Summary
+    #Summary
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
@@ -288,7 +288,7 @@ def main():
     
     print(f"\nPassed: {passed}/{len(results)} tests")
     
-    if passed >= 2:  # At least 2 methods working
+    if passed >= 2:  #At least 2 methods working
         print("🎉 Screenshot functionality should work!")
     else:
         print("⚠️  Limited screenshot functionality available")

@@ -20,18 +20,18 @@ from .terminal_tool import (
 )
 
 __all__ = [
-    # Screenshot
+    #Screenshot
     "capture_screen",
-    # OCR
+    #OCR
     "ocr_image", "ocr_file",
-    # Image recognition
+    #Image recognition
     "find_template_in_image", "find_object_in_image",
-    # Mouse & Keyboard
+    #Mouse & Keyboard
     "MouseButton", "click_at", "move_mouse", "type_text", "press_key", "MouseKeyboardResult",
-    # Clipboard
+    #Clipboard
     "get_clipboard_text", "set_clipboard_text", "get_clipboard_image", 
     "set_clipboard_image", "clear_clipboard", "ClipboardResult",
-    # Terminal
+    #Terminal
     "execute_command", "execute_script", "get_environment", 
     "change_directory", "kill_process", "TerminalResult",
 ]

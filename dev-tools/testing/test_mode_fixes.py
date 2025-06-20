@@ -11,7 +11,7 @@ from agents.chat_context_manager import ChatContextManager, ChatMode
 from agents.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
 from agents.token_tracker import TokenTracker
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 def test_mode_fixes():
     """Тест виправлень режимів"""
@@ -19,7 +19,7 @@ def test_mode_fixes():
     print("🔧 Тестування виправлень системи режимів Atlas")
     print("=" * 60)
     
-    # Ініціалізація
+    #Initialization
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker)
@@ -27,27 +27,27 @@ def test_mode_fixes():
     
     chat_manager = ChatContextManager(memory_manager=memory_manager)
     
-    # Тестові повідомлення
+    #Тестові повідомлення
     test_cases = [
-        # Очікуємо CASUAL_CHAT
+        #Очікуємо CASUAL_CHAT
         ("Привіт", "CASUAL_CHAT", "Простий привіт"),
         ("Hi", "CASUAL_CHAT", "Англійський привіт"),
         ("Як справи?", "CASUAL_CHAT", "Звичайне питання"),
         ("Дякую", "CASUAL_CHAT", "Подяка"),
         ("Погода хороша", "CASUAL_CHAT", "Загальна розмова"),
         
-        # Очікуємо SYSTEM_HELP (тільки специфічні питання про Atlas)
+        #Очікуємо SYSTEM_HELP (тільки специфічні питання про Atlas)
         ("Розкажи про Atlas", "SYSTEM_HELP", "Питання про систему"),
         ("Які можливості у Atlas?", "SYSTEM_HELP", "Питання про можливості"),
         ("Explain Atlas modes", "SYSTEM_HELP", "Режими Atlas"),
         ("About your memory", "SYSTEM_HELP", "Про пам'ять системи"),
         
-        # Очікуємо GOAL_SETTING
+        #Очікуємо GOAL_SETTING
         ("Зроби скріншот", "GOAL_SETTING", "Завдання"),
         ("Take a screenshot", "GOAL_SETTING", "Завдання англійською"),
         ("Open calculator", "GOAL_SETTING", "Відкрити програму"),
         
-        # Очікуємо CASUAL_CHAT (НЕ SYSTEM_HELP)
+        #Очікуємо CASUAL_CHAT (НЕ SYSTEM_HELP)
         ("яка погода зараз у Львові?", "CASUAL_CHAT", "Питання про погоду - НЕ системне"),
         ("What's the weather like?", "CASUAL_CHAT", "Погода англійською"),
         ("Як дела?", "CASUAL_CHAT", "Загальне питання"),
@@ -85,15 +85,15 @@ def test_mode_fixes():
     else:
         print("⚠️  ПОТРІБНІ ДОДАТКОВІ ВИПРАВЛЕННЯ.")
     
-    # Тест скидання контексту
+    #Тест скидання контексту
     print("\n🔄 Тестування скидання контексту...")
     chat_manager.reset_context()
     print("✅ Контекст скинуто")
     
-    # Тест примусового режиму
+    #Тест примусового режиму
     print("\n🎯 Тестування примусового casual режиму...")
     chat_manager.force_casual_mode()
-    context = chat_manager.analyze_message("system help")  # Зазвичай це SYSTEM_HELP
+    context = chat_manager.analyze_message("system help")  #Зазвичай це SYSTEM_HELP
     print(f"✅ Після force_casual_mode: {context.mode.value} (має бути casual_chat)")
 
 if __name__ == "__main__":

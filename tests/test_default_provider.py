@@ -12,30 +12,30 @@ sys.path.append(os.path.dirname(__file__))
 
 from agents.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 def test_default_provider():
     """Test that LLM Manager uses Gemini by default"""
     print("🔧 Testing LLM Manager Default Provider...")
     
-    # Initialize components
+    #Initialize components
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     
-    # Check config before LLM manager
+    #Check config before LLM manager
     current_provider = config_manager.get_current_provider()
     current_model = config_manager.get_current_model()
     print(f"📋 Config says: provider={current_provider}, model={current_model}")
     
-    # Initialize LLM Manager
+    #Initialize LLM Manager
     llm_manager = LLMManager(token_tracker, config_manager)
     
-    # Check what LLM Manager is using
+    #Check what LLM Manager is using
     print(f"🤖 LLM Manager: provider={llm_manager.current_provider}, model={llm_manager.current_model}")
     print(f"🔌 OpenAI client: {'Available' if llm_manager.is_provider_available('openai') else 'Not available'}")
     print(f"💎 Gemini client: {'Available' if llm_manager.gemini_client else 'Not available'}")
     
-    # Test simple chat to ensure it works
+    #Test simple chat to ensure it works
     if llm_manager.gemini_client and llm_manager.current_provider == "gemini":
         try:
             print("💬 Testing simple Gemini chat...")

@@ -12,11 +12,11 @@ def test_enhanced_plugin():
     print("=" * 50)
     
     try:
-        # Import the plugin
+        #Import the plugin
         import plugin
         print("✓ Plugin imported successfully")
         
-        # Test registration
+        #Test registration
         registration = plugin.register()
         print(f"✓ Registration successful: {len(registration['tools'])} tools")
         
@@ -24,17 +24,17 @@ def test_enhanced_plugin():
             print("❌ No tools registered")
             return False
         
-        # Get the tool
+        #Get the tool
         tool = registration['tools'][0]
         print(f"✓ Tool created: {tool.name} v{getattr(tool, 'version', '1.0')}")
         print(f"✓ Platform: {tool.platform_info.get('system', 'Unknown')}")
         print(f"✓ Capabilities: {len(getattr(tool, 'capabilities', {}))} features")
         
-        # Test basic functionality
+        #Test basic functionality
         test_query = "How does memory management work in software systems?"
         print(f"\n🎯 Testing with query: {test_query}")
         
-        # Mock tools for testing
+        #Mock tools for testing
         mock_tools = {
             "code_search": lambda q: f"Code search found relevant functions for: {q}",
             "documentation": lambda q: f"Documentation shows key concepts for: {q}"
@@ -44,7 +44,7 @@ def test_enhanced_plugin():
         print(f"✓ Tool responded with {len(response)} characters")
         print(f"✓ Response preview: {response[:100]}...")
         
-        # Test performance stats if available
+        #Test performance stats if available
         if hasattr(tool, 'get_performance_stats'):
             stats = tool.get_performance_stats()
             print(f"✓ Performance stats available: {stats.get('queries_processed', 0)} queries")

@@ -8,7 +8,7 @@
 import sys
 import os
 
-# Додаємо шлях до батьківської директорії
+#Додаємо шлях до батьківської директорії
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_atlas_startup():
@@ -16,11 +16,11 @@ def test_atlas_startup():
     try:
         print("Тест: Імпорт модулів Atlas...")
         
-        # Імпортуємо необхідні модули
+        #Імпортуємо необхідні модули
         from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
         print("✅ Модуль протоколів імпортовано")
         
-        # Перевіряємо протоколи
+        #Перевіряємо протоколи
         protocols = EncryptedCreatorProtocols()
         if protocols.verify_protocols_integrity():
             print("✅ Протоколи безпеки пройдено")
@@ -28,11 +28,11 @@ def test_atlas_startup():
             print("❌ Протоколи безпеки не пройдено")
             return False
         
-        # Імпортуємо клас AtlasApp (без створення GUI)
+        #Імпортуємо клас AtlasApp (без creation GUI)
         import main
         print("✅ Модуль main.py імпортовано успішно")
         
-        # Перевіряємо, що клас AtlasApp існує
+        #Перевіряємо, що клас AtlasApp існує
         if hasattr(main, 'AtlasApp'):
             print("✅ Клас AtlasApp знайдено")
         else:

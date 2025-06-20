@@ -8,7 +8,7 @@ import tempfile
 import shutil
 from pathlib import Path
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 
 
@@ -16,8 +16,8 @@ class MockLLMManager:
     """Mock LLM manager for testing"""
     
     def get_embedding(self, text: str):
-        # Return a simple mock embedding
-        return [0.1] * 384  # Typical embedding dimension
+        #Return a simple mock embedding
+        return [0.1] * 384  #Typical embedding dimension
 
 
 class TestEnhancedMemoryManager(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestEnhancedMemoryManager(unittest.TestCase):
         """Set up test environment"""
         self.temp_dir = tempfile.mkdtemp()
         self.config_manager = ConfigManager()
-        # Override the data path to use temp directory
+        #Override the data path to use temp directory
         self.config_manager.get_app_data_path = lambda x: Path(self.temp_dir) / x
         
         self.llm_manager = MockLLMManager()
@@ -39,7 +39,7 @@ class TestEnhancedMemoryManager(unittest.TestCase):
     
     def test_agent_specific_memory(self):
         """Test agent-specific memory storage and retrieval"""
-        # Add memory for Master Agent
+        #Add memory for Master Agent
         memory_id = self.memory_manager.add_memory_for_agent(
             agent_type=MemoryScope.MASTER_AGENT,
             memory_type=MemoryType.PLAN,
@@ -49,7 +49,7 @@ class TestEnhancedMemoryManager(unittest.TestCase):
         
         self.assertIsNotNone(memory_id)
         
-        # Search memories for Master Agent
+        #Search memories for Master Agent
         results = self.memory_manager.search_memories_for_agent(
             agent_type=MemoryScope.MASTER_AGENT,
             query="desktop",
@@ -61,7 +61,7 @@ class TestEnhancedMemoryManager(unittest.TestCase):
     
     def test_memory_isolation(self):
         """Test memory isolation between agents"""
-        # Add memory for different agents
+        #Add memory for different agents
         self.memory_manager.add_memory_for_agent(
             agent_type=MemoryScope.MASTER_AGENT,
             memory_type=MemoryType.PLAN,
@@ -76,19 +76,19 @@ class TestEnhancedMemoryManager(unittest.TestCase):
             metadata={"agent": "screen"}
         )
         
-        # Search should return only Master Agent memories
+        #Search should return only Master Agent memories
         master_results = self.memory_manager.search_memories_for_agent(
             agent_type=MemoryScope.MASTER_AGENT,
             query="agent"
         )
         
-        # Search should return only Screen Agent memories
+        #Search should return only Screen Agent memories
         screen_results = self.memory_manager.search_memories_for_agent(
             agent_type=MemoryScope.SCREEN_AGENT,
             query="agent"
         )
         
-        # Verify isolation
+        #Verify isolation
         for result in master_results:
             self.assertEqual(result['metadata']['agent'], 'master')
         
@@ -97,7 +97,7 @@ class TestEnhancedMemoryManager(unittest.TestCase):
     
     def test_memory_stats(self):
         """Test memory statistics functionality"""
-        # Add some memories
+        #Add some memories
         self.memory_manager.add_memory_for_agent(
             MemoryScope.MASTER_AGENT, MemoryType.PLAN, "Plan 1"
         )
@@ -118,10 +118,10 @@ class TestEnhancedMemoryManager(unittest.TestCase):
         """Test TTL metadata is added correctly"""
         memory_id = self.memory_manager.add_memory(
             content="Test content",
-            collection_name="current_session"  # This has TTL configured
+            collection_name="current_session"  #This has TTL configured
         )
         
-        # Get the memory back to check metadata
+        #Get the memory back to check metadata
         collection = self.memory_manager.get_collection("current_session")
         result = collection.get(ids=[memory_id], include=["metadatas"])
         

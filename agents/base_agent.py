@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 import threading
 import multiprocessing
 
-from logger import get_logger
+from utils.logger import get_logger
 
 
 class BaseAgent(ABC):

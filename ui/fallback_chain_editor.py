@@ -25,7 +25,7 @@ class FallbackChainEditor(ctk.CTkToplevel):
         main_frame.grid_columnconfigure(0, weight=1)
         main_frame.grid_rowconfigure(1, weight=1)
 
-        # --- Controls for adding models ---
+        #--- Controls for adding models ---
         add_frame = ctk.CTkFrame(main_frame)
         add_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
         add_frame.grid_columnconfigure(0, weight=1)
@@ -34,11 +34,11 @@ class FallbackChainEditor(ctk.CTkToplevel):
         self.model_menu.grid(row=0, column=0, padx=(0, 5), pady=5, sticky="ew")
         ctk.CTkButton(add_frame, text="Add", width=50, command=self._add_model).grid(row=0, column=1, pady=5)
 
-        # --- Listbox for the chain ---
+        #--- Listbox for the chain ---
         self.listbox = ctk.CTkTextbox(main_frame, font=("monospace", 12))
         self.listbox.grid(row=1, column=0, sticky="nsew")
 
-        # --- Buttons to reorder ---
+        #--- Buttons to reorder ---
         reorder_frame = ctk.CTkFrame(main_frame)
         reorder_frame.grid(row=1, column=1, sticky="ns", padx=(10, 0))
 
@@ -46,7 +46,7 @@ class FallbackChainEditor(ctk.CTkToplevel):
         ctk.CTkButton(reorder_frame, text="Down", command=self._move_down).pack(pady=5)
         ctk.CTkButton(reorder_frame, text="Remove", command=self._remove_model).pack(pady=20)
 
-        # --- Save/Cancel buttons ---
+        #--- Save/Cancel buttons ---
         button_frame = ctk.CTkFrame(main_frame)
         button_frame.grid(row=2, column=0, columnspan=2, sticky="e", pady=(10, 0))
 
@@ -75,20 +75,20 @@ class FallbackChainEditor(ctk.CTkToplevel):
 
     def _remove_model(self):
         """Remove the selected model from the chain."""
-        # This is a simplified implementation. A real implementation would
-        # require selecting an item from the listbox.
+        #This is a simplified implementation. A real implementation would
+        #require selecting an item from the listbox.
         if self.current_chain:
             self.current_chain.pop()
             self._populate_list()
 
     def _move_up(self):
         """Move the selected model up in the chain."""
-        # Placeholder for moving an item up
+        #Placeholder for moving an item up
         pass
 
     def _move_down(self):
         """Move the selected model down in the chain."""
-        # Placeholder for moving an item down
+        #Placeholder for moving an item down
         pass
 
     def _save_and_close(self):

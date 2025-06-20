@@ -10,7 +10,7 @@ import json
 import traceback
 from pathlib import Path
 
-# Add Atlas to path
+#Add Atlas to path
 atlas_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(atlas_root))
 
@@ -42,7 +42,7 @@ def test_plugin_methods(plugin):
     """Test key plugin methods."""
     print("🔧 Testing plugin methods...")
     
-    # Test break_down_query
+    #Test break_down_query
     try:
         steps = plugin.break_down_query("How do I implement a complex algorithm?")
         print(f"✅ break_down_query: {len(steps)} steps")
@@ -50,7 +50,7 @@ def test_plugin_methods(plugin):
         print(f"❌ break_down_query failed: {e}")
         return False
     
-    # Test analyze_sub_question
+    #Test analyze_sub_question
     try:
         analysis = plugin.analyze_sub_question("Create a web application with user authentication", {})
         print(f"✅ analyze_sub_question: {len(analysis)} chars")
@@ -58,7 +58,7 @@ def test_plugin_methods(plugin):
         print(f"❌ analyze_sub_question failed: {e}")
         return False
     
-    # Test synthesize_response
+    #Test synthesize_response
     try:
         response = plugin.synthesize_response("Test query", ["Analysis 1", "Analysis 2"])
         print(f"✅ synthesize_response: {len(response)} chars")
@@ -73,14 +73,14 @@ def test_plugin_execution(plugin):
     print("🔧 Testing plugin execution...")
     try:
         query = "How can I create a secure web application with user authentication?"
-        result = plugin(query)  # Use __call__ method
+        result = plugin(query)  #Use __call__ method
         
         print(f"✅ Plugin execution successful")
         print(f"   Query: {query}")
         print(f"   Result type: {type(result)}")
         print(f"   Result length: {len(str(result)) if result else 0} chars")
         
-        # Check if result contains structured thinking
+        #Check if result contains structured thinking
         result_str = str(result)
         has_structure = any(keyword in result_str.lower() for keyword in 
                           ['step', 'analysis', 'breakdown', 'approach', 'strategy'])
@@ -97,21 +97,21 @@ def test_atlas_integration():
     print("🔧 Testing Atlas integration...")
     
     try:
-        # Test config manager import
+        #Test config manager import
         from config_manager import ConfigManager
         print("✅ ConfigManager import successful")
     except Exception as e:
         print(f"⚠️  ConfigManager import failed: {e}")
     
     try:
-        # Test logger import
+        #Test logger import
         from logger import Logger
         print("✅ Logger import successful")
     except Exception as e:
         print(f"⚠️  Logger import failed: {e}")
     
     try:
-        # Test platform utils
+        #Test platform utils
         from utils.platform_utils import get_platform_info
         platform_info = get_platform_info()
         print(f"✅ Platform utils working: {platform_info.get('os', 'unknown')}")
@@ -154,12 +154,12 @@ def run_comprehensive_validation():
     tests_passed = 0
     total_tests = 6
     
-    # Test 1: Manifest file
+    #Test 1: Manifest file
     if test_manifest_file():
         tests_passed += 1
     print()
     
-    # Test 2: Plugin import
+    #Test 2: Plugin import
     success, plugin_class = test_plugin_import()
     if success:
         tests_passed += 1
@@ -169,7 +169,7 @@ def run_comprehensive_validation():
         print("❌ Cannot continue without successful import")
         return tests_passed, total_tests
     
-    # Test 3: Plugin instantiation
+    #Test 3: Plugin instantiation
     success, plugin = test_plugin_instantiation(plugin_class)
     if success:
         tests_passed += 1
@@ -179,17 +179,17 @@ def run_comprehensive_validation():
         print("❌ Cannot continue without successful instantiation")
         return tests_passed, total_tests
     
-    # Test 4: Plugin methods
+    #Test 4: Plugin methods
     if test_plugin_methods(plugin):
         tests_passed += 1
     print()
     
-    # Test 5: Plugin execution
+    #Test 5: Plugin execution
     if test_plugin_execution(plugin):
         tests_passed += 1
     print()
     
-    # Test 6: Atlas integration
+    #Test 6: Atlas integration
     if test_atlas_integration():
         tests_passed += 1
     print()

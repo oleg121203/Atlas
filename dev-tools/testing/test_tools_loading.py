@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Тест завантаження інструментів при ініціалізації
+Тест loading інструментів при ініціалізації
 """
 
 import sys
@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from dotenv import load_dotenv
 load_dotenv()
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 from agents.token_tracker import TokenTracker
 from agents.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
@@ -21,7 +21,7 @@ def test_tools_loading():
     print("=" * 50)
     
     try:
-        # Ініціалізація як в main.py
+        #Initialization як в main.py
         print("📋 Ініціалізація менеджерів...")
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
@@ -37,7 +37,7 @@ def test_tools_loading():
         
         print("✅ Всі менеджери створено")
         
-        # Перевірити інструменти
+        #Перевірити інструменти
         print("\n🛠️ Перевірка завантажених інструментів:")
         tool_names = agent_manager.get_tool_names()
         print(f"📊 Всього інструментів: {len(tool_names)}")
@@ -49,7 +49,7 @@ def test_tools_loading():
         else:
             print("❌ Інструменти не знайдено!")
         
-        # Перевірити деталі
+        #Перевірити деталі
         print("\n📄 Деталі інструментів:")
         tools_details = agent_manager.get_all_tools_details()
         print(f"📊 Деталей інструментів: {len(tools_details)}")

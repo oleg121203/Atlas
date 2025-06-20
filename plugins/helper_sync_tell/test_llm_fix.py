@@ -6,7 +6,7 @@ Quick test for LLM integration fix
 import sys
 import os
 
-# Add the Atlas root directory to path
+#Add the Atlas root directory to path
 atlas_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, atlas_root)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -16,7 +16,7 @@ print("Testing LLM integration fix...")
 try:
     import plugin
     
-    # Mock LLM Manager that returns correct structure
+    #Mock LLM Manager that returns correct structure
     class MockLLMManager:
         def chat(self, messages):
             content = messages[0]["content"]
@@ -27,7 +27,7 @@ try:
             else:
                 return type('Response', (), {'content': f"Mock response to: {content[:50]}..."})
     
-    # Mock Atlas app
+    #Mock Atlas app
     class MockAtlasApp:
         def __init__(self):
             self.helper_sync_tell_integration = False
@@ -38,14 +38,14 @@ try:
     mock_llm = MockLLMManager()
     mock_app = MockAtlasApp()
     
-    # Test registration with mock LLM
+    #Test registration with mock LLM
     result = plugin.register(llm_manager=mock_llm, atlas_app=mock_app)
     print("✅ Registration with mock LLM successful")
     
     if result.get('tools'):
         tool = result['tools'][0]
         
-        # Test complex query
+        #Test complex query
         test_query = "Як ти бачиш вдосконалення памяті?"
         
         response = tool(test_query)

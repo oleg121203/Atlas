@@ -5,7 +5,7 @@
 
 print("🧪 Тестування виправлених режимів")
 
-# Імпорт основних класів
+#Імпорт основних класів
 try:
     import sys
     import os
@@ -15,19 +15,19 @@ try:
     from agents.chat_context_manager import ChatMode, ChatContext, ModeControl
     print("✅ Основні класи імпортовано")
     
-    # Перевірка enum
+    #Verification enum
     modes = list(ChatMode)
     print(f"✅ Режими: {[m.value for m in modes]}")
     
-    # Тестування без memory_manager
+    #Тестування без memory_manager
     print("📝 Створення ChatContextManager...")
     from agents.chat_context_manager import ChatContextManager
     
-    # Створення без залежностей
+    #Creation без залежностей
     manager = ChatContextManager(memory_manager=None)
     print("✅ ChatContextManager створено")
     
-    # Простий тест
+    #Простий тест
     print("🧪 Тестування простих повідомлень...")
     
     test_messages = [

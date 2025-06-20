@@ -12,7 +12,7 @@ import sys
 import traceback
 from pathlib import Path
 
-# Add project root to Python path
+#Add project root to Python path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
@@ -21,15 +21,15 @@ def test_env_loading():
     print("🔧 Testing .env loading and API key management...")
     
     try:
-        # Load .env
+        #Load .env
         from dotenv import load_dotenv
         load_dotenv()
         
-        # Test config manager
+        #Test config manager
         from config_manager import ConfigManager
         config = ConfigManager()
         
-        # Test API key access
+        #Test API key access
         openai_key = config.get_openai_api_key()
         gemini_key = config.get_gemini_api_key()
         mistral_key = config.get_mistral_api_key()
@@ -60,14 +60,14 @@ def test_tool_loading():
         from agents.token_tracker import TokenTracker
         from config_manager import ConfigManager
         
-        # Initialize managers
+        #Initialize managers
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker=token_tracker, config_manager=config_manager)
         memory_manager = EnhancedMemoryManager(llm_manager=llm_manager, config_manager=config_manager)
         agent_manager = AgentManager(llm_manager=llm_manager, memory_manager=memory_manager)
         
-        # Get tool details
+        #Get tool details
         tools = agent_manager.get_all_tools_details()
         tool_names = agent_manager.get_tool_names()
         
@@ -75,7 +75,7 @@ def test_tool_loading():
         print(f"   ✅ Built-in tools: {len([t for t in tools if t.get('type') == 'builtin'])}")
         print(f"   ✅ Generated tools: {len([t for t in tools if t.get('type') == 'generated'])}")
         
-        # Check specific critical tools
+        #Check specific critical tools
         critical_tools = ['capture_screen', 'get_clipboard_text', 'click_at', 'create_tool']
         missing_tools = [tool for tool in critical_tools if tool not in tool_names]
         
@@ -101,14 +101,14 @@ def test_chat_mode_detection():
         from agents.token_tracker import TokenTracker
         from config_manager import ConfigManager
         
-        # Initialize managers
+        #Initialize managers
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker=token_tracker, config_manager=config_manager)
         memory_manager = EnhancedMemoryManager(llm_manager=llm_manager, config_manager=config_manager)
         context_manager = ChatContextManager(memory_manager=memory_manager)
         
-        # Test cases
+        #Test cases
         test_cases = [
             ("Hello!", ChatMode.CASUAL_CHAT),
             ("How are you?", ChatMode.CASUAL_CHAT),
@@ -130,7 +130,7 @@ def test_chat_mode_detection():
         accuracy = sum(results) / len(results) * 100
         print(f"   📊 Mode detection accuracy: {accuracy:.1f}%")
         
-        return accuracy >= 70  # Accept 70%+ accuracy
+        return accuracy >= 70  #Accept 70%+ accuracy
     except Exception as e:
         print(f"   ❌ Error: {e}")
         traceback.print_exc()
@@ -141,46 +141,46 @@ def test_headless_robustness():
     print("🖥️ Testing headless environment robustness...")
     
     try:
-        # Test that tools with GUI dependencies handle gracefully
+        #Test that tools with GUI dependencies handle gracefully
         import sys
         old_display = os.environ.get('DISPLAY')
         
-        # Simulate headless environment
+        #Simulate headless environment
         if 'DISPLAY' in os.environ:
             del os.environ['DISPLAY']
         
-        # Test screenshot tool
+        #Test screenshot tool
         from tools.screenshot_tool import capture_screen
         result = capture_screen("test_screenshot.png")
         print(f"   ✅ Screenshot tool handles headless: {type(result)}")
         
-        # Test mouse/keyboard tool
+        #Test mouse/keyboard tool
         from tools.mouse_keyboard_tool import click_at
         result = click_at(100, 100)
         print(f"   ✅ Mouse/keyboard tool handles headless: {type(result)}")
         
-        # Test clipboard tool
+        #Test clipboard tool
         from tools.clipboard_tool import get_clipboard_text
         result = get_clipboard_text()
         print(f"   ✅ Clipboard tool handles headless: {type(result)}")
         
-        # Test image recognition tool
+        #Test image recognition tool
         from tools.image_recognition_tool import find_template_in_image
         result = find_template_in_image("nonexistent.png", "nonexistent2.png")
         print(f"   ✅ Image recognition tool handles missing cv2: {result is None}")
         
-        # Test OCR tool
+        #Test OCR tool
         from tools.ocr_tool import ocr_file
         try:
-            # Create a dummy image file to avoid file not found error
+            #Create a dummy image file to avoid file not found error
             from PIL import Image
             import tempfile
             with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
-                # Create a small test image
+                #Create a small test image
                 img = Image.new('RGB', (10, 10), color='white')
                 img.save(tmp.name)
                 result = ocr_file(tmp.name)
-                os.unlink(tmp.name)  # Clean up
+                os.unlink(tmp.name)  #Clean up
             print(f"   ✅ OCR tool works with available dependencies")
         except (RuntimeError, ImportError) as e:
             if "not available" in str(e):
@@ -190,7 +190,7 @@ def test_headless_robustness():
         except Exception as e:
             print(f"   ⚠️ OCR tool error (expected in headless): {type(e).__name__}")
         
-        # Restore DISPLAY if it was set
+        #Restore DISPLAY if it was set
         if old_display:
             os.environ['DISPLAY'] = old_display
         

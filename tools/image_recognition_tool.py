@@ -4,7 +4,7 @@ Image Recognition Tool for Atlas
 This module provides functionality for image recognition tasks, such as template matching
 and object detection on screenshots, using OpenCV.
 """
-# Try to import cv2 safely for headless environments or missing dependencies
+#Try to import cv2 safely for headless environments or missing dependencies
 try:
     import cv2
     import numpy as np
@@ -14,7 +14,7 @@ except ImportError:
 
 from typing import Optional, Tuple
 
-from logger import get_logger
+from utils.logger import get_logger
 
 logger = get_logger()
 
@@ -35,7 +35,7 @@ def find_template_in_image(template_path: str, image_path: str, threshold: float
         return None
         
     try:
-        # Read images
+        #Read images
         template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
         image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         
@@ -43,7 +43,7 @@ def find_template_in_image(template_path: str, image_path: str, threshold: float
             logger.error(f"Failed to load images: template={template_path}, image={image_path}")
             return None
         
-        # Perform template matching
+        #Perform template matching
         result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
         
@@ -73,7 +73,7 @@ def find_object_in_image(image_path: str, object_cascade_path: str) -> list:
         return []
         
     try:
-        # Load image and cascade classifier
+        #Load image and cascade classifier
         image = cv2.imread(image_path)
         if image is None:
             logger.error(f"Failed to load image: {image_path}")
@@ -85,7 +85,7 @@ def find_object_in_image(image_path: str, object_cascade_path: str) -> list:
             logger.error(f"Failed to load cascade classifier: {object_cascade_path}")
             return []
         
-        # Detect objects
+        #Detect objects
         objects = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
         logger.info(f"Found {len(objects)} objects in image")
         return objects.tolist()

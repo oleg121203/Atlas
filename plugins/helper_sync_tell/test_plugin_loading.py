@@ -8,7 +8,7 @@ import sys
 import os
 from pathlib import Path
 
-# Add Atlas root to path
+#Add Atlas root to path
 atlas_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(atlas_root))
 
@@ -17,25 +17,25 @@ def test_plugin_loading():
     print("Testing Helper Sync Tell plugin loading...")
     
     try:
-        # Add plugin directory to path
+        #Add plugin directory to path
         plugin_dir = Path(__file__).parent
         sys.path.insert(0, str(plugin_dir))
         
-        # Import the plugin module
+        #Import the plugin module
         import plugin
         
         print("✓ Plugin module imported successfully")
         
-        # Test tool creation
+        #Test tool creation
         tool = plugin.HelperSyncTellTool()
         print(f"✓ Tool created: {tool.name}")
         print(f"✓ Platform info: {tool.platform_info}")
         
-        # Test registration function
+        #Test registration function
         registration_data = plugin.register()
         print(f"✓ Registration successful: {len(registration_data['tools'])} tools, {len(registration_data['agents'])} agents")
         
-        # Test basic functionality
+        #Test basic functionality
         test_query = "How does memory work in Atlas?"
         response = tool(test_query, {})
         print(f"✓ Basic functionality test completed")

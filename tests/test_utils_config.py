@@ -17,7 +17,7 @@ def test_utils_config_manager():
         config = ConfigManager()
         print("✅ Створено ConfigManager")
         
-        # Тест API ключів
+        #Тест API ключів
         print("\n🔑 Тестування API ключів:")
         
         openai_key = config.get_openai_api_key()
@@ -32,7 +32,7 @@ def test_utils_config_manager():
         groq_key = config.get_groq_api_key()
         print(f"  Groq: {'Встановлено' if groq_key else 'Порожньо'}")
         
-        # Тест get_setting
+        #Тест get_setting
         print("\n⚙️  Тестування get_setting:")
         
         gemini_via_setting = config.get_setting('gemini_api_key')
@@ -44,10 +44,10 @@ def test_utils_config_manager():
         model = config.get_current_model()
         print(f"  Поточна модель: {model}")
         
-        # Тест збереження/завантаження
+        #Тест storage/loading
         print("\n💾 Тестування збереження/завантаження:")
         
-        # Тестове налаштування
+        #Тестове settings
         test_settings = {
             'test_setting': 'test_value',
             'api_keys': {

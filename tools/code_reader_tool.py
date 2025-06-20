@@ -23,7 +23,7 @@ import re
 class CodeElement:
     """Represents a code element (function, class, variable, etc.)"""
     name: str
-    type: str  # 'function', 'class', 'method', 'variable', 'import'
+    type: str  #'function', 'class', 'method', 'variable', 'import'
     file_path: str
     line_number: int
     end_line: int
@@ -66,7 +66,7 @@ class CodeIndex:
         """Add file analysis to index"""
         self.files[analysis.path] = analysis
         
-        # Index all elements
+        #Index all elements
         for element in analysis.elements:
             self.elements[element.name.lower()].append(element)
     
@@ -114,7 +114,7 @@ class CodeIndex:
                     cache_data = json.load(f)
                 
                 for path, file_data in cache_data.get('files', {}).items():
-                    # Convert dict back to dataclass
+                    #Convert dict back to dataclass
                     elements = [CodeElement(**elem) for elem in file_data['elements']]
                     file_data['elements'] = elements
                     analysis = FileAnalysis(**file_data)
@@ -130,7 +130,7 @@ class CodeReaderTool:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.root_path = Path(root_path) if root_path else Path(__file__).parent.parent
         self.allowed_extensions = {'.py', '.md', '.txt', '.json', '.yaml', '.yml', '.toml'}
-        # Розширений список виключених директорій для macOS
+        #Розширений список виключених директорій для macOS
         self.excluded_dirs = {
             '__pycache__', '.git', '.venv', 'venv', 'venv-macos', 'venv-linux', 
             'node_modules', '.pytest_cache', 'build', 'dist', '.mypy_cache',
@@ -138,13 +138,13 @@ class CodeReaderTool:
             '.DS_Store', 'unused', 'monitoring/logs'
         }
         
-        # Initialize code index for advanced analysis
+        #Initialize code index for advanced analysis
         self.index = CodeIndex(cache_file=str(self.root_path / ".atlas_code_cache.json"))
         self._last_index_update = 0
-        self._index_update_interval = 300  # 5 minutes
+        self._index_update_interval = 300  #5 minutes
         
-        # Запускаємо індексацію в фоні, щоб не блокувати запуск
-        # Можна відключити через змінну середовища
+        #Запускаємо індексацію в фоні, щоб не блокувати запуск
+        #Можна відключити через змінну середовища
         if os.getenv('ATLAS_DISABLE_CODE_INDEXING', '').lower() not in ('true', '1', 'yes'):
             import threading
             self._indexing_thread = threading.Thread(target=self._ensure_index_updated, daemon=True)
@@ -196,35 +196,35 @@ class CodeReaderTool:
     def read_file(self, file_path: str) -> str:
         """Read a specific file from the Atlas codebase."""
         try:
-            # Normalize and validate path
+            #Normalize and validate path
             normalized_path = Path(file_path)
             if not normalized_path.is_absolute():
                 full_path = self.root_path / normalized_path
             else:
                 full_path = normalized_path
                 
-            # Security check - ensure path is within root
+            #Security check - ensure path is within root
             try:
                 full_path.resolve().relative_to(self.root_path.resolve())
             except ValueError:
                 return "❌ Access denied: Path outside Atlas codebase"
             
-            # Check if file exists and is readable
+            #Check if file exists and is readable
             if not full_path.exists():
                 return f"❌ File not found: {file_path}"
                 
             if not full_path.is_file():
                 return f"❌ Not a file: {file_path}"
                 
-            # Check file extension
+            #Check file extension
             if full_path.suffix not in self.allowed_extensions:
                 return f"❌ File type not allowed: {full_path.suffix}. Allowed: {', '.join(self.allowed_extensions)}"
             
-            # Read file content
+            #Read file content
             with open(full_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-            # Add file info header
+            #Add file info header
             file_size = len(content)
             line_count = content.count('\n') + 1
             relative_path = full_path.relative_to(self.root_path)
@@ -252,16 +252,16 @@ class CodeReaderTool:
             results = []
             search_count = 0
             
-            # Use glob to find matching files
+            #Use glob to find matching files
             for file_path in self.root_path.glob(file_pattern):
                 if search_count >= max_results:
                     break
                     
-                # Skip excluded directories
+                #Skip excluded directories
                 if any(excluded in file_path.parts for excluded in self.excluded_dirs):
                     continue
                     
-                # Skip non-allowed extensions
+                #Skip non-allowed extensions
                 if file_path.suffix not in self.allowed_extensions:
                     continue
                 
@@ -270,7 +270,7 @@ class CodeReaderTool:
                         content = f.read()
                         lines = content.split('\n')
                         
-                    # Search for term in file
+                    #Search for term in file
                     matches = []
                     for line_num, line in enumerate(lines, 1):
                         if search_term.lower() in line.lower():
@@ -279,7 +279,7 @@ class CodeReaderTool:
                     if matches:
                         relative_path = file_path.relative_to(self.root_path)
                         results.append(f"📄 **{relative_path}**:")
-                        results.extend(matches[:5])  # Limit matches per file
+                        results.extend(matches[:5])  #Limit matches per file
                         if len(matches) > 5:
                             results.append(f"  ... and {len(matches) - 5} more matches")
                         results.append("")
@@ -307,7 +307,7 @@ class CodeReaderTool:
             else:
                 full_path = normalized_path
                 
-            # Security check
+            #Security check
             try:
                 full_path.resolve().relative_to(self.root_path.resolve())
             except ValueError:
@@ -339,7 +339,7 @@ class CodeReaderTool:
                     line_count = content.count('\n') + 1
                     info += f"**Lines:** {line_count}\n"
                     
-                    # Add first few lines as preview
+                    #Add first few lines as preview
                     lines = content.split('\n')[:10]
                     info += f"\n**Preview (first 10 lines):**\n```{self._get_language_hint(full_path)}\n"
                     info += '\n'.join(lines)
@@ -368,7 +368,7 @@ class CodeReaderTool:
                 else:
                     target_path = normalized_path
             
-            # Security check
+            #Security check
             try:
                 target_path.resolve().relative_to(self.root_path.resolve())
             except ValueError:
@@ -406,12 +406,12 @@ class CodeReaderTool:
             self.logger.error(f"Error listing directory {dir_path}: {e}")
             return f"❌ Error listing directory: {str(e)}"
     
-    # =================== ADVANCED CODE ANALYSIS METHODS ===================
+    #=================== ADVANCED CODE ANALYSIS METHODS ===================
     
     def _ensure_index_updated(self):
         """Ensure code index is up to date"""
         try:
-            # Спочатку спробуємо завантажити існуючий кеш
+            #Спочатку спробуємо завантажити існуючий cache
             cache_file = self.root_path / ".atlas_code_cache.json"
             if cache_file.exists():
                 cache_age = time.time() - cache_file.stat().st_mtime
@@ -429,22 +429,22 @@ class CodeReaderTool:
         """Rebuild the entire code index from scratch"""
         self.logger.info("Rebuilding code index...")
         start_time = time.time()
-        max_indexing_time = 30  # Максимум 30 секунд на індексацію
+        max_indexing_time = 30  #Максимум 30 секунд на індексацію
         
-        # Clear existing index
+        #Clear existing index
         self.index = CodeIndex(cache_file=str(self.root_path / ".atlas_code_cache.json"))
         
-        # Index only Atlas Python files (not venv)
+        #Index only Atlas Python files (not venv)
         python_files = []
         for pattern in ["*.py", "agents/*.py", "tools/*.py", "ui/*.py", "utils/*.py", "tests/*.py"]:
             python_files.extend(self.root_path.glob(pattern))
         
-        # Обмежуємо кількість файлів
-        python_files = python_files[:200]  # Максимум 200 файлів
+        #Обмежуємо кількість файлів
+        python_files = python_files[:200]  #Максимум 200 файлів
         
         files_processed = 0
         for file_path in python_files:
-            # Перевірка таймауту
+            #Verification таймауту
             if time.time() - start_time > max_indexing_time:
                 self.logger.info(f"Indexing timeout reached, processed {files_processed} files")
                 break
@@ -473,13 +473,13 @@ class CodeReaderTool:
     def _analyze_python_file(self, file_path: Path) -> Optional[FileAnalysis]:
         """Analyze a Python file using AST and extract code elements"""
         try:
-            # Перевірка на виключені директорії
+            #Verification на виключені директорії
             if any(excluded in file_path.parts for excluded in self.excluded_dirs):
                 return None
                 
-            # Перевірка розміру файлу (максимум 1MB)
+            #Verification розміру файлу (максимум 1MB)
             stat = file_path.stat()
-            max_size = 1024 * 1024  # 1MB
+            max_size = 1024 * 1024  #1MB
             if stat.st_size > max_size:
                 self.logger.warning(f"Skipping large file {file_path} ({stat.st_size} bytes)")
                 return None
@@ -487,34 +487,34 @@ class CodeReaderTool:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # Перевірка кількості рядків (максимум 10000)
+            #Verification кількості рядків (максимум 10000)
             lines = content.count('\n') + 1
             if lines > 10000:
                 self.logger.warning(f"Skipping large file {file_path} ({lines} lines)")
                 return None
             
-            # Basic file info
+            #Basic file info
             file_hash = hashlib.md5(content.encode()).hexdigest()
             
-            # Parse AST з обмеженням глибини рекурсії
+            #Parse AST з обмеженням глибини рекурсії
             try:
                 import sys
                 old_limit = sys.getrecursionlimit()
-                sys.setrecursionlimit(500)  # Обмежуємо рекурсію
+                sys.setrecursionlimit(500)  #Обмежуємо рекурсію
                 tree = ast.parse(content, filename=str(file_path))
                 sys.setrecursionlimit(old_limit)
             except (SyntaxError, RecursionError) as e:
                 self.logger.warning(f"Cannot parse {file_path}: {e}")
                 return None
             
-            # Extract elements
+            #Extract elements
             analyzer = ASTAnalyzer(str(file_path))
             analyzer.visit(tree)
             
-            # Calculate dependencies
+            #Calculate dependencies
             dependencies = self._extract_dependencies(content)
             
-            # Calculate file complexity
+            #Calculate file complexity
             complexity = self._calculate_file_complexity(analyzer.elements)
             
             return FileAnalysis(
@@ -545,16 +545,16 @@ class CodeReaderTool:
             for file_analysis in self.index.files.values():
                 elements.extend([e for e in file_analysis.elements if e.type in ['function', 'method']])
         
-        # Filter by class if specified
+        #Filter by class if specified
         if class_name:
             elements = [e for e in elements if e.parent_class and class_name.lower() in e.parent_class.lower()]
         
         if not elements:
             return f"🔍 No functions found" + (f" for query '{query}'" if query else "") + (f" in class '{class_name}'" if class_name else "")
         
-        # Group by file
+        #Group by file
         by_file = defaultdict(list)
-        for element in elements[:50]:  # Limit results
+        for element in elements[:50]:  #Limit results
             by_file[element.file_path].append(element)
         
         result = []
@@ -568,7 +568,7 @@ class CodeReaderTool:
                 complexity_info = f" [complexity: {element.complexity}]" if element.complexity > 0 else ""
                 result.append(f"  {icon} `{element.signature}`{parent_info} - Line {element.line_number}{complexity_info}")
                 if element.docstring:
-                    # Show first line of docstring
+                    #Show first line of docstring
                     first_line = element.docstring.split('\n')[0].strip()
                     if first_line:
                         result.append(f"    💬 {first_line}")
@@ -590,9 +590,9 @@ class CodeReaderTool:
         if not elements:
             return f"🔍 No classes found" + (f" for query '{query}'" if query else "")
         
-        # Group by file
+        #Group by file
         by_file = defaultdict(list)
-        for element in elements[:30]:  # Limit results
+        for element in elements[:30]:  #Limit results
             by_file[element.file_path].append(element)
         
         result = []
@@ -606,12 +606,12 @@ class CodeReaderTool:
                     decorators_info = f" @{', @'.join(element.decorators)}"
                 result.append(f"  📦 `{element.name}`{decorators_info} - Line {element.line_number}")
                 if element.docstring:
-                    # Show first line of docstring
+                    #Show first line of docstring
                     first_line = element.docstring.split('\n')[0].strip()
                     if first_line:
                         result.append(f"    💬 {first_line}")
                 
-                # Show methods in this class
+                #Show methods in this class
                 methods = [e for e in self.index.get_file_elements(file_path, 'method') 
                           if e.parent_class == element.name]
                 if methods:
@@ -626,7 +626,7 @@ class CodeReaderTool:
         """Provide detailed structural analysis of a Python file"""
         self._ensure_index_updated()
         
-        # Normalize path
+        #Normalize path
         normalized_path = Path(file_path)
         if not normalized_path.is_absolute():
             full_path = self.root_path / normalized_path
@@ -635,9 +635,9 @@ class CodeReaderTool:
         
         relative_path = str(full_path.relative_to(self.root_path))
         
-        # Check if file is in index
+        #Check if file is in index
         if relative_path not in self.index.files:
-            # Try to analyze it now
+            #Try to analyze it now
             if full_path.suffix == '.py':
                 analysis = self._analyze_python_file(full_path)
                 if analysis:
@@ -658,12 +658,12 @@ class CodeReaderTool:
         result.append(f"  • Elements: {len(analysis.elements)}")
         result.append("")
         
-        # Group elements by type
+        #Group elements by type
         by_type = defaultdict(list)
         for element in analysis.elements:
             by_type[element.type].append(element)
         
-        # Show imports
+        #Show imports
         if analysis.imports:
             result.append("📦 **Imports:**")
             for imp in analysis.imports[:10]:
@@ -672,7 +672,7 @@ class CodeReaderTool:
                 result.append(f"  • ... and {len(analysis.imports) - 10} more")
             result.append("")
         
-        # Show dependencies
+        #Show dependencies
         if analysis.dependencies:
             result.append("🔗 **Dependencies:**")
             for dep in analysis.dependencies[:10]:
@@ -681,7 +681,7 @@ class CodeReaderTool:
                 result.append(f"  • ... and {len(analysis.dependencies) - 10} more")
             result.append("")
         
-        # Show classes and their methods
+        #Show classes and their methods
         if 'class' in by_type:
             result.append("📦 **Classes:**")
             for cls in by_type['class']:
@@ -691,7 +691,7 @@ class CodeReaderTool:
                     if first_line:
                         result.append(f"    💬 {first_line}")
                 
-                # Show methods for this class
+                #Show methods for this class
                 methods = [e for e in analysis.elements if e.type == 'method' and e.parent_class == cls.name]
                 if methods:
                     result.append(f"    🔧 Methods ({len(methods)}):")
@@ -701,7 +701,7 @@ class CodeReaderTool:
                         result.append(f"      - ... and {len(methods) - 5} more")
             result.append("")
         
-        # Show standalone functions
+        #Show standalone functions
         standalone_functions = [e for e in by_type.get('function', []) if not e.parent_class]
         if standalone_functions:
             result.append("⚙️ **Functions:**")
@@ -714,7 +714,7 @@ class CodeReaderTool:
                         result.append(f"    💬 {first_line}")
             result.append("")
         
-        # Show variables/constants
+        #Show variables/constants
         if 'variable' in by_type:
             result.append("🔤 **Variables/Constants:**")
             for var in by_type['variable'][:10]:
@@ -731,7 +731,7 @@ class CodeReaderTool:
         results = []
         total_matches = 0
         
-        # Search in indexed elements
+        #Search in indexed elements
         elements = self.index.search_elements(symbol)
         if elements:
             results.append(f"🎯 **Symbol Definitions for '{symbol}':**\n")
@@ -742,7 +742,7 @@ class CodeReaderTool:
                 results.append(f"  {icon} `{element.name}` - {element.file_path}:{element.line_number}{parent_info}")
             results.append("")
         
-        # Search for usage in file contents
+        #Search for usage in file contents
         usage_results = self.search_in_files(symbol, "**/*.py", max_results=15)
         if "No results found" not in usage_results:
             results.append(f"🔍 **Usage Patterns:**\n")
@@ -760,12 +760,12 @@ class CodeReaderTool:
         if not self.index.files:
             return "❌ No files indexed. Run rebuild_index() first."
         
-        # Calculate metrics
+        #Calculate metrics
         total_files = len(self.index.files)
         total_lines = sum(f.lines for f in self.index.files.values())
         total_size = sum(f.size for f in self.index.files.values())
         
-        # Count elements by type
+        #Count elements by type
         element_counts = defaultdict(int)
         total_complexity = 0
         
@@ -774,11 +774,11 @@ class CodeReaderTool:
             for element in file_analysis.elements:
                 element_counts[element.type] += 1
         
-        # Find most complex files
+        #Find most complex files
         complex_files = sorted(self.index.files.values(), 
                              key=lambda f: f.complexity, reverse=True)[:5]
         
-        # Find largest files
+        #Find largest files
         large_files = sorted(self.index.files.values(), 
                            key=lambda f: f.lines, reverse=True)[:5]
         
@@ -821,12 +821,12 @@ class CodeReaderTool:
         results = []
         
         if search_type in ["all", "definitions"]:
-            # Search for symbol definitions
+            #Search for symbol definitions
             elements = self.index.search_elements(query)
             if elements:
                 results.append(f"🎯 **Symbol Definitions for '{query}':**\n")
                 
-                # Group by type
+                #Group by type
                 by_type = defaultdict(list)
                 for element in elements[:20]:
                     by_type[element.type].append(element)
@@ -843,14 +843,14 @@ class CodeReaderTool:
                 results.append("")
         
         if search_type in ["all", "content"]:
-            # Search in file contents
+            #Search in file contents
             content_results = self.search_in_files(query, "**/*.py", max_results=10)
             if "No results found" not in content_results:
                 results.append(content_results)
                 results.append("")
         
         if search_type in ["all", "files"]:
-            # Search for files with matching names
+            #Search for files with matching names
             file_matches = []
             for file_path in self.root_path.glob("**/*"):
                 if any(excluded in file_path.parts for excluded in self.excluded_dirs):
@@ -879,13 +879,13 @@ class CodeReaderTool:
         for line in content.split('\n'):
             line = line.strip()
             if line.startswith('import ') or line.startswith('from '):
-                # Extract module name
+                #Extract module name
                 if line.startswith('import '):
                     module = line[7:].split()[0].split('.')[0]
                 elif line.startswith('from '):
                     module = line[5:].split()[0].split('.')[0]
                 
-                # Filter out local imports (starting with .)
+                #Filter out local imports (starting with .)
                 if not module.startswith('.'):
                     dependencies.add(module)
         
@@ -972,13 +972,13 @@ class ASTAnalyzer(ast.NodeVisitor):
     
     def visit_ClassDef(self, node):
         """Visit class definitions"""
-        # Extract decorators
+        #Extract decorators
         decorators = [self._get_decorator_name(dec) for dec in node.decorator_list]
         
-        # Extract docstring
+        #Extract docstring
         docstring = ast.get_docstring(node)
         
-        # Create class element
+        #Create class element
         element = CodeElement(
             name=node.name,
             type='class',
@@ -991,34 +991,34 @@ class ASTAnalyzer(ast.NodeVisitor):
         )
         self.elements.append(element)
         
-        # Push class to stack for nested analysis
+        #Push class to stack for nested analysis
         self.class_stack.append(node.name)
         self.current_class = node.name
         
         self.generic_visit(node)
         
-        # Pop class from stack
+        #Pop class from stack
         self.class_stack.pop()
         self.current_class = self.class_stack[-1] if self.class_stack else None
     
     def visit_FunctionDef(self, node):
         """Visit function definitions"""
-        # Extract decorators
+        #Extract decorators
         decorators = [self._get_decorator_name(dec) for dec in node.decorator_list]
         
-        # Extract docstring
+        #Extract docstring
         docstring = ast.get_docstring(node)
         
-        # Build signature
+        #Build signature
         args = []
         for arg in node.args.args:
             args.append(arg.arg)
         signature = f"{node.name}({', '.join(args)})"
         
-        # Calculate cyclomatic complexity
+        #Calculate cyclomatic complexity
         complexity = self._calculate_complexity(node)
         
-        # Determine if it's a method or function
+        #Determine if it's a method or function
         element_type = 'method' if self.current_class else 'function'
         
         element = CodeElement(
@@ -1039,13 +1039,13 @@ class ASTAnalyzer(ast.NodeVisitor):
     
     def visit_AsyncFunctionDef(self, node):
         """Visit async function definitions"""
-        # Treat async functions the same as regular functions
+        #Treat async functions the same as regular functions
         self.visit_FunctionDef(node)
     
     def visit_Assign(self, node):
         """Visit variable assignments"""
-        # Only capture module-level and class-level variables
-        if len(self.class_stack) <= 1:  # Module level or class level
+        #Only capture module-level and class-level variables
+        if len(self.class_stack) <= 1:  #Module level or class level
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     element = CodeElement(
@@ -1077,10 +1077,10 @@ class ASTAnalyzer(ast.NodeVisitor):
     
     def _calculate_complexity(self, node) -> int:
         """Calculate cyclomatic complexity of a function"""
-        complexity = 1  # Base complexity
+        complexity = 1  #Base complexity
         
         for child in ast.walk(node):
-            # Decision points that increase complexity
+            #Decision points that increase complexity
             if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor)):
                 complexity += 1
             elif isinstance(child, ast.ExceptHandler):

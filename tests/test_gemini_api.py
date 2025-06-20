@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-# Додаємо поточну директорію до шляху
+#Додаємо поточну директорію до шляху
 sys.path.insert(0, str(Path(__file__).parent))
 
 def test_gemini_chat():
@@ -15,31 +15,31 @@ def test_gemini_chat():
     print("🧪 Тестування Gemini API...")
     
     try:
-        # Імпортуємо необхідні класи
+        #Імпортуємо необхідні класи
         from agents.token_tracker import TokenTracker, TokenUsage
         from agents.llm_manager import LLMManager
         
-        # Створюємо token tracker
+        #Створюємо token tracker
         token_tracker = TokenTracker()
         
-        # Створюємо LLM manager
+        #Створюємо LLM manager
         llm_manager = LLMManager(token_tracker)
         
-        # Перевіряємо, чи Gemini клієнт ініціалізовано
+        #Перевіряємо, чи Gemini клієнт ініціалізовано
         if not llm_manager.gemini_client:
             print("❌ Gemini клієнт не ініціалізовано")
             return False
         
         print("✅ Gemini клієнт ініціалізовано")
         
-        # Тестуємо простий чат
+        #Тестуємо простий чат
         test_messages = [
             {"role": "user", "content": "Привіт! Скажи щось українською мовою."}
         ]
         
         print("📤 Відправляємо тестове повідомлення...")
         
-        # Викликаємо чат
+        #Викликаємо чат
         try:
             response = llm_manager._chat_gemini(test_messages)
             print(f"✅ Отримано відповідь: {response.response_text[:100]}...")
@@ -58,21 +58,21 @@ def test_config():
     """Тестуємо конфігурацію"""
     print("\n🔧 Тестування конфігурації...")
     
-    # Перевіряємо config.ini
+    #Перевіряємо config.ini
     if not os.path.exists('config.ini'):
         print("❌ config.ini не знайдено")
         return False
     
     print("✅ config.ini знайдено")
     
-    # Перевіряємо .env
+    #Перевіряємо .env
     if not os.path.exists('.env'):
         print("❌ .env не знайдено")
         return False
     
     print("✅ .env знайдено")
     
-    # Перевіряємо змінні середовища
+    #Перевіряємо змінні середовища
     gemini_key = os.getenv('GEMINI_API_KEY')
     if not gemini_key or gemini_key.startswith('your-'):
         print("❌ GEMINI_API_KEY не налаштовано")
@@ -86,16 +86,16 @@ def main():
     print("🚀 Atlas Gemini API Test")
     print("=" * 30)
     
-    # Перехід до директорії Atlas
+    #Перехід до директорії Atlas
     atlas_dir = Path(__file__).parent
     os.chdir(atlas_dir)
     
-    # Тестуємо конфігурацію
+    #Тестуємо конфігурацію
     if not test_config():
         print("\n❌ Проблеми з конфігурацією")
         return False
     
-    # Тестуємо Gemini API
+    #Тестуємо Gemini API
     if test_gemini_chat():
         print("\n🎉 Gemini API працює правильно!")
         return True

@@ -11,10 +11,10 @@ from enum import Enum
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-# Add parent directory to Python path
+#Add parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Simple mock classes for testing without full dependencies
+#Simple mock classes for testing without full dependencies
 
 class MockChatMode(Enum):
     CASUAL_CHAT = "casual_chat"
@@ -34,7 +34,7 @@ class SimpleChatMemoryTest:
     """Simple test of chat memory organization concepts."""
     
     def __init__(self):
-        self.memory_store = {}  # Simple in-memory store
+        self.memory_store = {}  #Simple in-memory store
         self.mode_configs = {
             MockChatMode.CASUAL_CHAT: {'ttl_days': 7, 'max_context': 20},
             MockChatMode.SYSTEM_HELP: {'ttl_days': 30, 'max_context': 50},
@@ -53,7 +53,7 @@ class SimpleChatMemoryTest:
             'mode': mode.value
         })
         
-        # Apply max context limit
+        #Apply max context limit
         config = self.mode_configs[mode]
         max_entries = config['max_context']
         if len(self.memory_store[mode]) > max_entries:
@@ -86,7 +86,7 @@ def test_chat_memory_isolation():
     
     memory_test = SimpleChatMemoryTest()
     
-    # Test data for different modes
+    #Test data for different modes
     test_scenarios = [
         (MockChatMode.CASUAL_CHAT, [
             ("Hello! How are you?", "I'm doing great, thanks for asking!"),
@@ -110,7 +110,7 @@ def test_chat_memory_isolation():
         ])
     ]
     
-    # Store conversations
+    #Store conversations
     print("📝 Storing conversations by mode:")
     for mode, conversations in test_scenarios:
         print(f"\n💬 {mode.value.upper()} Mode:")
@@ -121,7 +121,7 @@ def test_chat_memory_isolation():
     
     print("\n✅ All conversations stored with mode isolation")
     
-    # Test isolation verification
+    #Test isolation verification
     print("\n🔒 Verifying Mode Isolation:")
     print("-" * 40)
     
@@ -129,12 +129,12 @@ def test_chat_memory_isolation():
         conversations = memory_test.get_conversations(mode)
         print(f"📊 {mode.value}: {len(conversations)} conversations")
         
-        # Show sample
+        #Show sample
         if conversations:
             sample = conversations[0]
             print(f"   Sample: \"{sample['user'][:30]}...\"")
     
-    # Test statistics
+    #Test statistics
     print("\n📈 Memory Statistics:")
     print("-" * 40)
     
@@ -148,7 +148,7 @@ def test_chat_memory_isolation():
     
     print(f"\n📋 TOTAL CONVERSATIONS: {stats['total']}")
     
-    # Test mode-specific configurations
+    #Test mode-specific configurations
     print("\n⚙️  Mode Configuration Verification:")
     print("-" * 40)
     
@@ -187,8 +187,8 @@ def test_development_mode_features():
         print(f"   ✅ {feature}: {description}")
     
     dev_memory_config = {
-        'ttl_days': 180,  # Longest retention
-        'max_context': 200,  # Largest context window
+        'ttl_days': 180,  #Longest retention
+        'max_context': 200,  #Largest context window
         'backup_enabled': True,
         'enhanced_metadata': True,
         'safety_checks': True

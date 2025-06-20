@@ -20,7 +20,7 @@ def test_pattern_detection():
     """Test our improved pattern detection logic."""
     print("🧪 Testing pattern detection logic...\n")
     
-    # Define the same patterns as in our improved code
+    #Define the same patterns as in our improved code
     mode_patterns = {
         ChatMode.CASUAL_CHAT: {
             'keywords': [
@@ -45,7 +45,7 @@ def test_pattern_detection():
         message_lower = message.lower()
         scores = {}
         
-        # Analyze each mode
+        #Analyze each mode
         for mode, patterns in mode_patterns.items():
             score = 0.0
             keyword_matches = 0
@@ -64,7 +64,7 @@ def test_pattern_detection():
         best_mode = max(scores.keys(), key=lambda k: scores[k]) if scores else ChatMode.CASUAL_CHAT
         confidence = scores.get(best_mode, 0.0)
         
-        # Apply memory boost
+        #Apply memory boost
         memory_indicators = ['пам\'ять', 'память', 'memory', 'забезпечена', 'довгострокова', 'розмежуванням', 'цікавить']
         if any(indicator in message_lower for indicator in memory_indicators):
             if best_mode == ChatMode.SYSTEM_HELP:

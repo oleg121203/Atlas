@@ -35,7 +35,7 @@ class ToolManagementView(ctk.CTkFrame):
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
-        # Create header
+        #Create header
         header_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="transparent")
         header_frame.pack(fill="x", padx=5, pady=(5, 0))
         header_frame.grid_columnconfigure(0, weight=4)
@@ -67,12 +67,12 @@ class ToolManagementView(ctk.CTkFrame):
         try:
             if sys.platform == "win32":
                 subprocess.run(["start", file_path], check=True, shell=True)
-            elif sys.platform == "darwin": # macOS
+            elif sys.platform == "darwin": #macOS
                 subprocess.run(["open", file_path], check=True)
-            else: # linux
+            else: #linux
                 subprocess.run(["xdg-open", file_path], check=True)
         except Exception as e:
-            # You might want to show an error message to the user in the GUI
+            #You might want to show an error message to the user in the GUI
             print(f"Error opening file: {e}")
 
     def _delete_tool(self, tool_name: str, file_path: str):
@@ -119,22 +119,22 @@ class ToolManagementView(ctk.CTkFrame):
         info_window.transient(self)
         info_window.grab_set()
         
-        # Main frame
+        #Main frame
         main_frame = ctk.CTkFrame(info_window)
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Tool name
+        #Tool name
         name_label = ctk.CTkLabel(main_frame, text=tool["name"], font=ctk.CTkFont(size=18, weight="bold"))
         name_label.pack(pady=(10, 5))
         
-        # Tool type and source
+        #Tool type and source
         type_label = ctk.CTkLabel(main_frame, text=f"Type: {tool.get('type', 'Unknown').title()}")
         type_label.pack()
         
         source_label = ctk.CTkLabel(main_frame, text=f"Source: {tool.get('source', 'Unknown')}")
         source_label.pack(pady=(0, 10))
         
-        # Description
+        #Description
         desc_frame = ctk.CTkFrame(main_frame)
         desc_frame.pack(fill="both", expand=True, pady=10)
         
@@ -146,11 +146,11 @@ class ToolManagementView(ctk.CTkFrame):
         desc_text.insert("1.0", tool.get("doc", "No description available."))
         desc_text.configure(state="disabled")
         
-        # File path
+        #File path
         path_label = ctk.CTkLabel(main_frame, text=f"File: {tool.get('file_path', 'N/A')}")
         path_label.pack(pady=5)
         
-        # Close button
+        #Close button
         close_btn = ctk.CTkButton(main_frame, text="Close", command=info_window.destroy)
         close_btn.pack(pady=10)
 
@@ -159,19 +159,19 @@ class ToolManagementView(ctk.CTkFrame):
         tool_frame = ctk.CTkFrame(self.scrollable_frame)
         tool_frame.pack(fill="x", padx=5, pady=5)
 
-        tool_frame.grid_columnconfigure(0, weight=4)  # Details
-        tool_frame.grid_columnconfigure(1, weight=1)  # Success
-        tool_frame.grid_columnconfigure(2, weight=1)  # Failure
-        tool_frame.grid_columnconfigure(3, weight=2)  # Actions
+        tool_frame.grid_columnconfigure(0, weight=4)  #Details
+        tool_frame.grid_columnconfigure(1, weight=1)  #Success
+        tool_frame.grid_columnconfigure(2, weight=1)  #Failure
+        tool_frame.grid_columnconfigure(3, weight=2)  #Actions
 
-        # --- Column 0: Tool Details ---
+        #--- Column 0: Tool Details ---
         details_frame = ctk.CTkFrame(tool_frame, fg_color="transparent")
         details_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         name_label = ctk.CTkLabel(details_frame, text=tool["name"], font=ctk.CTkFont(weight="bold"))
         name_label.pack(anchor="w", padx=5)
 
-        # Add tool type indicator
+        #Add tool type indicator
         tool_type = tool.get("type", "unknown")
         tool_source = tool.get("source", "Unknown")
         
@@ -196,17 +196,17 @@ class ToolManagementView(ctk.CTkFrame):
         path_label = ctk.CTkLabel(details_frame, text=f"Path: {tool['file_path']}", font=ctk.CTkFont(size=10))
         path_label.pack(anchor="w", padx=5)
 
-        # --- Column 1: Success Count ---
+        #--- Column 1: Success Count ---
         success_count = usage_stats.get("success", 0)
         success_label = ctk.CTkLabel(tool_frame, text=str(success_count), font=ctk.CTkFont(size=14))
         success_label.grid(row=0, column=1, sticky="w")
 
-        # --- Column 2: Failure Count ---
+        #--- Column 2: Failure Count ---
         failure_count = usage_stats.get("failure", 0)
         failure_label = ctk.CTkLabel(tool_frame, text=str(failure_count), font=ctk.CTkFont(size=14))
         failure_label.grid(row=0, column=2, sticky="w")
 
-        # --- Column 3: Action Buttons ---
+        #--- Column 3: Action Buttons ---
         button_frame = ctk.CTkFrame(tool_frame, fg_color="transparent")
         button_frame.grid(row=0, column=3, sticky="e", padx=5, pady=5)
 
@@ -218,7 +218,7 @@ class ToolManagementView(ctk.CTkFrame):
         )
         view_button.pack(side="left", padx=(0, 5))
 
-        # Edit button - only for generated tools
+        #Edit button - only for generated tools
         if tool.get("type") == "generated":
             edit_button = ctk.CTkButton(
                 button_frame,
@@ -228,7 +228,7 @@ class ToolManagementView(ctk.CTkFrame):
             )
             edit_button.pack(side="left", padx=(0, 5))
 
-        # Delete button - only for generated tools
+        #Delete button - only for generated tools
         if tool.get("type") == "generated":
             delete_button = ctk.CTkButton(
                 button_frame,
@@ -240,7 +240,7 @@ class ToolManagementView(ctk.CTkFrame):
             )
             delete_button.pack(side="left")
         elif tool.get("type") in ["built-in", "essential", "plugin"]:
-            # Info button for built-in, essential, and plugin tools
+            #Info button for built-in, essential, and plugin tools
             info_button = ctk.CTkButton(
                 button_frame,
                 text="Info",

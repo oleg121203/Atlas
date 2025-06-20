@@ -10,23 +10,23 @@ import os
 import logging
 from pathlib import Path
 
-# Add the Atlas root directory to the Python path
+#Add the Atlas root directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# Configure logging
+#Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
-# Import Atlas components
+#Import Atlas components
 try:
     from utils.platform_utils import get_platform_info
     from config_manager import ConfigManager
     from agents.llm_manager import LLMManager
     from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
     
-    # Import the HelperSyncTellTool from the plugin
+    #Import the HelperSyncTellTool from the plugin
     from plugin import HelperSyncTellTool
 except ImportError as e:
     print(f"Error importing Atlas components: {e}")
@@ -43,7 +43,7 @@ def main():
     print("Helper Sync Tell Demonstration")
     print("=" * 80)
     
-    # Display platform information
+    #Display platform information
     platform_info = get_platform_info()
     print(f"\nRunning on: {platform_info['system']} ({platform_info['release']})")
     print(f"Python version: {platform_info['python_version']}")
@@ -51,13 +51,13 @@ def main():
     
     print("\nInitializing components...")
     
-    # Try to initialize Atlas components if available
+    #Try to initialize Atlas components if available
     try:
         config_manager = ConfigManager()
         llm_manager = LLMManager(config_manager)
         memory_manager = EnhancedMemoryManager(llm_manager, config_manager)
         
-        # Create the Helper Sync Tell tool
+        #Create the Helper Sync Tell tool
         helper_tool = HelperSyncTellTool(
             llm_manager=llm_manager,
             memory_manager=memory_manager
@@ -68,31 +68,31 @@ def main():
         print(f"Warning: Could not initialize Atlas components: {e}")
         print("Running in simplified demonstration mode without LLM or memory...")
         
-        # Create a simplified tool without real components
+        #Create a simplified tool without real components
         helper_tool = HelperSyncTellTool()
     
-    # Create mock available tools
+    #Create mock available tools
     available_tools = {
         "code_search": lambda q: f"Code search results for '{q}'",
         "memory_query": lambda q: f"Memory query results for '{q}'",
         "system_info": lambda q: f"System info related to '{q}'"
     }
     
-    # Example complex queries
+    #Example complex queries
     example_queries = [
         "How does memory work in Atlas and how could it be improved?",
         "Compare the Linux development environment with the macOS target environment in Atlas",
         "What tools are available in Atlas and how do they integrate with the plugin system?"
     ]
     
-    # Process each example query
+    #Process each example query
     for i, query in enumerate(example_queries):
         print("\n" + "=" * 80)
         print(f"Example {i+1}: {query}")
         print("-" * 80)
         
         try:
-            # Process the query using the Helper Sync Tell tool
+            #Process the query using the Helper Sync Tell tool
             response = helper_tool(query, available_tools)
             
             print("\nResponse:")

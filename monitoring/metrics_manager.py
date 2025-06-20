@@ -57,5 +57,5 @@ class MetricsManager:
         self.memory_search_latencies.clear()
         self.tool_usage_stats.clear()
 
-# Singleton instance to be used across the application
+#Singleton instance to be used across the application
 metrics_manager = MetricsManager()

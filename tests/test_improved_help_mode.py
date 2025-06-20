@@ -7,12 +7,12 @@ sys.path.append('/workspaces/Atlas')
 try:
     from agents.chat_context_manager import ChatContextManager, ChatMode
     
-    # Initialize the context manager
+    #Initialize the context manager
     manager = ChatContextManager()
     
     print("🧪 Testing improved System Help mode...")
     
-    # Test cases
+    #Test cases
     test_cases = [
         {
             'message': 'Мене Олег. Розкажи про можливості даного ПО по довгостроковій памяті. Де і як реалізовано?',
@@ -21,7 +21,7 @@ try:
         },
         {
             'message': 'Які у тебе інструменти і де вони реалізовані?', 
-            'expected_mode': 'tool_inquiry',  # Changed expectation
+            'expected_mode': 'tool_inquiry',  #Changed expectation
             'description': 'Tools implementation question'
         },
         {
@@ -35,21 +35,21 @@ try:
         print(f"\n✅ Test {i}: {test['description']}")
         print(f"   Input: '{test['message'][:50]}...'")
         
-        # Analyze message
+        #Analyze message
         context = manager.analyze_message(test['message'])
         mode_detected = context.mode.value
         confidence = context.confidence
         
-        # Check detection
+        #Check detection
         if mode_detected == test['expected_mode']:
             print(f"   ✅ Mode: {mode_detected} (confidence: {confidence:.2f})")
         else:
             print(f"   ❌ Expected: {test['expected_mode']}, Got: {mode_detected} (confidence: {confidence:.2f})")
         
-        # Generate response prompt
+        #Generate response prompt
         prompt = manager.generate_response_prompt(context, test['message'])
         
-        # Check if prompt encourages tool usage
+        #Check if prompt encourages tool usage
         tool_usage_indicators = [
             'semantic_search', 'file_search', 'read_file', 'grep_search',
             'ANALYZE THE CODEBASE', 'Use your code analysis tools',
@@ -60,7 +60,7 @@ try:
         
         print(f"   📋 Prompt encourages tool usage: {'✅ Yes' if uses_tools else '❌ No'}")
         
-        # Show snippet of prompt
+        #Show snippet of prompt
         snippet = prompt[:200].replace('\n', ' ').strip() + '...'
         print(f"   📝 Prompt preview: {snippet}")
     

@@ -6,21 +6,21 @@
 import os
 import sys
 
-# Додаємо шлях до проекту
+#Додаємо шлях до проекту
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 def test_gui_creation():
-    """Тестуємо створення GUI компонента."""
+    """Тестуємо creation GUI компонента."""
     print("🎨 ТЕСТ СТВОРЕННЯ GUI")
     print("=" * 30)
     
-    # Створюємо ConfigManager
+    #Створюємо ConfigManager
     config_manager = ConfigManager()
     
-    # Встановлюємо тестові API ключі
+    #Встановлюємо тестові API ключі
     print("🔑 Встановлення тестових API ключів...")
     config_manager.set_setting('openai_api_key', 'sk-gui-test-openai-key-12345')
     config_manager.set_setting('gemini_api_key', 'gem-gui-test-12345')
@@ -29,7 +29,7 @@ def test_gui_creation():
     config_manager.set_setting('current_provider', 'gemini')
     config_manager.set_setting('current_model', 'gemini-1.5-flash')
     
-    # Тестуємо всі необхідні методи
+    #Тестуємо всі необхідні методи
     print("📋 Перевірка методів ConfigManager...")
     methods_to_test = [
         'get_setting',
@@ -51,20 +51,20 @@ def test_gui_creation():
         else:
             print(f"  ❌ {method_name}: відсутній")
             
-    # Тестуємо створення GUI компонента
+    #Тестуємо creation GUI компонента
     print("\n🖥️ Створення GUI компонента...")
     try:
         from ui.enhanced_settings import EnhancedSettingsView
         import tkinter as tk
         
-        # Створюємо головне вікно
+        #Створюємо головне вікно
         root = tk.Tk()
-        root.withdraw()  # Ховаємо головне вікно
+        root.withdraw()  #Ховаємо головне вікно
         
-        # Створюємо тестовий фрейм
+        #Створюємо тестовий фрейм
         test_frame = tk.Frame(root)
         
-        # Створюємо GUI компонент
+        #Створюємо GUI компонент
         settings_view = EnhancedSettingsView(
             test_frame, 
             config_manager=config_manager,
@@ -74,13 +74,13 @@ def test_gui_creation():
         
         print("  ✅ EnhancedSettingsView створено успішно")
         
-        # Перевіряємо, що налаштування завантажилися
+        #Перевіряємо, що settings завантажилися
         if hasattr(settings_view, 'settings_vars'):
             print("  ✅ Змінні налаштувань ініціалізовані")
         else:
             print("  ❌ Змінні налаштувань не ініціалізовані")
             
-        # Закриваємо вікно
+        #Закриваємо вікно
         root.destroy()
         
         print("\n🎉 GUI тест пройшов успішно!")

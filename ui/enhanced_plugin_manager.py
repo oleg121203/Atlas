@@ -39,14 +39,14 @@ class EnhancedPluginManagerWindow:
         self.parent = parent
         self.plugin_manager = plugin_manager
         
-        # Create window
+        #Create window
         self.window = ctk.CTkToplevel(parent)
         self.window.title("Plugin Manager")
         self.window.geometry("1000x700")
         self.window.transient(parent)
         self.window.grab_set()
         
-        # Plugin data
+        #Plugin data
         self.plugins_data = {}
         self.selected_plugin = None
         
@@ -56,15 +56,15 @@ class EnhancedPluginManagerWindow:
     
     def setup_ui(self):
         """Setup the plugin manager UI."""
-        # Configure main grid
+        #Configure main grid
         self.window.grid_columnconfigure(0, weight=2)
         self.window.grid_columnconfigure(1, weight=1)
         self.window.grid_rowconfigure(0, weight=1)
         
-        # Left panel - Plugins list
+        #Left panel - Plugins list
         self.setup_plugins_list_panel()
         
-        # Right panel - Plugin details and controls
+        #Right panel - Plugin details and controls
         self.setup_plugin_details_panel()
     
     def setup_plugins_list_panel(self):
@@ -74,12 +74,12 @@ class EnhancedPluginManagerWindow:
         list_frame.grid_columnconfigure(0, weight=1)
         list_frame.grid_rowconfigure(2, weight=1)
         
-        # Title
+        #Title
         ctk.CTkLabel(list_frame, text="Available Plugins", font=("Arial", 16, "bold")).grid(
             row=0, column=0, sticky="w", padx=10, pady=(10, 5)
         )
         
-        # Search and filter frame
+        #Search and filter frame
         search_frame = ctk.CTkFrame(list_frame)
         search_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
         search_frame.grid_columnconfigure(1, weight=1)
@@ -100,15 +100,15 @@ class EnhancedPluginManagerWindow:
         )
         category_combo.grid(row=0, column=2, padx=(5, 10), pady=5)
         
-        # Plugins tree frame
+        #Plugins tree frame
         tree_frame = ctk.CTkFrame(list_frame)
         tree_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
         
-        # Create Treeview with tkinter (CustomTkinter doesn't have Treeview)
+        #Create Treeview with tkinter (CustomTkinter doesn't have Treeview)
         columns = ("Name", "Version", "Status", "Category")
         self.plugins_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=15)
         
-        # Configure columns
+        #Configure columns
         self.plugins_tree.heading("Name", text="Name")
         self.plugins_tree.heading("Version", text="Version")
         self.plugins_tree.heading("Status", text="Status")
@@ -119,17 +119,17 @@ class EnhancedPluginManagerWindow:
         self.plugins_tree.column("Status", width=80)
         self.plugins_tree.column("Category", width=100)
         
-        # Scrollbar
+        #Scrollbar
         tree_scroll = ttk.Scrollbar(tree_frame, orient="vertical", command=self.plugins_tree.yview)
         self.plugins_tree.configure(yscrollcommand=tree_scroll.set)
         
         self.plugins_tree.pack(side="left", fill="both", expand=True)
         tree_scroll.pack(side="right", fill="y")
         
-        # Bind selection event
+        #Bind selection event
         self.plugins_tree.bind("<<TreeviewSelect>>", self.on_plugin_select)
         
-        # Bottom buttons
+        #Bottom buttons
         buttons_frame = ctk.CTkFrame(list_frame)
         buttons_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
         
@@ -153,17 +153,17 @@ class EnhancedPluginManagerWindow:
         details_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 10), pady=10)
         details_frame.grid_columnconfigure(0, weight=1)
         
-        # Title
+        #Title
         ctk.CTkLabel(details_frame, text="Plugin Details", font=("Arial", 16, "bold")).grid(
             row=0, column=0, sticky="w", padx=10, pady=(10, 5)
         )
         
-        # Plugin info frame
+        #Plugin info frame
         info_frame = ctk.CTkFrame(details_frame)
         info_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
         info_frame.grid_columnconfigure(1, weight=1)
         
-        # Plugin information labels
+        #Plugin information labels
         ctk.CTkLabel(info_frame, text="Name:", font=("Arial", 12, "bold")).grid(
             row=0, column=0, sticky="w", padx=10, pady=2
         )
@@ -188,7 +188,7 @@ class EnhancedPluginManagerWindow:
         self.plugin_category_label = ctk.CTkLabel(info_frame, text="-")
         self.plugin_category_label.grid(row=3, column=1, sticky="w", padx=10, pady=2)
         
-        # Description
+        #Description
         desc_frame = ctk.CTkFrame(details_frame)
         desc_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
         details_frame.grid_rowconfigure(2, weight=1)
@@ -200,7 +200,7 @@ class EnhancedPluginManagerWindow:
         self.plugin_description_text = ctk.CTkTextbox(desc_frame, height=150)
         self.plugin_description_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         
-        # Dependencies
+        #Dependencies
         deps_frame = ctk.CTkFrame(details_frame)
         deps_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
         
@@ -211,7 +211,7 @@ class EnhancedPluginManagerWindow:
         self.dependencies_label = ctk.CTkLabel(deps_frame, text="None")
         self.dependencies_label.pack(anchor="w", padx=10, pady=(0, 10))
         
-        # Control buttons
+        #Control buttons
         buttons_frame = ctk.CTkFrame(details_frame)
         buttons_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=5)
         
@@ -267,7 +267,7 @@ class EnhancedPluginManagerWindow:
                                 info_data["path"] = plugin_path
                                 self.plugins_data[item] = PluginInfo(item, info_data)
                         except Exception as e:
-                            # Create basic info for plugins without proper info file
+                            #Create basic info for plugins without proper info file
                             self.plugins_data[item] = PluginInfo(item, {
                                 "name": item,
                                 "version": "Unknown",
@@ -278,7 +278,7 @@ class EnhancedPluginManagerWindow:
                                 "category": "Other"
                             })
                     else:
-                        # Create basic info for plugins without info file
+                        #Create basic info for plugins without info file
                         self.plugins_data[item] = PluginInfo(item, {
                             "name": item,
                             "version": "Unknown",
@@ -291,21 +291,21 @@ class EnhancedPluginManagerWindow:
     
     def refresh_plugins_list(self):
         """Refresh the plugins list display."""
-        # Clear existing items
+        #Clear existing items
         for item in self.plugins_tree.get_children():
             self.plugins_tree.delete(item)
         
-        # Apply filters
+        #Apply filters
         search_term = self.search_var.get().lower()
         category_filter = self.category_var.get()
         
-        # Add filtered plugins
+        #Add filtered plugins
         for plugin_id, plugin_info in self.plugins_data.items():
-            # Apply search filter
+            #Apply search filter
             if search_term and search_term not in plugin_info.name.lower() and search_term not in plugin_info.description.lower():
                 continue
             
-            # Apply category filter
+            #Apply category filter
             if category_filter != "All" and plugin_info.category != category_filter:
                 continue
             
@@ -335,7 +335,7 @@ class EnhancedPluginManagerWindow:
         item = self.plugins_tree.item(selection[0])
         plugin_name = item["values"][0]
         
-        # Find plugin info by name
+        #Find plugin info by name
         self.selected_plugin = None
         for plugin_id, plugin_info in self.plugins_data.items():
             if plugin_info.name == plugin_name:
@@ -352,24 +352,24 @@ class EnhancedPluginManagerWindow:
         
         plugin = self.selected_plugin
         
-        # Update labels
+        #Update labels
         self.plugin_name_label.configure(text=plugin.name)
         self.plugin_version_label.configure(text=plugin.version)
         self.plugin_author_label.configure(text=plugin.author)
         self.plugin_category_label.configure(text=plugin.category)
         
-        # Update description
+        #Update description
         self.plugin_description_text.delete(1.0, tk.END)
         self.plugin_description_text.insert(1.0, plugin.description)
         
-        # Update dependencies
+        #Update dependencies
         if plugin.dependencies:
             deps_text = ", ".join(plugin.dependencies)
         else:
             deps_text = "None"
         self.dependencies_label.configure(text=deps_text)
         
-        # Update button states
+        #Update button states
         if plugin.enabled:
             self.enable_button.configure(text="Disable", fg_color="orange", hover_color="darkorange")
         else:
@@ -406,14 +406,14 @@ class EnhancedPluginManagerWindow:
         if not self.selected_plugin:
             return
         
-        # Check if plugin has configuration
+        #Check if plugin has configuration
         config_file = os.path.join(self.selected_plugin.path, "config.json")
         if os.path.exists(config_file):
             try:
                 with open(config_file, 'r') as f:
                     config = json.load(f)
                 
-                # Create configuration dialog
+                #Create configuration dialog
                 self.open_config_dialog(config, config_file)
             except Exception as e:
                 messagebox.showerror("Plugin Manager", f"Error loading plugin configuration: {e}")
@@ -428,7 +428,7 @@ class EnhancedPluginManagerWindow:
         config_window.transient(self.window)
         config_window.grab_set()
         
-        # Create form fields based on config
+        #Create form fields based on config
         fields = {}
         row = 0
         
@@ -453,7 +453,7 @@ class EnhancedPluginManagerWindow:
         
         config_window.grid_columnconfigure(1, weight=1)
         
-        # Buttons
+        #Buttons
         button_frame = ctk.CTkFrame(config_window)
         button_frame.grid(row=row, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
         
@@ -462,7 +462,7 @@ class EnhancedPluginManagerWindow:
                 new_config = {}
                 for key, field in fields.items():
                     value = field.get()
-                    # Try to convert to original type
+                    #Try to convert to original type
                     if isinstance(config[key], bool):
                         new_config[key] = value
                     elif isinstance(config[key], int):
@@ -517,7 +517,7 @@ class EnhancedPluginManagerWindow:
                 del self.plugins_data[self.selected_plugin.id]
                 self.refresh_plugins_list()
                 
-                # Clear details panel
+                #Clear details panel
                 self.selected_plugin = None
                 self.plugin_name_label.configure(text="-")
                 self.plugin_version_label.configure(text="-")
@@ -545,7 +545,7 @@ class EnhancedPluginManagerWindow:
                 import shutil
                 shutil.copytree(path, target_path)
                 
-                # Reload plugins list
+                #Reload plugins list
                 self.load_plugins_info()
                 self.refresh_plugins_list()
                 

@@ -34,7 +34,7 @@ except Exception as e:
 
 print("\n3. Testing plugin import...")
 try:
-    # Add current directory to path
+    #Add current directory to path
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
@@ -42,7 +42,7 @@ try:
     import plugin
     print("✅ Plugin module imported successfully")
     
-    # Check if main function exists
+    #Check if main function exists
     if hasattr(plugin, 'register_enhanced_helper_sync_tell_tool'):
         print("✅ Registration function found")
     else:
@@ -72,12 +72,12 @@ print("\n5. Testing encoding...")
 try:
     with open('plugin.py', 'r', encoding='utf-8') as f:
         content = f.read()
-        # Check for problematic characters
+        #Check for problematic characters
         non_ascii_chars = [c for c in content if ord(c) > 127]
         if non_ascii_chars:
             unique_chars = list(set(non_ascii_chars))
             print(f"Non-ASCII characters found: {unique_chars[:10]}...")
-            # Check if they are Cyrillic
+            #Check if they are Cyrillic
             cyrillic_chars = [c for c in unique_chars if ord(c) >= 0x400 and ord(c) <= 0x4FF]
             if cyrillic_chars:
                 print(f"❌ Cyrillic characters found: {cyrillic_chars}")

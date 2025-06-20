@@ -5,7 +5,7 @@ import re
 import time
 from typing import Any, Dict, List, Tuple, Optional
 
-from logger import get_logger
+from utils.logger import get_logger
 from tools.notification_tool import NotificationManager
 
 
@@ -23,13 +23,13 @@ class SecurityAgent(multiprocessing.Process):
         self.notification_channels = {
             "email": False, "telegram": False, "sms": False
         }
-        self.memory_manager = None  # Will be initialized in run()
+        self.memory_manager = None  #Will be initialized in run()
 
     def run(self):
         """The main execution loop for the security agent process."""
         self.logger.info("Security Agent process started.")
         
-        # Initialize memory manager in process context
+        #Initialize memory manager in process context
         if self.config_manager:
             try:
                 from agents.llm_manager import LLMManager
@@ -43,13 +43,13 @@ class SecurityAgent(multiprocessing.Process):
         
         while self.is_running.value:
             try:
-                if self.pipe_conn.poll(timeout=1):  # Wait for an event
+                if self.pipe_conn.poll(timeout=1):  #Wait for an event
                     event = self.pipe_conn.recv()
                     log_event = event if event.get("type") != "UPDATE_RULES" else {**event, "details": "..."}
                     self.logger.info(f"Security Agent received event: {log_event}")
                     self._evaluate_event(event)
                 else:
-                    # No event, continue loop
+                    #No event, continue loop
                     continue
             except (EOFError, BrokenPipeError):
                 self.logger.warning("Connection pipe was closed. Shutting down Security Agent.")
@@ -74,7 +74,7 @@ class SecurityAgent(multiprocessing.Process):
         if event_type == "UPDATE_RULES":
             self.rules = details.get("rules", [])
             self.logger.info(f"Security rules updated. {len(self.rules)} rules loaded.")
-            return  # No response needed for rule updates
+            return  #No response needed for rule updates
 
         elif event_type == "UPDATE_NOTIFICATION_SETTINGS":
             self.notification_channels = details.get("channels", {})
@@ -105,7 +105,7 @@ class SecurityAgent(multiprocessing.Process):
 
         for rule_str in self.rules:
             if not rule_str.strip() or rule_str.startswith('#'):
-                continue  # Skip empty lines and comments
+                continue  #Skip empty lines and comments
 
             try:
                 parts = rule_str.split(',', 2)
@@ -122,7 +122,7 @@ class SecurityAgent(multiprocessing.Process):
                         self.logger.warning(reason)
                         self._send_notifications(reason)
                         
-                        # Store security event in memory
+                        #Store security event in memory
                         if self.memory_manager:
                             try:
                                 from agents.enhanced_memory_manager import MemoryScope, MemoryType
@@ -153,11 +153,11 @@ class SecurityAgent(multiprocessing.Process):
         body = f"An action was blocked by the Atlas Security Agent.\n\nReason: {reason}"
 
         if self.notification_channels.get("email"):
-            # Placeholder recipient
+            #Placeholder recipient
             self.notification_manager.send_email(subject, body, "admin@example.com")
         if self.notification_channels.get("telegram"):
-            # Placeholder chat_id
+            #Placeholder chat_id
             self.notification_manager.send_telegram(body, "-123456789")
         if self.notification_channels.get("sms"):
-            # Placeholder phone number
+            #Placeholder phone number
             self.notification_manager.send_sms(body, "+15551234567")

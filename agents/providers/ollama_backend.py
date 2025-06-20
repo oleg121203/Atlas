@@ -4,7 +4,7 @@ from __future__ import annotations
 import requests
 from typing import List
 
-from logger import get_logger
+from utils.logger import get_logger
 from ..llm_manager import LLMResult
 
 logger = get_logger(__name__)
@@ -16,11 +16,11 @@ class OllamaBackend:
         self.model = model
         self.api_url = f"{host}/api/chat"
 
-    def chat(self, messages: List[dict[str, str]], **kwargs) -> LLMResult:  # noqa: D401, ANN001
+    def chat(self, messages: List[dict[str, str]], **kwargs) -> LLMResult:  #noqa: D401, ANN001
         payload = {
             "model": self.model,
             "messages": messages,
-            "stream": False,  # Required to get full response with stats
+            "stream": False,  #Required to get full response with stats
         }
         try:
             response = requests.post(self.api_url, json=payload, timeout=60)

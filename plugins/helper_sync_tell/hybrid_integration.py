@@ -10,12 +10,12 @@ import sys
 import os
 from pathlib import Path
 
-# Add current directory to path for imports
+#Add current directory to path for imports
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
 try:
-    # Import the advanced thinking tool
+    #Import the advanced thinking tool
     from advanced_thinking import (
         AdvancedAIThinkingTool, 
         ThinkingStrategy, 
@@ -26,7 +26,7 @@ try:
 except ImportError as e:
     ADVANCED_AVAILABLE = False
     logging.warning(f"Advanced thinking not available: {e}")
-    # Fallback to original plugin
+    #Fallback to original plugin
     try:
         from plugin import EnhancedHelperSyncTellTool, register as register_original
     except ImportError:
@@ -53,7 +53,7 @@ class HybridThinkingTool:
             self.mode = "enhanced"
             self.logger.info("Initialized in Enhanced Thinking mode (fallback)")
         
-        # Expose core attributes
+        #Expose core attributes
         self.name = getattr(self.core_tool, 'name', 'hybrid_thinking')
         self.description = getattr(self.core_tool, 'description', 'Hybrid thinking tool with advanced capabilities')
         self.version = "3.0.0-hybrid"
@@ -66,7 +66,7 @@ class HybridThinkingTool:
             return self.core_tool(query, available_tools)
         except Exception as e:
             self.logger.error(f"Error in {self.mode} thinking: {e}")
-            # If advanced fails, try to fallback
+            #If advanced fails, try to fallback
             if self.mode == "advanced" and hasattr(self, '_fallback_thinking'):
                 return self._fallback_thinking(query, available_tools)
             raise
@@ -100,10 +100,10 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
     """
     try:
         if ADVANCED_AVAILABLE:
-            # Use advanced thinking
+            #Use advanced thinking
             result = register_advanced(llm_manager, atlas_app, **kwargs)
             if result and result.get('tools'):
-                # Wrap in hybrid tool for consistency
+                #Wrap in hybrid tool for consistency
                 advanced_tool = result['tools'][0]
                 hybrid_tool = HybridThinkingTool(llm_manager, 
                     kwargs.get('memory_manager') or getattr(advanced_tool, 'memory_manager', None),
@@ -119,7 +119,7 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
                 logging.info("Registered Advanced AI Thinking Tool (hybrid mode)")
                 return result
         
-        # Fallback to enhanced thinking
+        #Fallback to enhanced thinking
         if 'register_original' in globals():
             result = register_original(llm_manager, atlas_app, **kwargs)
             if result and result.get('tools'):
@@ -138,7 +138,7 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
                 logging.info("Registered Enhanced Thinking Tool (hybrid fallback mode)")
                 return result
         
-        # Last resort - create minimal tool
+        #Last resort - create minimal tool
         minimal_tool = HybridThinkingTool(llm_manager)
         return {
             "tools": [minimal_tool],
@@ -162,14 +162,14 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         }
 
 
-# Test function
+#Test function
 def test_hybrid_tool():
     """Test the hybrid tool functionality."""
     print("🧠 Testing Hybrid Thinking Tool")
     print("=" * 50)
     
     try:
-        # Test registration
+        #Test registration
         result = register()
         
         if result.get('tools'):
@@ -183,7 +183,7 @@ def test_hybrid_tool():
                 strategies = tool.get_thinking_strategies()
                 print(f"   Available strategies: {strategies}")
             
-            # Test basic functionality
+            #Test basic functionality
             test_query = "Як можна покращити систему пам'яті в Атлас?"
             response = tool(test_query)
             print(f"✅ Query processing successful")

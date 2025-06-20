@@ -23,7 +23,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.plugin_manager = plugin_manager
         self.save_callback = save_callback
         
-        # Settings variables
+        #Settings variables
         self.settings_vars = {}
         self.plugin_vars = {}
         
@@ -32,15 +32,15 @@ class EnhancedSettingsView(ctk.CTkFrame):
     
     def setup_ui(self):
         """Setup the enhanced settings UI."""
-        # Configure grid
+        #Configure grid
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         
-        # Create notebook for tabbed interface
+        #Create notebook for tabbed interface
         self.notebook = ctk.CTkTabview(self)
         self.notebook.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         
-        # Create tabs
+        #Create tabs
         self.setup_general_tab()
         self.setup_security_tab()
         self.setup_llm_tab()
@@ -48,18 +48,18 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.setup_notifications_tab()
         self.setup_advanced_tab()
         
-        # Save/Reset buttons at bottom
+        #Save/Reset buttons at bottom
         self.setup_control_buttons()
     
     def setup_general_tab(self):
         """Setup general settings tab."""
         tab = self.notebook.add("General")
         
-        # Scrollable frame
+        #Scrollable frame
         scroll_frame = ctk.CTkScrollableFrame(tab)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Application Settings
+        #Application Settings
         app_frame = ctk.CTkFrame(scroll_frame)
         app_frame.pack(fill="x", pady=5)
         
@@ -67,7 +67,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Theme selection
+        #Theme selection
         theme_frame = ctk.CTkFrame(app_frame)
         theme_frame.pack(fill="x", padx=10, pady=5)
         
@@ -80,7 +80,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         theme_combo.pack(side="right", padx=10, pady=5)
         
-        # Auto-save settings
+        #Auto-save settings
         self.settings_vars['auto_save'] = tk.BooleanVar(value=True)
         auto_save_check = ctk.CTkCheckBox(
             app_frame,
@@ -89,7 +89,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         auto_save_check.pack(anchor="w", padx=10, pady=2)
         
-        # Enable logging
+        #Enable logging
         self.settings_vars['enable_logging'] = tk.BooleanVar(value=True)
         logging_check = ctk.CTkCheckBox(
             app_frame,
@@ -98,7 +98,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         logging_check.pack(anchor="w", padx=10, pady=2)
         
-        # Log level
+        #Log level
         log_level_frame = ctk.CTkFrame(app_frame)
         log_level_frame.pack(fill="x", padx=10, pady=5)
         
@@ -111,7 +111,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         log_combo.pack(side="right", padx=10, pady=5)
         
-        # Performance Settings
+        #Performance Settings
         perf_frame = ctk.CTkFrame(scroll_frame)
         perf_frame.pack(fill="x", pady=5)
         
@@ -119,7 +119,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Max concurrent operations
+        #Max concurrent operations
         max_ops_frame = ctk.CTkFrame(perf_frame)
         max_ops_frame.pack(fill="x", padx=10, pady=5)
         
@@ -128,7 +128,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         max_ops_entry = ctk.CTkEntry(max_ops_frame, textvariable=self.settings_vars['max_concurrent_ops'], width=60)
         max_ops_entry.pack(side="right", padx=10, pady=5)
         
-        # Memory limit
+        #Memory limit
         memory_frame = ctk.CTkFrame(perf_frame)
         memory_frame.pack(fill="x", padx=10, pady=5)
         
@@ -141,11 +141,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
         """Setup security settings tab."""
         tab = self.notebook.add("Security")
         
-        # Scrollable frame
+        #Scrollable frame
         scroll_frame = ctk.CTkScrollableFrame(tab)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Security Agent Settings
+        #Security Agent Settings
         security_frame = ctk.CTkFrame(scroll_frame)
         security_frame.pack(fill="x", pady=5)
         
@@ -153,7 +153,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Enable security agent
+        #Enable security agent
         self.settings_vars['enable_security_agent'] = tk.BooleanVar(value=True)
         security_check = ctk.CTkCheckBox(
             security_frame,
@@ -162,7 +162,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         security_check.pack(anchor="w", padx=10, pady=2)
         
-        # Security thresholds
+        #Security thresholds
         threshold_frame = ctk.CTkFrame(security_frame)
         threshold_frame.pack(fill="x", padx=10, pady=5)
         
@@ -170,7 +170,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=5, pady=2
         )
         
-        # File access threshold
+        #File access threshold
         file_threshold_frame = ctk.CTkFrame(threshold_frame)
         file_threshold_frame.pack(fill="x", padx=5, pady=2)
         
@@ -183,7 +183,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         file_combo.pack(side="right", padx=5, pady=2)
         
-        # System command threshold
+        #System command threshold
         sys_threshold_frame = ctk.CTkFrame(threshold_frame)
         sys_threshold_frame.pack(fill="x", padx=5, pady=2)
         
@@ -196,7 +196,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         sys_combo.pack(side="right", padx=5, pady=2)
         
-        # Network access threshold
+        #Network access threshold
         net_threshold_frame = ctk.CTkFrame(threshold_frame)
         net_threshold_frame.pack(fill="x", padx=5, pady=2)
         
@@ -209,7 +209,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         net_combo.pack(side="right", padx=5, pady=2)
         
-        # Restricted directories
+        #Restricted directories
         restricted_frame = ctk.CTkFrame(security_frame)
         restricted_frame.pack(fill="x", padx=10, pady=5)
         
@@ -220,7 +220,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.restricted_dirs_text = ctk.CTkTextbox(restricted_frame, height=80)
         self.restricted_dirs_text.pack(fill="x", padx=5, pady=2)
         
-        # Add default restricted directories
+        #Add default restricted directories
         default_restricted = "/etc\n/usr/bin\n/System\n/Windows/System32"
         self.restricted_dirs_text.insert(1.0, default_restricted)
     
@@ -228,11 +228,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
         """Setup comprehensive LLM settings tab."""
         tab = self.notebook.add("LLM Settings")
         
-        # Scrollable frame
+        #Scrollable frame
         scroll_frame = ctk.CTkScrollableFrame(tab)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Provider Selection
+        #Provider Selection
         provider_frame = ctk.CTkFrame(scroll_frame)
         provider_frame.pack(fill="x", pady=5)
         
@@ -240,7 +240,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Current provider and model
+        #Current provider and model
         current_frame = ctk.CTkFrame(provider_frame)
         current_frame.pack(fill="x", padx=10, pady=5)
         
@@ -263,7 +263,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         self.model_combo.pack(side="left", padx=10, pady=5)
         
-        # API Keys Section
+        #API Keys Section
         api_frame = ctk.CTkFrame(scroll_frame)
         api_frame.pack(fill="x", pady=5)
         
@@ -271,7 +271,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # OpenAI API Key
+        #OpenAI API Key
         openai_frame = ctk.CTkFrame(api_frame)
         openai_frame.pack(fill="x", padx=10, pady=2)
         
@@ -281,7 +281,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                                    show="*", width=300)
         openai_entry.pack(side="left", padx=10, pady=5)
         
-        # Gemini API Key
+        #Gemini API Key
         gemini_frame = ctk.CTkFrame(api_frame)
         gemini_frame.pack(fill="x", padx=10, pady=2)
         
@@ -291,7 +291,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                                    show="*", width=300)
         gemini_entry.pack(side="left", padx=10, pady=5)
         
-        # Groq API Key
+        #Groq API Key
         groq_frame = ctk.CTkFrame(api_frame)
         groq_frame.pack(fill="x", padx=10, pady=2)
         
@@ -301,7 +301,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                                  show="*", width=300)
         groq_entry.pack(side="left", padx=10, pady=5)
         
-        # Mistral API Key
+        #Mistral API Key
         mistral_frame = ctk.CTkFrame(api_frame)
         mistral_frame.pack(fill="x", padx=10, pady=2)
         
@@ -311,7 +311,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                                     show="*", width=300)
         mistral_entry.pack(side="left", padx=10, pady=5)
         
-        # Ollama Settings
+        #Ollama Settings
         ollama_frame = ctk.CTkFrame(api_frame)
         ollama_frame.pack(fill="x", padx=10, pady=2)
         
@@ -320,7 +320,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         ollama_entry = ctk.CTkEntry(ollama_frame, textvariable=self.settings_vars['ollama_url'], width=300)
         ollama_entry.pack(side="left", padx=10, pady=5)
         
-        # Model Configuration
+        #Model Configuration
         model_config_frame = ctk.CTkFrame(scroll_frame)
         model_config_frame.pack(fill="x", pady=5)
         
@@ -328,7 +328,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Temperature
+        #Temperature
         temp_frame = ctk.CTkFrame(model_config_frame)
         temp_frame.pack(fill="x", padx=10, pady=2)
         
@@ -337,7 +337,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         temp_entry = ctk.CTkEntry(temp_frame, textvariable=self.settings_vars['temperature'], width=80)
         temp_entry.pack(side="left", padx=10, pady=5)
         
-        # Max tokens
+        #Max tokens
         tokens_frame = ctk.CTkFrame(model_config_frame)
         tokens_frame.pack(fill="x", padx=10, pady=2)
         
@@ -346,7 +346,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         tokens_entry = ctk.CTkEntry(tokens_frame, textvariable=self.settings_vars['max_tokens'], width=80)
         tokens_entry.pack(side="left", padx=10, pady=5)
         
-        # Provider Status
+        #Provider Status
         status_frame = ctk.CTkFrame(scroll_frame)
         status_frame.pack(fill="x", pady=5)
         
@@ -354,7 +354,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Test connection button
+        #Test connection button
         test_frame = ctk.CTkFrame(status_frame)
         test_frame.pack(fill="x", padx=10, pady=5)
         
@@ -368,7 +368,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.connection_status_label = ctk.CTkLabel(test_frame, text="Status: Not tested")
         self.connection_status_label.pack(side="left", padx=20, pady=5)
         
-        # Ollama model status
+        #Ollama model status
         ollama_status_frame = ctk.CTkFrame(status_frame)
         ollama_status_frame.pack(fill="x", padx=10, pady=5)
         
@@ -382,7 +382,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.ollama_status_label = ctk.CTkLabel(ollama_status_frame, text="Ollama: Not checked")
         self.ollama_status_label.pack(side="left", padx=20, pady=5)
         
-        # Update model list based on initial provider
+        #Update model list based on initial provider
         self.on_provider_change("openai")
     
     def on_provider_change(self, provider: str):
@@ -398,7 +398,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         models = model_lists.get(provider, ["gpt-3.5-turbo"])
         self.model_combo.configure(values=models)
         
-        # Set default model for the provider
+        #Set default model for the provider
         if models:
             self.settings_vars['current_model'].set(models[0])
     
@@ -407,24 +407,24 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.connection_status_label.configure(text="Status: Testing...")
         self.test_connection_btn.configure(state="disabled")
         
-        # Import here to avoid circular imports
+        #Import here to avoid circular imports
         try:
             from agents.llm_manager import LLMManager
             from agents.token_tracker import TokenTracker
             
-            # Create temporary LLM manager for testing
+            #Create temporary LLM manager for testing
             token_tracker = TokenTracker()
             llm_manager = LLMManager(token_tracker)
             
-            # Set the provider and model from current settings
+            #Set the provider and model from current settings
             provider = self.settings_vars['current_provider'].get()
             model = self.settings_vars['current_model'].get()
             llm_manager.set_provider_and_model(provider, model)
             
-            # Test with a simple message
+            #Test with a simple message
             test_messages = [{"role": "user", "content": "Hello, this is a connection test."}]
             
-            # Run test in a separate thread to avoid blocking UI
+            #Run test in a separate thread to avoid blocking UI
             import threading
             
             def run_test():
@@ -468,7 +468,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                 token_tracker = TokenTracker()
                 llm_manager = LLMManager(token_tracker)
                 
-                # Check if Ollama is running
+                #Check if Ollama is running
                 import requests
                 try:
                     response = requests.get("http://localhost:11434/api/version", timeout=5)
@@ -483,7 +483,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                     ))
                     return
                 
-                # Check available models
+                #Check available models
                 models_status = llm_manager.check_ollama_models()
                 if models_status:
                     installed = [model for model, available in models_status.items() if available]
@@ -519,13 +519,13 @@ class EnhancedSettingsView(ctk.CTkFrame):
         """Setup plugins management tab."""
         tab = self.notebook.add("Plugins")
         
-        # Main frame
+        #Main frame
         main_frame = ctk.CTkFrame(tab)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         main_frame.grid_columnconfigure(0, weight=1)
         main_frame.grid_rowconfigure(1, weight=1)
         
-        # Header
+        #Header
         header_frame = ctk.CTkFrame(main_frame)
         header_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
         
@@ -540,11 +540,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
             width=150
         ).pack(side="right", padx=10, pady=10)
         
-        # Plugin list frame
+        #Plugin list frame
         list_frame = ctk.CTkFrame(main_frame)
         list_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
         
-        # Create scrollable frame for plugins
+        #Create scrollable frame for plugins
         scroll_frame = ctk.CTkScrollableFrame(list_frame)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
@@ -555,11 +555,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
         """Setup notifications settings tab."""
         tab = self.notebook.add("Notifications")
         
-        # Scrollable frame
+        #Scrollable frame
         scroll_frame = ctk.CTkScrollableFrame(tab)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Notification Settings
+        #Notification Settings
         notif_frame = ctk.CTkFrame(scroll_frame)
         notif_frame.pack(fill="x", pady=5)
         
@@ -567,7 +567,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Enable notifications
+        #Enable notifications
         self.settings_vars['enable_notifications'] = tk.BooleanVar(value=True)
         notif_check = ctk.CTkCheckBox(
             notif_frame,
@@ -576,7 +576,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         notif_check.pack(anchor="w", padx=10, pady=2)
         
-        # Desktop notifications
+        #Desktop notifications
         self.settings_vars['desktop_notifications'] = tk.BooleanVar(value=True)
         desktop_check = ctk.CTkCheckBox(
             notif_frame,
@@ -585,7 +585,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         desktop_check.pack(anchor="w", padx=10, pady=2)
         
-        # Sound notifications
+        #Sound notifications
         self.settings_vars['sound_notifications'] = tk.BooleanVar(value=False)
         sound_check = ctk.CTkCheckBox(
             notif_frame,
@@ -594,7 +594,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         sound_check.pack(anchor="w", padx=10, pady=2)
         
-        # Email notifications
+        #Email notifications
         email_frame = ctk.CTkFrame(scroll_frame)
         email_frame.pack(fill="x", pady=5)
         
@@ -610,11 +610,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         email_check.pack(anchor="w", padx=10, pady=2)
         
-        # Email settings
+        #Email settings
         email_settings_frame = ctk.CTkFrame(email_frame)
         email_settings_frame.pack(fill="x", padx=10, pady=5)
         
-        # Email address
+        #Email address
         email_addr_frame = ctk.CTkFrame(email_settings_frame)
         email_addr_frame.pack(fill="x", padx=5, pady=2)
         
@@ -627,11 +627,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
         """Setup advanced settings tab."""
         tab = self.notebook.add("Advanced")
         
-        # Scrollable frame
+        #Scrollable frame
         scroll_frame = ctk.CTkScrollableFrame(tab)
         scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Development Settings
+        #Development Settings
         dev_frame = ctk.CTkFrame(scroll_frame)
         dev_frame.pack(fill="x", pady=5)
         
@@ -639,7 +639,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Debug mode
+        #Debug mode
         self.settings_vars['debug_mode'] = tk.BooleanVar(value=False)
         debug_check = ctk.CTkCheckBox(
             dev_frame,
@@ -648,7 +648,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         debug_check.pack(anchor="w", padx=10, pady=2)
         
-        # Verbose logging
+        #Verbose logging
         self.settings_vars['verbose_logging'] = tk.BooleanVar(value=False)
         verbose_check = ctk.CTkCheckBox(
             dev_frame,
@@ -657,7 +657,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         verbose_check.pack(anchor="w", padx=10, pady=2)
         
-        # Experimental features
+        #Experimental features
         exp_frame = ctk.CTkFrame(scroll_frame)
         exp_frame.pack(fill="x", pady=5)
         
@@ -665,7 +665,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
             anchor="w", padx=10, pady=(10, 5)
         )
         
-        # Enable experimental features
+        #Enable experimental features
         self.settings_vars['experimental_features'] = tk.BooleanVar(value=False)
         exp_check = ctk.CTkCheckBox(
             exp_frame,
@@ -674,7 +674,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         exp_check.pack(anchor="w", padx=10, pady=2)
         
-        # Auto-update
+        #Auto-update
         self.settings_vars['auto_update'] = tk.BooleanVar(value=True)
         update_check = ctk.CTkCheckBox(
             exp_frame,
@@ -683,7 +683,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         update_check.pack(anchor="w", padx=10, pady=2)
         
-        # Data export/import
+        #Data export/import
         data_frame = ctk.CTkFrame(scroll_frame)
         data_frame.pack(fill="x", pady=5)
         
@@ -742,19 +742,19 @@ class EnhancedSettingsView(ctk.CTkFrame):
     
     def load_plugin_controls(self):
         """Load plugin enable/disable controls."""
-        # Clear existing controls
+        #Clear existing controls
         for widget in self.plugins_container.winfo_children():
             widget.destroy()
         
         if self.plugin_manager:
-            # Get plugin list from plugin manager
+            #Get plugin list from plugin manager
             plugins = getattr(self.plugin_manager, 'plugins', {})
             
             for plugin_id, plugin_info in plugins.items():
                 plugin_frame = ctk.CTkFrame(self.plugins_container)
                 plugin_frame.pack(fill="x", pady=2)
                 
-                # Plugin name and description
+                #Plugin name and description
                 info_frame = ctk.CTkFrame(plugin_frame)
                 info_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
                 
@@ -766,7 +766,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                                          wraplength=400)
                 desc_label.pack(anchor="w", padx=5)
                 
-                # Enable/disable checkbox
+                #Enable/disable checkbox
                 self.plugin_vars[plugin_id] = tk.BooleanVar(value=plugin_info.get('enabled', False))
                 plugin_check = ctk.CTkCheckBox(
                     plugin_frame,
@@ -778,14 +778,14 @@ class EnhancedSettingsView(ctk.CTkFrame):
     def load_settings(self):
         """Load settings from configuration."""
         if self.config_manager:
-            # Use the passed config_manager instance
+            #Use the passed config_manager instance
             config_manager = self.config_manager
             
-            # Load general settings
+            #Load general settings
             for key, var in self.settings_vars.items():
                 value = None
                 
-                # Special handling for LLM settings
+                #Special handling for LLM settings
                 if key in ['openai_api_key', 'gemini_api_key', 'groq_api_key', 'mistral_api_key']:
                     value = config_manager.get_setting(key)
                 elif key == 'current_provider':
@@ -795,7 +795,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                 elif key == 'ollama_url':
                     value = config_manager.get_setting('ollama_url', 'http://localhost:11434')
                 else:
-                    # Try to get from enhanced config first
+                    #Try to get from enhanced config first
                     value = config_manager.get_setting(key)
                     if value is None and hasattr(self.config_manager, 'load'):
                         config = self.config_manager.load()
@@ -807,7 +807,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                     else:
                         var.set(str(value))
             
-            # Load restricted directories
+            #Load restricted directories
             restricted_dirs = config_manager.get_setting('restricted_directories', [])
             if hasattr(self, 'restricted_dirs_text'):
                 self.restricted_dirs_text.delete(1.0, tk.END)
@@ -817,10 +817,10 @@ class EnhancedSettingsView(ctk.CTkFrame):
         """Save current settings."""
         try:
             if self.config_manager:
-                # Use the passed config_manager instance
+                #Use the passed config_manager instance
                 config_manager = self.config_manager
                 
-                # Collect all settings
+                #Collect all settings
                 settings = {}
                 
                 for key, var in self.settings_vars.items():
@@ -828,7 +828,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                         settings[key] = var.get()
                     else:
                         value = var.get()
-                        # Try to convert numeric values
+                        #Try to convert numeric values
                         if key in ['max_concurrent_ops', 'memory_limit', 'max_tokens', 'daily_token_limit']:
                             try:
                                 settings[key] = int(value)
@@ -842,7 +842,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                         else:
                             settings[key] = value
                 
-                # Special handling for LLM settings with better error handling
+                #Special handling for LLM settings with better error handling
                 success = True
                 if 'current_provider' in settings and 'current_model' in settings:
                     try:
@@ -858,7 +858,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                         print(f"❌ Error setting LLM provider/model: {e}")
                         success = False
                 
-                # Save API keys with better error handling
+                #Save API keys with better error handling
                 for provider in ['openai', 'gemini', 'groq', 'mistral']:
                     key_name = f'{provider}_api_key'
                     if key_name in settings and settings[key_name]:
@@ -872,7 +872,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                             print(f"❌ Error setting {provider} API key: {e}")
                             success = False
                 
-                # Save other LLM settings
+                #Save other LLM settings
                 for key in ['ollama_url', 'temperature', 'max_tokens']:
                     if key in settings:
                         try:
@@ -880,7 +880,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                         except Exception as e:
                             print(f"❌ Error setting {key}: {e}")
                 
-                # Save restricted directories
+                #Save restricted directories
                 if hasattr(self, 'restricted_dirs_text'):
                     try:
                         restricted_text = self.restricted_dirs_text.get(1.0, tk.END).strip()
@@ -889,7 +889,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                     except Exception as e:
                         print(f"❌ Error saving restricted directories: {e}")
                 
-                # Save plugin settings
+                #Save plugin settings
                 try:
                     plugin_settings = {}
                     for plugin_id, var in self.plugin_vars.items():
@@ -899,7 +899,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                 except Exception as e:
                     print(f"❌ Error saving plugin settings: {e}")
                 
-                # Apply settings to legacy config manager if exists
+                #Apply settings to legacy config manager if exists
                 try:
                     if hasattr(self.config_manager, 'load'):
                         current_config = self.config_manager.load()
@@ -908,14 +908,14 @@ class EnhancedSettingsView(ctk.CTkFrame):
                 except Exception as e:
                     print(f"❌ Error updating legacy config: {e}")
                 
-                # Call save callback if provided
+                #Call save callback if provided
                 if self.save_callback:
                     try:
                         self.save_callback(settings)
                     except Exception as e:
                         print(f"❌ Error in save callback: {e}")
                 
-                # Show success message
+                #Show success message
                 if success:
                     messagebox.showinfo("Успіх", "✅ Налаштування збережено успішно!")
                     print("✅ Settings saved successfully!")
@@ -932,13 +932,13 @@ class EnhancedSettingsView(ctk.CTkFrame):
             settings['plugin_enabled_states'] = plugin_settings
             config_manager.set_setting('plugin_enabled_states', plugin_settings)
             
-            # Apply settings to legacy config manager if exists
+            #Apply settings to legacy config manager if exists
             if hasattr(self.config_manager, 'load'):
                 current_config = self.config_manager.load()
                 current_config.update(settings)
                 self.config_manager.save(current_config)
             
-            # Call save callback if provided
+            #Call save callback if provided
             if self.save_callback:
                 self.save_callback(settings)
             
@@ -985,7 +985,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                 with open(file_path, 'r') as f:
                     settings = json.load(f)
                 
-                # Apply imported settings
+                #Apply imported settings
                 for key, value in settings.items():
                     if key in self.settings_vars:
                         var = self.settings_vars[key]
@@ -1006,7 +1006,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         )
         
         if result:
-            # Set default values
+            #Set default values
             defaults = {
                 'theme': 'system',
                 'auto_save': True,

@@ -17,7 +17,7 @@ def test_ukrainian_chat_integration():
     print("🇺🇦 Testing Ukrainian Chat Integration")
     print("=" * 50)
     
-    # Mock LLM manager for testing
+    #Mock LLM manager for testing
     class MockLLMManager:
         def chat(self, messages):
             class MockResult:
@@ -27,7 +27,7 @@ def test_ukrainian_chat_integration():
             content = messages[-1]["content"]
             system_prompt = messages[0]["content"] if len(messages) > 1 else ""
             
-            # Mock translation responses
+            #Mock translation responses
             if "translate" in system_prompt.lower():
                 if "Привіт" in content:
                     return MockResult("Hello! How can I help you today?")
@@ -40,7 +40,7 @@ def test_ukrainian_chat_integration():
                 elif "I can help" in content and "Ukrainian" in system_prompt:
                     return MockResult("Я можу допомогти вам з будь-яким завданням!")
             
-            # Mock chat responses
+            #Mock chat responses
             if "How can I help" in content or "help me" in content:
                 return MockResult("I can help you with various tasks like taking screenshots, managing files, or automating workflows.")
             
@@ -50,7 +50,7 @@ def test_ukrainian_chat_integration():
     translation_manager = ChatTranslationManager(mock_llm)
     context_manager = ChatContextManager()
     
-    # Test cases
+    #Test cases
     test_cases = [
         {
             "message": "Привіт! Чи можеш ти мені допомогти?",
@@ -82,13 +82,13 @@ def test_ukrainian_chat_integration():
         print(f"\n📝 Test {i}: {description}")
         print(f"User message: {message}")
         
-        # Step 1: Process incoming message
+        #Step 1: Process incoming message
         processed_msg, trans_context = translation_manager.process_incoming_message(message)
         print(f"Detected language: {trans_context.user_language}")
         print(f"Processed for system: {processed_msg}")
         print(f"Translation needed: {trans_context.requires_response_translation}")
         
-        # Step 2: Analyze context
+        #Step 2: Analyze context
         system_info = {
             'tools': ['capture_screen', 'click_at', 'type_text'],
             'agents': ['master_agent', 'screen_agent']
@@ -98,7 +98,7 @@ def test_ukrainian_chat_integration():
         print(f"Chat mode: {chat_context.mode}")
         print(f"Context confidence: {chat_context.confidence:.2f}")
         
-        # Step 3: Generate mock response
+        #Step 3: Generate mock response
         if chat_context.mode == ChatMode.TOOL_INQUIRY:
             english_response = "I have several tools available: screenshot capture, mouse/keyboard control, and text processing tools."
         elif "help" in processed_msg.lower():
@@ -108,11 +108,11 @@ def test_ukrainian_chat_integration():
         
         print(f"System response (English): {english_response}")
         
-        # Step 4: Translate response back
+        #Step 4: Translate response back
         final_response = translation_manager.process_outgoing_response(english_response)
         print(f"Final response to user: {final_response}")
         
-        # Verify language detection
+        #Verify language detection
         status = "✅" if trans_context.user_language == expected_lang else "❌"
         print(f"{status} Language detection: Expected {expected_lang}, got {trans_context.user_language}")
         
@@ -123,7 +123,7 @@ def test_mixed_conversation():
     print("\n🌐 Testing Mixed Language Conversation")
     print("=" * 50)
     
-    # This would simulate a conversation where user switches between languages
+    #This would simulate a conversation where user switches between languages
     conversation = [
         ("Привіт!", "uk", "Ukrainian greeting"),
         ("What tools do you have?", "en", "English question"),

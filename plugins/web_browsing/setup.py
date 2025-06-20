@@ -54,7 +54,7 @@ def install_chrome_driver():
         print("🔧 Setting up Chrome WebDriver...")
         ChromeDriverManager().install()
         
-        # Test Chrome driver
+        #Test Chrome driver
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
@@ -86,7 +86,7 @@ def verify_installation():
     """Verify that everything is installed correctly"""
     print("\n🧪 Verifying installation...")
     
-    # Test imports
+    #Test imports
     test_imports = [
         ("selenium", "Selenium WebDriver"),
         ("playwright", "Playwright"),
@@ -113,23 +113,23 @@ def main():
     success_count = 0
     total_steps = 5
     
-    # Step 1: Install Python dependencies
+    #Step 1: Install Python dependencies
     if install_python_dependencies():
         success_count += 1
     
-    # Step 2: Install Playwright browsers
+    #Step 2: Install Playwright browsers
     if install_playwright_browsers():
         success_count += 1
     
-    # Step 3: Install Chrome WebDriver
+    #Step 3: Install Chrome WebDriver
     if install_chrome_driver():
         success_count += 1
     
-    # Step 4: Setup macOS permissions
+    #Step 4: Setup macOS permissions
     if setup_macos_permissions():
         success_count += 1
     
-    # Step 5: Verify installation
+    #Step 5: Verify installation
     if verify_installation():
         success_count += 1
     

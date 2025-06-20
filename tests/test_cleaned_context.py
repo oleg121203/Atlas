@@ -18,7 +18,7 @@ def test_english_only_processing():
         
         manager = ChatContextManager()
         
-        # Test messages in English (what should come after translation)
+        #Test messages in English (what should come after translation)
         test_cases = [
             ("help me with atlas system", ChatMode.SYSTEM_HELP),
             ("what tools are available", ChatMode.TOOL_INQUIRY), 
@@ -37,7 +37,7 @@ def test_english_only_processing():
             detected_mode = context.mode
             confidence = context.confidence
             
-            # Check if detection worked
+            #Check if detection worked
             status = "✅" if detected_mode == expected_mode else "❌"
             if detected_mode != expected_mode:
                 all_passed = False
@@ -48,7 +48,7 @@ def test_english_only_processing():
             print(f"    Confidence: {confidence:.2f}")
             print()
         
-        # Check mode patterns for any non-English content
+        #Check mode patterns for any non-English content
         print("Checking for non-English patterns/keywords:")
         print("-" * 50)
         
@@ -57,15 +57,15 @@ def test_english_only_processing():
             keywords = patterns.get('keywords', [])
             regex_patterns = patterns.get('patterns', [])
             
-            # Check keywords for Cyrillic characters
+            #Check keywords for Cyrillic characters
             for keyword in keywords:
-                if any(ord(char) > 127 for char in keyword):  # Non-ASCII characters
+                if any(ord(char) > 127 for char in keyword):  #Non-ASCII characters
                     print(f"❌ Found non-English keyword in {mode.value}: '{keyword}'")
                     non_english_found = True
             
-            # Check patterns for Cyrillic characters
+            #Check patterns for Cyrillic characters
             for pattern in regex_patterns:
-                if any(ord(char) > 127 for char in pattern):  # Non-ASCII characters
+                if any(ord(char) > 127 for char in pattern):  #Non-ASCII characters
                     print(f"❌ Found non-English pattern in {mode.value}: '{pattern}'")
                     non_english_found = True
         

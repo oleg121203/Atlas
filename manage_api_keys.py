@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Atlas API Keys Manager
-Утиліта для управління API ключами в Atlas
+Утиліта для management API ключами в Atlas
 """
 
 import os
@@ -11,11 +11,11 @@ import getpass
 from pathlib import Path
 
 def manage_api_keys():
-    """Інтерактивне управління API ключами"""
+    """Інтерактивне management API ключами"""
     print("🔑 Atlas API Keys Manager")
     print("=" * 40)
     
-    # Завантажуємо поточну конфігурацію
+    #Завантажуємо поточну конфігурацію
     config = configparser.ConfigParser()
     config_path = 'config.ini'
     
@@ -26,10 +26,10 @@ def manage_api_keys():
         print("❌ config.ini не знайдено")
         return False
     
-    # Показуємо поточний стан
+    #Показуємо current state
     show_current_keys(config)
     
-    # Пропонуємо опції
+    #Пропонуємо опції
     while True:
         print("\n📋 Доступні опції:")
         print("1. Налаштувати OpenAI API ключ")
@@ -55,10 +55,10 @@ def manage_api_keys():
             print("❌ Невірний вибір, спробуйте ще раз")
 
 def show_current_keys(config):
-    """Показати поточний стан API ключів"""
+    """Показати current state API ключів"""
     print("\n🔍 Поточний стан API ключів:")
     
-    # OpenAI
+    #OpenAI
     if config.has_section('OpenAI') and config.has_option('OpenAI', 'api_key'):
         openai_key = config.get('OpenAI', 'api_key')
         if openai_key and not openai_key.startswith('YOUR_') and not openai_key.startswith('sk-your-'):
@@ -68,7 +68,7 @@ def show_current_keys(config):
     else:
         print("❌ OpenAI: відсутній")
     
-    # Gemini
+    #Gemini
     if config.has_section('Gemini') and config.has_option('Gemini', 'api_key'):
         gemini_key = config.get('Gemini', 'api_key')
         if gemini_key and not gemini_key.startswith('YOUR_'):
@@ -83,7 +83,7 @@ def set_openai_key(config, config_path):
     print("\n🔧 Налаштування OpenAI API ключа")
     print("💡 Отримайте ключ на: https://platform.openai.com/account/api-keys")
     
-    # Отримуємо ключ від користувача
+    #Отримуємо ключ від користувача
     api_key = getpass.getpass("🔑 Введіть OpenAI API ключ (sk-...): ").strip()
     
     if not api_key:
@@ -96,7 +96,7 @@ def set_openai_key(config, config_path):
         if confirm != 'y':
             return
     
-    # Зберігаємо ключ
+    #Зберігаємо ключ
     if not config.has_section('OpenAI'):
         config.add_section('OpenAI')
     
@@ -111,7 +111,7 @@ def set_gemini_key(config, config_path):
     print("\n🔧 Налаштування Gemini API ключа")
     print("💡 Отримайте ключ на: https://makersuite.google.com/app/apikey")
     
-    # Отримуємо ключ від користувача
+    #Отримуємо ключ від користувача
     api_key = getpass.getpass("🔑 Введіть Gemini API ключ (AIza...): ").strip()
     
     if not api_key:
@@ -124,7 +124,7 @@ def set_gemini_key(config, config_path):
         if confirm != 'y':
             return
     
-    # Зберігаємо ключ
+    #Зберігаємо ключ
     if not config.has_section('Gemini'):
         config.add_section('Gemini')
     
@@ -147,7 +147,7 @@ def test_api_keys(config):
     """Тестувати API ключі"""
     print("\n🧪 Тестування API ключів...")
     
-    # Тест Gemini
+    #Тест Gemini
     if config.has_section('Gemini') and config.has_option('Gemini', 'api_key'):
         gemini_key = config.get('Gemini', 'api_key')
         if gemini_key and not gemini_key.startswith('YOUR_'):
@@ -159,7 +159,7 @@ def test_api_keys(config):
         else:
             print("⚠️  Gemini API ключ не налаштовано")
     
-    # Тест OpenAI  
+    #Тест OpenAI  
     if config.has_section('OpenAI') and config.has_option('OpenAI', 'api_key'):
         openai_key = config.get('OpenAI', 'api_key')
         if openai_key and not openai_key.startswith('YOUR_') and not openai_key.startswith('sk-your-'):
@@ -176,13 +176,13 @@ def test_gemini_api(api_key):
     try:
         import google.generativeai as genai
         
-        # Конфігуруємо API
+        #Конфігуруємо API
         genai.configure(api_key=api_key)
         
-        # Створюємо модель
+        #Створюємо модель
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # Простий тест
+        #Простий тест
         response = model.generate_content("Скажи привіт українською")
         
         return bool(response.text)
@@ -196,10 +196,10 @@ def test_openai_api(api_key):
     try:
         import openai
         
-        # Створюємо клієнт
+        #Створюємо клієнт
         client = openai.OpenAI(api_key=api_key)
         
-        # Простий тест
+        #Простий тест
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Скажи привіт"}],
@@ -213,7 +213,7 @@ def test_openai_api(api_key):
         return False
 
 def quick_setup():
-    """Швидке налаштування з рекомендаціями"""
+    """Швидке settings з рекомендаціями"""
     print("🚀 Швидке налаштування API ключів")
     print("=" * 40)
     
@@ -224,12 +224,12 @@ def quick_setup():
     
     print("\n💡 Для нормальної роботи Atlas потрібен принаймні Gemini API ключ")
     
-    # Перевіряємо поточний стан
+    #Перевіряємо current state
     config = configparser.ConfigParser()
     if os.path.exists('config.ini'):
         config.read('config.ini')
         
-        # Перевіряємо Gemini
+        #Перевіряємо Gemini
         if config.has_section('Gemini') and config.has_option('Gemini', 'api_key'):
             gemini_key = config.get('Gemini', 'api_key')
             if gemini_key and not gemini_key.startswith('YOUR_'):
@@ -247,7 +247,7 @@ def quick_setup():
 def main():
     """Головна функція"""
     try:
-        # Перехід до директорії Atlas
+        #Перехід до директорії Atlas
         atlas_dir = Path(__file__).parent
         os.chdir(atlas_dir)
         

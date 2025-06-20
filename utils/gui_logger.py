@@ -14,7 +14,7 @@ class GuiLogger(logging.Handler):
         self.textbox = textbox
         self.log_queue = queue.Queue()
 
-        # Define color tags for different log levels
+        #Define color tags for different log levels
         self.textbox.tag_config("INFO", foreground="white")
         self.textbox.tag_config("WARNING", foreground="yellow")
         self.textbox.tag_config("ERROR", foreground="red")
@@ -39,17 +39,17 @@ class GuiLogger(logging.Handler):
                 record = self.log_queue.get_nowait()
                 msg = self.format(record)
                 
-                # Determine the tag based on log level
+                #Determine the tag based on log level
                 level_tag = record.levelname
                 if level_tag not in ["INFO", "WARNING", "ERROR", "CRITICAL", "DEBUG"]:
-                    level_tag = "INFO" # Default tag
+                    level_tag = "INFO" #Default tag
 
                 self.textbox.configure(state='normal')
                 self.textbox.insert(ctk.END, msg + '\n', (level_tag,))
                 self.textbox.configure(state='disabled')
-                self.textbox.see(ctk.END) # Scroll to the bottom
+                self.textbox.see(ctk.END) #Scroll to the bottom
         except queue.Empty:
-            pass  # This can happen if the queue becomes empty between the check and get
+            pass  #This can happen if the queue becomes empty between the check and get
         finally:
-            # Reschedule the next check
+            #Reschedule the next check
             self.textbox.after(100, self.process_queue)

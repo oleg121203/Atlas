@@ -9,15 +9,15 @@ import unittest
 from unittest.mock import MagicMock, patch
 from pathlib import Path
 
-# Add the Atlas root directory to the Python path
+#Add the Atlas root directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# Import the plugin
+#Import the plugin
 sys.path.insert(0, str(Path(__file__).parent))
 try:
     from plugin import HelperSyncTellTool
 except ImportError:
-    # Try alternative import method
+    #Try alternative import method
     import importlib.util
     spec = importlib.util.spec_from_file_location("plugin", Path(__file__).parent / "plugin.py")
     plugin_module = importlib.util.module_from_spec(spec)
@@ -29,23 +29,23 @@ class TestHelperSyncTell(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures."""
-        # Create mock LLM and memory managers
+        #Create mock LLM and memory managers
         self.mock_llm_manager = MagicMock()
         self.mock_memory_manager = MagicMock()
         
-        # Configure the mock LLM manager to return predictable responses
+        #Configure the mock LLM manager to return predictable responses
         self.mock_llm_manager.generate_text.side_effect = self._mock_llm_responses
         
-        # Create the tool with mock managers
+        #Create the tool with mock managers
         self.helper_tool = HelperSyncTellTool(
             llm_manager=self.mock_llm_manager,
             memory_manager=self.mock_memory_manager
         )
         
-        # Sample query for tests
+        #Sample query for tests
         self.test_query = "How does memory work in Atlas?"
         
-        # Mock available tools
+        #Mock available tools
         self.available_tools = {
             "code_search": MagicMock(return_value="Code search results"),
             "memory_query": MagicMock(return_value="Memory query results")
@@ -80,9 +80,9 @@ class TestHelperSyncTell(unittest.TestCase):
         self.assertEqual(sub_questions[0], "How is memory stored in Atlas?")
         self.assertEqual(sub_questions[1], "What memory types exist in Atlas?")
         
-        # Verify LLM was called with the right prompt
+        #Verify LLM was called with the right prompt
         self.mock_llm_manager.generate_text.assert_called_with(
-            unittest.mock.ANY  # Can't check the exact string due to whitespace differences
+            unittest.mock.ANY  #Can't check the exact string due to whitespace differences
         )
     
     def test_analyze_sub_question(self):
@@ -90,10 +90,10 @@ class TestHelperSyncTell(unittest.TestCase):
         sub_question = "How is memory stored in Atlas?"
         analysis = self.helper_tool.analyze_sub_question(sub_question, self.available_tools)
         
-        # Check analysis result
+        #Check analysis result
         self.assertIn("Analysis of memory in Atlas", analysis)
         
-        # Check if tools were called
+        #Check if tools were called
         self.available_tools["code_search"].assert_called_once()
         self.available_tools["memory_query"].assert_called_once()
     
@@ -107,7 +107,7 @@ class TestHelperSyncTell(unittest.TestCase):
         synthesis = self.helper_tool.synthesize_response(self.test_query, analyses)
         self.assertIn("memory", synthesis.lower())
         
-        # Verify LLM was called for synthesis
+        #Verify LLM was called for synthesis
         self.mock_llm_manager.generate_text.assert_called()
     
     def test_refine_response(self):
@@ -118,47 +118,47 @@ class TestHelperSyncTell(unittest.TestCase):
         self.assertIsNotNone(refined)
         self.assertIn("sophisticated memory system", refined)
         
-        # Verify LLM was called for refinement
+        #Verify LLM was called for refinement
         self.mock_llm_manager.generate_text.assert_called()
     
     def test_full_process(self):
         """Test the full query processing workflow."""
         response = self.helper_tool(self.test_query, self.available_tools)
         
-        # Check final response
+        #Check final response
         self.assertIsNotNone(response)
         self.assertIn("memory", response.lower())
         
-        # Verify memory steps were stored
+        #Verify memory steps were stored
         self.assertEqual(self.mock_memory_manager.add_memory_for_agent.call_count, 5)
     
     def test_without_llm(self):
         """Test the tool's fallback behavior without an LLM."""
-        # Create tool without LLM
+        #Create tool without LLM
         helper_tool_no_llm = HelperSyncTellTool(
             llm_manager=None,
             memory_manager=self.mock_memory_manager
         )
         
-        # Process a query
+        #Process a query
         response = helper_tool_no_llm(self.test_query, self.available_tools)
         
-        # Check that a response was still generated
+        #Check that a response was still generated
         self.assertIsNotNone(response)
         self.assertIn("Here's what I found", response)
     
     def test_without_memory(self):
         """Test the tool's behavior without a memory manager."""
-        # Create tool without memory manager
+        #Create tool without memory manager
         helper_tool_no_memory = HelperSyncTellTool(
             llm_manager=self.mock_llm_manager,
             memory_manager=None
         )
         
-        # Process a query
+        #Process a query
         response = helper_tool_no_memory(self.test_query, self.available_tools)
         
-        # Check that a response was still generated
+        #Check that a response was still generated
         self.assertIsNotNone(response)
         self.assertIn("memory", response.lower())
     
@@ -172,12 +172,12 @@ class TestHelperSyncTell(unittest.TestCase):
                 memory_manager=self.mock_memory_manager
             )
             
-            # Verify platform detection
+            #Verify platform detection
             self.assertTrue(helper_tool_macos.platform_info["is_macos"])
             self.assertFalse(helper_tool_macos.platform_info["is_linux"])
             self.assertEqual(helper_tool_macos.platform_info["python_version"], "3.13")
             
-            # Test functionality
+            #Test functionality
             response = helper_tool_macos(self.test_query, self.available_tools)
             self.assertIsNotNone(response)
     
@@ -191,12 +191,12 @@ class TestHelperSyncTell(unittest.TestCase):
                 memory_manager=self.mock_memory_manager
             )
             
-            # Verify platform detection
+            #Verify platform detection
             self.assertFalse(helper_tool_linux.platform_info["is_macos"])
             self.assertTrue(helper_tool_linux.platform_info["is_linux"])
             self.assertEqual(helper_tool_linux.platform_info["python_version"], "3.12")
             
-            # Test functionality
+            #Test functionality
             response = helper_tool_linux(self.test_query, self.available_tools)
             self.assertIsNotNone(response)
 

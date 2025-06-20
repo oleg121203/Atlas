@@ -9,10 +9,10 @@ import yaml
 from pathlib import Path
 
 def clear_atlas_data():
-    """Очистити всі дані Atlas"""
+    """Очистити всі data Atlas"""
     print("🧹 Очищення даних Atlas...")
     
-    # Можливі шляхи до конфігурації
+    #Можливі шляхи до конфігурації
     atlas_paths = [
         Path.home() / ".atlas",
         Path("/Users/dev/.atlas"),
@@ -25,7 +25,7 @@ def clear_atlas_data():
             print(f"  🗑️  Видалення {path}")
             shutil.rmtree(path, ignore_errors=True)
     
-    # Видалити векторну базу
+    #Видалити векторну базу
     chroma_paths = [
         Path("chroma.db"),
         Path("memory"),
@@ -89,7 +89,7 @@ def check_env_variables():
         "MISTRAL_API_KEY"
     ]
     
-    # Перевірити .env файл
+    #Перевірити .env файл
     env_file = Path(".env")
     if env_file.exists():
         print(f"  ✅ Знайдено .env файл: {env_file.absolute()}")
@@ -113,13 +113,13 @@ def main():
     print("🔧 Atlas API Keys Fix Script")
     print("=" * 50)
     
-    # 1. Очистити старі дані
+    #1. Очистити старі data
     clear_atlas_data()
     
-    # 2. Створити чисту конфігурацію  
+    #2. Створити чисту конфігурацію  
     create_clean_config()
     
-    # 3. Перевірити змінні середовища
+    #3. Перевірити змінні середовища
     found_keys = check_env_variables()
     
     print("\n" + "=" * 50)

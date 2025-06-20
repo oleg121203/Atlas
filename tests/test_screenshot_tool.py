@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 import datetime
 
-# Add project root to path
+#Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
 
@@ -18,7 +18,7 @@ class TestScreenshotTool(unittest.TestCase):
     def setUp(self):
         """Create a dummy image for testing."""
         self.mock_image = Image.new('RGB', (100, 50), color='blue')
-        # Mock the save method on the image instance itself
+        #Mock the save method on the image instance itself
         self.mock_image.save = MagicMock()
 
     @patch('tools.screenshot_tool._QUARTZ_AVAILABLE', True)
@@ -51,7 +51,7 @@ class TestScreenshotTool(unittest.TestCase):
         """Test capture_screen saves the image when a path is provided."""
         mock_capture_quartz.return_value = self.mock_image
 
-        # Mock the strftime call to return a fixed timestamp
+        #Mock the strftime call to return a fixed timestamp
         mock_datetime.datetime.now.return_value.strftime.return_value = "20250617T153000"
 
         save_path = Path("/tmp/screenshot.png")

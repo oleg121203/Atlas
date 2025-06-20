@@ -17,8 +17,8 @@ class SystemInteractionAgent(BaseAgent):
     def execute_task(self, prompt: str, context: Dict[str, Any]) -> str:
         self.logger.info(f"Executing system task: '{prompt}'")
         
-        # For simplicity, we'll assume the prompt is a direct command.
-        # In a real scenario, we'd have more sophisticated parsing.
+        #For simplicity, we'll assume the prompt is a direct command.
+        #In a real scenario, we'd have more sophisticated parsing.
         command = prompt
 
         try:

@@ -7,7 +7,7 @@ import re
 from enum import Enum
 from unittest.mock import MagicMock
 
-# Mock the necessary classes to avoid imports
+#Mock the necessary classes to avoid imports
 class ChatMode(Enum):
     """Mock of the ChatMode enum"""
     CASUAL_CHAT = "casual_chat"
@@ -56,7 +56,7 @@ class MockChatContextManager:
         """Simple analysis to check if keywords are detected"""
         message_lower = message.lower()
         
-        # Check if any memory-related keyword is in the message
+        #Check if any memory-related keyword is in the message
         memory_keywords = [
             'memory', 'пам\'ять', 'память', 'remember', 'memorize', 
             'store', 'recall', 'forget', 'запоминаешь', 'запам\'ятовуєш'
@@ -64,7 +64,7 @@ class MockChatContextManager:
         
         is_memory_related = any(keyword in message_lower for keyword in memory_keywords)
         
-        # Check if any help pattern matches
+        #Check if any help pattern matches
         help_patterns = self.mode_patterns[ChatMode.SYSTEM_HELP]['patterns']
         pattern_matches = any(
             re.search(pattern, message_lower, re.IGNORECASE) 
@@ -95,10 +95,10 @@ def test_memory_help_detection():
     print("\n🧪 Testing Memory Help Detection in Chat Context Manager\n")
     print("=" * 70)
     
-    # Create mock chat manager
+    #Create mock chat manager
     chat_manager = MockChatContextManager()
     
-    # Test queries
+    #Test queries
     memory_queries = [
         "Tell me about your memory system",
         "How does Atlas remember things?",
@@ -106,18 +106,18 @@ def test_memory_help_detection():
         "Do you have short-term and long-term memory?",
         "How is your memory organized?",
         "What is your memory architecture?",
-        "Розкажи про свою память довготривалу в Атлас",  # Ukrainian
-        "Как организована твоя память?"  # Russian
+        "Розкажи про свою память довготривалу в Атлас",  #Ukrainian
+        "Как организована твоя память?"  #Russian
     ]
     
     success_count = 0
     total_count = len(memory_queries)
     
     for query in memory_queries:
-        # Analyze query
+        #Analyze query
         context = chat_manager.analyze_message(query)
         
-        # Generate response
+        #Generate response
         system_prompt = chat_manager.generate_response_prompt(
             context, 
             query,
@@ -127,7 +127,7 @@ def test_memory_help_detection():
         print(f"\n📝 Query: {query}")
         print(f"🔍 Detected Mode: {context.mode.value} (confidence: {context.confidence:.2f})")
         
-        # Check if it contains memory-specific information
+        #Check if it contains memory-specific information
         has_memory_info = "memory system" in system_prompt.lower()
         print(f"✓ Contains Memory Info: {has_memory_info}")
         

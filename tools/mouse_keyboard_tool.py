@@ -11,11 +11,11 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 from enum import Enum
 
-# Try to import pyautogui safely for headless environments
+#Try to import pyautogui safely for headless environments
 try:
     if 'DISPLAY' not in os.environ:
-        os.environ['DISPLAY'] = ':0'  # Fallback display
-    import pyautogui  # type: ignore
+        os.environ['DISPLAY'] = ':0'  #Fallback display
+    import pyautogui  #type: ignore
     _PYAUTOGUI_AVAILABLE = True
 except Exception as e:
     _PYAUTOGUI_AVAILABLE = False
@@ -40,7 +40,7 @@ try:
 except ImportError:
     _QUARTZ_AVAILABLE = False
 
-from logger import get_logger
+from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -82,7 +82,7 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
     
     try:
         if _QUARTZ_AVAILABLE:
-            # Use native macOS Quartz for better performance
+            #Use native macOS Quartz for better performance
             if button == MouseButton.LEFT:
                 down_event = kCGEventLeftMouseDown
                 up_event = kCGEventLeftMouseUp
@@ -90,7 +90,7 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
                 down_event = kCGEventRightMouseDown
                 up_event = kCGEventRightMouseUp
             else:
-                # Fallback to PyAutoGUI for middle click
+                #Fallback to PyAutoGUI for middle click
                 pyautogui.click(x, y, button=button.value, duration=duration)
                 execution_time = time.time() - start_time
                 return MouseKeyboardResult(
@@ -100,7 +100,7 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
                     execution_time=execution_time
                 )
             
-            # Create and post mouse events
+            #Create and post mouse events
             mouse_down = CGEventCreateMouseEvent(None, down_event, (x, y), 0)
             mouse_up = CGEventCreateMouseEvent(None, up_event, (x, y), 0)
             
@@ -108,7 +108,7 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
             time.sleep(duration)
             CGEventPost(kCGHIDEventTap, mouse_up)
         else:
-            # Fallback to PyAutoGUI
+            #Fallback to PyAutoGUI
             pyautogui.click(x, y, button=button.value, duration=duration)
         
         execution_time = time.time() - start_time
@@ -151,11 +151,11 @@ def move_mouse(x: int, y: int, duration: float = 0.5) -> MouseKeyboardResult:
     
     try:
         if _QUARTZ_AVAILABLE:
-            # Use native macOS for smooth movement
+            #Use native macOS for smooth movement
             move_event = CGEventCreateMouseEvent(None, kCGEventMouseMoved, (x, y), 0)
             CGEventPost(kCGHIDEventTap, move_event)
         else:
-            # Fallback to PyAutoGUI
+            #Fallback to PyAutoGUI
             pyautogui.moveTo(x, y, duration=duration)
         
         execution_time = time.time() - start_time

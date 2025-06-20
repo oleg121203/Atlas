@@ -21,7 +21,7 @@ def fix_openai_config():
     print("🔧 Fixing OpenAI Configuration Issues...")
     print(f"Atlas Directory: {atlas_dir}")
     
-    # Read current config
+    #Read current config
     config = configparser.ConfigParser()
     if config_path.exists():
         config.read(config_path)
@@ -30,14 +30,14 @@ def fix_openai_config():
         print(f"❌ No config.ini found at: {config_path}")
         return False
     
-    # Check current OpenAI settings
+    #Check current OpenAI settings
     openai_key = config.get('OpenAI', 'api_key', fallback='')
     openai_model = config.get('OpenAI', 'model_name', fallback='gpt-4-turbo')
     
     print(f"Current OpenAI API Key: {openai_key[:20]}..." if len(openai_key) > 20 else f"Current OpenAI API Key: {openai_key}")
     print(f"Current OpenAI Model: {openai_model}")
     
-    # Check if OpenAI key is placeholder
+    #Check if OpenAI key is placeholder
     is_placeholder = (not openai_key or 
                      openai_key == "YOUR_OPENAI_API_KEY_HERE" or
                      openai_key == "sk-your-openai-key-here" or
@@ -47,11 +47,11 @@ def fix_openai_config():
     if is_placeholder:
         print("⚠️  OpenAI API key is a placeholder")
         
-        # Check environment variable
+        #Check environment variable
         env_openai_key = os.getenv('OPENAI_API_KEY', '')
         if env_openai_key and not any(x in env_openai_key.lower() for x in ['placeholder', 'your-', 'here']):
             print(f"✅ Found valid OpenAI key in environment: {env_openai_key[:20]}...")
-            # Update config with env key
+            #Update config with env key
             config.set('OpenAI', 'api_key', env_openai_key)
             with open(config_path, 'w') as f:
                 config.write(f)
@@ -59,11 +59,11 @@ def fix_openai_config():
         else:
             print("ℹ️  No valid OpenAI key found in environment")
             
-            # Set a clear placeholder that won't cause errors
-            safe_placeholder = "# OpenAI key not configured - using Gemini as default"
+            #Set a clear placeholder that won't cause errors
+            safe_placeholder = "#OpenAI key not configured - using Gemini as default"
             config.set('OpenAI', 'api_key', safe_placeholder)
             
-            # Ensure we have a comment about this
+            #Ensure we have a comment about this
             if not config.has_option('OpenAI', 'note'):
                 config.set('OpenAI', 'note', 'OpenAI is optional when using Gemini as default provider')
             
@@ -73,7 +73,7 @@ def fix_openai_config():
     else:
         print("✅ OpenAI API key appears to be valid")
     
-    # Ensure Gemini is still the default
+    #Ensure Gemini is still the default
     current_provider = config.get('LLM', 'provider', fallback='gemini')
     current_model = config.get('LLM', 'model', fallback='gemini-1.5-flash')
     
@@ -88,21 +88,21 @@ def fix_openai_config():
         print(f"✅ LLM provider is correctly set to: {current_provider}")
         print(f"✅ LLM model is: {current_model}")
     
-    # Update .env file if needed
+    #Update .env file if needed
     if env_path.exists():
         print(f"✅ Found .env file at: {env_path}")
         with open(env_path, 'r') as f:
             env_content = f.read()
         
-        # Check if we need to update .env
+        #Check if we need to update .env
         needs_update = False
         lines = env_content.split('\n')
         new_lines = []
         
         for line in lines:
             if line.startswith('OPENAI_API_KEY=') and is_placeholder:
-                # Comment out placeholder OpenAI key
-                new_lines.append(f"# {line}  # Placeholder - not configured")
+                #Comment out placeholder OpenAI key
+                new_lines.append(f"#{line}  # Placeholder - not configured")
                 needs_update = True
             elif line.startswith('DEFAULT_LLM_PROVIDER=') and not line.endswith('gemini'):
                 new_lines.append('DEFAULT_LLM_PROVIDER=gemini')

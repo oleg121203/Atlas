@@ -14,11 +14,11 @@ def test_english_only_processing():
     """Test that all internal processing happens in English only."""
     print("=== Testing English-Only System Processing ===\n")
     
-    # Initialize components
+    #Initialize components
     manager = ChatContextManager()
     translator = TranslationTool()
     
-    # Test cases: Ukrainian/Russian input that should be translated to English
+    #Test cases: Ukrainian/Russian input that should be translated to English
     test_cases = [
         {
             'input': 'допоможи мені з Atlas',
@@ -49,28 +49,28 @@ def test_english_only_processing():
     
     print("1. Testing translation to English:")
     for case in test_cases:
-        # Translate to English first
+        #Translate to English first
         translation_result = translator.translate_to_english(case['input'])
         translated = translation_result.text if hasattr(translation_result, 'text') else str(translation_result)
         print(f"   {case['description']}: '{case['input']}' → '{translated}'")
         
-        # Analyze the translated English text
+        #Analyze the translated English text
         context = manager.analyze_message(translated)
         print(f"   Detected mode: {context.mode.value} (confidence: {context.confidence:.2f})")
         
-        # Verify it's the expected mode
+        #Verify it's the expected mode
         if context.mode == case['expected_mode']:
             print("   ✅ PASS\n")
         else:
             print(f"   ❌ FAIL - Expected {case['expected_mode'].value}\n")
     
     print("2. Testing keywords are English-only:")
-    # Check that all keywords in patterns are English
+    #Check that all keywords in patterns are English
     for mode, patterns in manager.mode_patterns.items():
         print(f"   Mode: {mode.value}")
         keywords = patterns.get('keywords', [])
         
-        # Check for non-English characters
+        #Check for non-English characters
         non_english_found = False
         for keyword in keywords:
             if any(ord(char) > 127 for char in keyword):

@@ -10,14 +10,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from agents.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 def test_memory_search():
     """Test the fixed memory search functionality."""
     print("🧪 Testing memory search fix...")
     
     try:
-        # Initialize components
+        #Initialize components
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker=token_tracker, config_manager=config_manager)
@@ -26,7 +26,7 @@ def test_memory_search():
             config_manager=config_manager
         )
         
-        # Test the corrected method call
+        #Test the corrected method call
         results = memory_manager.search_memories_for_agent(
             agent_type=MemoryScope.MASTER_AGENT,
             query="test query",

@@ -5,7 +5,7 @@ import time
 from typing import Any, Dict
 
 from agents.base_agent import BaseAgent
-from logger import get_logger, LOG_FILE_PATH
+from utils.logger import get_logger, LOG_FILE_PATH
 
 
 class DeputyAgent(BaseAgent):
@@ -43,16 +43,16 @@ class DeputyAgent(BaseAgent):
         self.logger.info("Deputy Agent monitoring loop started.")
         try:
             with open(LOG_FILE_PATH, 'r') as f:
-                f.seek(0, 2)  # Go to the end of the file
+                f.seek(0, 2)  #Go to the end of the file
                 while self.is_running:
                     line = f.readline()
                     if not line:
-                        time.sleep(1)  # Wait for new lines
+                        time.sleep(1)  #Wait for new lines
                         continue
                     
                     if "ERROR" in line:
                         self.logger.warning(f"Anomaly Detected! Log entry: {line.strip()}")
-                        # In a real scenario, this would trigger a more complex response.
+                        #In a real scenario, this would trigger a more complex response.
 
         except FileNotFoundError:
             self.logger.error(f"Log file not found at {LOG_FILE_PATH}. Deputy Agent cannot monitor.")

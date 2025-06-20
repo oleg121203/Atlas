@@ -23,12 +23,12 @@ import re
 from enum import Enum
 from dataclasses import dataclass, field
 
-# Use Atlas platform detection utilities
+#Use Atlas platform detection utilities
 try:
     from utils.platform_utils import IS_MACOS, IS_LINUX, IS_HEADLESS, get_platform_info
     PLATFORM_UTILS_AVAILABLE = True
 except ImportError:
-    # Fallback platform detection
+    #Fallback platform detection
     import platform
     import os
     IS_MACOS = platform.system().lower() == 'darwin'
@@ -45,13 +45,13 @@ except ImportError:
             'is_headless': IS_HEADLESS
         }
 
-# Try to import memory manager components
+#Try to import memory manager components
 try:
     from agents.enhanced_memory_manager import MemoryScope, MemoryType
     MEMORY_INTEGRATION_AVAILABLE = True
 except ImportError:
     MEMORY_INTEGRATION_AVAILABLE = False
-    # Dummy classes for fallback
+    #Dummy classes for fallback
     class MemoryScope:
         DEPUTY_AGENT = "deputy_agent"
         HELPER_SYSTEM = "helper_system"
@@ -66,13 +66,13 @@ except ImportError:
 
 class ThinkingStrategy(Enum):
     """Different thinking strategies based on query type and complexity."""
-    ANALYTICAL = "analytical"       # Step-by-step logical analysis
-    EXPLORATORY = "exploratory"     # Open-ended investigation
-    COMPARATIVE = "comparative"     # Compare and contrast approach
-    ARCHITECTURAL = "architectural" # System design and structure focus
-    TROUBLESHOOTING = "troubleshooting" # Problem identification and solving
-    CREATIVE = "creative"           # Innovation and improvement focus
-    CONTEXTUAL = "contextual"       # Context-aware situational analysis
+    ANALYTICAL = "analytical"       #Step-by-step logical analysis
+    EXPLORATORY = "exploratory"     #Open-ended investigation
+    COMPARATIVE = "comparative"     #Compare and contrast approach
+    ARCHITECTURAL = "architectural" #System design and structure focus
+    TROUBLESHOOTING = "troubleshooting" #Problem identification and solving
+    CREATIVE = "creative"           #Innovation and improvement focus
+    CONTEXTUAL = "contextual"       #Context-aware situational analysis
 
 
 @dataclass
@@ -95,12 +95,12 @@ class ThoughtProcess:
 class AnalysisContext:
     """Context information for more intelligent analysis."""
     domain: str = "general"
-    complexity_level: int = 1  # 1-5 scale
+    complexity_level: int = 1  #1-5 scale
     requires_code_analysis: bool = False
     requires_system_knowledge: bool = False
     requires_creative_thinking: bool = False
     language_context: str = "en"
-    user_expertise_level: str = "intermediate"  # beginner, intermediate, expert
+    user_expertise_level: str = "intermediate"  #beginner, intermediate, expert
 
 
 class AdvancedAIThinkingTool:
@@ -122,23 +122,23 @@ class AdvancedAIThinkingTool:
         self.description = "Advanced AI-driven structured thinking with meta-cognitive awareness"
         self.version = "3.0.0"
         
-        # Core components
+        #Core components
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         self.config_manager = config_manager
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # Platform and compatibility info
+        #Platform and compatibility info
         self.platform_info = get_platform_info()
         self.capabilities = self._assess_capabilities()
         
-        # Advanced configuration
+        #Advanced configuration
         self.config = self._load_advanced_configuration()
         
-        # Strategy patterns learned from experience
+        #Strategy patterns learned from experience
         self.strategy_patterns = self._initialize_strategy_patterns()
         
-        # Meta-cognitive tracking
+        #Meta-cognitive tracking
         self.meta_stats = {
             "total_thoughts": 0,
             "strategy_effectiveness": {},
@@ -161,14 +161,14 @@ class AdvancedAIThinkingTool:
             "headless_operation": IS_HEADLESS,
             "macos_features": IS_MACOS,
             "linux_features": IS_LINUX,
-            "meta_cognition": True,  # Advanced feature
+            "meta_cognition": True,  #Advanced feature
             "strategy_selection": True,
             "confidence_assessment": True,
             "iterative_refinement": True,
             "cross_domain_integration": True
         }
         
-        # Check Python version compatibility
+        #Check Python version compatibility
         python_version = sys.version_info
         capabilities["python_312_plus"] = python_version >= (3, 12)
         capabilities["python_313_plus"] = python_version >= (3, 13)
@@ -178,32 +178,32 @@ class AdvancedAIThinkingTool:
     def _load_advanced_configuration(self) -> Dict[str, Any]:
         """Load advanced configuration settings."""
         default_config = {
-            # Core thinking parameters
-            "max_sub_questions": 7,  # Increased for deeper analysis
+            #Core thinking parameters
+            "max_sub_questions": 7,  #Increased for deeper analysis
             "min_sub_questions": 3,
-            "max_iterations": 3,     # Allow iterative refinement
+            "max_iterations": 3,     #Allow iterative refinement
             "confidence_threshold": 0.7,
             
-            # Strategy selection
+            #Strategy selection
             "auto_strategy_selection": True,
             "allow_strategy_switching": True,
             "meta_analysis_enabled": True,
             
-            # Quality control
+            #Quality control
             "enable_self_critique": True,
             "enable_uncertainty_tracking": True,
             "enable_cross_validation": True,
             
-            # Performance optimization
+            #Performance optimization
             "enable_caching": True,
             "enable_pattern_learning": True,
             "adaptive_depth": True,
             
-            # Integration settings
+            #Integration settings
             "enable_memory_storage": True,
             "enable_tool_integration": True,
             "response_refinement": True,
-            "thinking_timeout": 60.0,  # Increased for complex analysis
+            "thinking_timeout": 60.0,  #Increased for complex analysis
         }
         
         if self.config_manager:
@@ -274,15 +274,15 @@ class AdvancedAIThinkingTool:
         """Analyze the query to determine context and requirements."""
         query_lower = query.lower()
         
-        # Detect language context
+        #Detect language context
         ukrainian_indicators = ["як", "що", "чому", "де", "коли", "який", "пам'ять", "система", "проаналізуй", "покращ"]
         language_context = "uk" if any(word in query_lower for word in ukrainian_indicators) else "en"
         
-        # Enhanced complexity assessment
+        #Enhanced complexity assessment
         complexity_indicators = [
-            len(query.split()) > 10,  # Medium query
-            len(query.split()) > 20,  # Long query
-            "?" in query and query.count("?") > 1,  # Multiple questions
+            len(query.split()) > 10,  #Medium query
+            len(query.split()) > 20,  #Long query
+            "?" in query and query.count("?") > 1,  #Multiple questions
             any(word in query_lower for word in ["архітектур", "система", "комплекс", "інтеграц", "architecture", "system", "complex", "integration"]),
             any(word in query_lower for word in ["аналіз", "детальн", "глибок", "comprehensive", "detailed", "analyze"]),
             any(word in query_lower for word in ["покращ", "удосконал", "оптиміза", "improve", "enhance", "optimize"]),
@@ -290,7 +290,7 @@ class AdvancedAIThinkingTool:
         ]
         complexity_level = min(5, sum(complexity_indicators) + 1)
         
-        # Enhanced domain detection
+        #Enhanced domain detection
         code_indicators = ["код", "функц", "клас", "алгоритм", "програм", "code", "implementation", "function", "class", "algorithm", "programming"]
         system_indicators = ["систем", "архітектур", "пам'ять", "менеджер", "компонент", "модул", "system", "architecture", "memory", "manager", "component", "module"]
         creative_indicators = ["покращ", "удосконал", "оптиміза", "креатив", "інновац", "improve", "enhance", "optimize", "better", "creative", "innovation"]
@@ -301,7 +301,7 @@ class AdvancedAIThinkingTool:
         requires_creative_thinking = any(word in query_lower for word in creative_indicators)
         requires_analysis = any(word in query_lower for word in analysis_indicators)
         
-        # Determine domain with enhanced logic
+        #Determine domain with enhanced logic
         if requires_code_analysis and requires_system_knowledge:
             domain = "software_architecture"
         elif requires_code_analysis:
@@ -315,11 +315,11 @@ class AdvancedAIThinkingTool:
         else:
             domain = "general_analysis"
         
-        # Boost complexity for specific patterns
+        #Boost complexity for specific patterns
         if any(word in query_lower for word in ["що не так", "проблем", "trouble", "issue"]):
-            complexity_level = max(complexity_level, 3)  # Troubleshooting is complex
+            complexity_level = max(complexity_level, 3)  #Troubleshooting is complex
         if any(word in query_lower for word in ["архітектур", "architecture"]):
-            complexity_level = max(complexity_level, 4)  # Architecture is complex
+            complexity_level = max(complexity_level, 4)  #Architecture is complex
         
         return AnalysisContext(
             domain=domain,
@@ -328,7 +328,7 @@ class AdvancedAIThinkingTool:
             requires_system_knowledge=requires_system_knowledge,
             requires_creative_thinking=requires_creative_thinking,
             language_context=language_context,
-            user_expertise_level="expert"  # Atlas users are typically technical
+            user_expertise_level="expert"  #Atlas users are typically technical
         )
 
     def select_thinking_strategy(self, query: str, context: AnalysisContext) -> ThinkingStrategy:
@@ -336,7 +336,7 @@ class AdvancedAIThinkingTool:
         query_lower = query.lower()
         strategy_scores = {}
         
-        # Enhanced Ukrainian keyword detection
+        #Enhanced Ukrainian keyword detection
         ukrainian_keywords = {
             ThinkingStrategy.ARCHITECTURAL.value: ["архітектур", "структур", "систем", "компонент", "дизайн", "побудов"],
             ThinkingStrategy.TROUBLESHOOTING.value: ["проблем", "помилк", "не працює", "не так", "виправ", "налагод", "проблематика"],
@@ -346,38 +346,38 @@ class AdvancedAIThinkingTool:
             ThinkingStrategy.ANALYTICAL.value: ["аналіз", "розбор", "деталь", "компонент", "логік"]
         }
         
-        # Score each strategy based on query content and context
+        #Score each strategy based on query content and context
         for strategy_name in [s.value for s in ThinkingStrategy]:
             score = 0
             pattern = self.strategy_patterns.get(strategy_name, {})
             
-            # Enhanced keyword matching (English + Ukrainian)
+            #Enhanced keyword matching (English + Ukrainian)
             english_keywords = pattern.get("keywords", [])
             ukrainian_keywords_list = ukrainian_keywords.get(strategy_name, [])
             
-            # Count English keyword matches
+            #Count English keyword matches
             keyword_matches = sum(1 for keyword in english_keywords if keyword in query_lower)
             score += keyword_matches * 2
             
-            # Count Ukrainian keyword matches
+            #Count Ukrainian keyword matches
             ukrainian_matches = sum(1 for keyword in ukrainian_keywords_list if keyword in query_lower)
-            score += ukrainian_matches * 3  # Higher weight for Ukrainian
+            score += ukrainian_matches * 3  #Higher weight for Ukrainian
             
-            # Context-based scoring with enhanced detection
+            #Context-based scoring with enhanced detection
             if strategy_name == ThinkingStrategy.ARCHITECTURAL.value:
                 if context.requires_system_knowledge or any(word in query_lower for word in ["архітектур", "систем", "пам'ят", "структур"]):
-                    score += 5  # Higher priority for architecture
+                    score += 5  #Higher priority for architecture
             elif strategy_name == ThinkingStrategy.TROUBLESHOOTING.value:
                 if any(word in query_lower for word in ["що не так", "проблем", "помилк", "не працює", "виправ"]):
                     score += 5
             elif strategy_name == ThinkingStrategy.CREATIVE.value:
                 if context.requires_creative_thinking or any(word in query_lower for word in ["покращ", "удосконал", "як можна"]):
-                    # Lower priority if it's primarily architectural
+                    #Lower priority if it's primarily architectural
                     arch_score = sum(1 for word in ["архітектур", "систем", "пам'ят"] if word in query_lower)
                     if arch_score == 0:
                         score += 4
                     else:
-                        score += 2  # Reduced score if architectural context
+                        score += 2  #Reduced score if architectural context
             elif strategy_name == ThinkingStrategy.COMPARATIVE.value:
                 if any(word in query_lower for word in ["порівня", "різн", "відмінност"]):
                     score += 4
@@ -390,7 +390,7 @@ class AdvancedAIThinkingTool:
             
             strategy_scores[strategy_name] = score
         
-        # Select strategy with highest score, fallback to analytical
+        #Select strategy with highest score, fallback to analytical
         if not strategy_scores or max(strategy_scores.values()) == 0:
             return ThinkingStrategy.ANALYTICAL
             
@@ -434,12 +434,12 @@ class AdvancedAIThinkingTool:
             else:
                 content = str(response)
             
-            # Extract questions with improved parsing
+            #Extract questions with improved parsing
             sub_questions = []
             for line in content.split("\n"):
                 line = line.strip()
                 if line and len(line) > 5:
-                    # Match various numbering patterns
+                    #Match various numbering patterns
                     match = re.match(r'^(\d+)[.\)\-]\s*(.+)', line)
                     if match:
                         question = match.group(2).strip()
@@ -468,7 +468,7 @@ class AdvancedAIThinkingTool:
         
         base_guidance = guidance_map.get(strategy, "Analyze systematically and thoroughly")
         
-        # Add context-specific guidance
+        #Add context-specific guidance
         if context.requires_code_analysis:
             base_guidance += ". Focus on code structure, implementation details, and technical aspects."
         if context.requires_system_knowledge:
@@ -520,7 +520,7 @@ class AdvancedAIThinkingTool:
                     f"Який підхід найкраще підходить для: {query}?"
                 ]
             else:
-                # Default exploratory approach
+                #Default exploratory approach
                 return [
                     f"Який поточний стан: {query}?",
                     f"Як працює {query} внутрішньо?",
@@ -528,7 +528,7 @@ class AdvancedAIThinkingTool:
                     f"Які можливості існують для покращення: {query}?"
                 ]
         else:
-            # English questions
+            #English questions
             if strategy == ThinkingStrategy.ANALYTICAL:
                 return [
                     f"What are the core components of: {query}?",
@@ -565,7 +565,7 @@ class AdvancedAIThinkingTool:
                     f"Which approach is best suited for: {query}?"
                 ]
             else:
-                # Default exploratory approach
+                #Default exploratory approach
                 return [
                     f"What is the current state of: {query}?",
                     f"How does {query} work internally?",
@@ -583,10 +583,10 @@ class AdvancedAIThinkingTool:
         start_time = time.time()
         
         try:
-            # Select relevant tools based on context
+            #Select relevant tools based on context
             relevant_tools = self._select_contextual_tools(sub_question, available_tools, context)
             
-            # Gather tool results
+            #Gather tool results
             tool_results = {}
             for tool_name in relevant_tools:
                 try:
@@ -598,17 +598,17 @@ class AdvancedAIThinkingTool:
                     self.logger.debug(f"Tool {tool_name} failed: {e}")
                     tool_results[tool_name] = f"Tool error: {str(e)[:100]}"
             
-            # Generate analysis with confidence assessment
+            #Generate analysis with confidence assessment
             if self.capabilities["llm_generation"]:
                 analysis, confidence, uncertainties = self._generate_meta_aware_analysis(
                     sub_question, tool_results, context
                 )
             else:
                 analysis = self._fallback_analysis(sub_question, tool_results)
-                confidence = 0.5  # Medium confidence for fallback
+                confidence = 0.5  #Medium confidence for fallback
                 uncertainties = ["Limited analysis due to LLM unavailability"]
             
-            # Track performance
+            #Track performance
             processing_time = time.time() - start_time
             self.logger.debug(f"Meta-cognitive analysis completed in {processing_time:.2f}s, confidence: {confidence}")
             
@@ -626,7 +626,7 @@ class AdvancedAIThinkingTool:
         question_lower = question.lower()
         selected_tools = []
         
-        # Priority-based tool selection
+        #Priority-based tool selection
         tool_priorities = {
             'semantic_search': 3 if context.requires_system_knowledge else 1,
             'code_search': 3 if context.requires_code_analysis else 1,
@@ -635,12 +635,12 @@ class AdvancedAIThinkingTool:
             'grep_search': 2 if context.requires_code_analysis else 1,
         }
         
-        # Add available tools with their priorities
+        #Add available tools with their priorities
         tool_scores = []
         for tool_name in available_tools.keys():
             base_priority = tool_priorities.get(tool_name, 1)
             
-            # Keyword-based scoring
+            #Keyword-based scoring
             keyword_score = 0
             if 'search' in tool_name and any(word in question_lower for word in ['find', 'search', 'locate']):
                 keyword_score += 2
@@ -652,16 +652,16 @@ class AdvancedAIThinkingTool:
             total_score = base_priority + keyword_score
             tool_scores.append((tool_name, total_score))
         
-        # Sort by score and select top tools
+        #Sort by score and select top tools
         tool_scores.sort(key=lambda x: x[1], reverse=True)
-        max_tools = min(4, len(tool_scores))  # Limit to prevent overwhelming
+        max_tools = min(4, len(tool_scores))  #Limit to prevent overwhelming
         
         return [tool[0] for tool in tool_scores[:max_tools]]
 
     def _generate_meta_aware_analysis(self, question: str, tool_results: Dict[str, str], context: AnalysisContext) -> Tuple[str, float, List[str]]:
         """Generate analysis with meta-cognitive awareness and confidence assessment."""
         try:
-            # Create a sophisticated analysis prompt
+            #Create a sophisticated analysis prompt
             analysis_prompt = f"""
             As an advanced AI assistant, analyze this question with meta-cognitive awareness.
             
@@ -699,14 +699,14 @@ class AdvancedAIThinkingTool:
             else:
                 content = str(response)
             
-            # Parse the structured response
+            #Parse the structured response
             analysis, confidence, uncertainties = self._parse_meta_response(content)
             
             return analysis, confidence, uncertainties
             
         except Exception as e:
             self.logger.warning(f"Meta-aware analysis failed: {e}")
-            # Fallback to simple analysis
+            #Fallback to simple analysis
             fallback_analysis = self._fallback_analysis(question, tool_results)
             return fallback_analysis, 0.6, ["LLM analysis failed, using fallback"]
 
@@ -716,7 +716,7 @@ class AdvancedAIThinkingTool:
         confidence = 0.5
         uncertainties = []
         
-        # Split content into sections
+        #Split content into sections
         sections = content.split('\n')
         current_section = None
         
@@ -730,7 +730,7 @@ class AdvancedAIThinkingTool:
                 conf_text = line[11:].strip()
                 try:
                     confidence = float(re.findall(r'[0-9.]+', conf_text)[0])
-                    confidence = max(0.0, min(1.0, confidence))  # Clamp to valid range
+                    confidence = max(0.0, min(1.0, confidence))  #Clamp to valid range
                 except:
                     confidence = 0.5
             elif line.startswith('UNCERTAINTIES:'):
@@ -743,7 +743,7 @@ class AdvancedAIThinkingTool:
             elif current_section == 'uncertainties' and line:
                 uncertainties.append(line)
         
-        # Ensure we have some analysis
+        #Ensure we have some analysis
         if not analysis.strip():
             analysis = content[:500] + "..." if len(content) > 500 else content
         
@@ -764,11 +764,11 @@ class AdvancedAIThinkingTool:
         if not analyses:
             return "I apologize, but I wasn't able to analyze your question properly."
         
-        # Calculate overall confidence
+        #Calculate overall confidence
         confidences = [conf for _, conf, _ in analyses]
         overall_confidence = sum(confidences) / len(confidences) if confidences else 0.5
         
-        # Collect all uncertainties
+        #Collect all uncertainties
         all_uncertainties = []
         for _, _, uncertainties in analyses:
             all_uncertainties.extend(uncertainties)
@@ -777,7 +777,7 @@ class AdvancedAIThinkingTool:
             return self._fallback_synthesis(original_query, [analysis for analysis, _, _ in analyses])
         
         try:
-            # First synthesis attempt
+            #First synthesis attempt
             synthesis_prompt = f"""
             As an advanced AI assistant, synthesize a comprehensive response using {strategy.value} thinking approach.
             
@@ -813,7 +813,7 @@ class AdvancedAIThinkingTool:
             else:
                 initial_synthesis = str(response)
             
-            # Apply refinement if enabled and confidence is below threshold
+            #Apply refinement if enabled and confidence is below threshold
             if (self.config["enable_self_critique"] and 
                 overall_confidence < self.config["confidence_threshold"]):
                 return self._refine_with_self_critique(original_query, initial_synthesis, all_uncertainties, context)
@@ -874,7 +874,7 @@ class AdvancedAIThinkingTool:
             else:
                 refined_response = str(response)
             
-            # Track refinement improvement
+            #Track refinement improvement
             self.meta_stats["refinement_improvements"].append({
                 "original_length": len(initial_response),
                 "refined_length": len(refined_response),
@@ -917,21 +917,21 @@ class AdvancedAIThinkingTool:
         if available_tools is None:
             available_tools = {}
         
-        # Generate unique thought process ID
+        #Generate unique thought process ID
         thought_id = self._generate_thought_id()
         self.logger.info(f"Starting advanced thinking process {thought_id}")
         
         try:
-            # Phase 1: Context Analysis and Strategy Selection
+            #Phase 1: Context Analysis and Strategy Selection
             context = self.analyze_query_context(query)
             strategy = self.select_thinking_strategy(query, context)
             
             self.logger.info(f"Selected {strategy.value} strategy for {context.domain} domain (complexity: {context.complexity_level})")
             
-            # Phase 2: Strategic Question Generation
+            #Phase 2: Strategic Question Generation
             sub_questions = self.generate_strategic_questions(query, strategy, context)
             
-            # Phase 3: Meta-Cognitive Analysis
+            #Phase 3: Meta-Cognitive Analysis
             analyses = []
             for i, sub_question in enumerate(sub_questions):
                 self.logger.debug(f"Meta-cognitive analysis {i+1}/{len(sub_questions)}: {sub_question}")
@@ -940,14 +940,14 @@ class AdvancedAIThinkingTool:
                 )
                 analyses.append((analysis, confidence, uncertainties))
             
-            # Phase 4: Synthesis with Refinement
+            #Phase 4: Synthesis with Refinement
             final_response = self.synthesize_with_refinement(query, analyses, strategy, context)
             
-            # Phase 5: Meta-Statistics Update
+            #Phase 5: Meta-Statistics Update
             processing_time = time.time() - start_time
             self._update_meta_statistics(thought_id, strategy, analyses, processing_time)
             
-            # Store thought process for learning
+            #Store thought process for learning
             self._store_thought_process(ThoughtProcess(
                 thought_id=thought_id,
                 original_query=query,
@@ -976,16 +976,16 @@ class AdvancedAIThinkingTool:
         """Update meta-cognitive statistics for learning."""
         self.meta_stats["total_thoughts"] += 1
         
-        # Track strategy effectiveness
+        #Track strategy effectiveness
         avg_confidence = sum(conf for _, conf, _ in analyses) / len(analyses) if analyses else 0.5
         if strategy.value not in self.meta_stats["strategy_effectiveness"]:
             self.meta_stats["strategy_effectiveness"][strategy.value] = []
         self.meta_stats["strategy_effectiveness"][strategy.value].append(avg_confidence)
         
-        # Track confidence accuracy (would need user feedback in real implementation)
+        #Track confidence accuracy (would need user feedback in real implementation)
         self.meta_stats["confidence_accuracy"].append(avg_confidence)
         
-        # Track uncertainty resolution
+        #Track uncertainty resolution
         total_uncertainties = sum(len(uncertainties) for _, _, uncertainties in analyses)
         if total_uncertainties == 0:
             self.meta_stats["uncertainty_resolutions"] += 1
@@ -1018,7 +1018,7 @@ class AdvancedAIThinkingTool:
         except Exception as e:
             self.logger.warning(f"Failed to store thought process: {e}")
 
-    # Integration methods for Atlas
+    #Integration methods for Atlas
     def __call__(self, query: str, available_tools: Dict[str, Callable] = None) -> str:
         """Main entry point for the advanced thinking tool."""
         return self.process_with_advanced_thinking(query, available_tools)
@@ -1034,7 +1034,7 @@ class AdvancedAIThinkingTool:
                 self.logger.warning("Atlas app does not have _handle_help_mode method")
                 return False
             
-            # Import intelligent mode detector
+            #Import intelligent mode detector
             try:
                 import sys
                 from pathlib import Path
@@ -1044,7 +1044,7 @@ class AdvancedAIThinkingTool:
                 self.logger.info("Intelligent mode detector loaded successfully")
             except ImportError as e:
                 self.logger.warning(f"Could not load intelligent mode detector: {e}")
-                # Fallback to simple keyword-based detection
+                #Fallback to simple keyword-based detection
                 mode_detector = None
             
             original_handler = main_app._handle_help_mode
@@ -1053,13 +1053,13 @@ class AdvancedAIThinkingTool:
                 """Advanced help mode handler with intelligent mode detection."""
                 
                 if mode_detector:
-                    # Use intelligent detection
+                    #Use intelligent detection
                     detection_result = mode_detector.detect_chat_mode(message, context)
                     
                     if detection_result.should_use_advanced:
                         self.logger.info(f"Using Advanced AI Thinking: {detection_result.reasoning}")
                         
-                        # Prepare enhanced tools
+                        #Prepare enhanced tools
                         available_tools = {}
                         if hasattr(main_app, 'code_reader'):
                             available_tools.update({
@@ -1087,23 +1087,23 @@ class AdvancedAIThinkingTool:
                         return original_handler(message, context)
                 
                 else:
-                    # Fallback to simple keyword-based detection
+                    #Fallback to simple keyword-based detection
                     message_lower = message.lower()
                     
-                    # Enhanced simple command detection
+                    #Enhanced simple command detection
                     simple_commands = [
                         'read file', 'show file', 'list directory', 'show tree', 'tree',
                         'search for', 'find functions', 'info about', 'metrics', 'stats',
                         'search functions', 'search classes', 'usage of', 'where is'
                     ]
                     
-                    # Check for exact simple commands first
+                    #Check for exact simple commands first
                     is_simple_command = any(message_lower.startswith(cmd) for cmd in simple_commands)
                     
                     if is_simple_command:
                         return original_handler(message, context)
                     
-                    # Enhanced advanced thinking triggers
+                    #Enhanced advanced thinking triggers
                     advanced_keywords = [
                         'проаналізуй', 'analyze', 'що не так', "what's wrong", 'what is wrong',
                         'як можна покращи', 'how can improve', 'як покращи', 'how to improve',
@@ -1112,11 +1112,11 @@ class AdvancedAIThinkingTool:
                         'проблематика', 'problems', 'міркування', 'reasoning', 'оптимізація', 'optimization'
                     ]
                     
-                    # Check for advanced keywords
+                    #Check for advanced keywords
                     if any(keyword in message_lower for keyword in advanced_keywords):
                         self.logger.info(f"Using Advanced AI Thinking (fallback detection)")
                         
-                        # Prepare enhanced tools
+                        #Prepare enhanced tools
                         available_tools = {}
                         if hasattr(main_app, 'code_reader'):
                             available_tools.update({
@@ -1136,10 +1136,10 @@ class AdvancedAIThinkingTool:
                             self.logger.error(f"Error in advanced thinking (fallback): {e}")
                             return original_handler(message, context)
                     
-                    # Default to simple handler
+                    #Default to simple handler
                     return original_handler(message, context)
             
-            # Replace the handler
+            #Replace the handler
             main_app._handle_help_mode = advanced_help_mode_handler
             main_app.advanced_ai_thinking_integration = True
             
@@ -1151,11 +1151,11 @@ class AdvancedAIThinkingTool:
             return False
 
 
-# Registration function for Atlas plugin system
+#Registration function for Atlas plugin system
 def register(llm_manager=None, atlas_app=None, **kwargs):
     """Register the Advanced AI Thinking tool with Atlas."""
     try:
-        # Get additional components
+        #Get additional components
         memory_manager = None
         config_manager = None
         
@@ -1170,14 +1170,14 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         except ImportError:
             pass
         
-        # Create the advanced tool
+        #Create the advanced tool
         tool = AdvancedAIThinkingTool(
             llm_manager=llm_manager,
             memory_manager=memory_manager,
             config_manager=config_manager
         )
         
-        # Attempt integration
+        #Attempt integration
         integration_success = False
         if atlas_app:
             integration_success = tool.integrate_with_atlas_help_mode(atlas_app)
@@ -1215,5 +1215,5 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         }
 
 
-# Backward compatibility alias
+#Backward compatibility alias
 EnhancedHelperSyncTellTool = AdvancedAIThinkingTool

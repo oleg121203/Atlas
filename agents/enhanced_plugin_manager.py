@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from agents.llm_manager import LLMManager
 
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
-from config_manager import ConfigManager
-from logger import get_logger
+from utils.config_manager import ConfigManager
+from utils.logger import get_logger
 
 
 class EnhancedPluginManager:
@@ -39,13 +39,13 @@ class EnhancedPluginManager:
         self.config_manager = ConfigManager()
         self.logger = get_logger()
         
-        # Plugin state tracking
+        #Plugin state tracking
         self.plugins: Dict[str, Dict[str, Any]] = {}
         self.enabled_plugins: Set[str] = set()
         self.plugin_dependencies: Dict[str, List[str]] = {}
         self.plugin_memory_scopes: Dict[str, MemoryScope] = {}
         
-        # Load plugin configuration
+        #Load plugin configuration
         self._load_plugin_config()
 
     def _load_plugin_config(self):
@@ -92,7 +92,7 @@ class EnhancedPluginManager:
             except Exception as e:
                 self.logger.error(f"Failed to load plugin '{plugin_name}': {e}", exc_info=True)
 
-        # Save updated configuration
+        #Save updated configuration
         self._save_plugin_config()
 
     def _load_plugin(self, plugin_name: str, plugin_path: Path, llm_manager: 'LLMManager'):
@@ -104,19 +104,19 @@ class EnhancedPluginManager:
             self.logger.warning(f"Skipping '{plugin_name}' - missing manifest or plugin file")
             return
 
-        # Load manifest
+        #Load manifest
         with open(manifest_path, "r") as f:
             manifest = json.load(f)
 
-        # Validate manifest
+        #Validate manifest
         if not self._validate_manifest(manifest, plugin_name):
             return
 
-        # Create plugin memory scope
+        #Create plugin memory scope
         plugin_scope = self._create_plugin_memory_scope(plugin_name)
         self.plugin_memory_scopes[plugin_name] = plugin_scope
 
-        # Load plugin module
+        #Load plugin module
         spec = importlib.util.spec_from_file_location(
             manifest.get("entry_point", plugin_name),
             plugin_file_path,
@@ -128,10 +128,10 @@ class EnhancedPluginManager:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
-        # Register plugin with memory isolation
+        #Register plugin with memory isolation
         tools, agents = self._register_plugin(module, plugin_name, llm_manager, plugin_scope)
 
-        # Store plugin information
+        #Store plugin information
         self.plugins[plugin_name] = {
             "manifest": manifest,
             "module": module,
@@ -143,13 +143,13 @@ class EnhancedPluginManager:
             "dependencies": manifest.get("dependencies", [])
         }
 
-        # Track dependencies
+        #Track dependencies
         self.plugin_dependencies[plugin_name] = manifest.get("dependencies", [])
 
-        # Store plugin metadata in memory
+        #Store plugin metadata in memory
         self._store_plugin_metadata(plugin_name, manifest, tools, agents)
 
-        # Auto-enable if configured
+        #Auto-enable if configured
         if plugin_name in self.enabled_plugins or manifest.get("auto_enable", False):
             self.enable_plugin(plugin_name)
 
@@ -166,8 +166,8 @@ class EnhancedPluginManager:
 
     def _create_plugin_memory_scope(self, plugin_name: str) -> MemoryScope:
         """Create a dedicated memory scope for a plugin."""
-        # For now, use USER_DATA scope with plugin prefix
-        # In future, could extend MemoryScope enum dynamically
+        #For now, use USER_DATA scope with plugin prefix
+        #In future, could extend MemoryScope enum dynamically
         return MemoryScope.USER_DATA
 
     def _register_plugin(self, module, plugin_name: str, llm_manager: 'LLMManager', 
@@ -178,7 +178,7 @@ class EnhancedPluginManager:
 
         if hasattr(module, "register") and callable(module.register):
             try:
-                # Create plugin context with memory isolation
+                #Create plugin context with memory isolation
                 plugin_context = {
                     'memory_manager': self.memory_manager,
                     'memory_scope': memory_scope,
@@ -187,19 +187,19 @@ class EnhancedPluginManager:
                     'config_manager': self.config_manager
                 }
 
-                # Check register function signature
+                #Check register function signature
                 sig = inspect.signature(module.register)
                 if len(sig.parameters) > 1:
-                    # Enhanced registration with context
+                    #Enhanced registration with context
                     registration_data = module.register(llm_manager, plugin_context)
                 elif len(sig.parameters) == 1:
-                    # Standard registration
+                    #Standard registration
                     registration_data = module.register(llm_manager)
                 else:
-                    # No parameters
+                    #No parameters
                     registration_data = module.register()
 
-                # Process registration data
+                #Process registration data
                 if isinstance(registration_data, dict):
                     tools = registration_data.get("tools", [])
                     agents = registration_data.get("agents", [])
@@ -223,13 +223,13 @@ class EnhancedPluginManager:
             'dependencies': manifest.get('dependencies', [])
         }
 
-        # Store in memory with plugin-specific scope
+        #Store in memory with plugin-specific scope
         self.memory_manager.store_memory(
             agent_name=f"plugin_{plugin_name}",
             memory_type=MemoryType.KNOWLEDGE,
             content=f"Plugin {plugin_name} metadata",
             metadata=metadata,
-            ttl_days=365  # Keep plugin metadata for a year
+            ttl_days=365  #Keep plugin metadata for a year
         )
 
     def enable_plugin(self, plugin_name: str) -> bool:
@@ -238,14 +238,14 @@ class EnhancedPluginManager:
             self.logger.error(f"Cannot enable unknown plugin: {plugin_name}")
             return False
 
-        # Check dependencies
+        #Check dependencies
         if not self._check_dependencies(plugin_name):
             return False
 
-        # Enable plugin
+        #Enable plugin
         self.enabled_plugins.add(plugin_name)
         
-        # Store enable event in memory
+        #Store enable event in memory
         self._store_plugin_event(plugin_name, "enabled")
         
         self.logger.info(f"Plugin '{plugin_name}' enabled")
@@ -256,7 +256,7 @@ class EnhancedPluginManager:
         if plugin_name not in self.enabled_plugins:
             return False
 
-        # Check if other plugins depend on this one
+        #Check if other plugins depend on this one
         dependents = [name for name, deps in self.plugin_dependencies.items() 
                      if plugin_name in deps and name in self.enabled_plugins]
         
@@ -264,10 +264,10 @@ class EnhancedPluginManager:
             self.logger.warning(f"Cannot disable '{plugin_name}' - required by: {dependents}")
             return False
 
-        # Disable plugin
+        #Disable plugin
         self.enabled_plugins.discard(plugin_name)
         
-        # Store disable event in memory
+        #Store disable event in memory
         self._store_plugin_event(plugin_name, "disabled")
         
         self.logger.info(f"Plugin '{plugin_name}' disabled")
@@ -354,8 +354,8 @@ class EnhancedPluginManager:
         if plugin_name not in self.plugins:
             return
 
-        # This would be handled by the memory manager's TTL system
-        # But we can trigger manual cleanup if needed
+        #This would be handled by the memory manager's TTL system
+        #But we can trigger manual cleanup if needed
         self.logger.info(f"Memory cleanup for plugin '{plugin_name}' is handled by TTL system")
 
     def reload_plugin(self, plugin_name: str, llm_manager: 'LLMManager') -> bool:
@@ -364,23 +364,23 @@ class EnhancedPluginManager:
             self.logger.error(f"Cannot reload unknown plugin: {plugin_name}")
             return False
 
-        # Store reload event
+        #Store reload event
         self._store_plugin_event(plugin_name, "reloading")
 
-        # Disable first
+        #Disable first
         was_enabled = plugin_name in self.enabled_plugins
         if was_enabled:
             self.disable_plugin(plugin_name)
 
-        # Remove from plugins
+        #Remove from plugins
         plugin_path = self.plugin_dir / plugin_name
         del self.plugins[plugin_name]
 
         try:
-            # Reload
+            #Reload
             self._load_plugin(plugin_name, plugin_path, llm_manager)
             
-            # Re-enable if it was enabled
+            #Re-enable if it was enabled
             if was_enabled:
                 self.enable_plugin(plugin_name)
             

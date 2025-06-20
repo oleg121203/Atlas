@@ -9,7 +9,7 @@ import sys
 import os
 import tkinter as tk
 
-# Додаємо шлях до батьківської директорії
+#Додаємо шлях до батьківської директорії
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_security_protocols():
@@ -52,12 +52,12 @@ def test_security_protocols():
 def test_main_app_security():
     """Тестуємо перевірку безпеки в main.py без запуску GUI"""
     try:
-        # Імітуємо клас AtlasApp без створення GUI
+        #Імітуємо клас AtlasApp без creation GUI
         from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
         
         print("Тест 5: Перевірка функції безпеки з main.py...")
         
-        # Тестуємо функцію перевірки
+        #Тестуємо функцію перевірки
         protocols = EncryptedCreatorProtocols()
         result = protocols.verify_protocols_integrity()
         
@@ -79,11 +79,11 @@ if __name__ == "__main__":
     print("=== Тестування системи безпеки Atlas ===")
     print()
     
-    # Тестуємо протоколи
+    #Тестуємо протоколи
     protocols_ok = test_security_protocols()
     print()
     
-    # Тестуємо безпеку main.py
+    #Тестуємо безпеку main.py
     main_security_ok = test_main_app_security()
     print()
     

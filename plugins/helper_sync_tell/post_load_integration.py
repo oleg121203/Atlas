@@ -24,7 +24,7 @@ def integrate_helper_sync_tell(app) -> bool:
         True if integration was successful, False otherwise
     """
     try:
-        # Check if the plugin was loaded
+        #Check if the plugin was loaded
         if not hasattr(app, 'plugin_manager'):
             logger.warning("Plugin manager not found in application")
             return False
@@ -34,27 +34,27 @@ def integrate_helper_sync_tell(app) -> bool:
             logger.warning("Helper Sync Tell plugin not found")
             return False
         
-        # Get the plugin
+        #Get the plugin
         plugin_info = plugins['helper_sync_tell']
         if not plugin_info.get('tools'):
             logger.warning("Helper Sync Tell plugin has no tools")
             return False
         
-        # Get the helper sync tell tool
+        #Get the helper sync tell tool
         helper_tool = plugin_info['tools'][0]
         
-        # Check if the original help mode handler exists
+        #Check if the original help mode handler exists
         if not hasattr(app, '_handle_help_mode'):
             logger.warning("Help mode handler not found in application")
             return False
         
-        # Store the original handler
+        #Store the original handler
         original_handler = app._handle_help_mode
         
-        # Create the enhanced handler
+        #Create the enhanced handler
         def enhanced_help_mode_handler(message: str, context) -> str:
             """Enhanced help mode handler using structured thinking."""
-            # Check if the message is a specific command that should use the original handler
+            #Check if the message is a specific command that should use the original handler
             specific_commands = [
                 'read file', 'show file', 'list directory', 'list folder', 'list dir',
                 'tree', 'structure', 'search for', 'search in', 'info about', 'info file'
@@ -64,37 +64,37 @@ def integrate_helper_sync_tell(app) -> bool:
             is_specific_command = any(cmd in message_lower for cmd in specific_commands)
             
             if is_specific_command:
-                # Use the original handler for specific commands
+                #Use the original handler for specific commands
                 return original_handler(message, context)
             
-            # For complex help requests, use structured thinking
+            #For complex help requests, use structured thinking
             try:
-                # Create available tools dictionary
+                #Create available tools dictionary
                 available_tools = {}
                 
-                # Add code reader if available
+                #Add code reader if available
                 if hasattr(app, 'code_reader'):
                     available_tools['code_search'] = lambda q: app.code_reader.search_in_files(q)
                     available_tools['file_info'] = lambda q: app.code_reader.get_file_info(q)
                 
-                # Add memory query if available
+                #Add memory query if available
                 if hasattr(app, 'memory_manager'):
                     available_tools['memory_query'] = lambda q: "Memory query functionality not implemented yet"
                 
-                # Use the helper tool for structured thinking
+                #Use the helper tool for structured thinking
                 response = helper_tool(message, available_tools)
                 return response
                 
             except Exception as e:
                 logger.error(f"Error in enhanced help mode: {e}")
-                # Fall back to original handler
+                #Fall back to original handler
                 return original_handler(message, context)
         
-        # Replace the help mode handler
+        #Replace the help mode handler
         import types
         app._handle_help_mode = types.MethodType(enhanced_help_mode_handler, app)
         
-        # Mark the integration as complete
+        #Mark the integration as complete
         app._helper_sync_tell_integrated = True
         
         logger.info("Successfully integrated Helper Sync Tell with Atlas helper mode")
@@ -116,7 +116,7 @@ def check_integration_status(app) -> bool:
     """
     return getattr(app, '_helper_sync_tell_integrated', False)
 
-# Auto-execute if the main app is available
+#Auto-execute if the main app is available
 def auto_integrate():
     """Automatically integrate if the main app is found."""
     try:
@@ -128,6 +128,6 @@ def auto_integrate():
     except Exception as e:
         logger.debug(f"Auto-integration not possible: {e}")
 
-# Call auto-integrate when this module is imported
+#Call auto-integrate when this module is imported
 if __name__ != "__main__":
     auto_integrate()

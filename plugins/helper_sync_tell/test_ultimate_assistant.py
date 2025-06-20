@@ -12,12 +12,12 @@ import logging
 import traceback
 from pathlib import Path
 
-# Add the plugin directory to path
+#Add the plugin directory to path
 plugin_dir = Path(__file__).parent
 sys.path.insert(0, str(plugin_dir))
 sys.path.insert(0, str(plugin_dir.parent.parent))
 
-# Set up logging
+#Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -31,17 +31,17 @@ def test_ultimate_ai_assistant():
     print("=" * 60)
     
     try:
-        # Import the ultimate assistant
+        #Import the ultimate assistant
         from ultimate_ai_assistant import UltimateAIAssistant, ProcessingMode
         
         print("✅ Successfully imported Ultimate AI Assistant")
         
-        # Create mock LLM manager for testing
+        #Create mock LLM manager for testing
         class MockLLMManager:
             def chat(self, messages):
                 query_content = messages[0]["content"] if messages else "test query"
                 
-                # Simulate different types of responses based on content
+                #Simulate different types of responses based on content
                 if "sub-question" in query_content.lower():
                     return {
                         "content": """1. What are the main technical requirements?
@@ -112,7 +112,7 @@ This synthesis integrates all analysis results and provides a clear path forward
 This response demonstrates meta-cognitive awareness, contextual understanding, and adaptive reasoning."""
                     }
         
-        # Initialize the assistant
+        #Initialize the assistant
         print("\n🔧 Initializing Ultimate AI Assistant...")
         llm_manager = MockLLMManager()
         assistant = UltimateAIAssistant(llm_manager=llm_manager)
@@ -122,7 +122,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
         print(f"   Version: {assistant.version}")
         print(f"   Description: {assistant.description}")
         
-        # Test capabilities
+        #Test capabilities
         print("\n📊 Testing Capabilities...")
         capabilities = assistant.get_capabilities()
         print(f"✅ Advanced Components Available:")
@@ -133,7 +133,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
         print(f"\n🎯 Processing Modes: {', '.join(capabilities['processing_modes'])}")
         print(f"🔧 Supported Features: {len(capabilities['supported_features'])} features")
         
-        # Test different query scenarios
+        #Test different query scenarios
         test_scenarios = [
             {
                 "name": "Technical Implementation Query",
@@ -165,7 +165,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
             print(f"Query: {scenario['query'][:80]}...")
             
             try:
-                # Process the query
+                #Process the query
                 start_time = time.time()
                 response = assistant.process_query_ultimate(
                     scenario["query"], 
@@ -177,7 +177,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
                 print(f"📤 Response Length: {len(response)} characters")
                 print(f"🎯 Response Preview: {response[:150]}...")
                 
-                # Check if meta-cognitive components were used
+                #Check if meta-cognitive components were used
                 if assistant.current_session:
                     session = assistant.current_session
                     print(f"🧠 Processing Mode: {session.processing_mode.value if session.processing_mode else 'unknown'}")
@@ -189,7 +189,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
                 print(f"❌ Scenario failed: {e}")
                 traceback.print_exc()
         
-        # Test session history
+        #Test session history
         print("\n📈 Session History:")
         history = assistant.get_session_history(limit=5)
         for session in history:
@@ -198,7 +198,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
                   f"{session['processing_time']:.2f}s, "
                   f"conf: {session['confidence_score']:.2f})")
         
-        # Test performance stats
+        #Test performance stats
         print("\n📊 Performance Statistics:")
         stats = assistant.performance_stats
         for key, value in stats.items():
@@ -207,7 +207,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
             else:
                 print(f"   {key}: {value}")
         
-        # Test meta-cognitive status
+        #Test meta-cognitive status
         if assistant.meta_cognitive_engine:
             print("\n🧠 Meta-Cognitive Engine Status:")
             meta_status = assistant.meta_cognitive_engine.get_meta_cognitive_status()
@@ -216,7 +216,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
             print(f"   Confidence Level: {meta_status['current_state']['confidence_level']:.2f}")
             print(f"   Processing Depth: {meta_status['current_state']['processing_depth']}")
         
-        # Test contextual analyzer
+        #Test contextual analyzer
         if assistant.contextual_analyzer:
             print("\n🎯 Contextual Analyzer Status:")
             context_status = assistant.contextual_analyzer.get_contextual_status()
@@ -245,18 +245,18 @@ def test_compatibility_mode():
     print("=" * 40)
     
     try:
-        # Try to import without advanced components
+        #Try to import without advanced components
         from ultimate_ai_assistant import register
         
         print("✅ Basic import successful")
         
-        # Test registration without dependencies
+        #Test registration without dependencies
         assistant = register()
         
         if assistant:
             print(f"✅ Assistant registered: {assistant.name if hasattr(assistant, 'name') else 'Basic Assistant'}")
             
-            # Test basic functionality
+            #Test basic functionality
             test_query = "How can I optimize my Python code for better performance?"
             response = assistant(test_query) if callable(assistant) else "Test response"
             
@@ -277,7 +277,7 @@ def main():
     print("🚀 Ultimate AI Assistant Test Suite")
     print("=" * 80)
     
-    # Import time for timing
+    #Import time for timing
     import time
     global time
     

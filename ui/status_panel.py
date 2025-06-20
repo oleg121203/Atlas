@@ -31,15 +31,15 @@ class StatusPanel(ctk.CTkFrame):
         
     def setup_ui(self):
         """Setup the status panel UI components."""
-        # Configure grid
+        #Configure grid
         self.grid_columnconfigure(0, weight=1)
         
-        # Status indicator frame
+        #Status indicator frame
         self.status_frame = ctk.CTkFrame(self)
         self.status_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
         self.status_frame.grid_columnconfigure(1, weight=1)
         
-        # Status labels
+        #Status labels
         ctk.CTkLabel(self.status_frame, text="Agent Status:", font=("Arial", 14, "bold")).grid(
             row=0, column=0, sticky="w", padx=10, pady=5
         )
@@ -54,7 +54,7 @@ class StatusPanel(ctk.CTkFrame):
         self.action_label = ctk.CTkLabel(self.status_frame, text="None", font=("Arial", 11))
         self.action_label.grid(row=1, column=1, sticky="w", padx=10, pady=2)
         
-        # Progress bar
+        #Progress bar
         self.progress_frame = ctk.CTkFrame(self)
         self.progress_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
         self.progress_frame.grid_columnconfigure(1, weight=1)
@@ -67,7 +67,7 @@ class StatusPanel(ctk.CTkFrame):
         self.progress_bar.grid(row=0, column=1, sticky="ew", padx=10, pady=5)
         self.progress_bar.set(0)
         
-        # Sub-agents status
+        #Sub-agents status
         self.sub_agents_frame = ctk.CTkFrame(self)
         self.sub_agents_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
         
@@ -77,7 +77,7 @@ class StatusPanel(ctk.CTkFrame):
         
         self.sub_agents_labels = {}
         
-        # Real-time log frame
+        #Real-time log frame
         self.log_frame = ctk.CTkFrame(self)
         self.log_frame.grid(row=3, column=0, sticky="nsew", padx=10, pady=5)
         self.grid_rowconfigure(3, weight=1)
@@ -86,11 +86,11 @@ class StatusPanel(ctk.CTkFrame):
             anchor="w", padx=10, pady=5
         )
         
-        # Create a frame for the text widget and scrollbar
+        #Create a frame for the text widget and scrollbar
         text_frame = ctk.CTkFrame(self.log_frame)
         text_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         
-        # Use tkinter Text widget for better control
+        #Use tkinter Text widget for better control
         self.log_text = tk.Text(
             text_frame,
             height=10,
@@ -101,20 +101,20 @@ class StatusPanel(ctk.CTkFrame):
             font=("Consolas", 10)
         )
         
-        # Scrollbar for log
+        #Scrollbar for log
         log_scrollbar = tk.Scrollbar(text_frame, orient="vertical", command=self.log_text.yview)
         self.log_text.configure(yscrollcommand=log_scrollbar.set)
         
         self.log_text.pack(side="left", fill="both", expand=True)
         log_scrollbar.pack(side="right", fill="y")
         
-        # Configure text tags for colored output
+        #Configure text tags for colored output
         self.log_text.tag_configure("ERROR", foreground="#ff6b6b")
         self.log_text.tag_configure("WARNING", foreground="#ffa500")
         self.log_text.tag_configure("SUCCESS", foreground="#51cf66")
         self.log_text.tag_configure("INFO", foreground="#74c0fc")
         
-        # Clear log button
+        #Clear log button
         clear_button = ctk.CTkButton(
             self.log_frame,
             text="Clear Log",
@@ -133,7 +133,7 @@ class StatusPanel(ctk.CTkFrame):
             self.status_data['progress'] = max(0, min(100, progress))
         self.status_data['last_update'] = datetime.now()
         
-        # Update UI elements
+        #Update UI elements
         self.status_label.configure(text=status)
         self.action_label.configure(text=self.status_data['current_action'])
         self.progress_bar.set(self.status_data['progress'] / 100.0)
@@ -145,7 +145,7 @@ class StatusPanel(ctk.CTkFrame):
             'last_update': datetime.now()
         }
         
-        # Update or create label for this sub-agent
+        #Update or create label for this sub-agent
         if agent_name not in self.sub_agents_labels:
             label_frame = ctk.CTkFrame(self.sub_agents_frame)
             label_frame.pack(fill="x", padx=10, pady=2)
@@ -165,20 +165,20 @@ class StatusPanel(ctk.CTkFrame):
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_entry = f"[{timestamp}] {source}: {message}\n"
         
-        # Insert at end and scroll to bottom
+        #Insert at end and scroll to bottom
         self.log_text.insert(tk.END, log_entry)
         
-        # Apply color coding based on level
+        #Apply color coding based on level
         start_idx = self.log_text.index(f"end-2l linestart")
         end_idx = self.log_text.index(f"end-1l lineend")
         
         if level in ["ERROR", "WARNING", "SUCCESS", "INFO"]:
             self.log_text.tag_add(level, start_idx, end_idx)
         
-        # Auto-scroll to bottom
+        #Auto-scroll to bottom
         self.log_text.see(tk.END)
         
-        # Limit log size (keep last 1000 lines)
+        #Limit log size (keep last 1000 lines)
         line_count = int(self.log_text.index('end-1c').split('.')[0])
         if line_count > 1000:
             self.log_text.delete(1.0, f"{line_count - 1000}.0")
@@ -244,5 +244,5 @@ class StatusPanel(ctk.CTkFrame):
             self.update_status("Waiting", "Feedback needed")
             
         else:
-            # Generic message
+            #Generic message
             self.add_log_entry(content, "INFO", data.get("source", "Agent"))

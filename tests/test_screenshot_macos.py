@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-# Add the project root to Python path
+#Add the project root to Python path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
@@ -29,7 +29,7 @@ def test_screenshots():
         print(f"❌ Platform detection failed: {e}")
         return False
     
-    # Test native macOS screenshot
+    #Test native macOS screenshot
     print("\n🔍 Testing native macOS screenshot methods...")
     
     try:
@@ -44,24 +44,24 @@ def test_screenshots():
     except Exception as e:
         print(f"❌ Native screenshot test failed: {e}")
     
-    # Test main screenshot function
+    #Test main screenshot function
     print("\n📸 Testing main screenshot function...")
     
     try:
         from tools.screenshot_tool import capture_screen
         
-        # Capture a test screenshot
+        #Capture a test screenshot
         img = capture_screen()
         
         if img:
             print(f"✅ Screenshot captured: {img.size} pixels ({img.mode})")
             
-            # Save test screenshot
+            #Save test screenshot
             test_path = Path("test_screenshot.png")
             img.save(test_path)
             print(f"✅ Screenshot saved to: {test_path}")
             
-            # Clean up
+            #Clean up
             test_path.unlink(missing_ok=True)
             
             return True

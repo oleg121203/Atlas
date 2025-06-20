@@ -8,25 +8,25 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Додаємо шлях до проекту
+#Додаємо шлях до проекту
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
-from config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 def test_unified_config():
     """Тестуємо уніфікований ConfigManager."""
     print("🧪 ТЕСТ УНІФІКОВАНОГО CONFIGMANAGER")
     print("=" * 50)
     
-    # Створюємо тимчасовий ConfigManager
+    #Створюємо тимчасовий ConfigManager
     with tempfile.TemporaryDirectory() as tmpdir:
         config_path = Path(tmpdir) / "test_config.yaml"
         config_manager = ConfigManager(config_path)
         
         print("🔑 Тестування API ключів...")
         
-        # Тестові API ключі
+        #Тестові API ключі
         test_keys = {
             'openai_api_key': 'sk-test-openai-12345',
             'gemini_api_key': 'gem-test-12345',
@@ -34,12 +34,12 @@ def test_unified_config():
             'groq_api_key': 'groq-test-12345'
         }
         
-        # Зберігаємо API ключі
+        #Зберігаємо API ключі
         print("  💾 Збереження API ключів...")
         for key, value in test_keys.items():
             config_manager.set_setting(key, value)
             
-        # Перевіряємо збереження
+        #Перевіряємо storage
         print("  📖 Перевірка збереження...")
         for key, expected_value in test_keys.items():
             actual_value = config_manager.get_setting(key)
@@ -48,7 +48,7 @@ def test_unified_config():
             else:
                 print(f"    ❌ {key}: очікували '{expected_value}', отримали '{actual_value}'")
                 
-        # Тестуємо спеціальні методи API ключів
+        #Тестуємо спеціальні методи API ключів
         print("  🔍 Тестування спеціальних методів...")
         
         openai_key = config_manager.get_openai_api_key()
@@ -61,7 +61,7 @@ def test_unified_config():
         print(f"    Mistral: {mistral_key}")
         print(f"    Groq: {groq_key}")
         
-        # Тестуємо провайдер і модель
+        #Тестуємо провайдер і модель
         print("  ⚙️ Тестування провайдера і моделі...")
         config_manager.set_setting('current_provider', 'openai')
         config_manager.set_setting('current_model', 'gpt-4')

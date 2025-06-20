@@ -12,20 +12,20 @@ sys.path.append(os.path.dirname(__file__))
 
 from agents.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
-from config_manager import ConfigManager
-from logger import Logger
+from utils.config_manager import ConfigManager
+from utils.logger import Logger
 
 def test_openai_fallback():
     """Test OpenAI fallback functionality"""
     print("🔄 Testing OpenAI → Gemini Fallback...")
     
-    # Initialize components
+    #Initialize components
     logger = Logger("test_openai_fallback")
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker, config_manager)
     
-    # Test 1: Explicit OpenAI call should fallback to Gemini
+    #Test 1: Explicit OpenAI call should fallback to Gemini
     try:
         print("🧪 Test 1: Explicit OpenAI request with placeholder key...")
         messages = [{"role": "user", "content": "Say 'Fallback test successful!'"}]
@@ -36,7 +36,7 @@ def test_openai_fallback():
         print(f"❌ OpenAI fallback failed: {e}")
         return False
     
-    # Test 2: Try _chat_openai directly
+    #Test 2: Try _chat_openai directly
     try:
         print("\n🧪 Test 2: Direct _chat_openai call...")
         messages = [{"role": "user", "content": "Direct OpenAI test"}]
@@ -47,7 +47,7 @@ def test_openai_fallback():
         print(f"❌ Direct OpenAI call failed: {e}")
         return False
     
-    # Test 3: Available providers check
+    #Test 3: Available providers check
     try:
         print("\n🧪 Test 3: Available providers...")
         providers = llm_manager.get_available_providers()

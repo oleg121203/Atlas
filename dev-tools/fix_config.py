@@ -59,21 +59,21 @@ def update_config_with_gemini_defaults():
     config = configparser.ConfigParser()
     config.read('config.ini')
     
-    # Add Gemini section if missing
+    #Add Gemini section if missing
     if not config.has_section('Gemini'):
         config.add_section('Gemini')
         config.set('Gemini', 'API_KEY', 'YOUR_GEMINI_API_KEY_HERE')
         config.set('Gemini', 'MODEL_NAME', 'gemini-1.5-flash')
         print("✅ Added Gemini section to config.ini")
     
-    # Add LLM section if missing
+    #Add LLM section if missing
     if not config.has_section('LLM'):
         config.add_section('LLM')
         config.set('LLM', 'provider', 'gemini')
         config.set('LLM', 'model', 'gemini-1.5-flash')
         print("✅ Added LLM section to config.ini")
     
-    # Save updated config
+    #Save updated config
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
     
@@ -84,11 +84,11 @@ def main():
     print("🔧 Fixing Atlas Configuration Issues...")
     print("=" * 40)
     
-    # Change to Atlas directory
+    #Change to Atlas directory
     atlas_dir = Path(__file__).parent
     os.chdir(atlas_dir)
     
-    # Create or update config.ini
+    #Create or update config.ini
     create_config_from_example()
     update_config_with_gemini_defaults()
     
