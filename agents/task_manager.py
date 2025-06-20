@@ -201,12 +201,22 @@ class TaskManager:
         self.completed_tasks: List[str] = []
         
         # Managers
-        self.llm_manager = llm_manager or LLMManager()
-        self.agent_manager = agent_manager or AgentManager()
+        if llm_manager is None:
+            from agents.token_tracker import TokenTracker
+            token_tracker = TokenTracker()
+            self.llm_manager = LLMManager(token_tracker)
+        else:
+            self.llm_manager = llm_manager
+        
         self.config_manager = ConfigManager()
         self.memory_manager = EnhancedMemoryManager(
             llm_manager=self.llm_manager,
             config_manager=self.config_manager
+        )
+        
+        self.agent_manager = agent_manager or AgentManager(
+            llm_manager=self.llm_manager,
+            memory_manager=self.memory_manager
         )
         self.api_resource_manager = APIResourceManager()
         
