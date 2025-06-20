@@ -380,7 +380,26 @@ class EnhancedHelperSyncTellTool:
                     Analysis:
                     """
                 
-                analysis = self.llm_manager.generate_text(analysis_prompt)
+                # Use the correct LLM method
+                try:
+                    messages = [{"role": "user", "content": analysis_prompt}]
+                    response = self.llm_manager.chat(messages)
+                    if response and hasattr(response, 'content'):
+                        analysis = response.content
+                    elif response and hasattr(response, 'response'):
+                        analysis = response.response
+                    else:
+                        analysis = str(response)
+                except Exception as llm_error:
+                    self.logger.warning(f"LLM generation failed: {llm_error}")
+                    # Fallback to simple analysis
+                    if tool_results:
+                        analysis_parts = [f"Analysis of '{sub_question}':"]
+                        for tool, result in tool_results.items():
+                            analysis_parts.append(f"• {tool}: {result}")
+                        analysis = "\n".join(analysis_parts)
+                    else:
+                        analysis = f"Analysis of '{sub_question}': This question requires investigation of [key aspects that would need detailed examination]."
             else:
                 # Fallback analysis without LLM
                 if tool_results:
@@ -470,10 +489,22 @@ class EnhancedHelperSyncTellTool:
             Comprehensive response:
             """
             
-            response = self.llm_manager.generate_text(synthesis_prompt)
+            # Use the correct LLM method
+            try:
+                messages = [{"role": "user", "content": synthesis_prompt}]
+                llm_response = self.llm_manager.chat(messages)
+                if llm_response and hasattr(llm_response, 'content'):
+                    response = llm_response.content
+                elif llm_response and hasattr(llm_response, 'response'):
+                    response = llm_response.response
+                else:
+                    response = str(llm_response)
+            except Exception as llm_error:
+                self.logger.warning(f"LLM synthesis failed: {llm_error}")
+                response = self._fallback_synthesis(original_query, analyses)
             
             # Optional refinement if enabled
-            if self.config["response_refinement"]:
+            if self.config["response_refinement"] and response != self._fallback_synthesis(original_query, analyses):
                 response = self._refine_response(original_query, response)
             
             return response
@@ -523,7 +554,19 @@ class EnhancedHelperSyncTellTool:
             Refined response:
             """
             
-            return self.llm_manager.generate_text(refinement_prompt)
+            # Use the correct LLM method
+            try:
+                messages = [{"role": "user", "content": refinement_prompt}]
+                llm_response = self.llm_manager.chat(messages)
+                if llm_response and hasattr(llm_response, 'content'):
+                    return llm_response.content
+                elif llm_response and hasattr(llm_response, 'response'):
+                    return llm_response.response
+                else:
+                    return str(llm_response)
+            except Exception as llm_error:
+                self.logger.warning(f"LLM refinement failed: {llm_error}")
+                return draft_response
             
         except Exception as e:
             self.logger.warning(f"Response refinement failed: {e}")
