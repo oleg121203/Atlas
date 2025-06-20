@@ -275,36 +275,51 @@ class AdvancedAIThinkingTool:
         query_lower = query.lower()
         
         # Detect language context
-        ukrainian_indicators = ["як", "що", "чому", "де", "коли", "який", "пам'ять", "система"]
+        ukrainian_indicators = ["як", "що", "чому", "де", "коли", "який", "пам'ять", "система", "проаналізуй", "покращ"]
         language_context = "uk" if any(word in query_lower for word in ukrainian_indicators) else "en"
         
-        # Assess complexity
+        # Enhanced complexity assessment
         complexity_indicators = [
-            len(query.split()) > 15,  # Long query
+            len(query.split()) > 10,  # Medium query
+            len(query.split()) > 20,  # Long query
             "?" in query and query.count("?") > 1,  # Multiple questions
-            any(word in query_lower for word in ["architecture", "system", "complex", "integration"]),
-            any(word in query_lower for word in ["analyze", "comprehensive", "detailed"])
+            any(word in query_lower for word in ["архітектур", "система", "комплекс", "інтеграц", "architecture", "system", "complex", "integration"]),
+            any(word in query_lower for word in ["аналіз", "детальн", "глибок", "comprehensive", "detailed", "analyze"]),
+            any(word in query_lower for word in ["покращ", "удосконал", "оптиміза", "improve", "enhance", "optimize"]),
+            any(word in query_lower for word in ["алгоритм", "algorithm", "метод", "method", "підхід", "approach"])
         ]
         complexity_level = min(5, sum(complexity_indicators) + 1)
         
-        # Detect domain requirements
-        code_indicators = ["code", "implementation", "function", "class", "algorithm", "programming"]
-        system_indicators = ["system", "architecture", "memory", "manager", "component"]
-        creative_indicators = ["improve", "enhance", "optimize", "better", "creative", "innovation"]
+        # Enhanced domain detection
+        code_indicators = ["код", "функц", "клас", "алгоритм", "програм", "code", "implementation", "function", "class", "algorithm", "programming"]
+        system_indicators = ["систем", "архітектур", "пам'ять", "менеджер", "компонент", "модул", "system", "architecture", "memory", "manager", "component", "module"]
+        creative_indicators = ["покращ", "удосконал", "оптиміза", "креатив", "інновац", "improve", "enhance", "optimize", "better", "creative", "innovation"]
+        analysis_indicators = ["аналіз", "дослід", "вивча", "розгля", "analyze", "study", "examine", "investigate"]
         
         requires_code_analysis = any(word in query_lower for word in code_indicators)
         requires_system_knowledge = any(word in query_lower for word in system_indicators)
         requires_creative_thinking = any(word in query_lower for word in creative_indicators)
+        requires_analysis = any(word in query_lower for word in analysis_indicators)
         
-        # Determine domain
-        if requires_code_analysis:
+        # Determine domain with enhanced logic
+        if requires_code_analysis and requires_system_knowledge:
+            domain = "software_architecture"
+        elif requires_code_analysis:
             domain = "software_engineering"
         elif requires_system_knowledge:
             domain = "system_architecture"
         elif requires_creative_thinking:
             domain = "innovation_design"
+        elif requires_analysis:
+            domain = "analytical_research"
         else:
             domain = "general_analysis"
+        
+        # Boost complexity for specific patterns
+        if any(word in query_lower for word in ["що не так", "проблем", "trouble", "issue"]):
+            complexity_level = max(complexity_level, 3)  # Troubleshooting is complex
+        if any(word in query_lower for word in ["архітектур", "architecture"]):
+            complexity_level = max(complexity_level, 4)  # Architecture is complex
         
         return AnalysisContext(
             domain=domain,
@@ -321,29 +336,66 @@ class AdvancedAIThinkingTool:
         query_lower = query.lower()
         strategy_scores = {}
         
+        # Enhanced Ukrainian keyword detection
+        ukrainian_keywords = {
+            ThinkingStrategy.ARCHITECTURAL.value: ["архітектур", "структур", "систем", "компонент", "дизайн", "побудов"],
+            ThinkingStrategy.TROUBLESHOOTING.value: ["проблем", "помилк", "не працює", "не так", "виправ", "налагод", "проблематика"],
+            ThinkingStrategy.CREATIVE.value: ["покращ", "удосконал", "інновац", "покращен", "оптиміза", "креатив"],
+            ThinkingStrategy.COMPARATIVE.value: ["порівня", "різні", "відмінності", "схожості", "versus", "проти"],
+            ThinkingStrategy.EXPLORATORY.value: ["дослід", "вивча", "розглян", "аназ", "з'ясува"],
+            ThinkingStrategy.ANALYTICAL.value: ["аналіз", "розбор", "деталь", "компонент", "логік"]
+        }
+        
         # Score each strategy based on query content and context
-        for strategy, pattern in self.strategy_patterns.items():
+        for strategy_name in [s.value for s in ThinkingStrategy]:
             score = 0
+            pattern = self.strategy_patterns.get(strategy_name, {})
             
-            # Keyword matching
-            keyword_matches = sum(1 for keyword in pattern["keywords"] if keyword in query_lower)
+            # Enhanced keyword matching (English + Ukrainian)
+            english_keywords = pattern.get("keywords", [])
+            ukrainian_keywords_list = ukrainian_keywords.get(strategy_name, [])
+            
+            # Count English keyword matches
+            keyword_matches = sum(1 for keyword in english_keywords if keyword in query_lower)
             score += keyword_matches * 2
             
-            # Context-based scoring
-            if strategy == ThinkingStrategy.ARCHITECTURAL.value and context.requires_system_knowledge:
-                score += 3
-            elif strategy == ThinkingStrategy.TROUBLESHOOTING.value and any(word in query_lower for word in ["problem", "issue", "error", "не працює"]):
-                score += 3
-            elif strategy == ThinkingStrategy.CREATIVE.value and context.requires_creative_thinking:
-                score += 3
-            elif strategy == ThinkingStrategy.ANALYTICAL.value and context.complexity_level > 3:
-                score += 2
+            # Count Ukrainian keyword matches
+            ukrainian_matches = sum(1 for keyword in ukrainian_keywords_list if keyword in query_lower)
+            score += ukrainian_matches * 3  # Higher weight for Ukrainian
             
-            strategy_scores[strategy] = score
+            # Context-based scoring with enhanced detection
+            if strategy_name == ThinkingStrategy.ARCHITECTURAL.value:
+                if context.requires_system_knowledge or any(word in query_lower for word in ["архітектур", "систем", "пам'ят", "структур"]):
+                    score += 5  # Higher priority for architecture
+            elif strategy_name == ThinkingStrategy.TROUBLESHOOTING.value:
+                if any(word in query_lower for word in ["що не так", "проблем", "помилк", "не працює", "виправ"]):
+                    score += 5
+            elif strategy_name == ThinkingStrategy.CREATIVE.value:
+                if context.requires_creative_thinking or any(word in query_lower for word in ["покращ", "удосконал", "як можна"]):
+                    # Lower priority if it's primarily architectural
+                    arch_score = sum(1 for word in ["архітектур", "систем", "пам'ят"] if word in query_lower)
+                    if arch_score == 0:
+                        score += 4
+                    else:
+                        score += 2  # Reduced score if architectural context
+            elif strategy_name == ThinkingStrategy.COMPARATIVE.value:
+                if any(word in query_lower for word in ["порівня", "різн", "відмінност"]):
+                    score += 4
+            elif strategy_name == ThinkingStrategy.EXPLORATORY.value:
+                if any(word in query_lower for word in ["як", "що", "чому", "дослід"]):
+                    score += 2
+            elif strategy_name == ThinkingStrategy.ANALYTICAL.value:
+                if context.complexity_level > 3 or any(word in query_lower for word in ["проаналіз", "аналіз"]):
+                    score += 3
+            
+            strategy_scores[strategy_name] = score
         
-        # Select strategy with highest score
-        best_strategy = max(strategy_scores.items(), key=lambda x: x[1])
-        return ThinkingStrategy(best_strategy[0])
+        # Select strategy with highest score, fallback to analytical
+        if not strategy_scores or max(strategy_scores.values()) == 0:
+            return ThinkingStrategy.ANALYTICAL
+            
+        best_strategy_name = max(strategy_scores.items(), key=lambda x: x[1])[0]
+        return ThinkingStrategy(best_strategy_name)
 
     def generate_strategic_questions(self, query: str, strategy: ThinkingStrategy, context: AnalysisContext) -> List[str]:
         """Generate questions based on the selected thinking strategy."""
@@ -429,43 +481,97 @@ class AdvancedAIThinkingTool:
     def _heuristic_strategic_breakdown(self, query: str, strategy: ThinkingStrategy) -> List[str]:
         """Fallback strategic breakdown when LLM is not available."""
         query_lower = query.lower()
+        is_ukrainian = any(word in query_lower for word in ["як", "що", "чому", "проаналізуй", "покращ", "модул", "систем"])
         
-        if strategy == ThinkingStrategy.ANALYTICAL:
-            return [
-                f"What are the core components of: {query}?",
-                f"How do these components interact in: {query}?",
-                f"What are the underlying principles behind: {query}?",
-                f"What are the implications and consequences of: {query}?"
-            ]
-        elif strategy == ThinkingStrategy.ARCHITECTURAL:
-            return [
-                f"What is the overall architecture of: {query}?",
-                f"What are the key components and their responsibilities in: {query}?",
-                f"How do the components communicate and integrate in: {query}?",
-                f"What are the design patterns and principles used in: {query}?"
-            ]
-        elif strategy == ThinkingStrategy.CREATIVE:
-            return [
-                f"What are the current limitations of: {query}?",
-                f"What innovative approaches could improve: {query}?",
-                f"What emerging technologies or patterns could enhance: {query}?",
-                f"What would an ideal future version of {query} look like?"
-            ]
-        elif strategy == ThinkingStrategy.TROUBLESHOOTING:
-            return [
-                f"What problems or issues exist with: {query}?",
-                f"What are the root causes of issues in: {query}?",
-                f"What solutions or fixes could address: {query}?",
-                f"How can we prevent similar issues in the future with: {query}?"
-            ]
+        if is_ukrainian:
+            if strategy == ThinkingStrategy.ANALYTICAL:
+                return [
+                    f"Які основні компоненти включає: {query}?",
+                    f"Як взаємодіють ці компоненти в: {query}?",
+                    f"Які принципи лежать в основі: {query}?",
+                    f"Які наслідки та результати: {query}?"
+                ]
+            elif strategy == ThinkingStrategy.ARCHITECTURAL:
+                return [
+                    f"Яка загальна архітектура: {query}?",
+                    f"Які ключові компоненти та їх відповідальності в: {query}?",
+                    f"Як компоненти взаємодіють та інтегруються в: {query}?",
+                    f"Які принципи дизайну використовуються в: {query}?"
+                ]
+            elif strategy == ThinkingStrategy.CREATIVE:
+                return [
+                    f"Які поточні обмеження: {query}?",
+                    f"Які інноваційні підходи могли б покращити: {query}?",
+                    f"Які нові технології могли б удосконалити: {query}?",
+                    f"Як би виглядала ідеальна версія: {query}?"
+                ]
+            elif strategy == ThinkingStrategy.TROUBLESHOOTING:
+                return [
+                    f"Які проблеми або недоліки існують з: {query}?",
+                    f"Які кореневі причини проблем в: {query}?",
+                    f"Які рішення або виправлення могли б вирішити: {query}?",
+                    f"Як можна запобігти подібним проблемам з: {query}?"
+                ]
+            elif strategy == ThinkingStrategy.COMPARATIVE:
+                return [
+                    f"Які різні підходи існують до: {query}?",
+                    f"Як порівнюються ці підходи в контексті: {query}?",
+                    f"Які переваги та недоліки кожного варіанту для: {query}?",
+                    f"Який підхід найкраще підходить для: {query}?"
+                ]
+            else:
+                # Default exploratory approach
+                return [
+                    f"Який поточний стан: {query}?",
+                    f"Як працює {query} внутрішньо?",
+                    f"Які сильні та слабкі сторони: {query}?",
+                    f"Які можливості існують для покращення: {query}?"
+                ]
         else:
-            # Default exploratory approach
-            return [
-                f"What is the current state of: {query}?",
-                f"How does {query} work internally?",
-                f"What are the strengths and weaknesses of: {query}?",
-                f"What opportunities exist for improving: {query}?"
-            ]
+            # English questions
+            if strategy == ThinkingStrategy.ANALYTICAL:
+                return [
+                    f"What are the core components of: {query}?",
+                    f"How do these components interact in: {query}?",
+                    f"What are the underlying principles behind: {query}?",
+                    f"What are the implications and consequences of: {query}?"
+                ]
+            elif strategy == ThinkingStrategy.ARCHITECTURAL:
+                return [
+                    f"What is the overall architecture of: {query}?",
+                    f"What are the key components and their responsibilities in: {query}?",
+                    f"How do the components communicate and integrate in: {query}?",
+                    f"What are the design patterns and principles used in: {query}?"
+                ]
+            elif strategy == ThinkingStrategy.CREATIVE:
+                return [
+                    f"What are the current limitations of: {query}?",
+                    f"What innovative approaches could improve: {query}?",
+                    f"What emerging technologies or patterns could enhance: {query}?",
+                    f"What would an ideal future version of {query} look like?"
+                ]
+            elif strategy == ThinkingStrategy.TROUBLESHOOTING:
+                return [
+                    f"What problems or issues exist with: {query}?",
+                    f"What are the root causes of issues in: {query}?",
+                    f"What solutions or fixes could address: {query}?",
+                    f"How can we prevent similar issues in the future with: {query}?"
+                ]
+            elif strategy == ThinkingStrategy.COMPARATIVE:
+                return [
+                    f"What different approaches exist for: {query}?",
+                    f"How do these approaches compare in context of: {query}?",
+                    f"What are the advantages and disadvantages of each for: {query}?",
+                    f"Which approach is best suited for: {query}?"
+                ]
+            else:
+                # Default exploratory approach
+                return [
+                    f"What is the current state of: {query}?",
+                    f"How does {query} work internally?",
+                    f"What are the strengths and weaknesses of: {query}?",
+                    f"What opportunities exist for improving: {query}?"
+                ]
 
     def analyze_with_meta_cognition(self, sub_question: str, available_tools: Dict[str, Callable], context: AnalysisContext) -> Tuple[str, float, List[str]]:
         """
@@ -922,57 +1028,116 @@ class AdvancedAIThinkingTool:
         return self.process_with_advanced_thinking(message, available_tools)
 
     def integrate_with_atlas_help_mode(self, main_app) -> bool:
-        """Integrate with Atlas help mode."""
+        """Integrate with Atlas help mode using intelligent mode detection."""
         try:
             if not hasattr(main_app, '_handle_help_mode'):
                 self.logger.warning("Atlas app does not have _handle_help_mode method")
                 return False
             
+            # Import intelligent mode detector
+            try:
+                import sys
+                from pathlib import Path
+                sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+                from intelligent_mode_detector import IntelligentModeDetector, ChatMode
+                mode_detector = IntelligentModeDetector()
+                self.logger.info("Intelligent mode detector loaded successfully")
+            except ImportError as e:
+                self.logger.warning(f"Could not load intelligent mode detector: {e}")
+                # Fallback to simple keyword-based detection
+                mode_detector = None
+            
             original_handler = main_app._handle_help_mode
             
             def advanced_help_mode_handler(message: str, context) -> str:
-                """Advanced help mode handler with sophisticated thinking."""
-                # Check for simple commands that should use original handler
-                simple_commands = ['read file', 'list directory', 'tree', 'search for', 'info about', 'search functions']
-                message_lower = message.lower()
+                """Advanced help mode handler with intelligent mode detection."""
                 
-                if any(cmd in message_lower for cmd in simple_commands):
-                    return original_handler(message, context)
-                
-                # Advanced thinking triggers - enhanced detection
-                advanced_keywords = [
-                    'проаналізуй', 'analyze', 'як ти використовуєш', 'how do you use',
-                    'вдосконалення', 'improvement', 'покращення', 'enhance',
-                    'проблематика', 'problems', 'міркування', 'reasoning',
-                    'пам\'ять', 'memory', 'як працює', 'how does work',
-                    'архітектура', 'architecture', 'система', 'system',
-                    'оптимізація', 'optimization', 'design', 'structure'
-                ]
-                
-                if any(keyword in message_lower for keyword in advanced_keywords):
-                    self.logger.info("Using Advanced AI Thinking for sophisticated analysis")
+                if mode_detector:
+                    # Use intelligent detection
+                    detection_result = mode_detector.detect_chat_mode(message, context)
                     
-                    # Prepare enhanced tools
-                    available_tools = {}
-                    if hasattr(main_app, 'code_reader'):
-                        available_tools.update({
-                            'semantic_search': lambda q: getattr(main_app.code_reader, 'semantic_search', lambda x: f"Semantic search: {x}")(q),
-                            'file_search': lambda q: getattr(main_app.code_reader, 'search_in_files', lambda x: f"File search: {x}")(q),
-                            'read_file': lambda f: getattr(main_app.code_reader, 'read_file', lambda x: f"Read file: {x}")(f),
-                            'grep_search': lambda q: getattr(main_app.code_reader, 'search_in_files', lambda x: f"Grep search: {x}")(q),
-                        })
-                    
-                    if hasattr(main_app, 'agent_manager') and hasattr(main_app.agent_manager, 'memory_manager'):
-                        memory_manager = main_app.agent_manager.memory_manager
-                        available_tools['memory_analysis'] = lambda: f"Memory system analysis using {memory_manager.__class__.__name__}"
-                    
-                    try:
-                        return self.process_with_advanced_thinking(message, available_tools)
-                    except Exception as e:
-                        self.logger.error(f"Error in advanced thinking: {e}")
+                    if detection_result.should_use_advanced:
+                        self.logger.info(f"Using Advanced AI Thinking: {detection_result.reasoning}")
+                        
+                        # Prepare enhanced tools
+                        available_tools = {}
+                        if hasattr(main_app, 'code_reader'):
+                            available_tools.update({
+                                'semantic_search': lambda q: getattr(main_app.code_reader, 'semantic_search', lambda x: f"Semantic search: {x}")(q),
+                                'file_search': lambda q: getattr(main_app.code_reader, 'search_in_files', lambda x: f"File search: {x}")(q),
+                                'read_file': lambda f: getattr(main_app.code_reader, 'read_file', lambda x: f"Read file: {x}")(f),
+                                'grep_search': lambda q: getattr(main_app.code_reader, 'search_in_files', lambda x: f"Grep search: {x}")(q),
+                            })
+                        
+                        if hasattr(main_app, 'agent_manager') and hasattr(main_app.agent_manager, 'memory_manager'):
+                            memory_manager = main_app.agent_manager.memory_manager
+                            available_tools['memory_analysis'] = lambda: f"Memory system analysis using {memory_manager.__class__.__name__}"
+                        
+                        try:
+                            return self.process_with_advanced_thinking(message, available_tools)
+                        except Exception as e:
+                            self.logger.error(f"Error in advanced thinking: {e}")
+                            if detection_result.fallback_to_simple:
+                                self.logger.info("Falling back to simple handler")
+                                return original_handler(message, context)
+                            else:
+                                return f"Sorry, I encountered an error while processing your advanced request: {str(e)}"
+                    else:
+                        self.logger.debug(f"Using simple handler: {detection_result.reasoning}")
                         return original_handler(message, context)
                 
-                return original_handler(message, context)
+                else:
+                    # Fallback to simple keyword-based detection
+                    message_lower = message.lower()
+                    
+                    # Enhanced simple command detection
+                    simple_commands = [
+                        'read file', 'show file', 'list directory', 'show tree', 'tree',
+                        'search for', 'find functions', 'info about', 'metrics', 'stats',
+                        'search functions', 'search classes', 'usage of', 'where is'
+                    ]
+                    
+                    # Check for exact simple commands first
+                    is_simple_command = any(message_lower.startswith(cmd) for cmd in simple_commands)
+                    
+                    if is_simple_command:
+                        return original_handler(message, context)
+                    
+                    # Enhanced advanced thinking triggers
+                    advanced_keywords = [
+                        'проаналізуй', 'analyze', 'що не так', "what's wrong", 'what is wrong',
+                        'як можна покращи', 'how can improve', 'як покращи', 'how to improve',
+                        'архітектур', 'architecture', 'як працює', 'how does', 'how it works',
+                        'чому', 'why', 'порівня', 'compare', 'покращення', 'improvement',
+                        'проблематика', 'problems', 'міркування', 'reasoning', 'оптимізація', 'optimization'
+                    ]
+                    
+                    # Check for advanced keywords
+                    if any(keyword in message_lower for keyword in advanced_keywords):
+                        self.logger.info(f"Using Advanced AI Thinking (fallback detection)")
+                        
+                        # Prepare enhanced tools
+                        available_tools = {}
+                        if hasattr(main_app, 'code_reader'):
+                            available_tools.update({
+                                'semantic_search': lambda q: getattr(main_app.code_reader, 'semantic_search', lambda x: f"Semantic search: {x}")(q),
+                                'file_search': lambda q: getattr(main_app.code_reader, 'search_in_files', lambda x: f"File search: {x}")(q),
+                                'read_file': lambda f: getattr(main_app.code_reader, 'read_file', lambda x: f"Read file: {x}")(f),
+                                'grep_search': lambda q: getattr(main_app.code_reader, 'search_in_files', lambda x: f"Grep search: {x}")(q),
+                            })
+                        
+                        if hasattr(main_app, 'agent_manager') and hasattr(main_app.agent_manager, 'memory_manager'):
+                            memory_manager = main_app.agent_manager.memory_manager
+                            available_tools['memory_analysis'] = lambda: f"Memory system analysis using {memory_manager.__class__.__name__}"
+                        
+                        try:
+                            return self.process_with_advanced_thinking(message, available_tools)
+                        except Exception as e:
+                            self.logger.error(f"Error in advanced thinking (fallback): {e}")
+                            return original_handler(message, context)
+                    
+                    # Default to simple handler
+                    return original_handler(message, context)
             
             # Replace the handler
             main_app._handle_help_mode = advanced_help_mode_handler
