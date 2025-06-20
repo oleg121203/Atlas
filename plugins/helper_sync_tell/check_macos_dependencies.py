@@ -26,7 +26,7 @@ PLUGIN_DEPENDENCIES = {
     
     # macOS специфічні залежності
     "pyobjc-core": {"type": "macos", "required": False, "purpose": "macOS native integration"},
-    "pyobjc-framework-Cocoa": {"type": "macos", "required": False, "purpose": "macOS GUI integration"},
+    "pyobjc-framework-Cocoa": {"type": "macos", "required": False, "purpose": "macOS GUI integration (includes Foundation)"},
     "pyobjc-framework-Quartz": {"type": "macos", "required": False, "purpose": "macOS display and graphics"},
     
     # Atlas залежності (внутрішні)
@@ -90,7 +90,6 @@ def check_macos_requirements():
     additional_macos_deps = {
         "pyobjc-framework-ApplicationServices": "Покращені API для скриншотів",
         "pyobjc-framework-CoreServices": "Інтеграція з системними сервісами macOS",
-        "pyobjc-framework-Foundation": "Основні macOS фреймворки",
     }
     
     print("\n🔧 Додаткові macOS залежності:")

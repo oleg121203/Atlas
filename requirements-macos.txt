@@ -82,9 +82,8 @@ Pygments==2.19.1
 PyMsgBox==1.0.9
 # macOS specific packages for native support
 pyobjc-core==11.1
-pyobjc-framework-Cocoa==11.1
+pyobjc-framework-Cocoa==11.1                # Includes Foundation framework
 pyobjc-framework-Quartz==11.1
-pyobjc-framework-Foundation==11.1           # For core macOS frameworks
 pyobjc-framework-ApplicationServices==11.1  # For better screenshot APIs
 pyobjc-framework-CoreServices==11.1         # For system services integration
 pyparsing==3.2.3
