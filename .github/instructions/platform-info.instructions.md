@@ -129,7 +129,7 @@ This dual-environment approach ensures robust development on Linux while deliver
 
 #### Level 1: Documentation Access (Workflow & Dev AIs)
 
-- **Resource**: `SECURITY_SYSTEM_REPORT.md.encrypted`
+- **Resource**: `docs/reports/security/SECURITY_SYSTEM_REPORT.md.encrypted`
 - **Key Location**: Environment variable `ATLAS_CORE_INIT_KEY` in the `.env` file.
 - **Rule**: Development and workflow AI agents are permitted to use this key **only** to decrypt the security documentation to understand the system's design.
 

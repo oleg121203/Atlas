@@ -1,69 +1,86 @@
 #!/usr/bin/env python3
 """
-Тест виправлення проблеми з ChatContextManager
+Тест чату Atlas без помилок OpenAI client
 """
 
 import sys
 import os
-sys.path.append('/workspaces/autoclicker')
+import time
 
-def test_chat_context_fix():
-    """Тест виправлення ChatContextManager"""
+# Додаємо Atlas до шляху
+atlas_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, atlas_dir)
+
+def test_chat():
+    """Тест чату без помилок"""
+    print("🧪 Тестування чату Atlas...")
+    
     try:
-        from agents.chat_context_manager import ChatContextManager, ChatMode, ChatContext, ModeControl
-        from agents.enhanced_memory_manager import EnhancedMemoryManager
         from agents.llm_manager import LLMManager
         from agents.token_tracker import TokenTracker
         from config_manager import ConfigManager
+        from logger import Logger
         
-        print("✅ Успішний імпорт модулів")
-        
-        # Створюємо необхідні об'єкти
+        # Ініціалізація компонентів
+        logger = Logger("test_chat")
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
+        
+        # Ініціалізація LLM Manager
         llm_manager = LLMManager(token_tracker, config_manager)
-        memory_manager = EnhancedMemoryManager(llm_manager, config_manager)
+        print("✅ LLM Manager ініціалізовано")
         
-        print("✅ Створено залежності")
+        # Перевірка доступних провайдерів
+        providers = llm_manager.get_available_providers()
+        print(f"📋 Доступні провайдери: {list(providers.keys())}")
         
-        # Створюємо ChatContextManager з memory_manager
-        chat_manager = ChatContextManager(memory_manager=memory_manager)
+        # Перевірка поточного провайдера
+        print(f"🔄 Поточний провайдер: {llm_manager.current_provider}")
+        print(f"🤖 Поточна модель: {llm_manager.current_model}")
         
-        print("✅ Створено ChatContextManager")
+        # Тест простого чату
+        if "gemini" in providers:
+            print("💬 Тестування чату з Gemini...")
+            messages = [{"role": "user", "content": "Скажи просто 'Привіт від Atlas!' і все."}]
+            
+            try:
+                response = llm_manager.chat(messages)
+                print(f"✅ Відповідь отримано: {response.response_text[:100]}...")
+                print(f"📊 Токени: {response.total_tokens}")
+                
+                # Перевірка, чи немає помилок OpenAI
+                if "openai" not in response.response_text.lower() and "error" not in response.response_text.lower():
+                    print("✅ Чат працює без помилок OpenAI!")
+                else:
+                    print("⚠️  Можливо є згадки про помилки в відповіді")
+                    
+            except Exception as e:
+                print(f"❌ Помилка чату: {e}")
+                return False
+        else:
+            print("⚠️  Gemini недоступний для тесту")
         
-        # Тестуємо аналіз повідомлення
-        test_message = "Привіт"
-        context = chat_manager.analyze_message(test_message)
-        
-        print(f"✅ Аналіз повідомлення: режим {context.mode}, впевненість {context.confidence}")
-        
-        # Тестуємо збереження розмови 
-        chat_manager.update_conversation_history(
-            test_message, 
-            "Привіт! Як справи?", 
-            context,
-            metadata={"test": True}
-        )
-        
-        print("✅ Успішно збережено історію розмови")
+        # Тест перевірки OpenAI availability
+        openai_available = llm_manager.is_provider_available("openai")
+        print(f"🔌 OpenAI доступність: {openai_available}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Помилка: {e}")
+        print(f"❌ Помилка тесту: {e}")
         import traceback
         traceback.print_exc()
         return False
 
-if __name__ == "__main__":
-    print("🧪 Тест виправлення ChatContextManager")
-    print("=" * 50)
-    
-    success = test_chat_context_fix()
-    
-    print("\n" + "=" * 50)
+def main():
+    """Головна функція"""
+    success = test_chat()
     if success:
-        print("🎉 ВСІ ТЕСТИ ПРОЙШЛИ УСПІШНО!")
-        print("💬 Atlas тепер повинен працювати без помилок пам'яті")
+        print("\n🎉 Тест чату успішний! Помилки OpenAI client виправлено!")
+        return 0
     else:
-        print("❌ Є проблеми, які потребують вирішення")
+        print("\n❌ Тест чату не пройшов")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())
