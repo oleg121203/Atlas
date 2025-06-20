@@ -29,8 +29,8 @@ class EncryptedCreatorProtocols:
         self.creator_auth = creator_auth_system
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # Мастер-ключ для протоколів (генерується один раз)
-        self._master_key = self._generate_master_key()
+        # Мастер-ключ для протоколів (генерується з внутрішнього, прихованого секрету)
+        self._master_key = self._get_internal_protocol_key()
         self._protocol_cipher = Fernet(self._master_key)
         
         # Зашифровані протоколи
@@ -41,19 +41,24 @@ class EncryptedCreatorProtocols:
         
         self.logger.info("Encrypted Creator Protocols initialized")
     
-    def _generate_master_key(self) -> bytes:
-        """Генерація мастер-ключа для протоколів"""
-        # Секретна фраза для генерації ключа (тільки Атлас знає цю фразу)
-        secret_phrase = "atlas_creator_oleg_mykolayovych_father_protocols_2024"
+    def _get_internal_protocol_key(self) -> bytes:
+        """
+        Генерує внутрішній ключ для шифрування протоколів.
+        Ключ генерується з констант, вбудованих у код, і не залежить від зовнішніх файлів.
+        """
+        # "Секрет" навмисно розбитий на частини і змішаний, щоб ускладнити пошук
+        secret_components = ["core_logic", "auth_layer", "20", "24", "internal_only"]
+        secret_phrase = f"atlas::{secret_components[0]}::{secret_components[1]}-{secret_components[2]}{secret_components[3]}::{secret_components[4]}"
         
         password = secret_phrase.encode()
-        salt = b'atlas_protocols_salt_creator_only'
-        
+        # Сіль також унікальна для цього механізму
+        salt = b'\x1A\x2B\x3C\x4D\x5E\x6F_protocol_salt_\x7A\x8B\x9C'
+
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,
-            iterations=100000,
+            iterations=150000,  # Збільшена кількість ітерацій для додаткової безпеки
         )
         
         key = base64.urlsafe_b64encode(kdf.derive(password))

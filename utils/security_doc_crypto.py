@@ -42,11 +42,58 @@ def decrypt_text(encrypted_text: str) -> str:
     except Exception:
         return "ACCESS_DENIED: Invalid decryption key"
 
+def encrypt_file(input_path: str, output_path: str):
+    """Encrypts a file and saves the result to another file."""
+    with open(input_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    encrypted_content = encrypt_text(content)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(encrypted_content)
+
+def decrypt_file(input_path: str, output_path: str):
+    """Decrypts a file and saves the result."""
+    with open(input_path, 'r', encoding='utf-8') as f:
+        encrypted_content = f.read()
+    decrypted_content = decrypt_text(encrypted_content)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(decrypted_content)
+
 if __name__ == "__main__":
-    # Test the encryption system
-    test_text = "This is a test security message"
-    encrypted = encrypt_text(test_text)
-    print(f"Encrypted: {encrypted}")
-    
-    decrypted = decrypt_text(encrypted)
-    print(f"Decrypted: {decrypted}")
+    import argparse
+    parser = argparse.ArgumentParser(description="Encrypt or decrypt text/files for Atlas.")
+    parser.add_argument('action', choices=['encrypt', 'decrypt', 'encrypt_file', 'decrypt_file', 'test'])
+    parser.add_argument('data', nargs='?', default=None, help="Text to process or input file path")
+    parser.add_argument('--output', help="Output file path for file operations")
+
+    args = parser.parse_args()
+
+    if args.action == 'encrypt':
+        if not args.data:
+            print("Error: Text to encrypt is required.")
+        else:
+            print(encrypt_text(args.data))
+    elif args.action == 'decrypt':
+        if not args.data:
+            print("Error: Text to decrypt is required.")
+        else:
+            print(decrypt_text(args.data))
+    elif args.action == 'encrypt_file':
+        if not args.data or not args.output:
+            print("Error: --data (input file) and --output are required for file encryption.")
+        else:
+            encrypt_file(args.data, args.output)
+            print(f"File '{args.data}' encrypted to '{args.output}'")
+    elif args.action == 'decrypt_file':
+        if not args.data or not args.output:
+            print("Error: --data (input file) and --output are required for file decryption.")
+        else:
+            decrypt_file(args.data, args.output)
+            print(f"File '{args.data}' decrypted to '{args.output}'")
+    elif args.action == 'test':
+        # Test the encryption system
+        test_text = "This is a test security message"
+        encrypted = encrypt_text(test_text)
+        print(f"Encrypted: {encrypted}")
+        
+        decrypted = decrypt_text(encrypted)
+        print(f"Decrypted: {decrypted}")
