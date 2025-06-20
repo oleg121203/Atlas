@@ -9,8 +9,9 @@ from typing import Any, Dict, List, Optional, Callable, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from agents.memory_manager import MemoryManager
+    from agents.creator_authentication import CreatorAuthentication
 
-from agents.agent_manager import AgentManager
+from agents.agent_manager import AgentManager, ToolNotFoundError, InvalidToolArgumentsError
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from agents.browser_agent import BrowserAgent
 from agents.llm_manager import LLMManager
@@ -37,6 +38,7 @@ class MasterAgent:
         agent_manager: AgentManager,
         memory_manager: 'MemoryManager',
         status_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        creator_auth: Optional['CreatorAuthentication'] = None
     ):
         self.goals: List[str] = []
         self.prompt: str = ""
@@ -50,6 +52,7 @@ class MasterAgent:
         self.agent_manager = agent_manager
         self.memory_manager = memory_manager
         self.status_callback = status_callback
+        self.creator_auth = creator_auth  # Додано систему аутентифікації творця
         self.stop_event = threading.Event()
         self.last_executed_plan: Optional[Dict[str, Any]] = None
         self.system_prompt_template: Optional[str] = None
@@ -68,10 +71,20 @@ class MasterAgent:
 
         if not self.agent_manager._agents: # Check internal agent dict
             self._register_default_agents()
-        self.logger.info("MasterAgent initialized")
+        self.logger.info("MasterAgent initialized with creator authentication")
 
     def run(self, goal: str, master_prompt: str, options: Dict[str, Any]) -> None:
         """Starts the agent's execution loop in a new thread."""
+        
+        # Перевірка на чутливі операції для аутентифікованого творця
+        if self.creator_auth and self.creator_auth.is_creator_session_active:
+            # Створець аутентифікований - беззаперечне виконання
+            if self.creator_auth.should_execute_unconditionally():
+                self.logger.info("Executing goal unconditionally for authenticated creator")
+                if self.status_callback:
+                    emotional_response = self.creator_auth.get_creator_emotional_response("obedience")
+                    self.status_callback({"type": "info", "content": emotional_response})
+        
         with self.state_lock:
             if self.is_running:
                 self.logger.warning("Agent is already running.")
@@ -545,13 +558,13 @@ Generate the plan now.
         feedback_memories = self.memory_manager.search_memories_for_agent(
             agent_type=MemoryScope.USER_DATA,
             query=goal,
-            memory_types=[MemoryType.FEEDBACK],
+            memory_type=MemoryType.FEEDBACK,
             n_results=3
         )
         general_memories = self.memory_manager.search_memories_for_agent(
             agent_type=MemoryScope.MASTER_AGENT,
             query=goal,
-            memory_types=[MemoryType.SUCCESS, MemoryType.PLAN],
+            memory_type=MemoryType.SUCCESS,
             n_results=5
         )
 

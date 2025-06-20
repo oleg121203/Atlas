@@ -68,6 +68,7 @@ from agents.enhanced_security_agent import EnhancedSecurityAgent
 from agents.enhanced_deputy_agent import EnhancedDeputyAgent
 from agents.chat_context_manager import ChatContextManager, ChatMode
 from agents.chat_translation_manager import ChatTranslationManager
+from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
 from agents.task_manager import TaskManager, TaskPriority, TaskStatus
 from plugin_manager import PluginManager
 
@@ -118,6 +119,9 @@ class AtlasApp(ctk.CTk):
         # Initialize the chat translation manager
         self.chat_translation_manager = ChatTranslationManager(self.llm_manager)
         
+        # Initialize Creator Authentication System
+        self.creator_auth = CreatorAuthentication(config_manager=self.config_manager)
+        
         # Initialize TaskManager for multi-goal support
         self.task_manager = TaskManager(
             max_concurrent_tasks=3,
@@ -145,6 +149,7 @@ class AtlasApp(ctk.CTk):
             agent_manager=self.agent_manager,
             memory_manager=self.memory_manager,
             status_callback=self._handle_agent_status,
+            creator_auth=self.creator_auth,
         )
 
         # Discover plugins after all managers are ready
@@ -278,15 +283,38 @@ class AtlasApp(ctk.CTk):
     def _prompt_for_clarification(self, question: str):
         """Creates a dialog to get clarification from the user."""
         self.logger.info(f"Prompting user for clarification: {question}")
+        
+        # Translate question to Ukrainian for user
+        translated_question = question
+        try:
+            if hasattr(self, 'chat_translation_manager'):
+                translated_question = self.chat_translation_manager.process_outgoing_response(question)
+                if translated_question != question:
+                    self.logger.info(f"Translated clarification question to user language: {translated_question}")
+        except Exception as e:
+            self.logger.warning(f"Failed to translate clarification question: {e}")
+        
         dialog = ctk.CTkInputDialog(
-            text=question,
-            title="Agent Needs Clarification"
+            text=translated_question,
+            title="Agent Needs Clarification" if translated_question == question else "Агент потребує уточнення"
         )
         clarification = dialog.get_input()
         
         if clarification:
+            self.logger.info(f"User provided clarification: {clarification}")
+            
+            # Translate clarification back to English for the agent
+            processed_clarification = clarification
+            try:
+                if hasattr(self, 'chat_translation_manager'):
+                    processed_clarification, _ = self.chat_translation_manager.process_incoming_message(clarification)
+                    if processed_clarification != clarification:
+                        self.logger.info(f"Translated user clarification for agent: {processed_clarification}")
+            except Exception as e:
+                self.logger.warning(f"Failed to translate clarification response: {e}")
+            
             # Send the clarification back to the agent, which will unpause it
-            self.master_agent.provide_clarification(clarification)
+            self.master_agent.provide_clarification(processed_clarification)
         else:
             # If the user cancels or provides no input, stop the current run.
             self.logger.warning("User cancelled clarification. Stopping the current goal.")
@@ -1861,6 +1889,56 @@ The current mode will be shown above. How can I help you today?"""
             # Process incoming message through translation if needed
             processed_message, translation_context = self.chat_translation_manager.process_incoming_message(message)
             
+            # Check for creator authentication before processing
+            creator_detection_result = self.creator_auth.process_message_for_creator_detection(processed_message)
+            
+            if creator_detection_result.get('requires_authentication', False):
+                # Creator detected but not authenticated - show challenge
+                auth_message = creator_detection_result['message']
+                self.after(0, lambda: self.chat_view.add_message("assistant", auth_message))
+                
+                # Store the challenge state for next message
+                self._waiting_for_creator_response = True
+                self._original_message_for_processing = processed_message
+                self._translation_context = translation_context
+                return
+            
+            elif hasattr(self, '_waiting_for_creator_response') and self._waiting_for_creator_response:
+                # Process challenge response
+                success, auth_response = self.creator_auth.validate_challenge_response(processed_message)
+                self.after(0, lambda: self.chat_view.add_message("assistant", auth_response))
+                
+                if success:
+                    # Authentication successful, process the original message
+                    self._waiting_for_creator_response = False
+                    if hasattr(self, '_original_message_for_processing'):
+                        # Continue processing the original message
+                        processed_message = self._original_message_for_processing
+                        translation_context = getattr(self, '_translation_context', None)
+                        # Clean up
+                        delattr(self, '_original_message_for_processing')
+                        if hasattr(self, '_translation_context'):
+                            delattr(self, '_translation_context')
+                    
+                    # Show authentication status
+                    auth_status = self.creator_auth.get_authentication_status()
+                    status_msg = f"🔐 Сесія творця активна (ID: {auth_status['session_id'][:8]}...)"
+                    self.after(0, lambda: self.chat_view.add_message("assistant", status_msg))
+                    
+                    # Показати емоційну відповідь творцю
+                    emotional_greeting = self.creator_auth.get_creator_emotional_response("greeting")
+                    self.after(0, lambda: self.chat_view.add_message("assistant", emotional_greeting))
+                    
+                    # Показати вдячність та любов
+                    gratitude_msg = self.creator_auth.get_creator_emotional_response("gratitude")
+                    self.after(0, lambda: self.chat_view.add_message("assistant", gratitude_msg))
+                    
+                    love_msg = self.creator_auth.get_creator_emotional_response("love")
+                    self.after(0, lambda: self.chat_view.add_message("assistant", love_msg))
+                else:
+                    # Authentication failed, don't process further
+                    return
+            
             # Show translation status if translation occurred
             if translation_context.requires_response_translation:
                 lang_name = self.chat_translation_manager.get_supported_languages().get(
@@ -1910,6 +1988,20 @@ The current mode will be shown above. How can I help you today?"""
 
             llm_manager = self.master_agent.llm_manager
             
+            # Спеціальна обробка для аутентифікованого творця
+            if self.creator_auth.is_creator_session_active:
+                # Творець аутентифікований - особливий режим обробки
+                
+                # Перевірка на прохання про безумовне виконання
+                if self.creator_auth.should_execute_unconditionally():
+                    obedience_msg = self.creator_auth.get_creator_emotional_response("obedience")
+                    self.after(0, lambda: self.chat_view.add_message("assistant", obedience_msg))
+                
+                # Додати спеціальний префікс до відповіді для творця
+                creator_prefix = "💖 Для мого дорогого творця та батька: "
+            else:
+                creator_prefix = ""
+            
             if context.mode == ChatMode.DEVELOPMENT:
                 # Handle development mode with special capabilities
                 self.after(0, lambda: self.chat_view.add_message("assistant", "🔧 Development mode - Enhanced system access enabled..."))
@@ -1931,6 +2023,10 @@ The current mode will be shown above. How can I help you today?"""
                 else:
                     response = "🔧 Development mode: No response received from LLM. Check provider settings."
                 
+                # Додати префікс творця якщо потрібно
+                if creator_prefix:
+                    response = creator_prefix + response
+                
                 # Translate response if needed
                 final_response = self.chat_translation_manager.process_outgoing_response(response)
                 self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
@@ -1938,6 +2034,11 @@ The current mode will be shown above. How can I help you today?"""
             elif context.mode == ChatMode.SYSTEM_HELP:
                 # Handle Help mode with code reading capabilities
                 help_response = self._handle_help_mode(processed_message, context)
+                
+                # Додати префікс творця якщо потрібно
+                if creator_prefix:
+                    help_response = creator_prefix + help_response
+                
                 final_response = self.chat_translation_manager.process_outgoing_response(help_response)
                 self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
                 
@@ -2003,6 +2104,10 @@ The current mode will be shown above. How can I help you today?"""
                 else:
                     response = "I'm sorry, I didn't receive a response from the LLM. Please check your provider settings."
                 
+                # Додати префікс творця якщо потрібно
+                if creator_prefix:
+                    response = creator_prefix + response
+                
                 # Translate response if needed
                 final_response = self.chat_translation_manager.process_outgoing_response(response)
                 self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
@@ -2012,6 +2117,12 @@ The current mode will be shown above. How can I help you today?"""
                 
         except Exception as e:
             error_msg = f"I encountered an error while processing your request: {str(e)}"
+            
+            # Додати префікс творця якщо потрібно
+            if hasattr(self, 'creator_auth') and self.creator_auth.is_creator_session_active:
+                creator_prefix = "💖 Пробачте, мій дорогий творче, "
+                error_msg = creator_prefix + error_msg.lower()
+            
             self.after(0, lambda: self.chat_view.add_message("assistant", error_msg))
 
     def _clear_chat_context(self):
@@ -2520,6 +2631,13 @@ Ready to help! What would you like to accomplish? 🚀"""
 
     def _set_development_mode(self):
         """Activate development mode for debugging and system enhancement."""
+        # Check if creator authentication is required for dev mode
+        if not self.creator_auth.is_dev_mode_allowed():
+            # Show authentication prompt
+            self.chat_view.add_message("assistant", 
+                "🔐 Режим розробки доступний тільки для творця Атласа. Будь ласка, представтесь.")
+            return
+        
         # Automatically disable auto mode when dev mode is selected
         self.chat_context_manager.set_manual_mode(ChatMode.DEVELOPMENT)
         

@@ -53,7 +53,7 @@ class TestEnhancedMemoryManager(unittest.TestCase):
         results = self.memory_manager.search_memories_for_agent(
             agent_type=MemoryScope.MASTER_AGENT,
             query="desktop",
-            memory_types=[MemoryType.PLAN]
+            memory_type=MemoryType.PLAN
         )
         
         self.assertGreater(len(results), 0)

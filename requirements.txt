@@ -124,3 +124,6 @@ groq>=0.10.0
 mistralai>=0.0.12
 requests>=2.31.0
 PyYAML>=6.0
+
+# Cryptography for Creator Authentication
+cryptography>=41.0.0

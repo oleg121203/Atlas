@@ -72,7 +72,7 @@ def demo_enhanced_memory():
     plans = memory_manager.search_memories_for_agent(
         agent_type=MemoryScope.MASTER_AGENT,
         query="screenshot",
-        memory_types=[MemoryType.PLAN],
+        memory_type=MemoryType.PLAN,
         n_results=5
     )
     print(f"📋 Found {len(plans)} Master Agent plans about screenshots")
@@ -81,7 +81,7 @@ def demo_enhanced_memory():
     observations = memory_manager.search_memories_for_agent(
         agent_type=MemoryScope.SCREEN_AGENT,
         query="desktop",
-        memory_types=[MemoryType.OBSERVATION],
+        memory_type=MemoryType.OBSERVATION,
         n_results=5
     )
     print(f"👁️  Found {len(observations)} Screen Agent observations about desktop")
@@ -90,7 +90,7 @@ def demo_enhanced_memory():
     feedback = memory_manager.search_memories_for_agent(
         agent_type=MemoryScope.USER_DATA,
         query="task",
-        memory_types=[MemoryType.FEEDBACK],
+        memory_type=MemoryType.FEEDBACK,
         n_results=5
     )
     print(f"💬 Found {len(feedback)} user feedback about tasks")
