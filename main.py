@@ -65,6 +65,7 @@ from ui.status_panel import StatusPanel
 from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
 from ui.goal_history import GoalHistoryManager, GoalHistoryWindow
 from ui.enhanced_settings import EnhancedSettingsView
+from ui.context_menu import enable_formatting_context_menu
 from agents.enhanced_security_agent import EnhancedSecurityAgent
 from agents.enhanced_deputy_agent import EnhancedDeputyAgent
 from agents.chat_context_manager import ChatContextManager, ChatMode
@@ -1863,10 +1864,33 @@ class AtlasApp(ctk.CTk):
         input_frame = ctk.CTkFrame(chat_frame)
         input_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 10))
         input_frame.grid_columnconfigure(0, weight=1)
+        input_frame.grid_rowconfigure(0, weight=1)
+        
+        # Add top frame for input copy button
+        input_top_frame = ctk.CTkFrame(input_frame, height=30)
+        input_top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=2, pady=2)
+        input_top_frame.grid_columnconfigure(1, weight=1)
+        
+        # Input copy button (small and subtle)
+        self.input_copy_button = ctk.CTkButton(
+            input_top_frame,
+            text="📋",
+            width=25,
+            height=25,
+            font=ctk.CTkFont(size=12),
+            fg_color="transparent", 
+            text_color="gray50",
+            hover_color="gray30",
+            command=self._copy_input_text
+        )
+        self.input_copy_button.grid(row=0, column=0, padx=5, pady=2, sticky="w")
         
         #Chat input textbox
         self.chat_input = ctk.CTkTextbox(input_frame, height=80, wrap="word")
-        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(10, 5), pady=10)
+        self.chat_input.grid(row=1, column=0, sticky="ew", padx=(10, 5), pady=10)
+        
+        #Enable formatting context menu for chat input
+        enable_formatting_context_menu(self.chat_input, self.chat_context_manager)
         
         #Send button
         self.send_button = ctk.CTkButton(
@@ -1875,7 +1899,7 @@ class AtlasApp(ctk.CTk):
             command=self._send_chat_message,
             width=80
         )
-        self.send_button.grid(row=0, column=1, sticky="ns", padx=(5, 10), pady=10)
+        self.send_button.grid(row=1, column=1, sticky="ns", padx=(5, 10), pady=10)
         
         #Bind Enter key to send message (Ctrl+Enter for new line)
         self.chat_input.bind("<Return>", self._on_enter_key)
@@ -1958,12 +1982,17 @@ The current mode will be shown above. How can I help you today?"""
             processed_message, translation_context = self.chat_translation_manager.process_incoming_message(message)
             
             #Check for creator authentication before processing
-            creator_detection_result = self.creator_auth.process_message_for_creator_detection(processed_message)
+            creator_identity_level = self.creator_auth.process_message_for_creator_detection(processed_message)
             
-            if creator_detection_result.get('requires_authentication', False):
-                #Creator detected but not authenticated - show challenge
-                auth_message = creator_detection_result['message']
-                self.after(0, lambda: self.chat_view.add_message("assistant", auth_message))
+            #If detected as possible creator, initiate authentication
+            if creator_identity_level == CreatorIdentityLevel.POSSIBLE_CREATOR:
+                auth_result = self.creator_auth.initiate_creator_authentication(creator_identity_level)
+                if auth_result.get('requires_authentication', False):
+                    auth_message = auth_result['message']
+                    # Force immediate UI update
+                    self.chat_view.add_message("assistant", auth_message)
+                    # Also update display to ensure visibility
+                    self.update_idletasks()
                 
                 #Store the challenge state for next message
                 self._waiting_for_creator_response = True
@@ -1974,7 +2003,9 @@ The current mode will be shown above. How can I help you today?"""
             elif hasattr(self, '_waiting_for_creator_response') and self._waiting_for_creator_response:
                 #Process challenge response
                 success, auth_response = self.creator_auth.validate_challenge_response(processed_message)
-                self.after(0, lambda: self.chat_view.add_message("assistant", auth_response))
+                # Force immediate UI update for challenge response
+                self.chat_view.add_message("assistant", auth_response)
+                self.update_idletasks()
                 
                 if success:
                     #Authentication successful, process the original message

@@ -6,6 +6,7 @@ import customtkinter as ctk
 from typing import Dict, List
 import re
 from typing import List, Dict, Any, Optional
+import tkinter as tk
 
 from pygments import lex
 from pygments.lexers import get_lexer_by_name, guess_lexer
@@ -18,18 +19,67 @@ class ChatHistoryView(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
         self.history: List[Dict[str, str]] = []
 
+        # Add top copy button frame
+        self.top_copy_frame = ctk.CTkFrame(self, height=30)
+        self.top_copy_frame.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        self.top_copy_frame.grid_columnconfigure(1, weight=1)
+        
+        # Top copy button (small and subtle)
+        self.top_copy_button = ctk.CTkButton(
+            self.top_copy_frame,
+            text="📋",
+            width=25,
+            height=25,
+            font=ctk.CTkFont(size=12),
+            fg_color="transparent",
+            text_color="gray50",
+            hover_color="gray30",
+            command=self._copy_all_chat
+        )
+        self.top_copy_button.grid(row=0, column=0, padx=5, pady=2, sticky="w")
+
         self.textbox = ctk.CTkTextbox(self, wrap="word", state="disabled", font=("Helvetica", 13))
-        self.textbox.grid(row=0, column=0, sticky="nsew")
+        self.textbox.grid(row=1, column=0, sticky="nsew")
+        
+        # Add bottom copy button frame
+        self.bottom_copy_frame = ctk.CTkFrame(self, height=30)
+        self.bottom_copy_frame.grid(row=2, column=0, sticky="ew", padx=2, pady=2)
+        self.bottom_copy_frame.grid_columnconfigure(0, weight=1)
+        
+        # Bottom copy button (small and subtle)
+        self.bottom_copy_button = ctk.CTkButton(
+            self.bottom_copy_frame,
+            text="📋",
+            width=25,
+            height=25,
+            font=ctk.CTkFont(size=12),
+            fg_color="transparent",
+            text_color="gray50",
+            hover_color="gray30",
+            command=self._copy_all_chat
+        )
+        self.bottom_copy_button.grid(row=0, column=1, padx=5, pady=2, sticky="e")
+
+        # Add context menu support
+        self._setup_context_menu()
 
         #--- Tag Configurations ---
         #Note: CustomTkinter doesn't allow font in tag_config, so we use only colors
         self.textbox.tag_config("user_prefix", foreground="#00A0E0")
         self.textbox.tag_config("agent_prefix", foreground="#FF9500")  # Orange for agent
         self.textbox.tag_config("system_prefix", foreground="#9E4784")  # Purple for system
+        
+        self.textbox.tag_config("user", foreground="#00A0E0")
+        self.textbox.tag_config("agent", foreground="#FFB84D")  # Lighter orange for agent text
+        self.textbox.tag_config("system", foreground="#B666A3")  # Lighter purple for system text
+        
+        # System message styling (dimmed)
+        self.textbox.tag_config("system_dim", foreground="#808080", spacing1=2, spacing3=2)  # Gray and less spacing
+        self.textbox.tag_config("processing_dim", foreground="#707070", spacing1=1, spacing3=1)  # Even more dimmed
         
         self.textbox.tag_config("user", foreground="#00A0E0")
         self.textbox.tag_config("agent", foreground="#FFB84D")  # Lighter orange for agent text
@@ -79,6 +129,10 @@ class ChatHistoryView(ctk.CTkFrame):
         
         self.textbox.configure(state="normal")
         
+        # Check if this is a system message that should be dimmed
+        is_system_dim = self._is_system_message_dim(text)
+        is_processing = text.startswith("Processing your request") or "Detected" in text or "Analyzing" in text
+        
         #Enhanced prefixes with emojis and better styling
         prefixes = {
             "user": ("👤 You", "user_prefix"),
@@ -89,16 +143,43 @@ class ChatHistoryView(ctk.CTkFrame):
         
         prefix_text, prefix_tag = prefixes.get(role, ("🤖 Atlas", "agent_prefix"))  #Default to Atlas instead of Unknown
         
+        # Use dimmed styling for certain system messages
+        if is_system_dim or is_processing:
+            if is_processing:
+                prefix_tag = "processing_dim"
+                text_tag = "processing_dim"
+            else:
+                prefix_tag = "system_dim"
+                text_tag = "system_dim"
+        else:
+            text_tag = role if role in ["user", "agent", "assistant", "system"] else "agent"
+        
         #Add prefix with styling
         self.textbox.insert("end", f"{prefix_text}: ", (prefix_tag,))
 
         #Apply syntax highlighting and use appropriate text color
-        text_tag = role if role in ["user", "agent", "assistant", "system"] else "agent"  #Map assistant to agent colors
         self._apply_syntax_highlighting(text, text_tag)
-        self.textbox.insert("end", "\n\n")
+        
+        # Use shorter spacing for dimmed messages
+        if is_system_dim or is_processing:
+            self.textbox.insert("end", "\n")
+        else:
+            self.textbox.insert("end", "\n\n")
 
         self.textbox.configure(state="disabled")
         self.textbox.yview_moveto(1.0)
+    
+    def _is_system_message_dim(self, text: str) -> bool:
+        """Check if a message should be displayed as dimmed."""
+        dim_patterns = [
+            "Detected Ukrainian",
+            "Processing in English", 
+            "translate response back",
+            "Analyzing as",
+            "confidence:",
+            "Processing your request"
+        ]
+        return any(pattern in text for pattern in dim_patterns)
 
     def get_history(self) -> List[Dict[str, str]]:
         """Returns the entire chat history as a list of dictionaries."""
@@ -174,93 +255,67 @@ class ChatHistoryView(ctk.CTkFrame):
         if remaining_text:
             self._apply_markdown_formatting(remaining_text, default_tag)
 
-    def _apply_markdown_formatting(self, text: str, default_tag: str):
-        """Apply markdown-like formatting to text."""
-        #Patterns for markdown formatting
-        bold_pattern = r'\*\*(.*?)\*\*'
-        header_pattern = r'^(#{1,6})\s+(.+)$'
-        bullet_pattern = r'^(\s*)[•·*-]\s+(.+)$'
-        emoji_pattern = r'([🔧🤖💬❓🎯⚙️📊🌐👤🔄❌✅📋🖥️🖱️📷🔍⚡🛠️📱💡🚀🔒🔓📝📊])'
+    def _setup_context_menu(self):
+        """Setup context menu for the textbox."""
+        self.context_menu = tk.Menu(self.textbox, tearoff=0)
+        self.context_menu.add_command(label="Copy", command=self._copy_selection)
+        self.context_menu.add_command(label="Copy All", command=self._copy_all_chat)
+        self.context_menu.add_separator()
+        self.context_menu.add_command(label="Select All", command=self._select_all)
         
-        lines = text.split('\n')
-        for i, line in enumerate(lines):
-            if i > 0:
-                self.textbox.insert("end", "\n", (default_tag,))
+        # Bind right-click to show context menu
+        self.textbox.bind("<Button-3>", self._show_context_menu)
+        # For macOS, also bind Control+Click
+        import platform
+        if platform.system() == "Darwin":
+            self.textbox.bind("<Control-Button-1>", self._show_context_menu)
+    
+    def _show_context_menu(self, event):
+        """Show the context menu."""
+        try:
+            # Check if there's a selection
+            has_selection = False
+            try:
+                self.textbox.index("sel.first")
+                has_selection = True
+            except tk.TclError:
+                has_selection = False
             
-            #Check for headers first
-            header_match = re.match(header_pattern, line)
-            if header_match:
-                hashes, header_text = header_match.groups()
-                self.textbox.insert("end", hashes + " ", (default_tag,))
-                self._process_inline_formatting(header_text, "markdown_header")
-                continue
+            # Enable/disable menu items
+            self.context_menu.entryconfig(0, state="normal" if has_selection else "disabled")  # Copy
+            self.context_menu.entryconfig(1, state="normal")  # Copy All
+            self.context_menu.entryconfig(3, state="normal")  # Select All
             
-            #Check for bullets
-            bullet_match = re.match(bullet_pattern, line)
-            if bullet_match:
-                indent, bullet_text = bullet_match.groups()
-                self.textbox.insert("end", indent + "• ", ("markdown_bullet",))
-                self._process_inline_formatting(bullet_text, default_tag)
-                continue
-            
-            #Process regular line with inline formatting
-            self._process_inline_formatting(line, default_tag)
-
-    def _process_inline_formatting(self, text: str, default_tag: str):
-        """Process inline formatting like bold text and emojis."""
-        bold_pattern = r'\*\*(.*?)\*\*'
-        emoji_pattern = r'([🔧🤖💬❓🎯⚙️📊🌐👤🔄❌✅📋🖥️🖱️📷🔍⚡🛠️📱💡🚀🔒🔓📝📊🔨⭐🎉🎈🏆🌟💎🎁🍀💯])'
-        
-        #Combine patterns to process in order
-        combined_pattern = f"({bold_pattern})|({emoji_pattern})"
-        
-        last_end = 0
-        for match in re.finditer(combined_pattern, text):
-            start, end = match.span()
-            
-            #Add text before the formatting
-            before_text = text[last_end:start]
-            if before_text:
-                self.textbox.insert("end", before_text, (default_tag,))
-            
-            if match.group(1):  #Bold text
-                bold_text = match.group(2)
-                self.textbox.insert("end", bold_text, ("markdown_bold",))
-            elif match.group(3):  #Emoji
-                emoji = match.group(3)
-                self.textbox.insert("end", emoji, ("markdown_emoji",))
-            
-            last_end = end
-        
-        #Add any remaining text
-        remaining_text = text[last_end:]
-        if remaining_text:
-            self.textbox.insert("end", remaining_text, (default_tag,))
-
-    def add_structured_message(self, message_data: Dict[str, Any]):
-        """Adds a structured message from the agent to the view, with formatting."""
-        msg_type = message_data.get("type")
-        data = message_data.get("data")
-
-        if not msg_type or data is None:
-            return
-
-        self.textbox.configure(state="normal")
-        if msg_type == "plan":
-            self.textbox.insert("end", "Master Agent Plan:\n", ("title",))
-            for i, step in enumerate(data):
-                self.textbox.insert("end", f"{i+1}. {step.get('description', 'No description')}\n", ("plan_step",))
-        elif msg_type == "step_start":
-            self.textbox.insert("end", f"\nExecuting: {data.get('description')}...\n", ("step_start",))
-        elif msg_type == "step_end":
-            result = str(data.get('result', 'No result'))
-            self.textbox.insert("end", f"Result: {result}\n", ("step_end",))
-        elif msg_type == "error":
-            self.textbox.insert("end", f"Error: {data.get('message')}\n", ("error",))
-        
-        self.textbox.insert("end", "---\n")
-        self.textbox.configure(state="disabled")
-        self.textbox.yview_moveto(1.0)
+            self.context_menu.tk_popup(event.x_root, event.y_root)
+        except tk.TclError:
+            pass
+        finally:
+            self.context_menu.grab_release()
+    
+    def _copy_selection(self):
+        """Copy selected text to clipboard."""
+        try:
+            selected_text = self.textbox.get("sel.first", "sel.last")
+            self.textbox.clipboard_clear()
+            self.textbox.clipboard_append(selected_text)
+        except tk.TclError:
+            pass
+    
+    def _copy_all_chat(self):
+        """Copy all chat content to clipboard."""
+        try:
+            all_text = self.textbox.get("1.0", "end-1c")
+            self.textbox.clipboard_clear()
+            self.textbox.clipboard_append(all_text)
+        except tk.TclError:
+            pass
+    
+    def _select_all(self):
+        """Select all text in the textbox."""
+        try:
+            self.textbox.tag_add("sel", "1.0", "end")
+        except tk.TclError:
+            pass
 
     def clear(self):
         """Removes all messages from the view and history."""

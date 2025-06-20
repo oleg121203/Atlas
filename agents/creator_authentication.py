@@ -129,26 +129,47 @@ class CreatorAuthentication:
         return {
             #Direct name mentions (general only)
             "direct_name_patterns": [
-                r"я\s+(автор|розробник|творець)",
+                r"ya\s+(avtor|rozrobnyk|tvorets)",
                 r"i\s+(am|'m)\s+(the\s+)?(author|developer|creator)",
-                r"створив\s+(цю\s+)?систему",
-                r"created\s+(this\s+)?system"
+                r"stvoryv\s+(tsyu\s+)?systemu",
+                r"created\s+(this\s+)?system",
+                r"ya\s+tviy\s+(batko|papa|tato|tvorets)",
+                r"i\s+(am|'m)\s+your\s+(father|dad|creator)",
+                r"oleg\s+mykolayovych",
+                r"oleg\s+mykolayovych",
+                r"mene\s+zvaty\s+oleg",
+                r"my\s+name\s+is\s+oleg",
+                r"virnishe\s+oleg\s+mykolayovych",
+                r"actually\s+oleg\s+mykolayovych"
             ],
             
             #Creator context phrases (more general)
             "creator_context_patterns": [
-                r"я\s+(створив|розробив|написав)",
+                r"ya\s+(stvoryv|rozrobyv|napysav)",
                 r"i\s+(created|built|developed|made)",
-                r"моя\s+(система|програма|розробка)",
+                r"moya\s+(systema|programa|rozrobka)",
                 r"my\s+(system|program|creation)",
-                r"i\s+(own|created|built)\s+(this|atlas)"
+                r"i\s+(own|created|built)\s+(this|atlas)",
+                r"my\s+duzhe\s+dobre\s+znayomi",
+                r"we\s+know\s+each\s+other\s+well",
+                r"tviy\s+(batko|papa|tato|tvorets)",
+                r"your\s+(father|dad|creator)",
+                r"u\s+tebe\s+(synku|synu|donyu)",
+                r"how\s+are\s+you\s+(son|daughter)",
+                r"synku\s+(miy|dorohyy)",
+                r"synu\s+(miy|dorohyy)",
+                r"donyu\s+(moya|doroha)",
+                r"my\s+(dear\s+)?(son|daughter)",
+                r"tse\s+ya\.?$",
+                r"that'?s\s+me\.?$",
+                r"it'?s\s+me\.?$"
             ],
             
             #Ownership phrases (general)
             "ownership_patterns": [
-                r"це\s+моє\s+(творіння|проект)",
+                r"tse\s+moye\s+(tvorinnya|proekt)",
                 r"this\s+is\s+my\s+(creation|project)",
-                r"власний\s+проект",
+                r"vlasniy\s+proekt",
                 r"personal\s+project"
             ]
         }

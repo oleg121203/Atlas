@@ -1,0 +1,57 @@
+# macOS Target Requirements (Python 3.13)
+# Native macOS application dependencies
+
+# GUI Framework
+customtkinter>=5.2.0
+tkinter-tooltip>=2.0.0
+
+# AI and ML
+openai>=1.3.0
+anthropic>=0.7.0
+langchain>=0.1.0
+langchain-community>=0.0.10
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+pillow>=10.0.0
+
+# Network and HTTP
+requests>=2.31.0
+aiohttp>=3.8.0
+websockets>=11.0.0
+
+# Automation and System Integration
+pyautogui>=0.9.54
+pynput>=1.7.6
+psutil>=5.9.0
+watchdog>=3.0.0
+
+# Security and Encryption
+cryptography>=41.0.0
+keyring>=24.0.0
+
+# macOS-specific packages
+pyobjc-core>=9.2.0  # Objective-C bridge
+pyobjc-framework-Cocoa>=9.2.0  # Cocoa framework
+pyobjc-framework-Quartz>=9.2.0  # Quartz framework for screenshots
+pyobjc-framework-ApplicationServices>=9.2.0  # Application services
+pyobjc-framework-CoreServices>=9.2.0  # Core services
+
+# Native macOS integration
+rumps>=0.4.0  # Simple macOS menu bar applications
+osascript>=2021.1.1  # AppleScript execution
+
+# Documentation
+markdown>=3.5.0
+pygments>=2.16.0
+
+# Configuration and Logging
+pyyaml>=6.0.0
+python-dotenv>=1.0.0
+rich>=13.0.0
+
+# Application bundling
+py2app>=0.28.0  # For creating macOS app bundles
