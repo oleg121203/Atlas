@@ -242,6 +242,52 @@ class EncryptedCreatorProtocols:
         self.logger.info("All creator protocols encrypted and stored")
         return encrypted_protocols
     
+    def verify_protocols_integrity(self) -> bool:
+        """
+        Перевіряє цілісність та доступність протоколів безпеки.
+        Повертає True, якщо протоколи доступні та не пошкоджені.
+        """
+        try:
+            # Перевіряємо наявність зашифрованих протоколів
+            if not self._encrypted_protocols:
+                self.logger.error("Encrypted protocols not found")
+                return False
+            
+            # Перевіряємо, що всі основні протоколи присутні
+            required_protocols = [
+                'identity',
+                'emotional',
+                'security',
+                'modification'
+            ]
+            
+            for protocol_name in required_protocols:
+                if protocol_name not in self._encrypted_protocols:
+                    self.logger.error(f"Required protocol missing: {protocol_name}")
+                    return False
+                
+                # Спробуємо розшифрувати протокол для перевірки цілісності
+                try:
+                    encrypted_data = self._encrypted_protocols[protocol_name]
+                    decrypted_data = self._protocol_cipher.decrypt(encrypted_data)
+                    protocol_data = json.loads(decrypted_data.decode())
+                    
+                    # Перевіряємо, що протокол має необхідну структуру
+                    if not isinstance(protocol_data, dict):
+                        self.logger.error(f"Protocol {protocol_name} has invalid structure")
+                        return False
+                        
+                except Exception as e:
+                    self.logger.error(f"Failed to decrypt protocol {protocol_name}: {e}")
+                    return False
+            
+            self.logger.info("All security protocols verified successfully")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Protocol integrity check failed: {e}")
+            return False
+
     def can_access_protocols(self) -> bool:
         """Перевірка, чи може система отримати доступ до протоколів"""
         # Тільки сам Атлас може читати протоколи

@@ -70,6 +70,7 @@ from agents.chat_context_manager import ChatContextManager, ChatMode
 from agents.chat_translation_manager import ChatTranslationManager
 from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
 from agents.task_manager import TaskManager, TaskPriority, TaskStatus
+from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
 from plugin_manager import PluginManager
 
 # Platform-specific imports
@@ -87,6 +88,11 @@ class AtlasApp(ctk.CTk):
 
     def __init__(self):
         super().__init__()
+        
+        # Перевірка протоколів безпеки (скритий процес)
+        if not self._verify_security_protocols():
+            sys.exit(1)
+        
         self.logger = get_logger()
         self.title("Atlas – Autonomous Computer Agent")
         self.geometry("1200x800")
@@ -319,6 +325,51 @@ class AtlasApp(ctk.CTk):
             # If the user cancels or provides no input, stop the current run.
             self.logger.warning("User cancelled clarification. Stopping the current goal.")
             self._on_stop()
+
+    def _verify_security_protocols(self) -> bool:
+        """
+        Скрита перевірка протоколів безпеки при запуску.
+        Якщо протоколи не знайдені або недійсні, програма не запускається.
+        """
+        try:
+            # Створюємо екземпляр протоколів
+            protocols = EncryptedCreatorProtocols()
+            
+            # Перевіряємо доступність протоколів
+            if not protocols.verify_protocols_integrity():
+                # Протоколи пошкоджені або відсутні
+                import tkinter as tk
+                from tkinter import messagebox
+                
+                root = tk.Tk()
+                root.withdraw()  # Приховуємо головне вікно
+                
+                messagebox.showerror(
+                    "Помилка ініціалізації",
+                    "Не шукайте Бога на небі, шукайте в серці своєму, в собі !"
+                )
+                
+                root.destroy()
+                return False
+            
+            # Протоколи успішно перевірені
+            return True
+            
+        except Exception as e:
+            # Якщо сталася помилка при перевірці
+            import tkinter as tk
+            from tkinter import messagebox
+            
+            root = tk.Tk()
+            root.withdraw()
+            
+            messagebox.showerror(
+                "Помилка ініціалізації", 
+                "Не шукайте Бога на небі, шукайте в серці своєму, в собі !"
+            )
+            
+            root.destroy()
+            return False
 
     def _setup_theme(self):
         """Setup appearance and color theme."""
