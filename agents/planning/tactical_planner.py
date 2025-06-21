@@ -3,11 +3,12 @@ Defines the Tactical Planner for breaking down strategic objectives into concret
 """
 import json
 import re
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from utils.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
+from utils.llm_manager import LLMManager
 from utils.logger import get_logger
+
 
 class TacticalPlanner:
     """
@@ -75,7 +76,7 @@ This seems like a logical tactical flow. The sub-goals are imperative commands f
 
     def _extract_json_from_response(self, response_str: str) -> Optional[str]:
         """Extracts a JSON object from the LLM's raw response string."""
-        match = re.search(r'\{.*\}', response_str, re.DOTALL)
+        match = re.search(r"\{.*\}", response_str, re.DOTALL)
         if match:
             return match.group(0)
         self.logger.warning("Could not find a JSON object in the LLM response.")

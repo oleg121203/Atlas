@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Мінімальний тест TaskManager"""
 
-import sys
 import os
-sys.path.insert(0, '/Users/developer/Documents/Atlas')
-os.chdir('/Users/developer/Documents/Atlas')
+import sys
+
+sys.path.insert(0, "/Users/developer/Documents/Atlas")
+os.chdir("/Users/developer/Documents/Atlas")
 
 #Тест імпортів
 print("1. Тестую імпорти...")
@@ -44,24 +45,24 @@ print("\n2. Тестую створення компонентів...")
 try:
     from agents.token_tracker import TokenTracker
     from utils.llm_manager import LLMManager
-    
+
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker)
     print("✅ LLMManager створено")
-    
-    from config_manager import ConfigManager
+
     from agents.enhanced_memory_manager import EnhancedMemoryManager
-    
+    from config_manager import ConfigManager
+
     config = ConfigManager()
     memory = EnhancedMemoryManager(llm_manager, config)
     print("✅ MemoryManager створено")
-    
+
     from agents.agent_manager import AgentManager
     agent_manager = AgentManager(llm_manager, memory)
     print("✅ AgentManager створено")
-    
+
     print("\n🎉 Всі компоненти працюють!")
-    
+
 except Exception as e:
     print(f"❌ Помилка створення: {e}")
     import traceback

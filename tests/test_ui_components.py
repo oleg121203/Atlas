@@ -1,12 +1,14 @@
-import sys
 import os
-import pytest
+import sys
 import tkinter as tk
 
+import pytest
+
 # Add the project root to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from ui.chat_history_view import ChatHistoryView
+
 
 @pytest.fixture
 def root_window():
@@ -45,7 +47,7 @@ def test_add_and_clear_messages(root_window):
     view.add_message("system", "System is now online.")
     assert len(view.history) == 3
     assert view.history[2] == {"role": "system", "text": "System is now online."}
-    
+
     # Verify text is in the textbox (simple check)
     text_content = view.textbox.get("1.0", "end-1c")
     assert "Hello, Atlas!" in text_content

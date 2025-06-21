@@ -7,24 +7,23 @@ Supports multiple automation methods with cascading fallbacks:
 4. Direct HTTP requests (final fallback)
 """
 
-import time
-import logging
 import json
-from typing import Dict, Any, List, Tuple
+import logging
 import os
+import time
+from typing import Any, Dict, List, Tuple
 
 #Cross-platform imports
-from utils.platform_utils import IS_MACOS, IS_HEADLESS
+from utils.platform_utils import IS_HEADLESS, IS_MACOS
 
 logger = logging.getLogger(__name__)
 
 class WebAutomationError(Exception):
     """Custom exception for web automation failures"""
-    pass
 
 class AdvancedWebBrowser:
     """Advanced web browser automation with multiple fallback methods"""
-    
+
     def __init__(self):
         self.selenium_driver = None
         self.playwright_browser = None
@@ -33,15 +32,15 @@ class AdvancedWebBrowser:
         self.timeout = 30
         self.retry_delay = 2
         self.max_retries = 3
-        
+
         #Initialize available methods
         self.available_methods = self._detect_available_methods()
         logger.info(f"Available web automation methods: {self.available_methods}")
-    
+
     def _detect_available_methods(self) -> List[str]:
         """Detect which automation methods are available"""
         methods = []
-        
+
         #Check Selenium
         try:
             import selenium
@@ -49,28 +48,28 @@ class AdvancedWebBrowser:
             methods.append("selenium")
         except ImportError:
             logger.warning("Selenium not available")
-        
+
         #Check Playwright
         try:
             import playwright
             methods.append("playwright")
         except ImportError:
             logger.warning("Playwright not available")
-        
+
         #System events always available
         methods.append("system_events")
-        
+
         #HTTP requests always available
         methods.append("http_requests")
-        
+
         return methods
-    
+
     def _init_selenium(self) -> bool:
         """Initialize Selenium WebDriver"""
         try:
             from selenium import webdriver
             from selenium.webdriver.chrome.options import Options
-            
+
             options = Options()
             if IS_HEADLESS:
                 options.add_argument("--headless")
@@ -78,7 +77,7 @@ class AdvancedWebBrowser:
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-gpu")
             options.add_argument("--window-size=1920,1080")
-            
+
             #Try Chrome first, then fallback to other browsers
             try:
                 self.selenium_driver = webdriver.Chrome(options=options)
@@ -86,10 +85,12 @@ class AdvancedWebBrowser:
                 return True
             except Exception as e:
                 logger.warning(f"Chrome driver failed: {e}")
-                
+
                 #Try Firefox
                 try:
-                    from selenium.webdriver.firefox.options import Options as FirefoxOptions
+                    from selenium.webdriver.firefox.options import (
+                        Options as FirefoxOptions,
+                    )
                     firefox_options = FirefoxOptions()
                     if IS_HEADLESS:
                         firefox_options.add_argument("--headless")
@@ -98,7 +99,7 @@ class AdvancedWebBrowser:
                     return True
                 except Exception as e:
                     logger.warning(f"Firefox driver failed: {e}")
-                    
+
                 #Try Safari on macOS
                 if IS_MACOS:
                     try:
@@ -107,26 +108,26 @@ class AdvancedWebBrowser:
                         return True
                     except Exception as e:
                         logger.warning(f"Safari driver failed: {e}")
-        
+
         except Exception as e:
             logger.error(f"Selenium initialization failed: {e}")
-        
+
         return False
-    
+
     def _init_playwright(self) -> bool:
         """Initialize Playwright browser"""
         try:
             from playwright.sync_api import sync_playwright
-            
+
             self.playwright = sync_playwright().start()
-            
+
             #Try different browsers
-            for browser_type in ['chromium', 'firefox', 'webkit']:
+            for browser_type in ["chromium", "firefox", "webkit"]:
                 try:
                     browser_launcher = getattr(self.playwright, browser_type)
                     self.playwright_browser = browser_launcher.launch(
                         headless=IS_HEADLESS,
-                        args=['--no-sandbox', '--disable-dev-shm-usage'] if browser_type == 'chromium' else []
+                        args=["--no-sandbox", "--disable-dev-shm-usage"] if browser_type == "chromium" else [],
                     )
                     self.playwright_page = self.playwright_browser.new_page()
                     self.playwright_page.set_viewport_size({"width": 1920, "height": 1080})
@@ -134,12 +135,12 @@ class AdvancedWebBrowser:
                     return True
                 except Exception as e:
                     logger.warning(f"Playwright {browser_type} failed: {e}")
-                    
+
         except Exception as e:
             logger.error(f"Playwright initialization failed: {e}")
-        
+
         return False
-    
+
     def _navigate_selenium(self, url: str) -> bool:
         """Navigate using Selenium"""
         try:
@@ -149,7 +150,7 @@ class AdvancedWebBrowser:
         except Exception as e:
             logger.error(f"Selenium navigation failed: {e}")
             return False
-    
+
     def _navigate_playwright(self, url: str) -> bool:
         """Navigate using Playwright"""
         try:
@@ -158,61 +159,61 @@ class AdvancedWebBrowser:
         except Exception as e:
             logger.error(f"Playwright navigation failed: {e}")
             return False
-    
+
     def _navigate_system_events(self, url: str) -> bool:
         """Navigate using system events (open browser manually)"""
         try:
             import webbrowser
+
             import pyautogui
-            
+
             #Open URL in default browser
             webbrowser.open(url)
             time.sleep(3)  #Wait for browser to open
-            
+
             #Take screenshot to verify
             if not IS_HEADLESS:
                 screenshot = pyautogui.screenshot()
                 logger.info("Browser opened via system events")
                 return True
-            else:
-                logger.warning("System events not available in headless mode")
-                return False
-                
+            logger.warning("System events not available in headless mode")
+            return False
+
         except Exception as e:
             logger.error(f"System events navigation failed: {e}")
             return False
-    
+
     def navigate_to_url(self, url: str) -> Dict[str, Any]:
         """Navigate to URL with multiple fallback methods"""
         logger.info(f"Navigating to: {url}")
-        
+
         #Ensure URL has protocol
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        
+        if not url.startswith(("http://", "https://")):
+            url = "https://" + url
+
         for method in self.available_methods:
             try:
                 success = False
-                
+
                 if method == "selenium":
                     if not self.selenium_driver and not self._init_selenium():
                         continue
                     success = self._navigate_selenium(url)
                     if success:
                         self.current_method = "selenium"
-                
+
                 elif method == "playwright":
                     if not self.playwright_browser and not self._init_playwright():
                         continue
                     success = self._navigate_playwright(url)
                     if success:
                         self.current_method = "playwright"
-                
+
                 elif method == "system_events":
                     success = self._navigate_system_events(url)
                     if success:
                         self.current_method = "system_events"
-                
+
                 elif method == "http_requests":
                     #For simple page verification
                     import requests
@@ -220,49 +221,49 @@ class AdvancedWebBrowser:
                     success = response.status_code == 200
                     if success:
                         self.current_method = "http_requests"
-                
+
                 if success:
                     return {
                         "success": True,
                         "method": self.current_method,
                         "url": url,
-                        "message": f"Successfully navigated to {url} using {self.current_method}"
+                        "message": f"Successfully navigated to {url} using {self.current_method}",
                     }
-                    
+
             except Exception as e:
                 logger.warning(f"Method {method} failed: {e}")
                 continue
-        
+
         return {
             "success": False,
             "error": f"All navigation methods failed for {url}",
-            "tried_methods": self.available_methods
+            "tried_methods": self.available_methods,
         }
-    
+
     def _find_element_selenium(self, selector: str, selector_type: str = "css") -> bool:
         """Find element using Selenium"""
         try:
             from selenium.webdriver.common.by import By
-            from selenium.webdriver.support.ui import WebDriverWait
             from selenium.webdriver.support import expected_conditions as EC
-            
+            from selenium.webdriver.support.ui import WebDriverWait
+
             by_method = {
                 "css": By.CSS_SELECTOR,
                 "xpath": By.XPATH,
                 "id": By.ID,
                 "class": By.CLASS_NAME,
                 "tag": By.TAG_NAME,
-                "name": By.NAME
+                "name": By.NAME,
             }.get(selector_type, By.CSS_SELECTOR)
-            
+
             element = WebDriverWait(self.selenium_driver, self.timeout).until(
-                EC.presence_of_element_located((by_method, selector))
+                EC.presence_of_element_located((by_method, selector)),
             )
             return element
         except Exception as e:
             logger.error(f"Selenium element finding failed: {e}")
             return None
-    
+
     def _find_element_playwright(self, selector: str, selector_type: str = "css") -> bool:
         """Find element using Playwright"""
         try:
@@ -270,98 +271,98 @@ class AdvancedWebBrowser:
                 element = self.playwright_page.locator(f"xpath={selector}")
             else:
                 element = self.playwright_page.locator(selector)
-            
+
             element.wait_for(timeout=self.timeout * 1000)
             return element
         except Exception as e:
             logger.error(f"Playwright element finding failed: {e}")
             return None
-    
+
     def _find_element_system_events(self, text: str, image_path: str = None) -> Tuple[int, int]:
         """Find element using system events (OCR + image recognition)"""
         try:
             import pyautogui
-            
+
             if image_path and os.path.exists(image_path):
                 #Use image recognition
                 location = pyautogui.locateOnScreen(image_path, confidence=0.8)
                 if location:
                     center = pyautogui.center(location)
                     return center.x, center.y
-            
+
             if text:
                 #Use OCR to find text (simplified approach)
                 screenshot = pyautogui.screenshot()
                 #For now, just return center of screen as fallback
                 screen_width, screen_height = pyautogui.size()
                 return screen_width // 2, screen_height // 2
-                
+
         except Exception as e:
             logger.error(f"System events element finding failed: {e}")
-        
+
         return None, None
-    
-    def click_element(self, selector: str, selector_type: str = "css", 
+
+    def click_element(self, selector: str, selector_type: str = "css",
                      text: str = None, image_path: str = None) -> Dict[str, Any]:
         """Click element with multiple fallback methods"""
         logger.info(f"Clicking element: {selector}")
-        
+
         for method in self.available_methods:
             if method != self.current_method and self.current_method:
                 continue  #Use current method first
-                
+
             try:
                 success = False
-                
+
                 if method == "selenium" and self.selenium_driver:
                     element = self._find_element_selenium(selector, selector_type)
                     if element:
                         element.click()
                         success = True
-                
+
                 elif method == "playwright" and self.playwright_page:
                     element = self._find_element_playwright(selector, selector_type)
                     if element:
                         element.click()
                         success = True
-                
+
                 elif method == "system_events":
                     x, y = self._find_element_system_events(text, image_path)
                     if x and y:
                         import pyautogui
                         pyautogui.click(x, y)
                         success = True
-                
+
                 if success:
                     return {
                         "success": True,
                         "method": method,
                         "selector": selector,
-                        "message": f"Successfully clicked element using {method}"
+                        "message": f"Successfully clicked element using {method}",
                     }
-                    
+
             except Exception as e:
                 logger.warning(f"Click method {method} failed: {e}")
                 continue
-        
+
         return {
             "success": False,
             "error": f"All click methods failed for selector: {selector}",
-            "selector": selector
+            "selector": selector,
         }
-    
+
     def fill_form_field(self, selector: str, value: str, selector_type: str = "css",
                        clear_first: bool = True) -> Dict[str, Any]:
         """Fill form field with multiple fallback methods"""
         logger.info(f"Filling field {selector} with value: {value}")
-        
+
         for method in self.available_methods:
             if method != self.current_method and self.current_method:
                 continue
-                
+
             try:
                 success = False
-                
+
                 if method == "selenium" and self.selenium_driver:
                     element = self._find_element_selenium(selector, selector_type)
                     if element:
@@ -369,7 +370,7 @@ class AdvancedWebBrowser:
                             element.clear()
                         element.send_keys(value)
                         success = True
-                
+
                 elif method == "playwright" and self.playwright_page:
                     element = self._find_element_playwright(selector, selector_type)
                     if element:
@@ -377,7 +378,7 @@ class AdvancedWebBrowser:
                             element.clear()
                         element.fill(value)
                         success = True
-                
+
                 elif method == "system_events":
                     #First click the field, then type
                     click_result = self.click_element(selector, selector_type)
@@ -385,36 +386,36 @@ class AdvancedWebBrowser:
                         import pyautogui
                         time.sleep(0.5)
                         if clear_first:
-                            pyautogui.hotkey('cmd' if IS_MACOS else 'ctrl', 'a')
+                            pyautogui.hotkey("cmd" if IS_MACOS else "ctrl", "a")
                             time.sleep(0.2)
                         pyautogui.typewrite(value, interval=0.05)
                         success = True
-                
+
                 if success:
                     return {
                         "success": True,
                         "method": method,
                         "selector": selector,
                         "value": value,
-                        "message": f"Successfully filled field using {method}"
+                        "message": f"Successfully filled field using {method}",
                     }
-                    
+
             except Exception as e:
                 logger.warning(f"Fill method {method} failed: {e}")
                 continue
-        
+
         return {
             "success": False,
             "error": f"All fill methods failed for selector: {selector}",
             "selector": selector,
-            "value": value
+            "value": value,
         }
-    
+
     def search_on_site(self, search_term: str, search_field_selector: str = None,
                       submit_selector: str = None) -> Dict[str, Any]:
         """Perform search on current site"""
         logger.info(f"Searching for: {search_term}")
-        
+
         #Common search field selectors
         if not search_field_selector:
             search_selectors = [
@@ -423,13 +424,13 @@ class AdvancedWebBrowser:
                 'input[id*="search"]',
                 'input[placeholder*="search"]',
                 'input[placeholder*="пошук"]',
-                '.search-input',
-                '#search',
-                '[data-testid*="search"]'
+                ".search-input",
+                "#search",
+                '[data-testid*="search"]',
             ]
         else:
             search_selectors = [search_field_selector]
-        
+
         #Try each search selector
         for selector in search_selectors:
             fill_result = self.fill_form_field(selector, search_term)
@@ -440,28 +441,28 @@ class AdvancedWebBrowser:
                 else:
                     #Try common submit methods
                     submit_methods = [
-                        ('css', 'button[type="submit"]'),
-                        ('css', '.search-button'),
-                        ('css', 'input[type="submit"]'),
-                        ('xpath', '//button[contains(text(), "Search")]'),
-                        ('xpath', '//button[contains(text(), "Пошук")]'),
+                        ("css", 'button[type="submit"]'),
+                        ("css", ".search-button"),
+                        ("css", 'input[type="submit"]'),
+                        ("xpath", '//button[contains(text(), "Search")]'),
+                        ("xpath", '//button[contains(text(), "Пошук")]'),
                     ]
-                    
+
                     click_result = {"success": False}
                     for method, submit_sel in submit_methods:
                         click_result = self.click_element(submit_sel, method)
                         if click_result.get("success"):
                             break
-                    
+
                     #If no submit button found, try Enter key
                     if not click_result.get("success"):
                         try:
                             import pyautogui
-                            pyautogui.press('enter')
+                            pyautogui.press("enter")
                             click_result = {"success": True, "method": "enter_key"}
                         except:
                             pass
-                
+
                 if click_result.get("success"):
                     time.sleep(2)  #Wait for search results
                     return {
@@ -469,20 +470,20 @@ class AdvancedWebBrowser:
                         "search_term": search_term,
                         "search_selector": selector,
                         "submit_method": click_result.get("method", "unknown"),
-                        "message": f"Successfully searched for '{search_term}'"
+                        "message": f"Successfully searched for '{search_term}'",
                     }
-        
+
         return {
             "success": False,
             "error": f"Could not perform search for: {search_term}",
-            "search_term": search_term
+            "search_term": search_term,
         }
-    
+
     def scrape_page_content(self, selectors: List[str] = None) -> Dict[str, Any]:
         """Scrape content from current page"""
         try:
             content = {}
-            
+
             if self.current_method == "selenium" and self.selenium_driver:
                 if selectors:
                     for selector in selectors:
@@ -495,7 +496,7 @@ class AdvancedWebBrowser:
                     content["page_source"] = self.selenium_driver.page_source
                     content["title"] = self.selenium_driver.title
                     content["url"] = self.selenium_driver.current_url
-            
+
             elif self.current_method == "playwright" and self.playwright_page:
                 if selectors:
                     for selector in selectors:
@@ -508,15 +509,15 @@ class AdvancedWebBrowser:
                     content["page_source"] = self.playwright_page.content()
                     content["title"] = self.playwright_page.title()
                     content["url"] = self.playwright_page.url
-            
+
             elif self.current_method == "http_requests":
                 import requests
                 from bs4 import BeautifulSoup
-                
+
                 #This requires the last navigated URL
-                response = requests.get(self.last_url if hasattr(self, 'last_url') else '')
-                soup = BeautifulSoup(response.content, 'html.parser')
-                
+                response = requests.get(self.last_url if hasattr(self, "last_url") else "")
+                soup = BeautifulSoup(response.content, "html.parser")
+
                 if selectors:
                     for selector in selectors:
                         try:
@@ -527,95 +528,95 @@ class AdvancedWebBrowser:
                 else:
                     content["page_source"] = str(soup)
                     content["title"] = soup.title.string if soup.title else ""
-            
+
             return {
                 "success": True,
                 "content": content,
-                "method": self.current_method
+                "method": self.current_method,
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Content scraping failed: {e}"
+                "error": f"Content scraping failed: {e}",
             }
-    
+
     def take_screenshot(self, filename: str = None) -> Dict[str, Any]:
         """Take screenshot of current page"""
         try:
             if not filename:
                 filename = f"screenshot_{int(time.time())}.png"
-            
+
             success = False
-            
+
             if self.current_method == "selenium" and self.selenium_driver:
                 self.selenium_driver.save_screenshot(filename)
                 success = True
-            
+
             elif self.current_method == "playwright" and self.playwright_page:
                 self.playwright_page.screenshot(path=filename)
                 success = True
-            
+
             elif self.current_method == "system_events":
                 import pyautogui
                 screenshot = pyautogui.screenshot()
                 screenshot.save(filename)
                 success = True
-            
+
             if success:
                 return {
                     "success": True,
                     "filename": filename,
-                    "message": f"Screenshot saved as {filename}"
+                    "message": f"Screenshot saved as {filename}",
                 }
-            
+
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Screenshot failed: {e}"
+                "error": f"Screenshot failed: {e}",
             }
-    
+
     def wait_for_element(self, selector: str, timeout: int = None) -> Dict[str, Any]:
         """Wait for element to appear"""
         if not timeout:
             timeout = self.timeout
-            
+
         logger.info(f"Waiting for element: {selector}")
-        
+
         try:
             if self.current_method == "selenium" and self.selenium_driver:
                 from selenium.webdriver.common.by import By
-                from selenium.webdriver.support.ui import WebDriverWait
                 from selenium.webdriver.support import expected_conditions as EC
-                
+                from selenium.webdriver.support.ui import WebDriverWait
+
                 element = WebDriverWait(self.selenium_driver, timeout).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+                    EC.presence_of_element_located((By.CSS_SELECTOR, selector)),
                 )
                 return {"success": True, "message": "Element found"}
-            
-            elif self.current_method == "playwright" and self.playwright_page:
+
+            if self.current_method == "playwright" and self.playwright_page:
                 self.playwright_page.locator(selector).wait_for(timeout=timeout * 1000)
                 return {"success": True, "message": "Element found"}
-            
+
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Element not found within {timeout} seconds: {e}"
+                "error": f"Element not found within {timeout} seconds: {e}",
             }
-    
+
     def close(self):
         """Close browser instances"""
         try:
             if self.selenium_driver:
                 self.selenium_driver.quit()
                 self.selenium_driver = None
-            
+
             if self.playwright_browser:
                 self.playwright_browser.close()
                 self.playwright.stop()
                 self.playwright_browser = None
                 self.playwright_page = None
-                
+
         except Exception as e:
             logger.error(f"Error closing browsers: {e}")
 
@@ -657,7 +658,7 @@ def search_on_site(search_term: str, search_field_selector: str = None, submit_s
 def scrape_page_content(selectors: str = None) -> str:
     """Scrape content from the current page. Selectors should be JSON array string."""
     browser = get_browser()
-    
+
     if selectors:
         try:
             selector_list = json.loads(selectors)
@@ -665,7 +666,7 @@ def scrape_page_content(selectors: str = None) -> str:
             selector_list = [selectors]  #Single selector
     else:
         selector_list = None
-    
+
     result = browser.scrape_page_content(selector_list)
     return json.dumps(result, indent=2)
 
@@ -686,25 +687,25 @@ def execute_javascript(script: str) -> str:
     browser = get_browser()
     try:
         result = None
-        
+
         if browser.current_method == "selenium" and browser.selenium_driver:
             result = browser.selenium_driver.execute_script(script)
         elif browser.current_method == "playwright" and browser.playwright_page:
             result = browser.playwright_page.evaluate(script)
         else:
             return json.dumps({"success": False, "error": "JavaScript execution requires Selenium or Playwright"})
-        
+
         return json.dumps({
             "success": True,
             "result": result,
-            "script": script
+            "script": script,
         }, indent=2)
-        
+
     except Exception as e:
         return json.dumps({
             "success": False,
             "error": f"JavaScript execution failed: {e}",
-            "script": script
+            "script": script,
         }, indent=2)
 
 def handle_popup(action: str = "accept") -> str:
@@ -717,16 +718,16 @@ def handle_popup(action: str = "accept") -> str:
                 alert.accept()
             else:
                 alert.dismiss()
-            
+
         elif browser.current_method == "playwright" and browser.playwright_page:
             #Playwright handles alerts automatically, but we can set handlers
             if action == "accept":
                 browser.playwright_page.on("dialog", lambda dialog: dialog.accept())
             else:
                 browser.playwright_page.on("dialog", lambda dialog: dialog.dismiss())
-        
+
         return json.dumps({"success": True, "action": action})
-        
+
     except Exception as e:
         return json.dumps({"success": False, "error": f"Popup handling failed: {e}"})
 
@@ -743,7 +744,7 @@ def scroll_page(direction: str = "down", amount: int = 3) -> str:
                 browser.selenium_driver.execute_script("window.scrollTo(0, 0);")
             elif direction == "bottom":
                 browser.selenium_driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                
+
         elif browser.current_method == "playwright" and browser.playwright_page:
             if direction == "down":
                 browser.playwright_page.mouse.wheel(0, amount * 100)
@@ -753,7 +754,7 @@ def scroll_page(direction: str = "down", amount: int = 3) -> str:
                 browser.playwright_page.evaluate("window.scrollTo(0, 0)")
             elif direction == "bottom":
                 browser.playwright_page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                
+
         elif browser.current_method == "system_events":
             import pyautogui
             if direction == "down":
@@ -762,9 +763,9 @@ def scroll_page(direction: str = "down", amount: int = 3) -> str:
             elif direction == "up":
                 for _ in range(amount):
                     pyautogui.scroll(3)
-        
+
         return json.dumps({"success": True, "direction": direction, "amount": amount})
-        
+
     except Exception as e:
         return json.dumps({"success": False, "error": f"Scrolling failed: {e}"})
 
@@ -781,8 +782,8 @@ def register():
             wait_for_element,
             execute_javascript,
             handle_popup,
-            scroll_page
-        ]
+            scroll_page,
+        ],
     }
 
 #Cleanup function

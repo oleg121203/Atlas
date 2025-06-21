@@ -1,0 +1,40 @@
+# Development and CI/CD tools for Atlas
+# This file contains development dependencies that are not needed in production
+
+# Linting and Code Quality
+ruff>=0.12.0          # Fast Python linter used in pre-commit hooks
+mypy>=1.9.0           # Static type checking
+black>=24.6.0         # Code formatter
+isort>=5.12.0         # Import sorter
+
+# Type Stubs
+types-requests>=2.32.0
+types-urllib3>=1.26.25
+types-setuptools>=80.9.0
+types-pyyaml>=6.0.12
+
+# Testing
+pytest>=8.1.0         # Testing framework
+pytest-cov>=5.0.0     # Test coverage reporting
+pytest-mock>=3.14.0   # Mocking support for pytest
+interrogate>=1.5.0    # Docstring coverage checker
+pydocstyle>=6.3.0     # Docstring style checker
+
+# Security Tools
+safety>=2.3.5         # Dependency security checker
+bandit>=1.7.8         # Security linter for Python
+gitleaks>=8.18.0      # Secret scanning
+
+# Performance
+py-spy>=0.3.14        # Sampling profiler for Python
+line-profiler>=4.1.2  # Line-by-line profiling
+
+# Documentation
+sphinx>=7.3.3         # Documentation generator
+sphinx-rtd-theme>=2.0.0  # Read the Docs theme for Sphinx
+
+# CI/CD
+pre-commit>=3.6.0     # Pre-commit hook manager
+
+# Project Management
+bump2version>=1.0.1   # Version management

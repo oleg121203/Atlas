@@ -7,7 +7,7 @@ import os
 import sys
 
 #Відключаємо індексацію коду
-os.environ['ATLAS_DISABLE_CODE_INDEXING'] = 'true'
+os.environ["ATLAS_DISABLE_CODE_INDEXING"] = "true"
 
 #Додаємо Atlas до шляху
 atlas_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +17,7 @@ sys.path.insert(0, atlas_dir)
 if __name__ == "__main__":
     print("🚀 Запуск Atlas без індексації коду...")
     print("📋 Індексація коду відключена для швидкого запуску")
-    
+
     try:
         from main import AtlasApp
         app = AtlasApp()

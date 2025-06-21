@@ -19,6 +19,10 @@ Ruff is configured in two places:
 
 The `.ruff.toml` file temporarily ignores some common linting errors to allow commits to proceed while the codebase is being improved. These ignored rules can be gradually fixed over time.
 
+## Development Tools
+
+A comprehensive guide to all development tools used in the Atlas project, including linting tools, can be found in the [Tools Guide](docs/TOOLS.md).
+
 ## Temporarily Ignored Rules
 
 The following rules are temporarily ignored in `.ruff.toml`:

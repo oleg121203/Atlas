@@ -2,8 +2,10 @@
 Defines the PlanView class for displaying the agent's execution plan in the UI.
 """
 
+from typing import Any, Dict, List
+
 import customtkinter as ctk
-from typing import Dict, Any, List
+
 
 class PlanView(ctk.CTkScrollableFrame):
     """A widget to display the agent's plan and its execution status."""
@@ -42,10 +44,10 @@ class PlanView(ctk.CTkScrollableFrame):
             status_label = ctk.CTkLabel(step_frame, text="⏳", width=20) #Pending
             status_label.pack(side="left", padx=(5, 10))
 
-            step_desc = step.get('description', 'No description for this step.')
+            step_desc = step.get("description", "No description for this step.")
             step_label = ctk.CTkLabel(step_frame, text=f"{i+1}. {step_desc}", wraplength=450, justify="left")
             step_label.pack(side="left", fill="x", expand=True)
-            
+
             self.step_widgets.append(step_frame)
 
             #Create a container for details, but don't show it yet
@@ -69,9 +71,9 @@ class PlanView(ctk.CTkScrollableFrame):
         if not details_frame.winfo_viewable():
             details_frame.pack(fill="x", padx=(40, 5), pady=2, after=step_frame)
 
-        step_info = data.get('step', {})
-        tool_name = step_info.get('tool_name', 'N/A')
-        args = step_info.get('arguments', {})
+        step_info = data.get("step", {})
+        tool_name = step_info.get("tool_name", "N/A")
+        args = step_info.get("arguments", {})
 
         if status == "start":
             status_label.configure(text="⚙️") #Running

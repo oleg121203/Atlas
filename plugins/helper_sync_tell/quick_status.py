@@ -9,12 +9,13 @@ print("=" * 60)
 
 #Check plugin files exist
 import os
+
 plugin_dir = "/workspaces/Atlas/plugins/helper_sync_tell"
 files_to_check = [
     "plugin.py",
-    "plugin.json", 
+    "plugin.json",
     "README.md",
-    "TASK_COMPLETED.md"
+    "TASK_COMPLETED.md",
 ]
 
 print("📁 Files Status:")
@@ -31,12 +32,12 @@ achievements = [
     "✅ Plugin successfully loading in Atlas (confirmed from logs)",
     "✅ Cross-platform compatibility implemented",
     "✅ Enhanced configuration handling with fallbacks",
-    "✅ Structured thinking capabilities implemented", 
+    "✅ Structured thinking capabilities implemented",
     "✅ Helper mode integration hooks created",
     "✅ Comprehensive error handling and logging",
     "✅ Performance tracking and statistics",
     "✅ Memory integration (when available)",
-    "✅ Complete documentation and testing"
+    "✅ Complete documentation and testing",
 ]
 
 for achievement in achievements:
@@ -45,11 +46,11 @@ for achievement in achievements:
 print("\n📊 Status from Atlas Logs:")
 log_status = [
     "✅ Plugin 'helper_sync_tell' registered 1 tools and 0 agents",
-    "✅ Plugin 'helper_sync_tell' enabled successfully", 
+    "✅ Plugin 'helper_sync_tell' enabled successfully",
     "✅ Enhanced HelperSyncTell tool initialized",
     "✅ Platform: Darwin (macOS) - correct detection",
     "✅ All capabilities detected and working",
-    "⚠️  Configuration warning resolved with fallback handling"
+    "⚠️  Configuration warning resolved with fallback handling",
 ]
 
 for status in log_status:

@@ -6,8 +6,8 @@ Entry point for the application. Initializes the CustomTkinter GUI and
 loads configuration.
 """
 
-import sys
 import platform
+import sys
 
 #Load environment variables first
 try:
@@ -18,63 +18,71 @@ except ImportError:
 
 #Import platform utilities
 from utils.platform_utils import (
-    IS_MACOS, IS_LINUX, IS_WINDOWS, IS_HEADLESS, 
-    get_platform_info, configure_for_platform
+    IS_HEADLESS,
+    IS_LINUX,
+    IS_MACOS,
+    IS_WINDOWS,
+    configure_for_platform,
+    get_platform_info,
 )
 
 #Configure for current platform
 configure_for_platform()
 
-import tkinter as tk
-import customtkinter as ctk
-from customtkinter import CTkImage
 import argparse
+import inspect
 import json
 import logging
 import multiprocessing
-import inspect
 import threading
+import tkinter as tk
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
-from tools.screenshot_tool import capture_screen
-from tools.code_reader_tool import CodeReaderTool
-
-from utils.config_manager import ConfigManager
-from utils.logger import get_logger, add_handler
-from utils.gui_logger import GuiLogger
-from agents.agent_manager import AgentManager
-from matplotlib.figure import Figure
+import customtkinter as ctk
+from customtkinter import CTkImage
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from agents.master_agent import MasterAgent
-from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
-from monitoring.metrics_manager import metrics_manager
-from utils.llm_manager import LLMManager
-from agents.token_tracker import TokenTracker
-from intelligence.context_awareness_engine import ContextAwarenessEngine
-from ui.chat_history_view import ChatHistoryView
-from ui.plan_view import PlanView
-from ui.tool_management_view import ToolManagementView
-from ui.status_panel import StatusPanel
-from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
-from ui.goal_history import GoalHistoryManager, GoalHistoryWindow
-from ui.enhanced_settings import EnhancedSettingsView
-from ui.context_menu import enable_formatting_context_menu
-from agents.enhanced_security_agent import EnhancedSecurityAgent
-from agents.enhanced_deputy_agent import EnhancedDeputyAgent
+from matplotlib.figure import Figure
+
+from agents.agent_manager import AgentManager
 from agents.chat_context_manager import ChatContextManager, ChatMode
 from agents.chat_translation_manager import ChatTranslationManager
 from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
-from agents.task_manager import TaskManager, TaskPriority, TaskStatus
 from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
+from agents.enhanced_deputy_agent import EnhancedDeputyAgent
+from agents.enhanced_memory_manager import (
+    EnhancedMemoryManager,
+    MemoryScope,
+    MemoryType,
+)
+from agents.enhanced_security_agent import EnhancedSecurityAgent
+from agents.master_agent import MasterAgent
+from agents.task_manager import TaskManager, TaskPriority, TaskStatus
+from agents.token_tracker import TokenTracker
+from intelligence.context_awareness_engine import ContextAwarenessEngine
+from monitoring.metrics_manager import metrics_manager
 from plugin_manager import PluginManager
+from tools.code_reader_tool import CodeReaderTool
+from tools.screenshot_tool import capture_screen
+from ui.chat_history_view import ChatHistoryView
+from ui.context_menu import enable_formatting_context_menu
+from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
+from ui.enhanced_settings import EnhancedSettingsView
+from ui.goal_history import GoalHistoryManager, GoalHistoryWindow
+from ui.plan_view import PlanView
+from ui.status_panel import StatusPanel
+from ui.tool_management_view import ToolManagementView
+from utils.config_manager import ConfigManager
+from utils.gui_logger import GuiLogger
+from utils.llm_manager import LLMManager
+from utils.logger import add_handler, get_logger
 
 #Platform-specific imports
 if IS_MACOS:
     from utils.macos_utils import (
-        configure_macos_gui, 
         check_macos_permissions,
-        setup_macos_dock_icon
+        configure_macos_gui,
+        setup_macos_dock_icon,
     )
 
 
@@ -83,11 +91,11 @@ class AtlasApp(ctk.CTk):
 
     def __init__(self):
         super().__init__()
-        
+
         #Verification протоколів безпеки (скритий процес)
         if not self._verify_security_protocols():
             sys.exit(1)
-        
+
         self.logger = get_logger()
         self.title("Atlas – Autonomous Computer Agent")
         self.geometry("1200x800")
@@ -113,27 +121,27 @@ class AtlasApp(ctk.CTk):
         self.agent_manager = AgentManager(llm_manager=self.llm_manager, memory_manager=self.memory_manager)
         self.plugin_manager = PluginManager(self.agent_manager)
         #Set plugin manager reference to avoid circular dependency
-        
+
         #Initialize the chat context manager
         self.chat_context_manager = ChatContextManager(memory_manager=self.memory_manager)
-        
+
         #Initialize the chat translation manager (without LLM manager initially)
         self.chat_translation_manager = ChatTranslationManager()
-        
+
         #Initialize Creator Authentication System
         self.creator_auth = CreatorAuthentication(config_manager=self.config_manager)
-        
+
         #Initialize TaskManager for multi-goal support
         self.task_manager = TaskManager(
             max_concurrent_tasks=3,
             llm_manager=self.llm_manager,
             agent_manager=self.agent_manager,
-            memory_db_path=self.config_manager.get_memory_db_path()
+            memory_db_path=self.config_manager.get_memory_db_path(),
         )
-        
+
         #Initialize the code reader tool for Help mode
         self.code_reader = CodeReaderTool()
-        
+
         self.agent_manager.set_plugin_manager(self.plugin_manager)
 
         #Initialize Goal History Manager
@@ -154,21 +162,21 @@ class AtlasApp(ctk.CTk):
             memory_manager=self.memory_manager,
             context_awareness_engine=self.context_awareness_engine,
             status_callback=self._handle_agent_status,
-            creator_auth=self.creator_auth
+            creator_auth=self.creator_auth,
         )
 
         #Set the LLM manager for translation after master_agent is created
-        if hasattr(self, 'chat_translation_manager') and self.llm_manager:
+        if hasattr(self, "chat_translation_manager") and self.llm_manager:
             self.chat_translation_manager.set_llm_manager(self.llm_manager)
 
         #Discover plugins after all managers are ready
         self.plugin_manager.discover_plugins(self.llm_manager, atlas_app=self)
         self._log_loaded_plugins()
-        
+
         #Initialize enhanced agents
         self.deputy_agent = EnhancedDeputyAgent(
             llm_manager=self.llm_manager,
-            agent_manager=self.agent_manager
+            agent_manager=self.agent_manager,
         )
 
         #Set up communication with the Enhanced Security Agent
@@ -230,33 +238,33 @@ class AtlasApp(ctk.CTk):
         #Ensure UI updates happen on the main thread
         def _update_ui():
             #Update status panel if available
-            if hasattr(self, 'status_panel'):
+            if hasattr(self, "status_panel"):
                 self.status_panel.handle_agent_message(message)
-            
+
             if msg_type == "plan":
                 self.current_plan = data
                 self.plan_view.display_plan(data)
                 self.chat_history_view.add_message("agent", f"Generated a new plan for goal: {self.last_goal}")
             elif msg_type == "step_start":
-                self.plan_view.update_step_status(data['index'], "start", data)
+                self.plan_view.update_step_status(data["index"], "start", data)
             elif msg_type == "step_end":
-                self.plan_view.update_step_status(data['index'], "end", data)
+                self.plan_view.update_step_status(data["index"], "end", data)
             elif msg_type == "request_clarification":
-                self.chat_history_view.add_message(message['role'], message['content'])
+                self.chat_history_view.add_message(message["role"], message["content"])
                 self._prompt_for_clarification(content)
             elif msg_type == "request_feedback":
-                self.chat_history_view.add_message(message['role'], message['content'])
+                self.chat_history_view.add_message(message["role"], message["content"])
                 self._prompt_for_feedback(content)
             elif msg_type == "success":
-                self.chat_history_view.add_message(message['role'], message['content'])
+                self.chat_history_view.add_message(message["role"], message["content"])
                 #Add to goal history
                 if self.last_goal:
                     self.goal_history_manager.add_goal(
-                        self.last_goal, 
+                        self.last_goal,
                         "Completed",
-                        execution_time=data.get('execution_time'),
-                        steps_completed=data.get('steps_completed'),
-                        total_steps=data.get('total_steps')
+                        execution_time=data.get("execution_time"),
+                        steps_completed=data.get("steps_completed"),
+                        total_steps=data.get("total_steps"),
                     )
                 self.feedback_frame.grid() #Show feedback buttons
             elif msg_type == "error" or msg_type == "failure":
@@ -266,23 +274,23 @@ class AtlasApp(ctk.CTk):
                         self.last_goal,
                         "Failed",
                         error_message=content,
-                        steps_completed=data.get('steps_completed'),
-                        total_steps=data.get('total_steps')
+                        steps_completed=data.get("steps_completed"),
+                        total_steps=data.get("total_steps"),
                     )
-                self.chat_history_view.add_message(message['role'], message['content'])
+                self.chat_history_view.add_message(message["role"], message["content"])
             else:
-                self.chat_history_view.add_message(message['role'], message['content'])
-        
+                self.chat_history_view.add_message(message["role"], message["content"])
+
         self.after(0, _update_ui)
 
     def _prompt_for_feedback(self, prompt_text: str):
         """Creates and shows the feedback dialog, then sends the result to the agent."""
         dialog = ctk.CTkInputDialog(
             text=prompt_text + "\n\nOptions: 'skip', 'abort', or provide new instructions.",
-            title="Agent Needs Guidance"
+            title="Agent Needs Guidance",
         )
         feedback = dialog.get_input()
-        
+
         if feedback:
             self.master_agent.continue_with_feedback(feedback)
         else:
@@ -292,36 +300,36 @@ class AtlasApp(ctk.CTk):
     def _prompt_for_clarification(self, question: str):
         """Creates a dialog to get clarification from the user."""
         self.logger.info(f"Prompting user for clarification: {question}")
-        
+
         #Translate question to Ukrainian for user
         translated_question = question
         try:
-            if hasattr(self, 'chat_translation_manager'):
+            if hasattr(self, "chat_translation_manager"):
                 translated_question = self.chat_translation_manager.process_outgoing_response(question)
                 if translated_question != question:
                     self.logger.info(f"Translated clarification question to user language: {translated_question}")
         except Exception as e:
             self.logger.warning(f"Failed to translate clarification question: {e}")
-        
+
         dialog = ctk.CTkInputDialog(
             text=translated_question,
-            title="Agent Needs Clarification" if translated_question == question else "Агент потребує уточнення"
+            title="Agent Needs Clarification" if translated_question == question else "Агент потребує уточнення",
         )
         clarification = dialog.get_input()
-        
+
         if clarification:
             self.logger.info(f"User provided clarification: {clarification}")
-            
+
             #Translate clarification back to English for the agent
             processed_clarification = clarification
             try:
-                if hasattr(self, 'chat_translation_manager'):
+                if hasattr(self, "chat_translation_manager"):
                     processed_clarification, _ = self.chat_translation_manager.process_incoming_message(clarification)
                     if processed_clarification != clarification:
                         self.logger.info(f"Translated user clarification for agent: {processed_clarification}")
             except Exception as e:
                 self.logger.warning(f"Failed to translate clarification response: {e}")
-            
+
             #Send the clarification back to the agent, which will unpause it
             self.master_agent.provide_clarification(processed_clarification)
         else:
@@ -337,40 +345,40 @@ class AtlasApp(ctk.CTk):
         try:
             #Створюємо екземпляр протоколів
             protocols = EncryptedCreatorProtocols()
-            
+
             #Перевіряємо доступність протоколів
             if not protocols.verify_protocols_integrity():
                 #Протоколи пошкоджені або відсутні
                 import tkinter as tk
                 from tkinter import messagebox
-                
+
                 root = tk.Tk()
                 root.withdraw()  #Приховуємо головне вікно
-                
+
                 messagebox.showerror(
                     "Помилка ініціалізації",
-                    "Не шукайте Бога на небі, шукайте в серці своєму, в собі !"
+                    "Не шукайте Бога на небі, шукайте в серці своєму, в собі !",
                 )
-                
+
                 root.destroy()
                 return False
-            
+
             #Протоколи успішно перевірені
             return True
-            
+
         except Exception:
             #Якщо сталася помилка при перевірці
             import tkinter as tk
             from tkinter import messagebox
-            
+
             root = tk.Tk()
             root.withdraw()
-            
+
             messagebox.showerror(
-                "Помилка ініціалізації", 
-                "Не шукайте Бога на небі, шукайте в серці своєму, в собі !"
+                "Помилка ініціалізації",
+                "Не шукайте Бога на небі, шукайте в серці своєму, в собі !",
             )
-            
+
             root.destroy()
             return False
 
@@ -428,7 +436,7 @@ class AtlasApp(ctk.CTk):
         if not is_good:
             dialog = ctk.CTkInputDialog(
                 text="What went wrong? Please provide a brief reason.",
-                title="Bad Plan Feedback"
+                title="Bad Plan Feedback",
             )
             reason = dialog.get_input()
             if reason is None:  #User cancelled
@@ -454,7 +462,7 @@ class AtlasApp(ctk.CTk):
                 agent_type=MemoryScope.USER_DATA,
                 memory_type=MemoryType.FEEDBACK,
                 content=memory_content,
-                metadata={"goal": self.last_goal, "rating": "good" if is_good else "bad", "has_reason": bool(reason and reason != "No reason provided.")}
+                metadata={"goal": self.last_goal, "rating": "good" if is_good else "bad", "has_reason": bool(reason and reason != "No reason provided.")},
             )
             self.logger.info(f"Saved {'good' if is_good else 'bad'} feedback for goal: '{self.last_goal}'")
             self.chat_history_view.add_message("system", f"Feedback ('{'Good' if is_good else 'Bad'}') has been recorded. Thank you!")
@@ -484,14 +492,14 @@ class AtlasApp(ctk.CTk):
         goal_frame.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(goal_frame, text="Goal").pack(side="left")
-        
+
         #Goal history and plugin manager buttons
         history_button = ctk.CTkButton(goal_frame, text="Goal History", width=100, command=self._open_goal_history)
         history_button.pack(side="right", padx=(5, 0))
-        
+
         plugins_button = ctk.CTkButton(goal_frame, text="Plugin Manager", width=120, command=self._open_enhanced_plugin_manager)
         plugins_button.pack(side="right", padx=(5, 0))
-        
+
         clear_button = ctk.CTkButton(goal_frame, text="Clear", width=60, command=self._clear_goal_text)
         clear_button.pack(side="right", padx=(5, 0))
 
@@ -555,24 +563,24 @@ class AtlasApp(ctk.CTk):
         ctk.CTkLabel(task_input_frame, text="New Goal:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
         self.new_task_entry = ctk.CTkEntry(task_input_frame, placeholder_text="Enter a goal for parallel execution...")
         self.new_task_entry.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
-        
+
         #Priority selection
         ctk.CTkLabel(task_input_frame, text="Priority:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
         self.task_priority_var = ctk.StringVar(value="Normal")
-        priority_menu = ctk.CTkOptionMenu(task_input_frame, variable=self.task_priority_var, 
+        priority_menu = ctk.CTkOptionMenu(task_input_frame, variable=self.task_priority_var,
                                          values=["Low", "Normal", "High", "Urgent"])
         priority_menu.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 
         #Buttons
         btn_frame = ctk.CTkFrame(task_input_frame)
         btn_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
-        
+
         self.create_task_btn = ctk.CTkButton(btn_frame, text="🚀 Create Task", command=self._create_new_task)
         self.create_task_btn.pack(side="left", padx=5)
-        
+
         self.start_task_manager_btn = ctk.CTkButton(btn_frame, text="▶️ Start TaskManager", command=self._start_task_manager)
         self.start_task_manager_btn.pack(side="left", padx=5)
-        
+
         self.stop_task_manager_btn = ctk.CTkButton(btn_frame, text="⏹️ Stop TaskManager", command=self._stop_task_manager)
         self.stop_task_manager_btn.pack(side="left", padx=5)
 
@@ -586,10 +594,10 @@ class AtlasApp(ctk.CTk):
         #Statistics labels
         self.active_tasks_label = ctk.CTkLabel(stats_frame, text="Active Tasks: 0")
         self.active_tasks_label.grid(row=0, column=0, padx=10, pady=5)
-        
+
         self.completed_tasks_label = ctk.CTkLabel(stats_frame, text="Completed: 0")
         self.completed_tasks_label.grid(row=0, column=1, padx=10, pady=5)
-        
+
         self.api_usage_label = ctk.CTkLabel(stats_frame, text="API Usage: 0/60")
         self.api_usage_label.grid(row=0, column=2, padx=10, pady=5)
 
@@ -608,7 +616,7 @@ class AtlasApp(ctk.CTk):
 
         #Initialize task display variables
         self.task_widgets = {}
-        
+
         #Start periodic updates
         self._update_task_display()
 
@@ -622,9 +630,9 @@ class AtlasApp(ctk.CTk):
         #Map priority string to enum
         priority_map = {
             "Low": TaskPriority.LOW,
-            "Normal": TaskPriority.NORMAL, 
+            "Normal": TaskPriority.NORMAL,
             "High": TaskPriority.HIGH,
-            "Urgent": TaskPriority.URGENT
+            "Urgent": TaskPriority.URGENT,
         }
         priority = priority_map.get(self.task_priority_var.get(), TaskPriority.NORMAL)
 
@@ -633,15 +641,15 @@ class AtlasApp(ctk.CTk):
                 goal=goal,
                 priority=priority,
                 status_callback=self._task_status_callback,
-                progress_callback=self._task_progress_callback
+                progress_callback=self._task_progress_callback,
             )
-            
+
             self.logger.info(f"Created task {task_id}: {goal}")
-            self.new_task_entry.delete(0, 'end')
-            
+            self.new_task_entry.delete(0, "end")
+
             #Update display
             self._update_task_display()
-            
+
         except Exception as e:
             self.logger.error(f"Failed to create task: {e}")
 
@@ -670,14 +678,14 @@ class AtlasApp(ctk.CTk):
         self.logger.info(f"Task {task_id} status: {status}")
         if details:
             self.logger.debug(f"Task {task_id} details: {details}")
-        
+
         #Update UI in main thread
         self.after(0, self._update_task_display)
 
     def _task_progress_callback(self, task_id: str, progress: float, message: str = ""):
         """Callback for task progress updates."""
         self.logger.debug(f"Task {task_id} progress: {progress:.1%} - {message}")
-        
+
         #Update UI in main thread
         self.after(0, self._update_task_display)
 
@@ -692,18 +700,18 @@ class AtlasApp(ctk.CTk):
             #Get current tasks
             tasks = self.task_manager.tasks
             running_tasks = self.task_manager.running_tasks
-            
+
             #Update statistics
             active_count = len([t for t in tasks.values() if t.status in [TaskStatus.RUNNING, TaskStatus.PENDING]])
             completed_count = len([t for t in tasks.values() if t.status == TaskStatus.COMPLETED])
-            
+
             self.active_tasks_label.configure(text=f"Active Tasks: {active_count}")
             self.completed_tasks_label.configure(text=f"Completed: {completed_count}")
-            
+
             #Get API usage
             api_stats = self.task_manager.api_resource_manager.get_provider_stats()
-            openai_usage = api_stats.get('openai', {}).get('current_usage', 0)
-            openai_limit = api_stats.get('openai', {}).get('limit', 60)
+            openai_usage = api_stats.get("openai", {}).get("current_usage", 0)
+            openai_limit = api_stats.get("openai", {}).get("limit", 60)
             self.api_usage_label.configure(text=f"API Usage: {openai_usage}/{openai_limit}")
 
             #Display each task
@@ -711,58 +719,58 @@ class AtlasApp(ctk.CTk):
                 task_frame = ctk.CTkFrame(self.tasks_scrollable)
                 task_frame.grid(row=i, column=0, padx=5, pady=5, sticky="ew")
                 task_frame.grid_columnconfigure(1, weight=1)
-                
+
                 #Status indicator
                 status_color = {
                     TaskStatus.PENDING: "orange",
-                    TaskStatus.RUNNING: "green", 
+                    TaskStatus.RUNNING: "green",
                     TaskStatus.COMPLETED: "blue",
                     TaskStatus.FAILED: "red",
                     TaskStatus.CANCELLED: "gray",
-                    TaskStatus.PAUSED: "yellow"
+                    TaskStatus.PAUSED: "yellow",
                 }.get(task.status, "gray")
-                
+
                 status_label = ctk.CTkLabel(task_frame, text="●", text_color=status_color, font=("Arial", 20))
                 status_label.grid(row=0, column=0, padx=5, pady=5)
-                
+
                 #Task info
                 info_text = f"{task_id}: {task.goal[:50]}..."
                 if len(task.goal) > 50:
                     info_text += f"\nStatus: {task.status.value.upper()}"
                 if task.created_at:
                     info_text += f"\nCreated: {task.created_at.strftime('%H:%M:%S')}"
-                
+
                 info_label = ctk.CTkLabel(task_frame, text=info_text, justify="left")
                 info_label.grid(row=0, column=1, padx=5, pady=5, sticky="w")
-                
+
                 #Task control buttons
                 control_frame = ctk.CTkFrame(task_frame)
                 control_frame.grid(row=0, column=2, padx=5, pady=5)
-                
+
                 if task.status == TaskStatus.RUNNING:
-                    pause_btn = ctk.CTkButton(control_frame, text="⏸️", width=30, 
+                    pause_btn = ctk.CTkButton(control_frame, text="⏸️", width=30,
                                             command=lambda tid=task_id: self._pause_task(tid))
                     pause_btn.pack(side="left", padx=2)
                 elif task.status == TaskStatus.PAUSED:
                     resume_btn = ctk.CTkButton(control_frame, text="▶️", width=30,
                                              command=lambda tid=task_id: self._resume_task(tid))
                     resume_btn.pack(side="left", padx=2)
-                
+
                 if task.status in [TaskStatus.PENDING, TaskStatus.RUNNING, TaskStatus.PAUSED]:
                     cancel_btn = ctk.CTkButton(control_frame, text="❌", width=30,
                                              command=lambda tid=task_id: self._cancel_task(tid))
                     cancel_btn.pack(side="left", padx=2)
-                
+
                 #Memory info button
                 memory_btn = ctk.CTkButton(control_frame, text="💾", width=30,
                                          command=lambda tid=task_id: self._show_task_memory(tid))
                 memory_btn.pack(side="left", padx=2)
-                
+
                 self.task_widgets[task_id] = task_frame
 
             #Schedule next update
             self.after(2000, self._update_task_display)  #Update every 2 seconds
-            
+
         except Exception as e:
             self.logger.error(f"Error updating task display: {e}")
 
@@ -806,10 +814,10 @@ class AtlasApp(ctk.CTk):
             if not task:
                 self.logger.warning(f"Task {task_id} not found")
                 return
-            
+
             memories = self.task_manager.memory_manager.get_agent_memories(task.memory_scope)
             memory_count = len(memories) if memories else 0
-            
+
             #Show simple dialog with memory info
             import tkinter.messagebox as msgbox
             msgbox.showinfo(
@@ -817,9 +825,9 @@ class AtlasApp(ctk.CTk):
                 f"Memory Scope: {task.memory_scope}\n"
                 f"Memory Entries: {memory_count}\n"
                 f"Goal: {task.goal}\n"
-                f"Status: {task.status.value}"
+                f"Status: {task.status.value}",
             )
-            
+
         except Exception as e:
             self.logger.error(f"Error showing task memory for {task_id}: {e}")
 
@@ -844,7 +852,7 @@ class AtlasApp(ctk.CTk):
 
         ctk.CTkLabel(filter_frame, text="Collection:").pack(side="left", padx=(10, 5))
         self.collection_var = ctk.StringVar(value="All")
-        
+
         try:
             db_collections = self.memory_manager.client.list_collections()
             collection_names = [c.name for c in db_collections]
@@ -852,7 +860,7 @@ class AtlasApp(ctk.CTk):
         except Exception as e:
             self.logger.error(f"Could not load memory collections: {e}")
             collections = ["All"]
-            
+
         self.collection_menu = ctk.CTkOptionMenu(filter_frame, variable=self.collection_var, values=collections)
         self.collection_menu.pack(side="left", padx=5)
 
@@ -890,7 +898,7 @@ class AtlasApp(ctk.CTk):
             is_json = False
 
         font = ctk.CTkFont(family="monospace", size=12) if is_json else ctk.CTkFont()
-        
+
         content_label = ctk.CTkLabel(parent_frame, text=formatted_content, font=font, justify="left", wraplength=450)
         content_label.pack(anchor="w", padx=5, pady=5)
 
@@ -903,14 +911,14 @@ class AtlasApp(ctk.CTk):
             return
 
         self.logger.info(f"Searching memory for: '{query}' in collection '{collection}'")
-        
+
         collection_names = None if collection == "All" else [collection]
         results = self.memory_manager.search_memories(query=query, collection_names=collection_names, n_results=20)
 
         #Sort results if needed
         if sort_by == "Date":
             #Assuming 'timestamp' is stored in metadata, otherwise this will need adjustment
-            results.sort(key=lambda r: r.get('metadata', {}).get('timestamp', 0), reverse=True)
+            results.sort(key=lambda r: r.get("metadata", {}).get("timestamp", 0), reverse=True)
 
         #Clear previous results
         for widget in self.memory_results_frame.winfo_children():
@@ -922,14 +930,14 @@ class AtlasApp(ctk.CTk):
             return
 
         for res in results:
-            content = res.get('content', 'N/A')
-            metadata = res.get('metadata', {})
-            score = res.get('distance', 999)
+            content = res.get("content", "N/A")
+            metadata = res.get("metadata", {})
+            score = res.get("distance", 999)
 
             frame = ctk.CTkFrame(self.memory_results_frame, border_width=1)
             frame.pack(pady=5, padx=5, fill="x")
-            
-            collection_name = res.get('collection', metadata.get('collection', 'N/A'))
+
+            collection_name = res.get("collection", metadata.get("collection", "N/A"))
 
             header = f"Relevance: {1 - score:.2f} | Collection: {collection_name}"
             header_label = ctk.CTkLabel(frame, text=header, font=ctk.CTkFont(weight="bold"))
@@ -1011,7 +1019,7 @@ class AtlasApp(ctk.CTk):
 
         self.plugin_scroll_frame = ctk.CTkScrollableFrame(plugin_outer_frame, label_text="Available Plugins")
         self.plugin_scroll_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
+
         self._populate_plugin_frame()
 
         #--- Token Usage Statistics ---
@@ -1019,7 +1027,7 @@ class AtlasApp(ctk.CTk):
         token_frame.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
         token_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(token_frame, text="Token Usage Statistics", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, columnspan=3, padx=10, pady=(5,10), sticky="w")
-        
+
         ctk.CTkLabel(token_frame, text="Prompt:").grid(row=1, column=0, padx=10, pady=2, sticky="w")
         self.prompt_tokens_label = ctk.CTkLabel(token_frame, text="0")
         self.prompt_tokens_label.grid(row=1, column=1, padx=10, pady=2, sticky="w")
@@ -1035,7 +1043,7 @@ class AtlasApp(ctk.CTk):
         self.reset_tokens_button = ctk.CTkButton(token_frame, text="Reset", command=self._reset_token_stats)
         self.reset_tokens_button.grid(row=1, column=2, rowspan=3, padx=10, pady=5)
 
-        #--- Save Button --- 
+        #--- Save Button ---
         self.save_settings_button = ctk.CTkButton(tab, text="Save Settings", command=self._save_settings)
         self.save_settings_button.grid(row=6, column=0, padx=10, pady=10, sticky="s")
 
@@ -1052,7 +1060,7 @@ class AtlasApp(ctk.CTk):
             for plugin_id, plugin_data in sorted(all_plugins.items()):
                 manifest = plugin_data.get("manifest", {})
                 plugin_name = manifest.get("name", plugin_id)
-                
+
                 if plugin_id not in self.plugin_enabled_vars:
                     #Initialize based on loaded settings or default to True
                     is_enabled = self.loaded_settings.get("plugins", {}).get(plugin_id, True)
@@ -1084,14 +1092,14 @@ class AtlasApp(ctk.CTk):
         }
 
         #Update status panel
-        if hasattr(self, 'status_panel'):
+        if hasattr(self, "status_panel"):
             self.status_panel.update_status("Starting", "Checking security", 10)
             self.status_panel.add_log_entry(f"Starting goal execution: {goal_input[:50]}...", "INFO", "MasterAgent")
 
         security_event = {
             "type": "GOAL_EXECUTION_REQUEST",
             "source": "AtlasApp",
-            "details": {"goal": goal_input, "prompt": prompt, "options": options}
+            "details": {"goal": goal_input, "prompt": prompt, "options": options},
         }
         self.security_agent_conn.send(security_event)
         self.logger.info("Waiting for security approval...")
@@ -1100,12 +1108,12 @@ class AtlasApp(ctk.CTk):
 
         if response.get("action") == "ALLOW":
             self.logger.info("Security Agent approved execution.")
-            
+
             #Update status panel
-            if hasattr(self, 'status_panel'):
+            if hasattr(self, "status_panel"):
                 self.status_panel.update_status("Running", "Executing goal", 20)
                 self.status_panel.add_log_entry("Security approval granted", "SUCCESS", "SecurityAgent")
-            
+
             self.run_button.configure(text="Running...", state="disabled")
             self.progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
             self.progress_bar.start()
@@ -1114,22 +1122,22 @@ class AtlasApp(ctk.CTk):
             self.goal_history_manager.add_goal(goal_input, "In Progress")
 
             if options["goal_list"]:
-                goals = [g.strip() for g in goal_input.split('\n') if g.strip()]
+                goals = [g.strip() for g in goal_input.split("\n") if g.strip()]
                 self.master_agent.run(goals, prompt, options)
             else:
                 self.master_agent.run(goal_input, prompt, options)
-            
+
             self._check_agent_status()
         else:
             reason = response.get("reason", "No reason provided.")
             self.logger.warning(f"Execution blocked by Security Agent. Reason: {reason}")
             self.chat_history_view.add_message("system", f"Execution blocked by Security Agent: {reason}")
-            
+
             #Update status panel
-            if hasattr(self, 'status_panel'):
+            if hasattr(self, "status_panel"):
                 self.status_panel.update_status("Blocked", "Security denied execution", 0)
                 self.status_panel.add_log_entry(f"Execution blocked: {reason}", "ERROR", "SecurityAgent")
-            
+
             #Add to goal history as "Cancelled"
             self.goal_history_manager.add_goal(goal_input, "Cancelled", error_message=reason)
 
@@ -1140,12 +1148,12 @@ class AtlasApp(ctk.CTk):
     def _on_stop(self):
         self.logger.info("Stop clicked")
         self.master_agent.stop()
-        
+
         #Update status panel
-        if hasattr(self, 'status_panel'):
+        if hasattr(self, "status_panel"):
             self.status_panel.update_status("Stopped", "Execution cancelled by user", 0)
             self.status_panel.add_log_entry("Execution stopped by user", "WARNING", "System")
-        
+
         #Update goal history if there was a running goal
         if self.last_goal:
             self.goal_history_manager.add_goal(self.last_goal, "Cancelled", error_message="Stopped by user")
@@ -1166,9 +1174,9 @@ class AtlasApp(ctk.CTk):
         self.feedback_frame.grid()
         self.good_button.configure(state="normal")
         self.bad_button.configure(state="normal")
-        
+
         #Update status panel
-        if hasattr(self, 'status_panel'):
+        if hasattr(self, "status_panel"):
             self.status_panel.update_status("Idle", "Waiting for next goal", 0)
 
     def _handle_feedback(self, positive: bool):
@@ -1185,28 +1193,28 @@ class AtlasApp(ctk.CTk):
     def _update_plugins_from_settings(self, plugins_enabled: Dict[str, bool]):
         """Updates the agent manager based on the provided plugin states."""
         #Only clear tools if this is not the initial load
-        if hasattr(self, '_initial_settings_applied'):
+        if hasattr(self, "_initial_settings_applied"):
             self.agent_manager.clear_tools()
-        
+
         all_plugins = self.plugin_manager.get_all_plugins()
-        
+
         for plugin_id, plugin_data in all_plugins.items():
             #If no setting exists, default to enabled
             if plugins_enabled.get(plugin_id, True):
                 for tool_instance in plugin_data.get("tools", []):
                     for tool_name in dir(tool_instance):
-                        if not tool_name.startswith('_'):
+                        if not tool_name.startswith("_"):
                             tool_function = getattr(tool_instance, tool_name)
                             if callable(tool_function):
                                 self.agent_manager.add_tool(
                                     name=tool_name,
                                     tool_function=tool_function,
-                                    description=getattr(tool_function, '__doc__', 'No description available.')
+                                    description=getattr(tool_function, "__doc__", "No description available."),
                                 )
                 for agent_class in plugin_data.get("agents", []):
                     self.agent_manager.add_agent(agent_class)
         self.logger.info(f"Updated agent tools based on settings. Active tools: {self.agent_manager.get_tool_names()}")
-        
+
         #Mark that initial settings have been applied
         self._initial_settings_applied = True
 
@@ -1224,7 +1232,7 @@ class AtlasApp(ctk.CTk):
                 self.completion_tokens_label.configure(text=str(stats.completion))
             if self.total_tokens_label:
                 self.total_tokens_label.configure(text=str(stats.total))
-        
+
         self.after(1000, self._update_token_stats)
 
     def _reset_token_stats(self):
@@ -1241,7 +1249,7 @@ class AtlasApp(ctk.CTk):
             enabled_plugins = {name: var.get() for name, var in self.plugin_enabled_vars.items()}
 
             #Security settings
-            rules = self.security_rules_text.get("1.0", "end-1c").split('\n')
+            rules = self.security_rules_text.get("1.0", "end-1c").split("\n")
             security_config = {
                 "destructive_op_threshold": self.destructive_slider.get(),
                 "api_usage_threshold": self.api_usage_slider.get(),
@@ -1251,16 +1259,16 @@ class AtlasApp(ctk.CTk):
                     "email": self.notification_email_var.get(),
                     "telegram": self.notification_telegram_var.get(),
                     "sms": self.notification_sms_var.get(),
-                }
+                },
             }
 
             #Agent settings
             agent_config = {}
             for agent_card in self.agent_cards:
-                agent_config[agent_card['name']] = {
-                    "provider": agent_card['provider_menu'].get(),
-                    "model": agent_card['model_menu'].get(),
-                    "fallback_chain": agent_card['fallback_chain']
+                agent_config[agent_card["name"]] = {
+                    "provider": agent_card["provider_menu"].get(),
+                    "model": agent_card["model_menu"].get(),
+                    "fallback_chain": agent_card["fallback_chain"],
                 }
 
             #API keys
@@ -1286,20 +1294,20 @@ class AtlasApp(ctk.CTk):
             #Apply relevant settings immediately
             self._update_plugins_from_settings(enabled_plugins)
             self.master_agent.llm_manager.update_settings()
-            
+
             #Update chat translation manager with current LLM manager
-            if hasattr(self, 'chat_translation_manager'):
+            if hasattr(self, "chat_translation_manager"):
                 self.chat_translation_manager.set_llm_manager(self.master_agent.llm_manager)
 
             #Send updated settings to the security agent process
-            notifications = security_config.get('notifications', {})
+            notifications = security_config.get("notifications", {})
             self.security_agent_conn.send({
                 "type": "UPDATE_RULES",
-                "details": {"rules": security_config.get('rules', [])}
+                "details": {"rules": security_config.get("rules", [])},
             })
             self.security_agent_conn.send({
                 "type": "UPDATE_NOTIFICATION_SETTINGS",
-                "details": {"channels": notifications}
+                "details": {"channels": notifications},
             })
 
             self.chat_history_view.add_message("system", "All settings saved and applied successfully.")
@@ -1325,50 +1333,50 @@ class AtlasApp(ctk.CTk):
             return
 
         #Apply API key settings
-        self.openai_api_key_var.set(settings.get('api_keys', {}).get('openai', ''))
-        self.gemini_api_key_var.set(settings.get('api_keys', {}).get('gemini', ''))
-        self.anthropic_api_key_var.set(settings.get('api_keys', {}).get('anthropic', ''))
-        self.groq_api_key_var.set(settings.get('api_keys', {}).get('groq', ''))
-        self.mistral_api_key_var.set(settings.get('api_keys', {}).get('mistral', ''))
+        self.openai_api_key_var.set(settings.get("api_keys", {}).get("openai", ""))
+        self.gemini_api_key_var.set(settings.get("api_keys", {}).get("gemini", ""))
+        self.anthropic_api_key_var.set(settings.get("api_keys", {}).get("anthropic", ""))
+        self.groq_api_key_var.set(settings.get("api_keys", {}).get("groq", ""))
+        self.mistral_api_key_var.set(settings.get("api_keys", {}).get("mistral", ""))
 
         #Apply plugin settings
         enabled_plugins = settings.get("plugins_enabled", {})
         self._update_plugins_from_settings(enabled_plugins)
 
         #Apply security settings
-        security_config = settings.get('security', {})
-        self.destructive_slider.set(security_config.get('destructive_op_threshold', 80))
-        self.api_usage_slider.set(security_config.get('api_usage_threshold', 80))
-        self.file_access_slider.set(security_config.get('file_access_threshold', 80))
+        security_config = settings.get("security", {})
+        self.destructive_slider.set(security_config.get("destructive_op_threshold", 80))
+        self.api_usage_slider.set(security_config.get("api_usage_threshold", 80))
+        self.file_access_slider.set(security_config.get("file_access_threshold", 80))
         self.security_rules_text.delete("1.0", "end")
-        self.security_rules_text.insert("1.0", "\n".join(security_config.get('rules', [])))
-        notifications = security_config.get('notifications', {})
-        self.notification_email_var.set(notifications.get('email', False))
-        self.notification_telegram_var.set(notifications.get('telegram', False))
-        self.notification_sms_var.set(notifications.get('sms', False))
+        self.security_rules_text.insert("1.0", "\n".join(security_config.get("rules", [])))
+        notifications = security_config.get("notifications", {})
+        self.notification_email_var.set(notifications.get("email", False))
+        self.notification_telegram_var.set(notifications.get("telegram", False))
+        self.notification_sms_var.set(notifications.get("sms", False))
 
         #Send updated settings to the security agent process
         self.security_agent_conn.send({
             "type": "UPDATE_RULES",
-            "details": {"rules": security_config.get('rules', [])}
+            "details": {"rules": security_config.get("rules", [])},
         })
         self.security_agent_conn.send({
             "type": "UPDATE_NOTIFICATION_SETTINGS",
-            "details": {"channels": notifications}
+            "details": {"channels": notifications},
         })
 
         #Apply agent settings
-        agent_config = settings.get('agents', {})
+        agent_config = settings.get("agents", {})
         for agent_card in self.agent_cards:
-            card_config = agent_config.get(agent_card['name'], {})
-            agent_card['provider_menu'].set(card_config.get('provider', 'ollama'))
-            self._update_model_menu(agent_card['provider_menu'].get(), agent_card['model_menu'])
-            agent_card['model_menu'].set(card_config.get('model', ''))
-            agent_card['fallback_chain'] = card_config.get('fallback_chain', [])
+            card_config = agent_config.get(agent_card["name"], {})
+            agent_card["provider_menu"].set(card_config.get("provider", "ollama"))
+            self._update_model_menu(agent_card["provider_menu"].get(), agent_card["model_menu"])
+            agent_card["model_menu"].set(card_config.get("model", ""))
+            agent_card["fallback_chain"] = card_config.get("fallback_chain", [])
         self.master_agent.llm_manager.update_settings()
-        
-        #Update chat translation manager with current LLM manager  
-        if hasattr(self, 'chat_translation_manager'):
+
+        #Update chat translation manager with current LLM manager
+        if hasattr(self, "chat_translation_manager"):
             self.chat_translation_manager.set_llm_manager(self.master_agent.llm_manager)
 
         self.logger.info("All settings loaded and applied.")
@@ -1379,7 +1387,7 @@ class AtlasApp(ctk.CTk):
     def _load_app_state(self):
         """Loads the application state from a file."""
         try:
-            with open("state.json", "r") as f:
+            with open("state.json") as f:
                 state = json.load(f)
         except FileNotFoundError:
             self.logger.info("No previous state file found. Starting fresh.")
@@ -1419,14 +1427,14 @@ class AtlasApp(ctk.CTk):
             self.deputy_agent.thread.join(timeout=2)
         if self.security_agent.monitoring_thread and self.security_agent.monitoring_thread.is_alive():
             self.security_agent.monitoring_thread.join(timeout=2)
-            
+
         self.destroy()
 
     def _setup_gui_logging(self):
         """Configure the logger to output to the GUI textbox."""
         gui_handler = GuiLogger(self.log_textbox)
         gui_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S")
+            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S"),
         )
         add_handler(gui_handler)
         self.logger.info("GUI logging configured.")
@@ -1456,7 +1464,7 @@ class AtlasApp(ctk.CTk):
             #Agent Description from docstring
             description = inspect.getdoc(agent_instance) or "No description available."
             ctk.CTkLabel(agent_card, text=description, wraplength=800, justify="left").grid(row=1, column=0, padx=10, pady=(0, 5), sticky="w")
-    
+
         #Add buttons below the scrollable frame
         button_frame = ctk.CTkFrame(tab)
         button_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="e")
@@ -1498,18 +1506,18 @@ class AtlasApp(ctk.CTk):
         #--- Chart 1: Tool Loading Time ---
         self.ax1.clear()
         if tool_load_times:
-            self.ax1.bar(tool_load_times.keys(), tool_load_times.values(), color='skyblue')
-        self.ax1.set_title('Tool Loading Time (s)')
-        self.ax1.set_ylabel('Seconds')
-        self.ax1.tick_params(axis='x', rotation=45)
+            self.ax1.bar(tool_load_times.keys(), tool_load_times.values(), color="skyblue")
+        self.ax1.set_title("Tool Loading Time (s)")
+        self.ax1.set_ylabel("Seconds")
+        self.ax1.tick_params(axis="x", rotation=45)
 
         #--- Chart 2: Memory Search Latency ---
         self.ax2.clear()
         if memory_search_latencies:
-            self.ax2.plot(memory_search_latencies, marker='o', linestyle='-', color='lightcoral')
-        self.ax2.set_title('Memory Search Latency (s)')
-        self.ax2.set_xlabel('Search Event')
-        self.ax2.set_ylabel('Seconds')
+            self.ax2.plot(memory_search_latencies, marker="o", linestyle="-", color="lightcoral")
+        self.ax2.set_title("Memory Search Latency (s)")
+        self.ax2.set_xlabel("Search Event")
+        self.ax2.set_ylabel("Seconds")
 
         self.fig.tight_layout()
         self.canvas.draw()
@@ -1557,24 +1565,24 @@ class AtlasApp(ctk.CTk):
         plugin_frame.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
         plugin_frame.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(plugin_frame, text="Plugin Management", font=ctk.CTkFont(weight="bold")).grid(
-            row=0, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="w"
+            row=0, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="w",
         )
 
         all_plugins = self.plugin_manager.get_all_plugins()
         row = 1
         if not all_plugins:
             ctk.CTkLabel(plugin_frame, text="No plugins found.", text_color="gray").grid(
-                row=row, column=0, columnspan=2, padx=10, pady=5, sticky="w"
+                row=row, column=0, columnspan=2, padx=10, pady=5, sticky="w",
             )
         else:
             for plugin_id, plugin_data in all_plugins.items():
                 manifest = plugin_data.get("manifest", {})
                 plugin_name = manifest.get("name", plugin_id)
                 description = manifest.get("description", "No description provided.")
-                
+
                 var = ctk.BooleanVar()
                 self.plugin_enabled_vars[plugin_id] = var
-                
+
                 cb = ctk.CTkCheckBox(plugin_frame, text=plugin_name, variable=var)
                 cb.grid(row=row, column=0, padx=10, pady=5, sticky="w")
                 #Add a tooltip for the description
@@ -1623,10 +1631,10 @@ class AtlasApp(ctk.CTk):
 
         #Create enhanced settings view
         self.enhanced_settings = EnhancedSettingsView(
-            tab, 
+            tab,
             config_manager=self.config_manager,
             plugin_manager=self.plugin_manager,
-            save_callback=self._on_enhanced_settings_save
+            save_callback=self._on_enhanced_settings_save,
         )
         self.enhanced_settings.grid(row=0, column=0, sticky="nsew")
 
@@ -1634,50 +1642,50 @@ class AtlasApp(ctk.CTk):
         """Handle saving of enhanced settings."""
         try:
             #Apply theme change if needed
-            if 'theme' in settings:
-                ctk.set_appearance_mode(settings['theme'])
-            
+            if "theme" in settings:
+                ctk.set_appearance_mode(settings["theme"])
+
             #Update LLM manager settings
-            if hasattr(self, 'llm_manager'):
+            if hasattr(self, "llm_manager"):
                 #Update provider and model if specified
-                current_provider = settings.get('current_provider')
-                current_model = settings.get('current_model')
-                
+                current_provider = settings.get("current_provider")
+                current_model = settings.get("current_model")
+
                 if current_provider and current_model:
                     self.llm_manager.set_provider_and_model(current_provider, current_model)
                     self.logger.info(f"LLM provider set to {current_provider} with model {current_model}")
-                
+
                 #Refresh all LLM clients with new API keys
                 self.llm_manager.update_settings()
-                
+
                 #Update master agent's LLM manager if needed
-                if hasattr(self, 'master_agent') and hasattr(self.master_agent, 'llm_manager'):
+                if hasattr(self, "master_agent") and hasattr(self.master_agent, "llm_manager"):
                     self.master_agent.llm_manager = self.llm_manager
-                
+
                 #Update chat translation manager with current LLM manager
-                if hasattr(self, 'chat_translation_manager'):
+                if hasattr(self, "chat_translation_manager"):
                     self.chat_translation_manager.set_llm_manager(self.llm_manager)
-            
+
             #Update security agent settings if needed
             security_settings = {
-                'file_access_threshold': settings.get('file_access_threshold'),
-                'system_cmd_threshold': settings.get('system_cmd_threshold'),
-                'network_threshold': settings.get('network_threshold'),
-                'restricted_directories': settings.get('restricted_directories', [])
+                "file_access_threshold": settings.get("file_access_threshold"),
+                "system_cmd_threshold": settings.get("system_cmd_threshold"),
+                "network_threshold": settings.get("network_threshold"),
+                "restricted_directories": settings.get("restricted_directories", []),
             }
-            
-            if hasattr(self, 'security_agent'):
+
+            if hasattr(self, "security_agent"):
                 security_message = {
-                    'type': 'update_settings',
-                    'data': {'settings': security_settings}
+                    "type": "update_settings",
+                    "data": {"settings": security_settings},
                 }
                 try:
                     self.security_agent_conn.send(security_message)
                 except Exception as e:
                     self.logger.warning(f"Could not update security agent settings: {e}")
-            
+
             #Update plugin states
-            plugin_states = settings.get('plugin_enabled_states', {})
+            plugin_states = settings.get("plugin_enabled_states", {})
             for plugin_id, enabled in plugin_states.items():
                 try:
                     if enabled:
@@ -1686,7 +1694,7 @@ class AtlasApp(ctk.CTk):
                         self.plugin_manager.disable_plugin(plugin_id)
                 except Exception as e:
                     self.logger.warning(f"Could not update plugin {plugin_id}: {e}")
-            
+
             self.logger.info("Enhanced settings applied successfully")
         except Exception as e:
             self.logger.error(f"Error applying enhanced settings: {e}")
@@ -1736,7 +1744,7 @@ class AtlasApp(ctk.CTk):
     def _load_app_state(self):
         """Loads the application state from a file."""
         try:
-            with open("state.json", "r") as f:
+            with open("state.json") as f:
                 state = json.load(f)
         except FileNotFoundError:
             self.logger.info("No previous state file found. Starting fresh.")
@@ -1765,27 +1773,27 @@ class AtlasApp(ctk.CTk):
         """Creates the interactive chat interface for user-Atlas communication."""
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(0, weight=1)
-        
+
         #Main chat frame
         chat_frame = ctk.CTkFrame(tab)
         chat_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         chat_frame.grid_columnconfigure(0, weight=1)
         chat_frame.grid_rowconfigure(0, weight=1)
-        
+
         #Chat history view
         self.chat_view = ChatHistoryView(chat_frame)
         self.chat_view.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 5))
-        
+
         #Context indicator frame
         context_frame = ctk.CTkFrame(chat_frame)
         context_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 5))
         context_frame.grid_columnconfigure(6, weight=1)
-        
+
         #Mode control section
         ctk.CTkLabel(context_frame, text="Mode:", font=ctk.CTkFont(size=12, weight="bold")).grid(
-            row=0, column=0, padx=(10, 5), pady=5, sticky="w"
+            row=0, column=0, padx=(10, 5), pady=5, sticky="w",
         )
-        
+
         #Auto mode toggle button
         self.auto_mode_button = ctk.CTkButton(
             context_frame,
@@ -1793,10 +1801,10 @@ class AtlasApp(ctk.CTk):
             command=self._toggle_auto_mode,
             width=80,
             height=28,
-            fg_color="green"
+            fg_color="green",
         )
         self.auto_mode_button.grid(row=0, column=1, padx=5, pady=5)
-        
+
         #Mode buttons (for manual control)
         self.chat_mode_button = ctk.CTkButton(
             context_frame,
@@ -1804,30 +1812,30 @@ class AtlasApp(ctk.CTk):
             command=lambda: self._set_manual_mode(ChatMode.CASUAL_CHAT),
             width=60,
             height=28,
-            state="normal"  #Always enabled
+            state="normal",  #Always enabled
         )
         self.chat_mode_button.grid(row=0, column=2, padx=2, pady=5)
-        
+
         self.help_mode_button = ctk.CTkButton(
             context_frame,
             text="❓ Help",
             command=lambda: self._set_manual_mode(ChatMode.SYSTEM_HELP),
             width=60,
             height=28,
-            state="normal"  #Always enabled
+            state="normal",  #Always enabled
         )
         self.help_mode_button.grid(row=0, column=3, padx=2, pady=5)
-        
+
         self.goal_mode_button = ctk.CTkButton(
             context_frame,
             text="🎯 Goal",
             command=lambda: self._set_manual_mode(ChatMode.GOAL_SETTING),
             width=60,
             height=28,
-            state="normal"  #Always enabled
+            state="normal",  #Always enabled
         )
         self.goal_mode_button.grid(row=0, column=4, padx=2, pady=5)
-        
+
         #Development mode button (special styling)
         self.dev_mode_button = ctk.CTkButton(
             context_frame,
@@ -1836,48 +1844,48 @@ class AtlasApp(ctk.CTk):
             width=60,
             height=28,
             fg_color="orange",
-            hover_color="red"
+            hover_color="red",
         )
         self.dev_mode_button.grid(row=0, column=5, padx=5, pady=5)
-        
+
         #Current mode indicator
         self.current_mode_label = ctk.CTkLabel(
             context_frame,
             text="Ready",
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=11),
         )
         self.current_mode_label.grid(row=0, column=6, padx=5, pady=5, sticky="w")
-        
+
         #Translation status indicator
         self.translation_status_label = ctk.CTkLabel(
             context_frame,
             text="🌐 Translation: Ready",
             font=ctk.CTkFont(size=11),
-            text_color="gray"
+            text_color="gray",
         )
         self.translation_status_label.grid(row=0, column=7, padx=5, pady=5, sticky="e")
-        
+
         #Clear context button
         self.clear_context_button = ctk.CTkButton(
             context_frame,
             text="Clear",
             command=self._clear_chat_context,
             width=60,
-            height=28
+            height=28,
         )
         self.clear_context_button.grid(row=0, column=8, padx=(5, 10), pady=5, sticky="e")
-        
+
         #Input frame
         input_frame = ctk.CTkFrame(chat_frame)
         input_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 10))
         input_frame.grid_columnconfigure(0, weight=1)
         input_frame.grid_rowconfigure(0, weight=1)
-        
+
         # Add top frame for input copy button
         input_top_frame = ctk.CTkFrame(input_frame, height=30)
         input_top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=2, pady=2)
         input_top_frame.grid_columnconfigure(1, weight=1)
-        
+
         # Input copy button (small and subtle)
         self.input_copy_button = ctk.CTkButton(
             input_top_frame,
@@ -1885,33 +1893,33 @@ class AtlasApp(ctk.CTk):
             width=25,
             height=25,
             font=ctk.CTkFont(size=12),
-            fg_color="transparent", 
+            fg_color="transparent",
             text_color="gray50",
             hover_color="gray30",
-            command=self._copy_input_text
+            command=self._copy_input_text,
         )
         self.input_copy_button.grid(row=0, column=0, padx=5, pady=2, sticky="w")
-        
+
         #Chat input textbox
         self.chat_input = ctk.CTkTextbox(input_frame, height=80, wrap="word")
         self.chat_input.grid(row=1, column=0, sticky="ew", padx=(10, 5), pady=10)
-        
+
         #Enable formatting context menu for chat input
         enable_formatting_context_menu(self.chat_input, self.chat_context_manager)
-        
+
         #Send button
         self.send_button = ctk.CTkButton(
-            input_frame, 
-            text="Send", 
+            input_frame,
+            text="Send",
             command=self._send_chat_message,
-            width=80
+            width=80,
         )
         self.send_button.grid(row=1, column=1, sticky="ns", padx=(5, 10), pady=10)
-        
+
         #Bind Enter key to send message (Ctrl+Enter for new line)
         self.chat_input.bind("<Return>", self._on_enter_key)
         self.chat_input.bind("<Control-Return>", self._on_ctrl_enter)
-        
+
         #Add initial welcome message with context explanation
         welcome_message = """Hello! I'm Atlas, your AI assistant. 
 
@@ -1924,7 +1932,7 @@ I can understand different types of conversations:
 ⚙️ **Config** - Help with settings and configuration
 
 The current mode will be shown above. How can I help you today?"""
-        
+
         self.chat_view.add_message("assistant", welcome_message)
 
     def _send_chat_message(self):
@@ -1932,172 +1940,172 @@ The current mode will be shown above. How can I help you today?"""
         message = self.chat_input.get("1.0", "end").strip()
         if not message:
             return
-            
+
         #Clear the input
         self.chat_input.delete("1.0", "end")
-        
+
         #Add user message to chat
         self.chat_view.add_message("user", message)
-        
+
         #Check if any LLM provider is available
-        if not hasattr(self.master_agent, 'llm_manager') or not self.master_agent.llm_manager:
+        if not hasattr(self.master_agent, "llm_manager") or not self.master_agent.llm_manager:
             self.chat_view.add_message("assistant", "I'm sorry, but I don't have access to an LLM client. Please configure an API key for any supported provider (OpenAI, Gemini, Groq, Mistral, or Ollama) in the LLM Settings tab.")
             return
-            
+
         #Check current provider availability
         llm_manager = self.master_agent.llm_manager
         current_provider = llm_manager.current_provider
         provider_available = llm_manager.is_provider_available(current_provider)
-        
+
         if not provider_available:
-            available_providers = [p for p in ["openai", "gemini", "groq", "mistral", "ollama"] 
+            available_providers = [p for p in ["openai", "gemini", "groq", "mistral", "ollama"]
                                  if llm_manager.is_provider_available(p)]
             if available_providers:
                 self.chat_view.add_message("assistant", f"Current provider '{current_provider}' is not available. Available providers: {', '.join(available_providers)}. Please change your provider in LLM Settings.")
             else:
                 self.chat_view.add_message("assistant", "No LLM providers are currently available. Please configure API keys in the LLM Settings tab.")
             return
-            
+
         #Process the message through Atlas
         try:
             #Use the master agent to process the message
             self.chat_view.add_message("assistant", "Processing your request...")
-            
+
             #Run in a separate thread to avoid blocking the UI
             import threading
             threading.Thread(
-                target=self._process_chat_message, 
-                args=(message,), 
-                daemon=True
+                target=self._process_chat_message,
+                args=(message,),
+                daemon=True,
             ).start()
-            
+
         except Exception as e:
-            self.chat_view.add_message("assistant", f"Sorry, I encountered an error: {str(e)}")
-    
+            self.chat_view.add_message("assistant", f"Sorry, I encountered an error: {e!s}")
+
     def _process_chat_message(self, message: str):
         """Process the chat message using enhanced context analysis and translation."""
         try:
             #Check if we have a working LLM manager
-            if not hasattr(self.master_agent, 'llm_manager') or not self.master_agent.llm_manager:
+            if not hasattr(self.master_agent, "llm_manager") or not self.master_agent.llm_manager:
                 self.after(0, lambda: self.chat_view.add_message("assistant", "LLM manager not available."))
                 return
 
             #Update translation manager with current LLM manager
             self.chat_translation_manager.set_llm_manager(self.master_agent.llm_manager)
-            
+
             #Process incoming message through translation if needed
             processed_message, translation_context = self.chat_translation_manager.process_incoming_message(message)
-            
+
             #Check for creator authentication before processing
             creator_identity_level = self.creator_auth.process_message_for_creator_detection(processed_message)
-            
+
             #If detected as possible creator, initiate authentication
             if creator_identity_level == CreatorIdentityLevel.POSSIBLE_CREATOR:
                 auth_result = self.creator_auth.initiate_creator_authentication(creator_identity_level)
-                if auth_result.get('requires_authentication', False):
-                    auth_message = auth_result['message']
+                if auth_result.get("requires_authentication", False):
+                    auth_message = auth_result["message"]
                     # Force immediate UI update
                     self.chat_view.add_message("assistant", auth_message)
                     # Also update display to ensure visibility
                     self.update_idletasks()
-                
+
                 #Store the challenge state for next message
                 self._waiting_for_creator_response = True
                 self._original_message_for_processing = processed_message
                 self._translation_context = translation_context
                 return
-            
-            elif hasattr(self, '_waiting_for_creator_response') and self._waiting_for_creator_response:
+
+            if hasattr(self, "_waiting_for_creator_response") and self._waiting_for_creator_response:
                 #Process challenge response
                 success, auth_response = self.creator_auth.validate_challenge_response(processed_message)
                 # Force immediate UI update for challenge response
                 self.chat_view.add_message("assistant", auth_response)
                 self.update_idletasks()
-                
+
                 if success:
                     #Authentication successful, process the original message
                     self._waiting_for_creator_response = False
-                    if hasattr(self, '_original_message_for_processing'):
+                    if hasattr(self, "_original_message_for_processing"):
                         #Continue processing the original message
                         processed_message = self._original_message_for_processing
-                        translation_context = getattr(self, '_translation_context', None)
+                        translation_context = getattr(self, "_translation_context", None)
                         #Clean up
-                        delattr(self, '_original_message_for_processing')
-                        if hasattr(self, '_translation_context'):
-                            delattr(self, '_translation_context')
-                    
+                        delattr(self, "_original_message_for_processing")
+                        if hasattr(self, "_translation_context"):
+                            delattr(self, "_translation_context")
+
                     #Show authentication status (less detailed)
                     auth_status = self.creator_auth.get_authentication_status()
                     status_msg = "🔐 Привілейований доступ активовано"
                     translated_status = self.chat_translation_manager.process_outgoing_response(status_msg)
                     self.after(0, lambda: self.chat_view.add_message("assistant", translated_status))
-                    
+
                     #Показати емоційну response творцю
                     emotional_greeting = self.creator_auth.get_creator_emotional_response("greeting")
                     translated_greeting = self.chat_translation_manager.process_outgoing_response(emotional_greeting)
                     self.after(0, lambda: self.chat_view.add_message("assistant", translated_greeting))
-                    
+
                     #Показати вдячність та любов
                     gratitude_msg = self.creator_auth.get_creator_emotional_response("gratitude")
                     translated_gratitude = self.chat_translation_manager.process_outgoing_response(gratitude_msg)
                     self.after(0, lambda: self.chat_view.add_message("assistant", translated_gratitude))
-                    
+
                     love_msg = self.creator_auth.get_creator_emotional_response("love")
-                    translated_love = self.chat_translation_manager.process_outgoing_response(love_msg)  
+                    translated_love = self.chat_translation_manager.process_outgoing_response(love_msg)
                     self.after(0, lambda: self.chat_view.add_message("assistant", translated_love))
                 else:
                     #Authentication failed, don't process further
                     return
-            
+
             #Show translation status if translation occurred
             if translation_context.requires_response_translation:
                 lang_name = self.chat_translation_manager.get_supported_languages().get(
-                    translation_context.user_language, translation_context.user_language
+                    translation_context.user_language, translation_context.user_language,
                 )
-                self.after(0, lambda: self.chat_view.add_message("assistant", 
+                self.after(0, lambda: self.chat_view.add_message("assistant",
                     f"🌐 Detected {lang_name}. Processing in English and will translate response back."))
-                
+
                 #Update translation status in UI
                 status_text = f"🌐 Active: {lang_name} ↔ English"
                 self.after(0, lambda: self.translation_status_label.configure(
-                    text=status_text, text_color="green"
+                    text=status_text, text_color="green",
                 ))
             else:
                 #Update translation status for English
                 self.after(0, lambda: self.translation_status_label.configure(
-                    text="🌐 Translation: Ready", text_color="gray"
+                    text="🌐 Translation: Ready", text_color="gray",
                 ))
 
             #Analyze message context using the context manager (use processed message)
             system_info = {
-                'tools': list(self.agent_manager._tools.keys()),
-                'agents': list(self.agent_manager._agents.keys())
+                "tools": list(self.agent_manager._tools.keys()),
+                "agents": list(self.agent_manager._agents.keys()),
             }
-            
+
             context = self.chat_context_manager.analyze_message(processed_message, system_info)
-            
+
             #Update mode display based on detection or manual setting
             self.after(0, lambda: self._update_mode_display(context.mode, context.confidence))
-            
+
             #Add context indicator to the chat only in auto mode
             if self.chat_context_manager.is_auto_mode:
                 mode_indicators = {
                     ChatMode.CASUAL_CHAT: "💬",
-                    ChatMode.SYSTEM_HELP: "❓", 
+                    ChatMode.SYSTEM_HELP: "❓",
                     ChatMode.GOAL_SETTING: "🎯",
                     ChatMode.TOOL_INQUIRY: "🔧",
                     ChatMode.STATUS_CHECK: "📊",
-                    ChatMode.CONFIGURATION: "⚙️"
+                    ChatMode.CONFIGURATION: "⚙️",
                 }
-                
+
                 indicator = mode_indicators.get(context.mode, "💬")
                 confidence_text = f" (confidence: {context.confidence:.1f})" if context.confidence < 0.8 else ""
-                
-                self.after(0, lambda: self.chat_view.add_message("assistant", 
+
+                self.after(0, lambda: self.chat_view.add_message("assistant",
                     f"{indicator} Analyzing as {context.mode.value.replace('_', ' ').title()}{confidence_text}..."))
 
             llm_manager = self.master_agent.llm_manager
-            
+
             #Спеціальна processing для аутентифікованого creator
             if self.creator_auth.is_creator_session_active:
                 #Перевіряємо тайм-аути сесії creator
@@ -2108,78 +2116,78 @@ The current mode will be shown above. How can I help you today?"""
                     translated_timeout_msg = self.chat_translation_manager.process_outgoing_response(timeout_msg)
                     self.after(0, lambda: self.chat_view.add_message("assistant", translated_timeout_msg))
                     return  #Припиняємо обробку
-                
+
                 #Оновлюємо time активності
                 self.creator_auth.update_activity_timestamp()
-                
+
                 #Creator аутентифікований - особливий режим обробки
-                
+
                 #Verification на прохання про безумовне виконання
                 if self.creator_auth.should_execute_unconditionally():
                     obedience_msg = self.creator_auth.get_creator_emotional_response("obedience")
                     #Перекласти емоційну response якщо потрібно
                     translated_obedience = self.chat_translation_manager.process_outgoing_response(obedience_msg)
                     self.after(0, lambda: self.chat_view.add_message("assistant", translated_obedience))
-                
+
                 #Додати спеціальний префікс до відповіді for creator (буде перекладено пізніше)
                 creator_prefix = "💖 For my dear creator and father: "
             else:
                 creator_prefix = ""
-            
+
             if context.mode == ChatMode.DEVELOPMENT:
                 #Handle development mode with special capabilities
                 dev_mode_msg = "🔧 Development mode - Enhanced system access enabled..."
                 translated_dev_msg = self.chat_translation_manager.process_outgoing_response(dev_mode_msg)
                 self.after(0, lambda: self.chat_view.add_message("assistant", translated_dev_msg))
-                
+
                 #Use development-specific prompt
                 response_prompt = self.chat_context_manager.generate_response_prompt(
-                    context, processed_message, system_info
+                    context, processed_message, system_info,
                 )
-                
+
                 chat_messages = [
                     {"role": "system", "content": response_prompt},
-                    {"role": "user", "content": processed_message}
+                    {"role": "user", "content": processed_message},
                 ]
-                
+
                 result = llm_manager.chat(chat_messages)
-                
+
                 if result and result.response_text:
                     response = f"🔧 **Development Response:**\n\n{result.response_text}\n\n---\n**Debug Info:** Mode={context.mode.value}, Confidence={context.confidence:.2f}"
                 else:
                     response = "🔧 Development mode: No response received from LLM. Check provider settings."
-                
+
                 #Додати префікс creator якщо потрібно
                 if creator_prefix:
                     response = creator_prefix + response
-                
+
                 #Translate response if needed
                 final_response = self.chat_translation_manager.process_outgoing_response(response)
                 self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
-                
+
             elif context.mode == ChatMode.SYSTEM_HELP:
                 #Handle Help mode with code reading capabilities
                 help_response = self._handle_help_mode(processed_message, context)
-                
+
                 #Додати префікс creator якщо потрібно
                 if creator_prefix:
                     help_response = creator_prefix + help_response
-                
+
                 final_response = self.chat_translation_manager.process_outgoing_response(help_response)
                 self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
-                
+
             elif context.mode == ChatMode.GOAL_SETTING and context.requires_system_integration:
                 #Handle as a goal - use full Atlas capabilities
                 goal_message = "🎯 I understand this as a goal. Let me work on it..."
                 translated_goal_msg = self.chat_translation_manager.process_outgoing_response(goal_message)
                 self.after(0, lambda: self.chat_view.add_message("assistant", translated_goal_msg))
-                
+
                 #Process as goal using MasterAgent
                 try:
                     #Set the goal in the text box and execute
                     self.after(0, lambda: self.goal_text.delete(1.0, ctk.END))
                     self.after(0, lambda: self.goal_text.insert(1.0, processed_message))
-                    
+
                     #Execute the goal
                     def execute_goal():
                         #Use the correct method to run goals
@@ -2188,278 +2196,272 @@ The current mode will be shown above. How can I help you today?"""
                             self.master_agent.run(
                                 goal=processed_message,
                                 master_prompt="Chat goal execution",
-                                options={"cyclic": False}
+                                options={"cyclic": False},
                             )
-                            
+
                             #Wait for completion
                             if self.master_agent.thread:
                                 self.master_agent.thread.join(timeout=30)  #30 second timeout
-                            
+
                             #Check if goal was completed successfully
                             if self.master_agent.last_plan:
                                 response = f"✅ Goal completed! I successfully executed: {processed_message}"
                             else:
                                 response = "❌ Goal execution failed or returned no result."
-                            
+
                         except Exception as e:
-                            response = f"❌ Error during goal execution: {str(e)}"
-                        
+                            response = f"❌ Error during goal execution: {e!s}"
+
                         #Translate response if needed
                         final_response = self.chat_translation_manager.process_outgoing_response(response)
                         self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
-                    
+
                     #Run goal execution in a separate thread
                     threading.Thread(target=execute_goal, daemon=True).start()
-                    
+
                 except Exception:
-                    self.after(0, lambda: self.chat_view.add_message("assistant", f"❌ Error setting up goal execution: {str(e)}"))
-            
+                    self.after(0, lambda: self.chat_view.add_message("assistant", f"❌ Error setting up goal execution: {e!s}"))
+
             else:
                 #Handle with context-aware conversation
                 response_prompt = self.chat_context_manager.generate_response_prompt(
-                    context, processed_message, system_info
+                    context, processed_message, system_info,
                 )
-                
+
                 chat_messages = [
                     {"role": "system", "content": response_prompt},
-                    {"role": "user", "content": processed_message}
+                    {"role": "user", "content": processed_message},
                 ]
-                
+
                 result = llm_manager.chat(chat_messages)
-                
+
                 if result and result.response_text:
                     response = result.response_text
                 else:
                     response = "I'm sorry, I didn't receive a response from the LLM. Please check your provider settings."
-                
+
                 #Додати префікс creator якщо потрібно
                 if creator_prefix:
                     response = creator_prefix + response
-                
+
                 #Translate response if needed
                 final_response = self.chat_translation_manager.process_outgoing_response(response)
                 self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
-                
+
                 #Update conversation history
                 self.chat_context_manager.update_conversation_history(message, response, context)
-                
+
         except Exception as e:
-            error_msg = f"I encountered an error while processing your request: {str(e)}"
-            
+            error_msg = f"I encountered an error while processing your request: {e!s}"
+
             #Додати префікс creator якщо потрібно
-            if hasattr(self, 'creator_auth') and self.creator_auth.is_creator_session_active:
+            if hasattr(self, "creator_auth") and self.creator_auth.is_creator_session_active:
                 creator_prefix = "💖 Пробачте, мій дорогий творче, "
                 error_msg = creator_prefix + error_msg.lower()
-            
+
             self.after(0, lambda: self.chat_view.add_message("assistant", error_msg))
 
     def _clear_chat_context(self):
         """Clear the chat context and reset conversation history."""
         self.chat_context_manager = ChatContextManager(memory_manager=self.memory_manager)
         self.chat_translation_manager.clear_session()
-        
+
         #Stop any active animations
-        if hasattr(self, '_dev_blink_active'):
+        if hasattr(self, "_dev_blink_active"):
             self._dev_blink_active = False
-        
+
         #Reset to auto mode and update UI
         self.auto_mode_button.configure(
-            text="🤖 Auto: ON", 
+            text="🤖 Auto: ON",
             fg_color="#4CAF50",
-            hover_color="#45A049"
+            hover_color="#45A049",
         )
         self.current_mode_label.configure(text="Mode: 🤖 Ready for conversation")
         self.translation_status_label.configure(text="🌐 Translation: Ready", text_color="gray")
-        
+
         #Reset all mode buttons to neutral state but keep them enabled
         for button in [self.chat_mode_button, self.help_mode_button, self.goal_mode_button]:
             button.configure(state="normal", fg_color="gray", hover_color="darkgray")
-        
+
         #Reset dev button
         self.dev_mode_button.configure(
             fg_color="orange",
-            hover_color="red", 
+            hover_color="red",
             border_color="orange",
-            border_width=1
+            border_width=1,
         )
-        
+
         self.chat_view.add_message("system", "🔄 Chat context cleared. Auto mode enabled. Starting fresh conversation.")
-    
+
     def _handle_help_mode(self, message: str, context) -> str:
         """Handle Help mode with code reading capabilities."""
         message_lower = message.lower()
-        
+
         #Check for code-related queries
-        code_keywords = ['code', 'source', 'file', 'implementation', 'function', 'class', 'method', 'how does', 'show me']
+        code_keywords = ["code", "source", "file", "implementation", "function", "class", "method", "how does", "show me"]
         is_code_query = any(keyword in message_lower for keyword in code_keywords)
-        
+
         #Check for specific file requests
-        if 'read file' in message_lower or 'show file' in message_lower:
+        if "read file" in message_lower or "show file" in message_lower:
             #Extract file path from message
             words = message.split()
             file_path = None
             for i, word in enumerate(words):
-                if word.lower() in ['file', 'read', 'show'] and i + 1 < len(words):
+                if word.lower() in ["file", "read", "show"] and i + 1 < len(words):
                     file_path = words[i + 1].strip('"\'')
                     break
-            
+
             if file_path:
                 return self.code_reader.read_file(file_path)
-            else:
-                return "❓ Please specify a file path. Example: 'read file main.py' or 'show file agents/memory_manager.py'"
-        
+            return "❓ Please specify a file path. Example: 'read file main.py' or 'show file agents/memory_manager.py'"
+
         #Check for directory listing
-        elif 'list' in message_lower and ('directory' in message_lower or 'folder' in message_lower or 'dir' in message_lower):
+        if "list" in message_lower and ("directory" in message_lower or "folder" in message_lower or "dir" in message_lower):
             words = message.split()
             dir_path = ""
             for i, word in enumerate(words):
-                if word.lower() in ['directory', 'folder', 'dir'] and i + 1 < len(words):
+                if word.lower() in ["directory", "folder", "dir"] and i + 1 < len(words):
                     dir_path = words[i + 1].strip('"\'')
                     break
             return self.code_reader.list_directory(dir_path)
-        
+
         #Check for file tree request
-        elif 'tree' in message_lower or 'structure' in message_lower:
+        if "tree" in message_lower or "structure" in message_lower:
             return self.code_reader.get_file_tree()
-        
+
         #Check for search requests
-        elif 'search' in message_lower and ('for' in message_lower or 'in' in message_lower):
+        if "search" in message_lower and ("for" in message_lower or "in" in message_lower):
             #Extract search term
-            search_parts = message.lower().split('search')
+            search_parts = message.lower().split("search")
             if len(search_parts) > 1:
                 remaining = search_parts[1].strip()
-                if remaining.startswith('for'):
+                if remaining.startswith("for"):
                     search_term = remaining[3:].strip().strip('"\'')
-                elif 'for' in remaining:
-                    search_term = remaining.split('for')[1].strip().strip('"\'')
+                elif "for" in remaining:
+                    search_term = remaining.split("for")[1].strip().strip('"\'')
                 else:
                     search_term = remaining.strip().strip('"\'')
-                
+
                 if search_term:
                     return self.code_reader.search_in_files(search_term)
-                else:
-                    return "❓ Please specify what to search for. Example: 'search for MemoryManager' or 'search for def __init__'"
-        
+                return "❓ Please specify what to search for. Example: 'search for MemoryManager' or 'search for def __init__'"
+
         #Check for file info requests
-        elif 'info' in message_lower and ('file' in message_lower or 'about' in message_lower):
+        elif "info" in message_lower and ("file" in message_lower or "about" in message_lower):
             words = message.split()
             file_path = None
             for i, word in enumerate(words):
-                if word.lower() in ['info', 'about'] and i + 1 < len(words):
+                if word.lower() in ["info", "about"] and i + 1 < len(words):
                     file_path = words[i + 1].strip('"\'')
                     break
-            
+
             if file_path:
                 return self.code_reader.get_file_info(file_path)
-            else:
-                return "❓ Please specify a file path. Example: 'info about main.py'"
-        
+            return "❓ Please specify a file path. Example: 'info about main.py'"
+
         #Check for function search requests
-        elif 'search functions' in message_lower or 'find functions' in message_lower or 'list functions' in message_lower:
+        elif "search functions" in message_lower or "find functions" in message_lower or "list functions" in message_lower:
             #Extract search query
             query = ""
             class_name = None
-            
+
             #Look for query after "search functions"
-            if 'search functions' in message_lower:
-                remaining = message_lower.split('search functions')[1].strip()
-            elif 'find functions' in message_lower:
-                remaining = message_lower.split('find functions')[1].strip()
+            if "search functions" in message_lower:
+                remaining = message_lower.split("search functions")[1].strip()
+            elif "find functions" in message_lower:
+                remaining = message_lower.split("find functions")[1].strip()
             else:
-                remaining = message_lower.split('list functions')[1].strip()
-            
+                remaining = message_lower.split("list functions")[1].strip()
+
             #Check for "in class" specification
-            if 'in class' in remaining:
-                parts = remaining.split('in class')
+            if "in class" in remaining:
+                parts = remaining.split("in class")
                 query = parts[0].strip().strip('"\'')
                 class_name = parts[1].strip().strip('"\'') if len(parts) > 1 else None
             else:
                 query = remaining.strip().strip('"\'')
-            
+
             return self.code_reader.search_functions(query, class_name)
-        
+
         #Check for class search requests
-        elif 'search classes' in message_lower or 'find classes' in message_lower or 'list classes' in message_lower:
+        elif "search classes" in message_lower or "find classes" in message_lower or "list classes" in message_lower:
             #Extract search query
             query = ""
-            if 'search classes' in message_lower:
-                query = message_lower.split('search classes')[1].strip().strip('"\'')
-            elif 'find classes' in message_lower:
-                query = message_lower.split('find classes')[1].strip().strip('"\'')
+            if "search classes" in message_lower:
+                query = message_lower.split("search classes")[1].strip().strip('"\'')
+            elif "find classes" in message_lower:
+                query = message_lower.split("find classes")[1].strip().strip('"\'')
             else:
-                query = message_lower.split('list classes')[1].strip().strip('"\'')
-            
+                query = message_lower.split("list classes")[1].strip().strip('"\'')
+
             return self.code_reader.search_classes(query)
-        
+
         #Check for file structure analysis
-        elif 'analyze' in message_lower and ('file' in message_lower or 'structure' in message_lower):
+        elif "analyze" in message_lower and ("file" in message_lower or "structure" in message_lower):
             words = message.split()
             file_path = None
             for i, word in enumerate(words):
-                if word.lower() in ['analyze', 'structure'] and i + 1 < len(words):
+                if word.lower() in ["analyze", "structure"] and i + 1 < len(words):
                     file_path = words[i + 1].strip('"\'')
                     break
-            
+
             if file_path:
                 return self.code_reader.analyze_file_structure(file_path)
-            else:
-                return "❓ Please specify a file path. Example: 'analyze file main.py'"
-        
+            return "❓ Please specify a file path. Example: 'analyze file main.py'"
+
         #Check for usage pattern requests
-        elif 'find usage' in message_lower or 'usage of' in message_lower or 'where is' in message_lower:
+        elif "find usage" in message_lower or "usage of" in message_lower or "where is" in message_lower:
             symbol = ""
-            if 'find usage' in message_lower:
-                symbol = message_lower.split('find usage')[1].strip().strip('of').strip().strip('"\'')
-            elif 'usage of' in message_lower:
-                symbol = message_lower.split('usage of')[1].strip().strip('"\'')
-            elif 'where is' in message_lower:
-                symbol = message_lower.split('where is')[1].strip().strip('"\'')
-            
+            if "find usage" in message_lower:
+                symbol = message_lower.split("find usage")[1].strip().strip("of").strip().strip('"\'')
+            elif "usage of" in message_lower:
+                symbol = message_lower.split("usage of")[1].strip().strip('"\'')
+            elif "where is" in message_lower:
+                symbol = message_lower.split("where is")[1].strip().strip('"\'')
+
             if symbol:
                 return self.code_reader.find_usage_patterns(symbol)
-            else:
-                return "❓ Please specify a symbol to find. Example: 'find usage of MemoryManager' or 'where is ChatMode'"
-        
+            return "❓ Please specify a symbol to find. Example: 'find usage of MemoryManager' or 'where is ChatMode'"
+
         #Check for code metrics request
-        elif 'metrics' in message_lower or 'statistics' in message_lower or 'stats' in message_lower:
+        elif "metrics" in message_lower or "statistics" in message_lower or "stats" in message_lower:
             return self.code_reader.get_code_metrics()
-        
+
         #Check for smart search
-        elif 'smart search' in message_lower or 'intelligent search' in message_lower:
+        elif "smart search" in message_lower or "intelligent search" in message_lower:
             query = ""
             search_type = "all"
-            
-            if 'smart search' in message_lower:
-                remaining = message_lower.split('smart search')[1].strip()
+
+            if "smart search" in message_lower:
+                remaining = message_lower.split("smart search")[1].strip()
             else:
-                remaining = message_lower.split('intelligent search')[1].strip()
-            
+                remaining = message_lower.split("intelligent search")[1].strip()
+
             #Check for search type specification
-            if 'definitions' in remaining:
+            if "definitions" in remaining:
                 search_type = "definitions"
-                remaining = remaining.replace('definitions', '').strip()
-            elif 'content' in remaining:
+                remaining = remaining.replace("definitions", "").strip()
+            elif "content" in remaining:
                 search_type = "content"
-                remaining = remaining.replace('content', '').strip()
-            elif 'files' in remaining:
+                remaining = remaining.replace("content", "").strip()
+            elif "files" in remaining:
                 search_type = "files"
-                remaining = remaining.replace('files', '').strip()
-            
+                remaining = remaining.replace("files", "").strip()
+
             query = remaining.strip().strip('"\'')
-            
+
             if query:
                 return self.code_reader.smart_search(query, search_type)
-            else:
-                return "❓ Please specify what to search for. Example: 'smart search MemoryManager' or 'smart search definitions ChatMode'"
-        
+            return "❓ Please specify what to search for. Example: 'smart search MemoryManager' or 'smart search definitions ChatMode'"
+
         #Check for index rebuild request
-        elif 'rebuild index' in message_lower or 'update index' in message_lower or 'refresh index' in message_lower:
+        elif "rebuild index" in message_lower or "update index" in message_lower or "refresh index" in message_lower:
             try:
                 self.code_reader.rebuild_index()
                 return "✅ **Code index rebuilt successfully!**\n\nThe index has been updated with the latest code structure and is ready for advanced analysis."
             except Exception as e:
-                return f"❌ **Error rebuilding index:** {str(e)}"
-        
+                return f"❌ **Error rebuilding index:** {e!s}"
+
         #If it's a code-related query but no specific command, provide code reading help
         elif is_code_query:
             return """🔍 **Atlas Advanced Code Analysis Capabilities**
@@ -2516,12 +2518,12 @@ I can help you explore and analyze the Atlas codebase with powerful tools! Avail
 **Available file types:** .py, .md, .txt, .json, .yaml, .yml, .toml
 
 What would you like to explore in the Atlas codebase?"""
-        
+
         #For non-code queries, use the standard help response
         else:
             #Add code reading info to standard help responses
             standard_help = self._generate_help_response(message)
-            
+
             #Add code reading capabilities info
             code_help_suffix = """
 
@@ -2541,9 +2543,9 @@ Try asking about any part of the Atlas codebase!
 • Type "list directory [path]" to explore folders
 
 Try: "show me how MemoryManager works" or "search for ChatMode"""
-            
+
             return standard_help + code_help_suffix
-    
+
     def _generate_help_response(self, message: str) -> str:
         """Generate a helpful response about Atlas features with improved formatting."""
         message_lower = message.lower()
@@ -2573,9 +2575,9 @@ Examples:
   "Take a screenshot"
   "Click on the Save button" """
 
-        elif "agent" in message_lower:
+        if "agent" in message_lower:
             agents = self.agent_manager.get_agent_names()
-            agent_list = '\n'.join([f'  • {agent}' for agent in agents])
+            agent_list = "\n".join([f"  • {agent}" for agent in agents])
             return f"""🤖 Atlas Agents System
 
 I coordinate with specialized agents:
@@ -2589,7 +2591,7 @@ Agent Responsibilities:
 
 These agents work together to accomplish complex goals efficiently!"""
 
-        elif "goal" in message_lower or "how" in message_lower:
+        if "goal" in message_lower or "how" in message_lower:
             return """🎯 How to Use Atlas
 
 Setting Goals:
@@ -2613,7 +2615,7 @@ Tools Tab:
 Settings:
   Configure LLM providers (OpenAI, Gemini, Ollama, Groq, Mistral)"""
 
-        elif "mode" in message_lower:
+        if "mode" in message_lower:
             return """⚙️ Atlas Operating Modes
 
 🤖 Auto Mode:
@@ -2633,8 +2635,7 @@ Mode Control:
   • Auto mode intelligently detects intent
   • Dev mode provides advanced system access"""
 
-        else:
-            return """👋 Welcome to Atlas!
+        return """👋 Welcome to Atlas!
 
 I'm your autonomous computer agent designed to help automate tasks and answer questions.
 
@@ -2654,7 +2655,7 @@ Quick Start Guide:
   4. Use different modes for different types of interactions
 
 Ready to help! What would you like to accomplish? 🚀"""
-    
+
     def _on_enter_key(self, event):
         """Handle Enter key press in chat input."""
         #Send message on Enter (unless Shift is held)
@@ -2662,7 +2663,7 @@ Ready to help! What would you like to accomplish? 🚀"""
             self._send_chat_message()
             return "break"  #Prevent default behavior
         return None
-    
+
     def _on_ctrl_enter(self, event):
         """Handle Ctrl+Enter for new line."""
         self.chat_input.insert("insert", "\n")
@@ -2672,89 +2673,89 @@ Ready to help! What would you like to accomplish? 🚀"""
         """Toggle automatic mode detection on/off."""
         self.chat_context_manager.toggle_auto_mode()
         is_auto = self.chat_context_manager.is_auto_mode
-        
+
         #Stop dev button blinking if it was active
-        if hasattr(self, '_dev_blink_active'):
+        if hasattr(self, "_dev_blink_active"):
             self._dev_blink_active = False
-        
+
         #Update auto button appearance
         if is_auto:
             self.auto_mode_button.configure(
                 text="🤖 Auto: ON",
                 fg_color="#4CAF50",
-                hover_color="#45A049"
+                hover_color="#45A049",
             )
             #Reset manual mode buttons to neutral state but keep them enabled
             for button in [self.chat_mode_button, self.help_mode_button, self.goal_mode_button]:
                 button.configure(state="normal", fg_color="gray", hover_color="darkgray")
-            
+
             #Reset dev button
             self.dev_mode_button.configure(
-                fg_color="orange", 
+                fg_color="orange",
                 hover_color="red",
                 border_color="orange",
-                border_width=1
+                border_width=1,
             )
-            
+
             self.current_mode_label.configure(text="Mode: 🤖 Auto Detection")
         else:
             self.auto_mode_button.configure(
-                text="🤖 Auto: OFF", 
+                text="🤖 Auto: OFF",
                 fg_color="gray",
-                hover_color="darkgray"
+                hover_color="darkgray",
             )
             #Manual mode buttons remain enabled - no change needed
             self.current_mode_label.configure(text="Mode: Manual Control Available")
-        
-        self.chat_view.add_message("system", 
+
+        self.chat_view.add_message("system",
             f"🔧 Automatic mode detection {'enabled' if is_auto else 'disabled'}")
 
     def _set_manual_mode(self, mode: ChatMode):
         """Set manual chat mode and disable auto detection."""
         #Automatically disable auto mode when manual mode is selected
         self.chat_context_manager.set_manual_mode(mode)
-        
+
         #Stop dev button blinking if it was active
-        if hasattr(self, '_dev_blink_active'):
+        if hasattr(self, "_dev_blink_active"):
             self._dev_blink_active = False
-        
+
         #Update UI to show manual mode is active
         self.auto_mode_button.configure(
             text="🤖 Auto: OFF",
             fg_color="gray",
-            hover_color="darkgray"
+            hover_color="darkgray",
         )
-        
+
         #Update mode buttons appearance - all remain enabled but show which is active
         mode_buttons = {
             ChatMode.CASUAL_CHAT: self.chat_mode_button,
-            ChatMode.SYSTEM_HELP: self.help_mode_button, 
-            ChatMode.GOAL_SETTING: self.goal_mode_button
+            ChatMode.SYSTEM_HELP: self.help_mode_button,
+            ChatMode.GOAL_SETTING: self.goal_mode_button,
         }
-        
+
         for chat_mode, button in mode_buttons.items():
             if chat_mode == mode:
                 button.configure(fg_color="#4CAF50", hover_color="#45A049")  # Green for active
             else:
                 button.configure(fg_color="gray", hover_color="darkgray")
-        
+
         #Reset dev button to normal state (but keep it active)
         self.dev_mode_button.configure(
-            fg_color="orange", 
+            fg_color="orange",
             hover_color="red",
             border_color="orange",
-            border_width=1
+            border_width=1,
         )
-        
+
         mode_names = {
             ChatMode.CASUAL_CHAT: "💬 Chat",
             ChatMode.SYSTEM_HELP: "❓ Help",
-            ChatMode.GOAL_SETTING: "🎯 Goal"
+            ChatMode.GOAL_SETTING: "🎯 Goal",
         }
-        
+
         mode_name = mode_names.get(mode, mode.value)
         self.current_mode_label.configure(text=f"Mode: {mode_name} (Manual)")
-        self.chat_view.add_message("system", 
+        self.chat_view.add_message("system",
             f"🔧 Manual mode set to: {mode_name}")
 
     def _set_development_mode(self):
@@ -2762,28 +2763,28 @@ Ready to help! What would you like to accomplish? 🚀"""
         #Check if creator authentication is required for dev mode
         if not self.creator_auth.is_dev_mode_allowed():
             #Show authentication prompt
-            self.chat_view.add_message("assistant", 
+            self.chat_view.add_message("assistant",
                 "🔐 Режим розробки доступний тільки для творця Атласа. Будь ласка, представтесь.")
             return
-        
+
         #Automatically disable auto mode when dev mode is selected
         self.chat_context_manager.set_manual_mode(ChatMode.DEVELOPMENT)
-        
+
         #Update all buttons to show dev mode is active
         self.auto_mode_button.configure(
-            text="🤖 Auto: OFF", 
+            text="🤖 Auto: OFF",
             fg_color="gray",
-            hover_color="darkgray"
+            hover_color="darkgray",
         )
-        
+
         #Keep other manual mode buttons enabled for switching
         for button in [self.chat_mode_button, self.help_mode_button, self.goal_mode_button]:
             button.configure(fg_color="gray", state="normal", hover_color="darkgray")
-        
+
         #Start blinking animation for dev button
         self._start_dev_button_blink()
         self.current_mode_label.configure(text="Mode: 🔧 Development (Manual)")
-        
+
         #Show development mode activation message
         self.chat_view.add_message("system", """🔧 **Development Mode Activated**
 
@@ -2799,32 +2800,32 @@ All operations will be logged for safety.""")
 
     def _start_dev_button_blink(self):
         """Start blinking animation for dev button."""
-        if not hasattr(self, '_dev_blink_active'):
+        if not hasattr(self, "_dev_blink_active"):
             self._dev_blink_active = True
             self._dev_blink_state = False
             self._animate_dev_button()
 
     def _animate_dev_button(self):
         """Animate dev button with red border effect."""
-        if not getattr(self, '_dev_blink_active', False):
+        if not getattr(self, "_dev_blink_active", False):
             return
-            
+
         if self.chat_context_manager.current_mode == ChatMode.DEVELOPMENT:
             if self._dev_blink_state:
                 #Bright orange with red border effect
                 self.dev_mode_button.configure(
                     fg_color="#FF6B35",
                     border_color="#FF0000",
-                    border_width=2
+                    border_width=2,
                 )
             else:
                 #Normal orange
                 self.dev_mode_button.configure(
                     fg_color="orange",
                     border_color="orange",
-                    border_width=1
+                    border_width=1,
                 )
-            
+
             self._dev_blink_state = not self._dev_blink_state
             #Schedule next animation frame
             self.after(800, self._animate_dev_button)
@@ -2833,40 +2834,40 @@ All operations will be logged for safety.""")
             self._dev_blink_active = False
             self.dev_mode_button.configure(
                 fg_color="gray",
-                border_color="gray", 
-                border_width=1
+                border_color="gray",
+                border_width=1,
             )
 
     def _update_mode_display(self, detected_mode: ChatMode, confidence: float):
         """Update the mode display based on automatic detection."""
         if not self.chat_context_manager.is_auto_mode:
             return  #Don't update if in manual mode
-        
+
         mode_indicators = {
             ChatMode.CASUAL_CHAT: ("💬", "Chat"),
-            ChatMode.SYSTEM_HELP: ("❓", "Help"), 
+            ChatMode.SYSTEM_HELP: ("❓", "Help"),
             ChatMode.GOAL_SETTING: ("🎯", "Goal"),
             ChatMode.TOOL_INQUIRY: ("🔧", "Tools"),
             ChatMode.STATUS_CHECK: ("📊", "Status"),
-            ChatMode.CONFIGURATION: ("⚙️", "Config")
+            ChatMode.CONFIGURATION: ("⚙️", "Config"),
         }
-        
+
         indicator, name = mode_indicators.get(detected_mode, ("💬", "Chat"))
         confidence_text = f" (confidence: {confidence:.1f})" if confidence < 0.8 else ""
-        
+
         self.current_mode_label.configure(text=f"Mode: {indicator} {name}{confidence_text}")
-        
+
         #Highlight the corresponding manual button
         mode_to_button = {
             ChatMode.CASUAL_CHAT: self.chat_mode_button,
             ChatMode.SYSTEM_HELP: self.help_mode_button,
-            ChatMode.GOAL_SETTING: self.goal_mode_button
+            ChatMode.GOAL_SETTING: self.goal_mode_button,
         }
-        
+
         #Reset all manual buttons
         for button in [self.chat_mode_button, self.help_mode_button, self.goal_mode_button]:
             button.configure(fg_color="lightblue")
-        
+
         #Highlight active mode
         active_button = mode_to_button.get(detected_mode)
         if active_button:
@@ -2876,8 +2877,8 @@ All operations will be logged for safety.""")
 def main():
     """Main application entry point."""
     #Set up multiprocessing for macOS compatibility
-    multiprocessing.set_start_method('spawn', force=True)
-    
+    multiprocessing.set_start_method("spawn", force=True)
+
     #Parse command line arguments
     parser = argparse.ArgumentParser(description="Atlas - Autonomous Computer Agent")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
@@ -2888,7 +2889,7 @@ def main():
     parser.add_argument("--platform", help="Target platform (e.g., macos)")
     parser.add_argument("--gui-mode", help="GUI mode (e.g., native)")
     args = parser.parse_args()
-    
+
     #Show platform info if requested
     if args.platform_info:
         platform_info = get_platform_info()
@@ -2896,16 +2897,16 @@ def main():
         for key, value in platform_info.items():
             print(f"  {key}: {value}")
         sys.exit(0)
-    
+
     #Set up logging level
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    
+
     #Force headless mode if requested or detected
     force_headless = args.headless or args.cli or IS_HEADLESS
-    
+
     try:
         if force_headless or args.cli:
             print("Starting Atlas in CLI mode...")

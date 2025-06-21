@@ -3,18 +3,20 @@
 Test script for improved chat context manager
 """
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from agents.chat_context_manager import ChatContextManager, ChatMode
 
+
 def test_context_detection():
     """Test context detection improvements."""
     print("🧪 Testing improved chat context detection...\n")
-    
+
     ccm = ChatContextManager()
-    
+
     test_cases = [
         ("Привіт друже, як тебе звати?", ChatMode.CASUAL_CHAT),
         ("Мене цікавить чи забезпечена в тебе пам'ять довгострокова?", ChatMode.SYSTEM_HELP),
@@ -22,7 +24,7 @@ def test_context_detection():
         ("Take a screenshot", ChatMode.GOAL_SETTING),
         ("What is your status?", ChatMode.STATUS_CHECK),
     ]
-    
+
     for i, (message, expected_mode) in enumerate(test_cases, 1):
         try:
             context = ccm.analyze_message(message)
@@ -38,23 +40,23 @@ def test_context_detection():
 def test_response_generation():
     """Test response generation improvements."""
     print("🧪 Testing improved response generation...\n")
-    
+
     ccm = ChatContextManager()
-    
+
     #Test memory question response
     message = "Мене цікавить чи забезпечена в тебе пам'ять довгострокова?"
     context = ccm.analyze_message(message)
     prompt = ccm.generate_response_prompt(context, message)
-    
+
     print("📝 Memory question prompt preview:")
     print(prompt[:300] + "...")
     print()
-    
-    #Test casual greeting response  
+
+    #Test casual greeting response
     message2 = "Привіт, як справи?"
     context2 = ccm.analyze_message(message2)
     prompt2 = ccm.generate_response_prompt(context2, message2)
-    
+
     print("📝 Casual greeting prompt preview:")
     print(prompt2[:200] + "...")
     print()

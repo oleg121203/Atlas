@@ -6,25 +6,26 @@ Test that when OpenAI is explicitly requested but not available,
 it properly falls back to Gemini without errors.
 """
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(__file__))
 
-from utils.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
+from utils.llm_manager import LLMManager
 
 
 def test_openai_fallback():
     """Test OpenAI fallback functionality"""
     print("🔄 Testing OpenAI → Gemini Fallback...")
-    
+
     #Initialize components
 
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker, config_manager)
-    
+
     #Test 1: Explicit OpenAI call should fallback to Gemini
     try:
         print("🧪 Test 1: Explicit OpenAI request with placeholder key...")
@@ -35,7 +36,7 @@ def test_openai_fallback():
     except Exception as e:
         print(f"❌ OpenAI fallback failed: {e}")
         return False
-    
+
     #Test 2: Try _chat_openai directly
     try:
         print("\n🧪 Test 2: Direct _chat_openai call...")
@@ -46,7 +47,7 @@ def test_openai_fallback():
     except Exception as e:
         print(f"❌ Direct OpenAI call failed: {e}")
         return False
-    
+
     #Test 3: Available providers check
     try:
         print("\n🧪 Test 3: Available providers...")
@@ -56,7 +57,7 @@ def test_openai_fallback():
         else:
             print("❌ OpenAI incorrectly listed as available")
             return False
-            
+
         if "gemini" in providers:
             print("✅ Gemini correctly listed as available")
         else:
@@ -65,14 +66,14 @@ def test_openai_fallback():
     except Exception as e:
         print(f"❌ Provider check failed: {e}")
         return False
-    
+
     print("\n🎯 OpenAI Fallback Test Summary:")
     print("=" * 40)
     print("✅ Explicit OpenAI request → Gemini: OK")
-    print("✅ Direct OpenAI call → Gemini: OK") 
+    print("✅ Direct OpenAI call → Gemini: OK")
     print("✅ Provider availability check: OK")
     print("✅ No 'OpenAI client not initialized' errors!")
-    
+
     return True
 
 def main():
@@ -83,9 +84,8 @@ def main():
             print("\n🎉 All OpenAI fallback tests passed!")
             print("🔧 The 'OpenAI client not initialized' error should be fixed!")
             return 0
-        else:
-            print("\n❌ Some OpenAI fallback tests failed")
-            return 1
+        print("\n❌ Some OpenAI fallback tests failed")
+        return 1
     except Exception as e:
         print(f"\n❌ Error during OpenAI fallback testing: {e}")
         import traceback

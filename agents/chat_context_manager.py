@@ -5,12 +5,12 @@ Chat Context Manager for Atlas
 Manages different conversation modes and provides context-aware responses.
 """
 
-import re
 import logging
-from typing import Dict, List, Optional
+import re
+import time
 from dataclasses import dataclass
 from enum import Enum
-import time
+from typing import Dict, List, Optional
 
 from .enhanced_memory_manager import EnhancedMemoryManager
 
@@ -43,217 +43,217 @@ class ChatContext:
 
 class ChatContextManager:
     """Manages chat context and determines appropriate response modes."""
-    
+
     def __init__(self, memory_manager: Optional[EnhancedMemoryManager] = None):
         self.conversation_history: List[Dict] = []
         self.current_session_context = {}
-        
+
         #Enhanced memory integration
         self.memory_manager = memory_manager
         #Note: If no memory_manager is provided, some features will be disabled
-        
+
         #Mode control settings
         self.auto_mode_enabled = True
         self.manual_override_mode = None
         self.last_auto_detected_mode = None
-        
+
         #Development mode settings
         self.development_mode_features = {
-            'debug_logging': True,
-            'backup_on_changes': True,
-            'error_self_check': True,
-            'capability_expansion': True,
-            'experimental_features': True
+            "debug_logging": True,
+            "backup_on_changes": True,
+            "error_self_check": True,
+            "capability_expansion": True,
+            "experimental_features": True,
         }
-        
+
         #Mode-specific memory settings
         self.mode_memory_config = {
-            ChatMode.CASUAL_CHAT: {'ttl_days': 7, 'max_context': 20},
-            ChatMode.SYSTEM_HELP: {'ttl_days': 30, 'max_context': 50},
-            ChatMode.GOAL_SETTING: {'ttl_days': 90, 'max_context': 100},
-            ChatMode.TOOL_INQUIRY: {'ttl_days': 14, 'max_context': 30},
-            ChatMode.STATUS_CHECK: {'ttl_days': 3, 'max_context': 10},
-            ChatMode.CONFIGURATION: {'ttl_days': 365, 'max_context': 50},
-            ChatMode.DEVELOPMENT: {'ttl_days': 180, 'max_context': 200}
+            ChatMode.CASUAL_CHAT: {"ttl_days": 7, "max_context": 20},
+            ChatMode.SYSTEM_HELP: {"ttl_days": 30, "max_context": 50},
+            ChatMode.GOAL_SETTING: {"ttl_days": 90, "max_context": 100},
+            ChatMode.TOOL_INQUIRY: {"ttl_days": 14, "max_context": 30},
+            ChatMode.STATUS_CHECK: {"ttl_days": 3, "max_context": 10},
+            ChatMode.CONFIGURATION: {"ttl_days": 365, "max_context": 50},
+            ChatMode.DEVELOPMENT: {"ttl_days": 180, "max_context": 200},
         }
-        
+
         #Initialize patterns and templates
         self._initialize_patterns()
         self._initialize_templates()
-        
+
     @property
     def is_auto_mode(self) -> bool:
         """Check if auto mode is enabled."""
         return self.auto_mode_enabled
-    
+
     @property
     def current_mode(self) -> ChatMode:
         """Get current active mode."""
         if not self.auto_mode_enabled and self.manual_override_mode:
             return self.manual_override_mode
         return self.last_auto_detected_mode or ChatMode.CASUAL_CHAT
-    
+
     def _initialize_patterns(self):
         """Initialize mode detection patterns."""
         #Patterns for different modes
         self.mode_patterns = {
             ChatMode.CASUAL_CHAT: {
-                'keywords': [
-                    'hello', 'hi', 'hey', 'good morning', 'good evening', 'good day',
-                    'how are you', 'how is it going', 'what\'s up', 'thanks', 'thank you',
-                    'please', 'sorry', 'excuse me', 'nice', 'good', 'great', 'awesome',
-                    'weather', 'today', 'yesterday', 'tomorrow', 'weekend', 'holiday',
-                    'chat', 'talk', 'conversation', 'discuss', 'opinion', 'think',
-                    'like', 'love', 'enjoy', 'favorite', 'interesting', 'cool',
-                    'funny', 'joke', 'laugh', 'smile', 'happy', 'sad', 'excited',
-                    'tired', 'busy', 'free', 'time', 'day', 'night', 'morning',
-                    'afternoon', 'evening', 'week', 'month', 'year', 'life',
-                    'work', 'job', 'study', 'learn', 'read', 'watch', 'listen',
-                    'music', 'movie', 'book', 'food', 'coffee', 'tea', 'drink',
-                    'eat', 'sleep', 'rest', 'relax', 'travel', 'vacation'
+                "keywords": [
+                    "hello", "hi", "hey", "good morning", "good evening", "good day",
+                    "how are you", "how is it going", "what's up", "thanks", "thank you",
+                    "please", "sorry", "excuse me", "nice", "good", "great", "awesome",
+                    "weather", "today", "yesterday", "tomorrow", "weekend", "holiday",
+                    "chat", "talk", "conversation", "discuss", "opinion", "think",
+                    "like", "love", "enjoy", "favorite", "interesting", "cool",
+                    "funny", "joke", "laugh", "smile", "happy", "sad", "excited",
+                    "tired", "busy", "free", "time", "day", "night", "morning",
+                    "afternoon", "evening", "week", "month", "year", "life",
+                    "work", "job", "study", "learn", "read", "watch", "listen",
+                    "music", "movie", "book", "food", "coffee", "tea", "drink",
+                    "eat", "sleep", "rest", "relax", "travel", "vacation",
                 ],
-                'patterns': [
-                    r'\b(hello|hi|hey|good\s+(?:morning|evening|day))\b',
-                    r'\b(how\s+are\s+you|how\s+is\s+it\s+going|what\'?s\s+up)\b',
-                    r'\b(thanks?|thank\s+you|please|sorry|excuse\s+me)\b',
-                    r'\b(nice|good|great|awesome|cool|interesting)\b',
-                    r'\b(weather|today|yesterday|tomorrow|weekend)\b',
-                    r'\b(like|love|enjoy|favorite|think|opinion)\b',
-                    r'\b(happy|sad|excited|tired|busy|free)\b',
-                    r'\b(music|movie|book|food|coffee|tea|travel)\b'
-                ]
+                "patterns": [
+                    r"\b(hello|hi|hey|good\s+(?:morning|evening|day))\b",
+                    r"\b(how\s+are\s+you|how\s+is\s+it\s+going|what\'?s\s+up)\b",
+                    r"\b(thanks?|thank\s+you|please|sorry|excuse\s+me)\b",
+                    r"\b(nice|good|great|awesome|cool|interesting)\b",
+                    r"\b(weather|today|yesterday|tomorrow|weekend)\b",
+                    r"\b(like|love|enjoy|favorite|think|opinion)\b",
+                    r"\b(happy|sad|excited|tired|busy|free)\b",
+                    r"\b(music|movie|book|food|coffee|tea|travel)\b",
+                ],
             },
-            
+
             ChatMode.SYSTEM_HELP: {
-                'keywords': [
-                    'help', 'explain', 'tutorial', 'guide', 'documentation', 
-                    'capabilities', 'modes', 'mode', 'atlas', 'system',
-                    'tell me about', 'what are', 'show me', 'describe',
-                    'atlas capabilities', 'atlas features', 'atlas modes',
-                    'about atlas', 'atlas system', 'development mode',
-                    'your memory', 'organized memory', 'about yourself',
-                    'your capabilities', 'your features', 'provider',
-                    'memory system', 'long-term memory', 'short-term memory',
-                    'how do you remember', 'do you forget', 'memory management',
-                    'memory', 'remember', 'storage', 'recall', 'memorize',
-                    'provided', 'supported', 'long-term', 'organized', 'direction',
-                    'interested', 'curious', 'want to know', 'wondering',
+                "keywords": [
+                    "help", "explain", "tutorial", "guide", "documentation",
+                    "capabilities", "modes", "mode", "atlas", "system",
+                    "tell me about", "what are", "show me", "describe",
+                    "atlas capabilities", "atlas features", "atlas modes",
+                    "about atlas", "atlas system", "development mode",
+                    "your memory", "organized memory", "about yourself",
+                    "your capabilities", "your features", "provider",
+                    "memory system", "long-term memory", "short-term memory",
+                    "how do you remember", "do you forget", "memory management",
+                    "memory", "remember", "storage", "recall", "memorize",
+                    "provided", "supported", "long-term", "organized", "direction",
+                    "interested", "curious", "want to know", "wondering",
                     #Problem analysis keywords
-                    'problem', 'issue', 'error', 'bug', 'fix', 'solve', 'investigate',
-                    'analyze', 'check', 'review', 'find problems', 'find issues',
-                    'code quality', 'quality check', 'find errors', 'find bugs',
-                    'debug', 'troubleshoot', 'examine', 'inspect',
+                    "problem", "issue", "error", "bug", "fix", "solve", "investigate",
+                    "analyze", "check", "review", "find problems", "find issues",
+                    "code quality", "quality check", "find errors", "find bugs",
+                    "debug", "troubleshoot", "examine", "inspect",
                     #Performance analysis keywords
-                    'performance', 'bottleneck', 'optimization', 'optimize', 
-                    'slow', 'fast', 'speed', 'memory usage', 'cpu usage',
-                    'performance issues', 'performance problems', 'profiling',
-                    'profile code', 'analyze performance', 'check performance',
+                    "performance", "bottleneck", "optimization", "optimize",
+                    "slow", "fast", "speed", "memory usage", "cpu usage",
+                    "performance issues", "performance problems", "profiling",
+                    "profile code", "analyze performance", "check performance",
                     #Dependency analysis keywords
-                    'dependency', 'dependencies', 'architecture', 'structure',
-                    'dependency conflicts', 'architectural problems', 'imports',
-                    'circular dependencies', 'dependency graph', 'modules',
-                    'component dependencies', 'architecture analysis',
+                    "dependency", "dependencies", "architecture", "structure",
+                    "dependency conflicts", "architectural problems", "imports",
+                    "circular dependencies", "dependency graph", "modules",
+                    "component dependencies", "architecture analysis",
                     #Technical implementation keywords
-                    'implementation', 'how implemented', 'where implemented',
-                    'code structure', 'architecture', 'how works', 'how does it work',
-                    'realized', 'implemented', 'possibilities', 'software',
+                    "implementation", "how implemented", "where implemented",
+                    "code structure", "architecture", "how works", "how does it work",
+                    "realized", "implemented", "possibilities", "software",
                     #Code analysis keywords - most specific ones only
-                    'rebuild index', 'update index', 'show file', 'analyze file',
-                    'code analysis', 'structure analysis'
+                    "rebuild index", "update index", "show file", "analyze file",
+                    "code analysis", "structure analysis",
                 ],
-                'patterns': [
-                    r'\b(explain\s+(?:atlas|system)|help\s+(?:with|me)\s+(?:atlas|system))\b',
-                    r'\b(atlas\s+(?:capabilities|features|modes|system))\b',
-                    r'\b(tell\s+me\s+about\s+(?:atlas|system|yourself))\b',
-                    r'\b(what\s+(?:are|is)\s+(?:atlas|your)\s+(?:capabilities|features|modes))\b',
-                    r'\b(development\s+mode|your\s+memory|organized\s+memory)\b',
-                    r'\b(rebuild\s+index|analyze\s+file|code\s+analysis)\b',
-                    r'\b(about\s+(?:atlas|system|yourself))\b',
-                    r'\b(memory\s+system|long-term\s+memory|how\s+(?:do\s+)?you\s+remember)\b',
-                    r'\b(how\s+(?:is|does)\s+(?:your|atlas)\s+memory\s+(?:work|organized))\b',
-                    r'\b((?:do\s+you\s+have|is\s+there)\s+(?:memory|storage))\b',
-                    r'\b(long-term\s+(?:memory|storage)|organized\s+by\s+(?:direction|context))\b',
-                    r'\b(how\s+(?:implemented|realized|works)|where\s+implemented)\b',
-                    r'\b((?:software|program)\s+(?:possibilities|capabilities))\b',
-                    r'\b(find\s+(?:problems|issues|errors|bugs)|check\s+(?:quality|code))\b',
-                    r'\b(analyze\s+code|review\s+code|investigate\s+(?:problems|issues))\b',
+                "patterns": [
+                    r"\b(explain\s+(?:atlas|system)|help\s+(?:with|me)\s+(?:atlas|system))\b",
+                    r"\b(atlas\s+(?:capabilities|features|modes|system))\b",
+                    r"\b(tell\s+me\s+about\s+(?:atlas|system|yourself))\b",
+                    r"\b(what\s+(?:are|is)\s+(?:atlas|your)\s+(?:capabilities|features|modes))\b",
+                    r"\b(development\s+mode|your\s+memory|organized\s+memory)\b",
+                    r"\b(rebuild\s+index|analyze\s+file|code\s+analysis)\b",
+                    r"\b(about\s+(?:atlas|system|yourself))\b",
+                    r"\b(memory\s+system|long-term\s+memory|how\s+(?:do\s+)?you\s+remember)\b",
+                    r"\b(how\s+(?:is|does)\s+(?:your|atlas)\s+memory\s+(?:work|organized))\b",
+                    r"\b((?:do\s+you\s+have|is\s+there)\s+(?:memory|storage))\b",
+                    r"\b(long-term\s+(?:memory|storage)|organized\s+by\s+(?:direction|context))\b",
+                    r"\b(how\s+(?:implemented|realized|works)|where\s+implemented)\b",
+                    r"\b((?:software|program)\s+(?:possibilities|capabilities))\b",
+                    r"\b(find\s+(?:problems|issues|errors|bugs)|check\s+(?:quality|code))\b",
+                    r"\b(analyze\s+code|review\s+code|investigate\s+(?:problems|issues))\b",
                     #Performance analysis patterns
-                    r'\b(performance\s+(?:issues|problems|analysis|check))\b',
-                    r'\b(check\s+(?:for\s+)?performance|analyze\s+performance)\b',
-                    r'\b((?:memory|cpu)\s+usage|bottleneck|optimization|profile)\b',
+                    r"\b(performance\s+(?:issues|problems|analysis|check))\b",
+                    r"\b(check\s+(?:for\s+)?performance|analyze\s+performance)\b",
+                    r"\b((?:memory|cpu)\s+usage|bottleneck|optimization|profile)\b",
                     #Dependency analysis patterns
-                    r'\b(dependency\s+(?:conflicts|analysis|graph))\b',
-                    r'\b(architectural?\s+(?:problems|analysis|issues))\b',
-                    r'\b(investigate\s+(?:dependency|dependencies|architecture))\b',
-                    r'\b(circular\s+(?:dependency|dependencies|imports))\b'
-                ]
+                    r"\b(dependency\s+(?:conflicts|analysis|graph))\b",
+                    r"\b(architectural?\s+(?:problems|analysis|issues))\b",
+                    r"\b(investigate\s+(?:dependency|dependencies|architecture))\b",
+                    r"\b(circular\s+(?:dependency|dependencies|imports))\b",
+                ],
             },
-            
+
             ChatMode.GOAL_SETTING: {
-                'keywords': [
-                    'take screenshot', 'click on', 'open', 'run', 'execute',
-                    'find', 'search', 'copy', 'paste', 'type', 'press',
-                    'create', 'delete', 'move', 'automation', 'automate',
-                    'do', 'make', 'perform', 'complete', 'finish', 'start',
-                    'stop', 'close', 'launch', 'capture', 'screenshot'
+                "keywords": [
+                    "take screenshot", "click on", "open", "run", "execute",
+                    "find", "search", "copy", "paste", "type", "press",
+                    "create", "delete", "move", "automation", "automate",
+                    "do", "make", "perform", "complete", "finish", "start",
+                    "stop", "close", "launch", "capture", "screenshot",
                 ],
-                'patterns': [
-                    r'\b(take\s+a?\s*screenshot|click\s+(?:on|at)|open\s+\w+|run\s+\w+)\b',
-                    r'\b(do\s+(?:this|that)|make\s+(?:this|that)|perform\s+(?:this|that))\b',
-                    r'\b(automate\s+\w+|execute\s+\w+|launch\s+\w+)\b'
-                ]
+                "patterns": [
+                    r"\b(take\s+a?\s*screenshot|click\s+(?:on|at)|open\s+\w+|run\s+\w+)\b",
+                    r"\b(do\s+(?:this|that)|make\s+(?:this|that)|perform\s+(?:this|that))\b",
+                    r"\b(automate\s+\w+|execute\s+\w+|launch\s+\w+)\b",
+                ],
             },
-            
+
             ChatMode.TOOL_INQUIRY: {
-                'keywords': [
-                    'tools', 'available', 'list', 'what tools', 'functions',
-                    'instruments', 'commands', 'capabilities', 'features',
-                    'what can', 'show tools', 'list tools', 'available functions',
-                    'show me', 'what functions', 'tool list',
-                    'what tools', 'tools available', 'functions available', 'what functions',
-                    'show tools', 'what do you have', 'what can you do', 'possibilities'
+                "keywords": [
+                    "tools", "available", "list", "what tools", "functions",
+                    "instruments", "commands", "capabilities", "features",
+                    "what can", "show tools", "list tools", "available functions",
+                    "show me", "what functions", "tool list",
+                    "what tools", "tools available", "functions available", "what functions",
+                    "show tools", "what do you have", "what can you do", "possibilities",
                 ],
-                'patterns': [
-                    r'\b(what\s+tools|available\s+tools|list\s+(?:of\s+)?tools)\b',
-                    r'\b(show\s+(?:me\s+)?(?:tools|functions|capabilities))\b',
-                    r'\b(what\s+(?:can\s+)?(?:functions|tools|commands))\b',
-                    r'\b(what\s+tools|tools\s+(?:do\s+)?you\s+have|what\s+can\s+you\s+do)\b',
-                    r'\b(show\s+tools|what\s+functions|possibilities)\b'
-                ]
+                "patterns": [
+                    r"\b(what\s+tools|available\s+tools|list\s+(?:of\s+)?tools)\b",
+                    r"\b(show\s+(?:me\s+)?(?:tools|functions|capabilities))\b",
+                    r"\b(what\s+(?:can\s+)?(?:functions|tools|commands))\b",
+                    r"\b(what\s+tools|tools\s+(?:do\s+)?you\s+have|what\s+can\s+you\s+do)\b",
+                    r"\b(show\s+tools|what\s+functions|possibilities)\b",
+                ],
             },
-            
+
             ChatMode.STATUS_CHECK: {
-                'keywords': [
-                    'status', 'running', 'working', 'progress', 'state',
-                    'health', 'performance', 'current state', 'how is',
-                    'what is happening', 'what is going on', 'system status',
-                    'is everything', 'all good', 'working properly',
-                    'functioning', 'operational', 'active', 'idle',
-                    'your status', 'system health', 'how are you working'
+                "keywords": [
+                    "status", "running", "working", "progress", "state",
+                    "health", "performance", "current state", "how is",
+                    "what is happening", "what is going on", "system status",
+                    "is everything", "all good", "working properly",
+                    "functioning", "operational", "active", "idle",
+                    "your status", "system health", "how are you working",
                 ],
-                'patterns': [
-                    r'\b(what(?:\'s|\s+is)\s+(?:the\s+)?status|how\s+(?:is|are)\s+things)\b',
-                    r'\b(is\s+(?:everything|atlas|system)\s+(?:working|running|ok))\b',
-                    r'\b(current\s+(?:status|state)|system\s+health)\b',
-                    r'\b(what\s+is\s+your\s+status|how\s+are\s+you\s+(?:working|running))\b'
-                ]
+                "patterns": [
+                    r"\b(what(?:\'s|\s+is)\s+(?:the\s+)?status|how\s+(?:is|are)\s+things)\b",
+                    r"\b(is\s+(?:everything|atlas|system)\s+(?:working|running|ok))\b",
+                    r"\b(current\s+(?:status|state)|system\s+health)\b",
+                    r"\b(what\s+is\s+your\s+status|how\s+are\s+you\s+(?:working|running))\b",
+                ],
             },
-            
+
             ChatMode.CONFIGURATION: {
-                'keywords': [
-                    'settings', 'configure', 'setup', 'options', 'preferences',
-                    'config', 'api key', 'provider', 'change settings',
-                    'modify', 'adjust', 'customize', 'configuration',
-                    'parameters', 'set up', 'installation', 'initialization'
+                "keywords": [
+                    "settings", "configure", "setup", "options", "preferences",
+                    "config", "api key", "provider", "change settings",
+                    "modify", "adjust", "customize", "configuration",
+                    "parameters", "set up", "installation", "initialization",
                 ],
-                'patterns': [
-                    r'\b(change\s+settings|configure\s+\w+|setup\s+\w+)\b',
-                    r'\b(modify\s+(?:settings|config)|adjust\s+\w+)\b',
-                    r'\b(api\s+key|provider\s+setup|installation)\b'
-                ]
-            }
+                "patterns": [
+                    r"\b(change\s+settings|configure\s+\w+|setup\s+\w+)\b",
+                    r"\b(modify\s+(?:settings|config)|adjust\s+\w+)\b",
+                    r"\b(api\s+key|provider\s+setup|installation)\b",
+                ],
+            },
         }
-    
+
     def _initialize_templates(self):
         """Initialize response templates."""
         #Response templates
@@ -264,9 +264,9 @@ class ChatContextManager:
             ChatMode.STATUS_CHECK: self._generate_status_response,
             ChatMode.CONFIGURATION: self._generate_config_response,
             ChatMode.CASUAL_CHAT: self._generate_casual_response,
-            ChatMode.DEVELOPMENT: self._generate_development_response
+            ChatMode.DEVELOPMENT: self._generate_development_response,
         }
-    
+
     def analyze_message(self, message: str, user_context: Dict = None) -> ChatContext:
         """Analyze a message and determine its context."""
         #If in manual mode, use the override mode
@@ -277,107 +277,107 @@ class ChatContextManager:
                 suggested_response_type=self._get_response_type(self.manual_override_mode),
                 context_keywords=[],
                 requires_system_integration=self.manual_override_mode in [
-                    ChatMode.GOAL_SETTING, 
-                    ChatMode.STATUS_CHECK, 
+                    ChatMode.GOAL_SETTING,
+                    ChatMode.STATUS_CHECK,
                     ChatMode.TOOL_INQUIRY,
-                    ChatMode.DEVELOPMENT
+                    ChatMode.DEVELOPMENT,
                 ],
-                control_type=ModeControl.MANUAL
+                control_type=ModeControl.MANUAL,
             )
-        
+
         #Auto mode - translate to English for analysis if needed
         message_for_analysis = self._simple_translate_to_english(message)
         message_lower = message_for_analysis.lower()
         scores = {}
-        
+
         #Calculate scores for each mode (except DEVELOPMENT which is manual-only)
-        analyzable_modes = [mode for mode in self.mode_patterns.keys() 
+        analyzable_modes = [mode for mode in self.mode_patterns.keys()
                            if mode != ChatMode.DEVELOPMENT]
-        
+
         for mode in analyzable_modes:
             patterns = self.mode_patterns[mode]
             score = 0.0
-            
+
             #Check keywords with higher weight for exact matches
             keyword_matches = 0
-            for keyword in patterns['keywords']:
+            for keyword in patterns["keywords"]:
                 if keyword.lower() in message_lower:
                     keyword_matches += 1
                     #Bonus for exact word boundaries
                     if f" {keyword.lower()} " in f" {message_lower} ":
                         score += 0.1
-            
+
             if keyword_matches > 0:
                 #Equal weight for all modes - no special preference for SYSTEM_HELP
-                score += (keyword_matches / len(patterns['keywords'])) * 0.6
-            
+                score += (keyword_matches / len(patterns["keywords"])) * 0.6
+
             #Check regex patterns with equal weight
-            pattern_matches = sum(1 for pattern in patterns['patterns']
+            pattern_matches = sum(1 for pattern in patterns["patterns"]
                                 if re.search(pattern, message_lower, re.IGNORECASE))
             if pattern_matches > 0:
-                score += (pattern_matches / len(patterns['patterns'])) * 0.4
-            
+                score += (pattern_matches / len(patterns["patterns"])) * 0.4
+
             scores[mode] = score
-        
+
         #Find the best match
         best_mode = max(scores.keys(), key=lambda k: scores[k])
         confidence = scores[best_mode]
-        
+
         #Special handling for memory-related questions - boost confidence
-        memory_indicators = ['memory', 'remember', 'storage', 'recall', 'organized', 'long-term', 'provided']
+        memory_indicators = ["memory", "remember", "storage", "recall", "organized", "long-term", "provided"]
         if any(indicator in message_lower for indicator in memory_indicators):
             if best_mode == ChatMode.SYSTEM_HELP:
                 confidence = min(0.9, confidence + 0.3)  #Boost confidence for memory questions
-        
+
         #Special handling for casual greetings and short messages
         if len(message.strip()) <= 20 and any(greeting in message_lower for greeting in [
-            'hi', 'hello', 'hey', 'good', 'morning', 'evening'
+            "hi", "hello", "hey", "good", "morning", "evening",
         ]):
             best_mode = ChatMode.CASUAL_CHAT
             confidence = 0.8
-        
+
         #Default to casual chat if confidence is too low
         if confidence < 0.15:  #Lowered threshold
             best_mode = ChatMode.CASUAL_CHAT
             confidence = 0.5
-        
+
         #Store last auto-detected mode
         self.last_auto_detected_mode = best_mode
-        
+
         #Determine context keywords
         context_keywords = []
         for mode, patterns in self.mode_patterns.items():
             if mode == best_mode:
-                context_keywords = [kw for kw in patterns['keywords'] 
+                context_keywords = [kw for kw in patterns["keywords"]
                                   if kw.lower() in message_lower]
                 break
-        
+
         #Determine if system integration is required
         requires_integration = best_mode in [
-            ChatMode.GOAL_SETTING, 
-            ChatMode.STATUS_CHECK, 
-            ChatMode.TOOL_INQUIRY
+            ChatMode.GOAL_SETTING,
+            ChatMode.STATUS_CHECK,
+            ChatMode.TOOL_INQUIRY,
         ]
-        
+
         return ChatContext(
             mode=best_mode,
             confidence=confidence,
             suggested_response_type=self._get_response_type(best_mode),
             context_keywords=context_keywords,
             requires_system_integration=requires_integration,
-            control_type=ModeControl.AUTO
+            control_type=ModeControl.AUTO,
         )
-    
+
     def get_current_mode_info(self) -> Dict:
         """Get current mode control information."""
         return {
-            'auto_enabled': self.auto_mode_enabled,
-            'manual_override': self.manual_override_mode.value if self.manual_override_mode else None,
-            'last_auto_mode': self.last_auto_detected_mode.value if self.last_auto_detected_mode else None,
-            'development_features': self.development_mode_features if self.manual_override_mode == ChatMode.DEVELOPMENT else None
+            "auto_enabled": self.auto_mode_enabled,
+            "manual_override": self.manual_override_mode.value if self.manual_override_mode else None,
+            "last_auto_mode": self.last_auto_detected_mode.value if self.last_auto_detected_mode else None,
+            "development_features": self.development_mode_features if self.manual_override_mode == ChatMode.DEVELOPMENT else None,
         }
 
-    def update_conversation_history(self, message: str, response: str, context: 'ChatContext'):
+    def update_conversation_history(self, message: str, response: str, context: "ChatContext"):
         """
         Update the conversation history.
 
@@ -391,10 +391,10 @@ class ChatContextManager:
             "message": message,
             "response": response,
             "mode": context.mode.value,
-            "confidence": context.confidence
+            "confidence": context.confidence,
         }
         self.conversation_history.append(history_entry)
-        
+
         #Optional: Limit history size
         if len(self.conversation_history) > 100: #Keep last 100 exchanges
             self.conversation_history.pop(0)
@@ -405,14 +405,12 @@ class ChatContextManager:
             #Manual mode is active
             if self.manual_override_mode == ChatMode.DEVELOPMENT:
                 return self._create_development_context(message)
-            else:
-                return self._create_manual_context(message, self.manual_override_mode)
-        else:
-            #Auto mode - use normal analysis
-            context = self.analyze_message(message, system_info)
-            self.last_auto_detected_mode = context.mode
-            return context
-    
+            return self._create_manual_context(message, self.manual_override_mode)
+        #Auto mode - use normal analysis
+        context = self.analyze_message(message, system_info)
+        self.last_auto_detected_mode = context.mode
+        return context
+
     def _create_development_context(self, message: str) -> ChatContext:
         """Create context for development mode."""
         return ChatContext(
@@ -421,9 +419,9 @@ class ChatContextManager:
             suggested_response_type="development_focused",
             context_keywords=["development", "debug", "experimental"],
             requires_system_integration=True,
-            control_type=ModeControl.MANUAL
+            control_type=ModeControl.MANUAL,
         )
-    
+
     def _create_manual_context(self, message: str, mode: ChatMode) -> ChatContext:
         """Create context for manual mode override."""
         return ChatContext(
@@ -432,9 +430,9 @@ class ChatContextManager:
             suggested_response_type=self._get_response_type(mode),
             context_keywords=[],
             requires_system_integration=mode in [ChatMode.GOAL_SETTING, ChatMode.STATUS_CHECK, ChatMode.TOOL_INQUIRY],
-            control_type=ModeControl.MANUAL
+            control_type=ModeControl.MANUAL,
         )
-    
+
     def _get_response_type(self, mode: ChatMode) -> str:
         """Get the appropriate response type for a mode."""
         response_types = {
@@ -444,28 +442,28 @@ class ChatContextManager:
             ChatMode.TOOL_INQUIRY: "technical_list",
             ChatMode.STATUS_CHECK: "status_report",
             ChatMode.CONFIGURATION: "guidance",
-            ChatMode.DEVELOPMENT: "development_focused"
+            ChatMode.DEVELOPMENT: "development_focused",
         }
         return response_types.get(mode, "conversational")
-    
-    def generate_response_prompt(self, context: ChatContext, message: str, 
+
+    def generate_response_prompt(self, context: ChatContext, message: str,
                                system_info: Dict = None) -> str:
         """Generate an appropriate system prompt based on context."""
         return self.response_templates[context.mode](context, message, system_info)
-    
-    def _generate_help_response(self, context: ChatContext, message: str, 
+
+    def _generate_help_response(self, context: ChatContext, message: str,
                               system_info: Dict = None) -> str:
         """Generate help-focused response prompt."""
         #Use translated message for detection
         message_for_analysis = self._simple_translate_to_english(message)
         message_lower = message_for_analysis.lower()
-        
+
         #Detect specific question patterns for direct answers
-        memory_keywords = ['memory', 'remember', 'memorize', 'store', 'recall', 
-                          'storage', 'long-term', 'organized', 'direction', 'interested']
-        tools_keywords = ['tools', 'instruments', 'functions', 'capabilities']
-        modes_keywords = ['modes', 'mode']
-        
+        memory_keywords = ["memory", "remember", "memorize", "store", "recall",
+                          "storage", "long-term", "organized", "direction", "interested"]
+        tools_keywords = ["tools", "instruments", "functions", "capabilities"]
+        modes_keywords = ["modes", "mode"]
+
         #Direct memory question detection
         if any(word in message_lower for word in memory_keywords):
             return f"""You are Atlas in System Help mode. The user is asking about the memory system implementation.
@@ -502,8 +500,8 @@ Use your COMPREHENSIVE ANALYSIS TOOLS to investigate the memory implementation:
 
 Start by using `code_reader_tool` to analyze the memory manager files, then use `professional_analyzer` and `dependency_analyzer` to identify any potential issues."""
 
-        #Direct tools question detection  
-        elif any(word in message_lower for word in tools_keywords):
+        #Direct tools question detection
+        if any(word in message_lower for word in tools_keywords):
             return f"""You are Atlas in System Help mode. The user is asking about tools/functions implementation.
 
 User's question: "{message}"
@@ -538,7 +536,7 @@ Use your COMPREHENSIVE ANALYSIS ARSENAL to investigate tool implementation:
 Start by using `file_search` to explore tool directories, then `code_reader_tool` and `dependency_analyzer` to analyze key tool implementations."""
 
         #Direct modes question detection
-        elif any(word in message_lower for word in modes_keywords):
+        if any(word in message_lower for word in modes_keywords):
             return f"""You are Atlas. The user is asking about your operating modes.
 
 User's question: "{message}"
@@ -555,13 +553,12 @@ Explain the different conversation modes directly:
 Be direct and focused on modes only."""
 
         #General help - use professional code analysis for comprehensive understanding
-        else:
-            #Check if this is a problem analysis or investigation request
-            investigation_keywords = ['problem', 'issue', 'error', 'bug', 'fix', 'solve', 'investigate', 'analyze', 'check', 'review', 'find']
-            is_investigation = any(keyword in message_lower for keyword in investigation_keywords)
-            
-            if is_investigation:
-                return f"""You are Atlas Professional Code Analyzer. The user needs expert investigation and problem-solving.
+        #Check if this is a problem analysis or investigation request
+        investigation_keywords = ["problem", "issue", "error", "bug", "fix", "solve", "investigate", "analyze", "check", "review", "find"]
+        is_investigation = any(keyword in message_lower for keyword in investigation_keywords)
+
+        if is_investigation:
+            return f"""You are Atlas Professional Code Analyzer. The user needs expert investigation and problem-solving.
 
 User's question: "{message}"
 
@@ -598,9 +595,8 @@ ACTIVATE PROFESSIONAL ANALYSIS MODE:
    - Quality metrics and improvement suggestions
 
 Begin immediate analysis using ALL AVAILABLE advanced code investigation tools. Be thorough, professional, and solution-oriented."""
-            
-            else:
-                return f"""You are Atlas in System Help mode. The user is asking for information about the system.
+
+        return f"""You are Atlas in System Help mode. The user is asking for information about the system.
 
 User's question: "{message}"
 
@@ -633,13 +629,13 @@ As a System Help expert, you have FULL ACCESS to analyze the entire Atlas codeba
    - Deliver professional-grade code analysis and insights
 
 Start by analyzing the relevant parts of the codebase using your FULL ARSENAL of advanced analysis tools to answer the user's question comprehensively and professionally."""
-    
-    def _generate_goal_response(self, context: ChatContext, message: str, 
+
+    def _generate_goal_response(self, context: ChatContext, message: str,
                               system_info: Dict = None) -> str:
         """Generate goal-oriented response prompt."""
-        available_tools = system_info.get('tools', []) if system_info else []
-        available_agents = system_info.get('agents', []) if system_info else []
-        
+        available_tools = system_info.get("tools", []) if system_info else []
+        available_agents = system_info.get("agents", []) if system_info else []
+
         return f"""You are Atlas, an autonomous computer assistant. The user wants to accomplish a task.
 
 User's goal: "{message}"
@@ -655,18 +651,18 @@ Available tools: {', '.join(available_tools[:10])}{'...' if len(available_tools)
 Available agents: {', '.join(available_agents)}
 
 Format your response to be encouraging and action-oriented. Start with "🎯 I understand you want to..." """
-    
-    def _generate_tool_response(self, context: ChatContext, message: str, 
+
+    def _generate_tool_response(self, context: ChatContext, message: str,
                               system_info: Dict = None) -> str:
         """Generate tool inquiry response prompt."""
         #Use translated message for better detection
         message_for_analysis = self._simple_translate_to_english(message)
         message_lower = message_for_analysis.lower()
-        
+
         #Check if this is a technical implementation question about tools
-        implementation_keywords = ['implemented', 'realized', 'where', 'how', 'code', 'files']
+        implementation_keywords = ["implemented", "realized", "where", "how", "code", "files"]
         is_technical_question = any(keyword in message_lower for keyword in implementation_keywords)
-        
+
         if is_technical_question:
             return f"""You are Atlas in Tool Inquiry mode with comprehensive analysis capabilities. The user is asking about tool implementation details.
 
@@ -702,11 +698,10 @@ ACTIVATE COMPREHENSIVE TOOL ANALYSIS using your advanced arsenal:
    - Quality assessment and potential improvements
 
 Use your FULL ARSENAL of analysis tools to gather comprehensive information. Provide professional-grade technical details with actual code references, performance insights, and architectural analysis."""
-        
-        else:
-            #Standard tool list for non-technical questions
-            available_tools = system_info.get('tools', []) if system_info else []
-            return f"""You are Atlas, an autonomous computer assistant. The user is asking about your available tools.
+
+        #Standard tool list for non-technical questions
+        available_tools = system_info.get("tools", []) if system_info else []
+        return f"""You are Atlas, an autonomous computer assistant. The user is asking about your available tools.
 
 User's question: "{message}"
 Context keywords: {', '.join(context.context_keywords)}
@@ -736,9 +731,9 @@ If you need specific tool information or want to see tools in action, just ask! 
     def _generate_status_response(self, context: ChatContext, message: str,
                                   system_info: Dict = None) -> str:
         """Generate status check response prompt."""
-        system_health = system_info.get('health', {}) if system_info else {}
-        active_processes = system_info.get('processes', []) if system_info else []
-        
+        system_health = system_info.get("health", {}) if system_info else {}
+        active_processes = system_info.get("processes", []) if system_info else []
+
         return f"""You are Atlas, an autonomous computer assistant. The user is asking for a status update.
 
 User's question: "{message}"
@@ -756,8 +751,8 @@ Context keywords: {', '.join(context.context_keywords)}
 
 Provide a concise summary of the current system status. Be reassuring and clear.
 """
-    
-    def _generate_config_response(self, context: ChatContext, message: str, 
+
+    def _generate_config_response(self, context: ChatContext, message: str,
                                 system_info: Dict = None) -> str:
         """Generate configuration guidance response prompt."""
         return f"""You are Atlas. The user is asking about configuration or settings.
@@ -790,81 +785,81 @@ Acknowledge the development command and proceed with execution.
         """Simple translation for testing purposes."""
         #Basic translation mapping for common phrases
         translations = {
-            'привіт': 'hello',
-            'привет': 'hello', 
-            'друже': 'friend',
-            'як тебе звати': 'what is your name',
-            'як справи': 'how are you',
-            'мене звати': 'my name is',
-            'мене цікавить': 'i am interested',
-            'мене': 'me',
-            'розкажи': 'tell me about explain',
-            'розкажи про': 'tell me about explain',
-            'чи забезпечена': 'is there provided',
-            'забезпечена': 'provided supported',
-            'в тебе': 'do you have',
-            'у тебе': 'do you have',
-            'пам\'ять': 'memory storage',
-            'памяті': 'memory storage',
-            'довгострокова': 'long-term',
-            'довгостроковій': 'long-term',
-            'які у тебе': 'what do you have what tools',
-            'інструменти': 'tools instruments',
-            'які інструменти': 'what tools what instruments',
-            'що можеш': 'what can you do',
-            'можливості': 'capabilities possibilities features',
-            'даного': 'this software',
-            'програмного забезпечення': 'software system',
-            'по': 'about',
-            'де': 'where implemented',
-            'як': 'how implemented',
-            'реалізовано': 'implemented realized',
-            'реалізовані': 'implemented realized',
-            'і': 'and',
-            'ПО': 'software system',
-            'працює': 'works how does it work',
-            'система': 'system implementation',
-            'atlas': 'atlas system',
-            'проблема': 'problem issue',
-            'помилка': 'error bug',
-            'виправити': 'fix solve',
-            'дослідити': 'investigate analyze',
-            'перевірити': 'check review',
-            'знайди': 'find analyze search investigate',
-            'проблеми': 'problems issues',
-            'рішення': 'solutions fixes',
-            'перевір': 'check analyze review investigate',
-            'якість': 'quality',
-            'коду': 'code',
-            'код': 'code analyze',
-            'помилки': 'errors bugs issues problems',
+            "привіт": "hello",
+            "привет": "hello",
+            "друже": "friend",
+            "як тебе звати": "what is your name",
+            "як справи": "how are you",
+            "мене звати": "my name is",
+            "мене цікавить": "i am interested",
+            "мене": "me",
+            "розкажи": "tell me about explain",
+            "розкажи про": "tell me about explain",
+            "чи забезпечена": "is there provided",
+            "забезпечена": "provided supported",
+            "в тебе": "do you have",
+            "у тебе": "do you have",
+            "пам'ять": "memory storage",
+            "памяті": "memory storage",
+            "довгострокова": "long-term",
+            "довгостроковій": "long-term",
+            "які у тебе": "what do you have what tools",
+            "інструменти": "tools instruments",
+            "які інструменти": "what tools what instruments",
+            "що можеш": "what can you do",
+            "можливості": "capabilities possibilities features",
+            "даного": "this software",
+            "програмного забезпечення": "software system",
+            "по": "about",
+            "де": "where implemented",
+            "як": "how implemented",
+            "реалізовано": "implemented realized",
+            "реалізовані": "implemented realized",
+            "і": "and",
+            "ПО": "software system",
+            "працює": "works how does it work",
+            "система": "system implementation",
+            "atlas": "atlas system",
+            "проблема": "problem issue",
+            "помилка": "error bug",
+            "виправити": "fix solve",
+            "дослідити": "investigate analyze",
+            "перевірити": "check review",
+            "знайди": "find analyze search investigate",
+            "проблеми": "problems issues",
+            "рішення": "solutions fixes",
+            "перевір": "check analyze review investigate",
+            "якість": "quality",
+            "коду": "code",
+            "код": "code analyze",
+            "помилки": "errors bugs issues problems",
             #Problem investigation keywords
-            'проблеми': 'problems issues',
-            'проблема': 'problem issue',
-            'помилки': 'errors bugs',
-            'помилка': 'error bug',
-            'виправити': 'fix solve',
-            'знайти': 'find analyze',
-            'дослідити': 'investigate analyze',
-            'перевірити': 'check review',
-            'аналізувати': 'analyze investigate',
-            'чому не працює': 'why not working',
-            'не працює': 'not working',
-            'баг': 'bug error',
-            'фікс': 'fix solution'
+            "проблеми": "problems issues",
+            "проблема": "problem issue",
+            "помилки": "errors bugs",
+            "помилка": "error bug",
+            "виправити": "fix solve",
+            "знайти": "find analyze",
+            "дослідити": "investigate analyze",
+            "перевірити": "check review",
+            "аналізувати": "analyze investigate",
+            "чому не працює": "why not working",
+            "не працює": "not working",
+            "баг": "bug error",
+            "фікс": "fix solution",
         }
-        
+
         message_lower = message.lower()
         translated = message_lower
-        
+
         #Apply translations in order of specificity (longer phrases first)
         sorted_translations = sorted(translations.items(), key=lambda x: len(x[0]), reverse=True)
-        
+
         for ukrainian, english in sorted_translations:
             translated = translated.replace(ukrainian, english)
-            
+
         return translated
-    
+
     def format_bold(self, text: str) -> str:
         """
         Format text as bold
@@ -876,7 +871,7 @@ Acknowledge the development command and proceed with execution.
             Text formatted as bold (wrapped in ** markdown)
         """
         return f"**{text}**"
-    
+
     def format_italic(self, text: str) -> str:
         """
         Format text as italic
@@ -888,7 +883,7 @@ Acknowledge the development command and proceed with execution.
             Text formatted as italic (wrapped in * markdown)
         """
         return f"*{text}*"
-    
+
     def format_underline(self, text: str) -> str:
         """
         Format text as underlined
@@ -900,7 +895,7 @@ Acknowledge the development command and proceed with execution.
             Text formatted as underlined (wrapped in __ markdown)
         """
         return f"__{text}__"
-    
+
     def format_code(self, text: str) -> str:
         """
         Format text as inline code
@@ -912,7 +907,7 @@ Acknowledge the development command and proceed with execution.
             Text formatted as inline code (wrapped in ` markdown)
         """
         return f"`{text}`"
-    
+
     def format_code_block(self, text: str, language: str = "") -> str:
         """
         Format text as a code block
@@ -925,7 +920,7 @@ Acknowledge the development command and proceed with execution.
             Text formatted as a code block (wrapped in ``` markdown)
         """
         return f"```{language}\n{text}\n```"
-    
+
     def format_list(self, items: List[str], ordered: bool = False) -> str:
         """
         Format items as a list
@@ -944,7 +939,7 @@ Acknowledge the development command and proceed with execution.
             else:
                 result.append(f"- {item}")
         return "\n".join(result)
-    
+
     def format_quote(self, text: str) -> str:
         """
         Format text as a quote
@@ -957,7 +952,7 @@ Acknowledge the development command and proceed with execution.
         """
         lines = text.split("\n")
         return "\n".join([f"> {line}" for line in lines])
-    
+
     def format_link(self, text: str, url: str) -> str:
         """
         Format text as a hyperlink

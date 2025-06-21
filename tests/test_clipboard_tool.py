@@ -1,12 +1,14 @@
 import unittest
 from unittest.mock import patch
-from tools.clipboard_tool import set_clipboard_text, get_clipboard_text
+
+from tools.clipboard_tool import get_clipboard_text, set_clipboard_text
+
 
 class TestClipboardToolFunctions(unittest.TestCase):
     """Unit tests for the clipboard tool functions."""
 
-    @patch('tools.clipboard_tool._APPKIT_AVAILABLE', False)
-    @patch('tools.clipboard_tool.pyperclip.copy')
+    @patch("tools.clipboard_tool._APPKIT_AVAILABLE", False)
+    @patch("tools.clipboard_tool.pyperclip.copy")
     def test_set_clipboard_text_success(self, mock_copy):
         """Verify set_clipboard_text calls the underlying clipboard library."""
         text_to_copy = "Hello, Atlas!"
@@ -15,8 +17,8 @@ class TestClipboardToolFunctions(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.action, "set_text")
 
-    @patch('tools.clipboard_tool._APPKIT_AVAILABLE', False)
-    @patch('tools.clipboard_tool.pyperclip.paste')
+    @patch("tools.clipboard_tool._APPKIT_AVAILABLE", False)
+    @patch("tools.clipboard_tool.pyperclip.paste")
     def test_get_clipboard_text_success(self, mock_paste):
         """Verify get_clipboard_text returns text from the clipboard."""
         expected_text = "Pasted text"
@@ -27,8 +29,8 @@ class TestClipboardToolFunctions(unittest.TestCase):
         self.assertEqual(result.action, "get_text")
         self.assertEqual(result.content, expected_text)
 
-    @patch('tools.clipboard_tool._APPKIT_AVAILABLE', False)
-    @patch('tools.clipboard_tool.pyperclip.copy', side_effect=Exception("Clipboard error"))
+    @patch("tools.clipboard_tool._APPKIT_AVAILABLE", False)
+    @patch("tools.clipboard_tool.pyperclip.copy", side_effect=Exception("Clipboard error"))
     def test_set_clipboard_text_failure(self, mock_copy):
         """Verify set_clipboard_text handles exceptions and returns a failure result."""
         result = set_clipboard_text("some text")
@@ -36,5 +38,5 @@ class TestClipboardToolFunctions(unittest.TestCase):
         self.assertIsNotNone(result.error)
         self.assertIn("Clipboard error", result.error)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

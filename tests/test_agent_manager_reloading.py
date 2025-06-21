@@ -1,10 +1,11 @@
-import unittest
 import os
 import shutil
+import unittest
 from unittest.mock import MagicMock
 
 from agents.agent_manager import AgentManager
 from utils.llm_manager import LLMManager
+
 
 class TestAgentManagerReloading(unittest.TestCase):
 
@@ -45,5 +46,5 @@ def {self.tool_name}(arg1: str):
         result = self.agent_manager.execute_tool(self.tool_name, {"arg1": "test"})
         self.assertEqual(result, "Processed: test")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,9 @@
-import customtkinter as ctk
+import os
 import subprocess
 import sys
-import os
-from typing import TYPE_CHECKING, Dict, Any
+from typing import TYPE_CHECKING, Any, Dict
+
+import customtkinter as ctk
 
 from monitoring.metrics_manager import metrics_manager
 
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 class ToolManagementView(ctk.CTkFrame):
     """A view to display and manage dynamically created tools."""
 
-    def __init__(self, master, agent_manager: 'AgentManager', **kwargs):
+    def __init__(self, master, agent_manager: "AgentManager", **kwargs):
         super().__init__(master, **kwargs)
         self.agent_manager = agent_manager
 
@@ -47,7 +48,7 @@ class ToolManagementView(ctk.CTkFrame):
         ctk.CTkLabel(header_frame, text="Success", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, sticky="w")
         ctk.CTkLabel(header_frame, text="Failure", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, sticky="w")
         ctk.CTkLabel(header_frame, text="Actions", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, sticky="w", padx=10)
-        
+
         ctk.CTkFrame(self.scrollable_frame, height=2, fg_color="gray").pack(fill="x", padx=5, pady=(0, 5))
 
         tools = self.agent_manager.get_all_tools_details()
@@ -83,7 +84,7 @@ class ToolManagementView(ctk.CTkFrame):
     def _view_tool_source(self, file_path: str):
         """Opens a new window to display the tool's source code."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 code_content = f.read()
         except Exception as e:
             error_dialog = ctk.CTkToplevel(self)
@@ -118,38 +119,38 @@ class ToolManagementView(ctk.CTkFrame):
         info_window.geometry("500x400")
         info_window.transient(self)
         info_window.grab_set()
-        
+
         #Main frame
         main_frame = ctk.CTkFrame(info_window)
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
-        
+
         #Tool name
         name_label = ctk.CTkLabel(main_frame, text=tool["name"], font=ctk.CTkFont(size=18, weight="bold"))
         name_label.pack(pady=(10, 5))
-        
+
         #Tool type and source
         type_label = ctk.CTkLabel(main_frame, text=f"Type: {tool.get('type', 'Unknown').title()}")
         type_label.pack()
-        
+
         source_label = ctk.CTkLabel(main_frame, text=f"Source: {tool.get('source', 'Unknown')}")
         source_label.pack(pady=(0, 10))
-        
+
         #Description
         desc_frame = ctk.CTkFrame(main_frame)
         desc_frame.pack(fill="both", expand=True, pady=10)
-        
+
         desc_title = ctk.CTkLabel(desc_frame, text="Description:", font=ctk.CTkFont(weight="bold"))
         desc_title.pack(anchor="w", padx=10, pady=(10, 5))
-        
+
         desc_text = ctk.CTkTextbox(desc_frame, height=150, wrap="word")
         desc_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         desc_text.insert("1.0", tool.get("doc", "No description available."))
         desc_text.configure(state="disabled")
-        
+
         #File path
         path_label = ctk.CTkLabel(main_frame, text=f"File: {tool.get('file_path', 'N/A')}")
         path_label.pack(pady=5)
-        
+
         #Close button
         close_btn = ctk.CTkButton(main_frame, text="Close", command=info_window.destroy)
         close_btn.pack(pady=10)
@@ -174,19 +175,19 @@ class ToolManagementView(ctk.CTkFrame):
         #Add tool type indicator
         tool_type = tool.get("type", "unknown")
         tool_source = tool.get("source", "Unknown")
-        
+
         type_color = {
             "built-in": "green",
-            "generated": "blue", 
+            "generated": "blue",
             "essential": "orange",
-            "plugin": "purple"
+            "plugin": "purple",
         }.get(tool_type, "gray")
-        
+
         type_label = ctk.CTkLabel(
-            details_frame, 
-            text=f"[{tool_type.upper()}] {tool_source}", 
+            details_frame,
+            text=f"[{tool_type.upper()}] {tool_source}",
             font=ctk.CTkFont(size=10),
-            text_color=type_color
+            text_color=type_color,
         )
         type_label.pack(anchor="w", padx=5)
 
@@ -214,7 +215,7 @@ class ToolManagementView(ctk.CTkFrame):
             button_frame,
             text="View",
             width=60,
-            command=lambda t=tool: self._view_tool_source(t['file_path'])
+            command=lambda t=tool: self._view_tool_source(t["file_path"]),
         )
         view_button.pack(side="left", padx=(0, 5))
 
@@ -224,7 +225,7 @@ class ToolManagementView(ctk.CTkFrame):
                 button_frame,
                 text="Edit",
                 width=60,
-                command=lambda t=tool: self._edit_tool(t['file_path'])
+                command=lambda t=tool: self._edit_tool(t["file_path"]),
             )
             edit_button.pack(side="left", padx=(0, 5))
 
@@ -234,9 +235,9 @@ class ToolManagementView(ctk.CTkFrame):
                 button_frame,
                 text="Delete",
                 width=60,
-                command=lambda t=tool: self._delete_tool(t['name'], t['file_path']),
+                command=lambda t=tool: self._delete_tool(t["name"], t["file_path"]),
                 fg_color="#DB3E3E",
-                hover_color="#B72B2B"
+                hover_color="#B72B2B",
             )
             delete_button.pack(side="left")
         elif tool.get("type") in ["built-in", "essential", "plugin"]:
@@ -247,6 +248,6 @@ class ToolManagementView(ctk.CTkFrame):
                 width=60,
                 command=lambda t=tool: self._show_tool_info(t),
                 fg_color="gray",
-                hover_color="lightgray"
+                hover_color="lightgray",
             )
             info_button.pack(side="left")

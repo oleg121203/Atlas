@@ -1,11 +1,12 @@
 import threading
 from typing import Dict, List, Optional
 
+
 class MetricsManager:
-    _instance: Optional['MetricsManager'] = None
+    _instance: Optional["MetricsManager"] = None
     _lock = threading.Lock()
 
-    def __new__(cls) -> 'MetricsManager':
+    def __new__(cls) -> "MetricsManager":
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -14,7 +15,7 @@ class MetricsManager:
         return cls._instance
 
     def __init__(self) -> None:
-        if hasattr(self, '_initialized') and self._initialized:
+        if hasattr(self, "_initialized") and self._initialized:
             return
         self._initialized: bool = True
         self.tool_load_times: Dict[str, float] = {}
@@ -44,7 +45,7 @@ class MetricsManager:
         """Records a tool usage event (success or failure)."""
         if tool_name not in self.tool_usage_stats:
             self.tool_usage_stats[tool_name] = {"success": 0, "failure": 0}
-        
+
         if success:
             self.tool_usage_stats[tool_name]["success"] += 1
         else:

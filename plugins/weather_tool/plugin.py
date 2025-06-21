@@ -7,5 +7,5 @@ def get_weather(location: str) -> str:
 def register():
     """Registers the weather tool with the PluginManager."""
     return {
-        "tools": [get_weather]
+        "tools": [get_weather],
     }

@@ -1,14 +1,14 @@
 import logging
 import time
 import uuid
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 import chromadb
 from chromadb import EmbeddingFunction
 
-from utils.llm_manager import LLMManager
-from utils.config_manager import ConfigManager
 from monitoring.metrics_manager import metrics_manager
+from utils.config_manager import ConfigManager
+from utils.llm_manager import LLMManager
 
 
 class MemoryManager:
@@ -39,14 +39,14 @@ class MemoryManager:
 
             def __call__(self, input_texts: chromadb.Documents) -> chromadb.Embeddings:
                 return [self._llm_manager.get_embedding(text) for text in input_texts]
-        
+
         return LLMManagerEmbeddingFunction(self.llm_manager)
 
     def get_collection(self, name: str) -> chromadb.Collection:
         """Gets or creates a collection."""
         return self.client.get_or_create_collection(
             name=name,
-            embedding_function=self._get_embedding_function()
+            embedding_function=self._get_embedding_function(),
         )
 
     def add_memory(self, content: str, collection_name: str, metadata: Optional[Dict[str, Any]] = None) -> str:
@@ -58,13 +58,13 @@ class MemoryManager:
 
         doc_id = str(uuid.uuid4())
         final_metadata = metadata or {}
-        if 'timestamp' not in final_metadata:
-            final_metadata['timestamp'] = time.time()
+        if "timestamp" not in final_metadata:
+            final_metadata["timestamp"] = time.time()
 
         collection.add(
             documents=[content],
             metadatas=[final_metadata],
-            ids=[doc_id]
+            ids=[doc_id],
         )
         self.logger.info(f"Added memory to '{collection_name}' with ID: {doc_id}")
         return doc_id
@@ -94,13 +94,13 @@ class MemoryManager:
                 count = collection.count()
                 if count == 0:
                     continue
-                
+
                 results = collection.query(
                     query_embeddings=[query_embedding],
                     n_results=min(n_results, count),
-                    include=["metadatas", "documents", "distances"]
+                    include=["metadatas", "documents", "distances"],
                 )
-                
+
                 ids = results.get("ids", [[]])[0]
                 docs = results.get("documents", [[]])[0]
                 metadatas = results.get("metadatas", [[]])[0]
@@ -112,10 +112,10 @@ class MemoryManager:
                         "content": docs[i],
                         "metadata": metadatas[i] if metadatas else {},
                         "distance": distances[i],
-                        "collection": collection.name
+                        "collection": collection.name,
                     })
-            
-            sorted_results = sorted(all_results, key=lambda x: x['distance'])
+
+            sorted_results = sorted(all_results, key=lambda x: x["distance"])
             self.logger.info(f"Found {len(sorted_results)} memories for query: '{query[:50]}...'")
             return sorted_results[:n_results]
 

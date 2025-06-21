@@ -8,12 +8,16 @@ from pathlib import Path
 from typing import Optional
 
 from PIL import Image  #type: ignore
-from utils.platform_utils import IS_MACOS, IS_LINUX, IS_HEADLESS
+
+from utils.platform_utils import IS_HEADLESS, IS_LINUX, IS_MACOS
 
 #Import macOS-specific screenshot utilities
 if IS_MACOS:
     try:
-        from utils.macos_screenshot import capture_screen_native_macos, capture_screen_applescript
+        from utils.macos_screenshot import (
+            capture_screen_applescript,
+            capture_screen_native_macos,
+        )
         _MACOS_NATIVE_AVAILABLE = True
     except ImportError:
         _MACOS_NATIVE_AVAILABLE = False
@@ -28,12 +32,11 @@ if IS_MACOS:
     try:
         #pyobjc Quartz is preferred on macOS (legacy support)
         from Quartz import (
-            CGWindowListCreateImage,
             CGMainDisplayID,
-            kCGWindowListOptionOnScreenOnly,
-            kCGWindowImageDefault,
             CGRectInfinite,
-
+            CGWindowListCreateImage,
+            kCGWindowImageDefault,
+            kCGWindowListOptionOnScreenOnly,
         )
         _QUARTZ_AVAILABLE = True
     except ImportError as e:
@@ -62,43 +65,48 @@ def _capture_quartz() -> Image.Image:
     try:
         #Create screenshot using Quartz API
         image_ref = CGWindowListCreateImage(
-            CGRectInfinite, kCGWindowListOptionOnScreenOnly, CGMainDisplayID(), kCGWindowImageDefault
+            CGRectInfinite, kCGWindowListOptionOnScreenOnly, CGMainDisplayID(), kCGWindowImageDefault,
         )
-        
+
         if not image_ref:
             raise Exception("Failed to create CGImage")
-        
+
         #Use modern pyobjc API
-        from Quartz import CGImageGetWidth, CGImageGetHeight, CGImageGetBytesPerRow
-        from Quartz import CGImageGetDataProvider, CGDataProviderCopyData
-        
+        from Quartz import (
+            CGDataProviderCopyData,
+            CGImageGetBytesPerRow,
+            CGImageGetDataProvider,
+            CGImageGetHeight,
+            CGImageGetWidth,
+        )
+
         width = CGImageGetWidth(image_ref)
         height = CGImageGetHeight(image_ref)
         bytes_per_row = CGImageGetBytesPerRow(image_ref)
         data_provider = CGImageGetDataProvider(image_ref)
         data = CGDataProviderCopyData(data_provider)
-        
+
         #Convert CFData to bytes
-        if hasattr(data, 'bytes'):
+        if hasattr(data, "bytes"):
             #Modern pyobjc returns CFData with bytes() method
             buffer = data.bytes()
         else:
             #Fallback if different data type
             buffer = bytes(data)
-        
+
         #Create PIL Image from buffer
         #Note: Quartz returns BGRA format typically
         img = Image.frombuffer("RGBA", (width, height), buffer, "raw", "BGRA", bytes_per_row, 1)
-        
+
         #Convert to RGB for consistency
         if img.mode == "RGBA":
             #Create a white background and composite
             rgb_img = Image.new("RGB", img.size, (255, 255, 255))
             rgb_img.paste(img, mask=img.split()[-1])  #Use alpha channel as mask
             return rgb_img
-        
+
         return img
-        
+
     except Exception as e:
         #If Quartz fails, raise exception to trigger fallback
         raise Exception(f"Quartz capture failed: {e}")
@@ -113,7 +121,7 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
     """
     img = None
     last_error = None
-    
+
     #Try different capture methods based on platform and availability
     if IS_MACOS:
         #Try native macOS methods first (most reliable)
@@ -124,7 +132,7 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
             except Exception as e:
                 last_error = f"Native screencapture failed: {e}"
                 print(last_error)
-            
+
             #Try AppleScript as backup
             try:
                 img = capture_screen_applescript()
@@ -134,7 +142,7 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
             except Exception as e:
                 last_error = f"AppleScript failed: {e}"
                 print(last_error)
-        
+
         #Try Quartz as fallback (if available)
         if _QUARTZ_AVAILABLE and img is None:
             try:
@@ -142,7 +150,7 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
             except Exception as e:
                 last_error = f"Quartz capture failed: {e}"
                 print(last_error)
-    
+
     #Fallback to PyAutoGUI if macOS methods failed or not macOS
     if img is None and _PYAUTOGUI_AVAILABLE:
         try:
@@ -158,26 +166,26 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
         except Exception as e:
             last_error = f"PyAutoGUI capture failed: {e}"
             print(last_error)
-    
+
     #Last resort: create a dummy image
     if img is None:
         print(f"Creating dummy screenshot - no capture method available. Last error: {last_error}")
-        img = Image.new('RGB', (800, 600), color='lightgray')
+        img = Image.new("RGB", (800, 600), color="lightgray")
         #Add some text to indicate this is a dummy
         try:
             from PIL import ImageDraw
             draw = ImageDraw.Draw(img)
-            draw.text((50, 250), "Screenshot not available", fill='black')
-            draw.text((50, 300), f"(Error: {last_error})", fill='red')
-            draw.text((50, 350), f"Platform: {'macOS' if IS_MACOS else 'Linux' if IS_LINUX else 'Unknown'}", fill='blue')
+            draw.text((50, 250), "Screenshot not available", fill="black")
+            draw.text((50, 300), f"(Error: {last_error})", fill="red")
+            draw.text((50, 350), f"Platform: {'macOS' if IS_MACOS else 'Linux' if IS_LINUX else 'Unknown'}", fill="blue")
         except Exception:
             pass  #Font issues, just use plain gray
-    
+
     #Save if requested and not already saved
     if save_to and img:
         try:
             img.save(save_to)
         except Exception as e:
             print(f"Failed to save screenshot: {e}")
-    
+
     return img

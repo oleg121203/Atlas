@@ -16,7 +16,7 @@ class SystemInteractionAgent(BaseAgent):
 
     def execute_task(self, prompt: str, context: Dict[str, Any]) -> str:
         self.logger.info(f"Executing system task: '{prompt}'")
-        
+
         #For simplicity, we'll assume the prompt is a direct command.
         #In a real scenario, we'd have more sophisticated parsing.
         command = prompt
@@ -26,9 +26,8 @@ class SystemInteractionAgent(BaseAgent):
             if result.success:
                 self.logger.info(f"Command executed successfully. Output:\n{result.stdout}")
                 return result.stdout or "Command executed successfully with no output."
-            else:
-                self.logger.error(f"Command failed. Error:\n{result.stderr}")
-                return f"Error executing command: {result.stderr}"
+            self.logger.error(f"Command failed. Error:\n{result.stderr}")
+            return f"Error executing command: {result.stderr}"
         except Exception as e:
             self.logger.error(f"An unexpected error occurred in SystemInteractionAgent: {e}")
             return f"An unexpected error occurred: {e}"

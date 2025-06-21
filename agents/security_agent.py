@@ -5,8 +5,8 @@ import re
 import time
 from typing import Any, Dict, List, Tuple
 
-from utils.logger import get_logger
 from tools.notification_tool import NotificationManager
+from utils.logger import get_logger
 
 
 class SecurityAgent(multiprocessing.Process):
@@ -16,31 +16,31 @@ class SecurityAgent(multiprocessing.Process):
         super().__init__(daemon=True)
         self.pipe_conn = pipe_conn
         self.config_manager = config_manager
-        self.is_running = multiprocessing.Value('b', True)
+        self.is_running = multiprocessing.Value("b", True)
         self.logger = get_logger()
         self.rules: List[str] = []
         self.notification_manager = NotificationManager()
         self.notification_channels = {
-            "email": False, "telegram": False, "sms": False
+            "email": False, "telegram": False, "sms": False,
         }
         self.memory_manager = None  #Will be initialized in run()
 
     def run(self):
         """The main execution loop for the security agent process."""
         self.logger.info("Security Agent process started.")
-        
+
         #Initialize memory manager in process context
         if self.config_manager:
             try:
-                from utils.llm_manager import LLMManager
                 from agents.enhanced_memory_manager import EnhancedMemoryManager
-                
+                from utils.llm_manager import LLMManager
+
                 llm_manager = LLMManager(self.config_manager)
                 self.memory_manager = EnhancedMemoryManager(llm_manager, self.config_manager)
                 self.logger.info("Security Agent memory manager initialized")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize memory manager: {e}")
-        
+
         while self.is_running.value:
             try:
                 if self.pipe_conn.poll(timeout=1):  #Wait for an event
@@ -76,12 +76,12 @@ class SecurityAgent(multiprocessing.Process):
             self.logger.info(f"Security rules updated. {len(self.rules)} rules loaded.")
             return  #No response needed for rule updates
 
-        elif event_type == "UPDATE_NOTIFICATION_SETTINGS":
+        if event_type == "UPDATE_NOTIFICATION_SETTINGS":
             self.notification_channels = details.get("channels", {})
             self.logger.info(f"Notification settings updated: {self.notification_channels}")
             return
 
-        elif event_type == "GOAL_EXECUTION_REQUEST":
+        if event_type == "GOAL_EXECUTION_REQUEST":
             self.logger.info("Evaluating goal execution request...")
             is_allowed, reason = self._check_rules(event)
 
@@ -104,11 +104,11 @@ class SecurityAgent(multiprocessing.Process):
         goal = event.get("details", {}).get("goal", "")
 
         for rule_str in self.rules:
-            if not rule_str.strip() or rule_str.startswith('#'):
+            if not rule_str.strip() or rule_str.startswith("#"):
                 continue  #Skip empty lines and comments
 
             try:
-                parts = rule_str.split(',', 2)
+                parts = rule_str.split(",", 2)
                 if len(parts) != 3:
                     self.logger.warning(f"Skipping malformed rule: {rule_str}")
                     continue
@@ -121,11 +121,14 @@ class SecurityAgent(multiprocessing.Process):
                         reason = f"Execution blocked by rule: '{pattern}'"
                         self.logger.warning(reason)
                         self._send_notifications(reason)
-                        
+
                         #Store security event in memory
                         if self.memory_manager:
                             try:
-                                from agents.enhanced_memory_manager import MemoryScope, MemoryType
+                                from agents.enhanced_memory_manager import (
+                                    MemoryScope,
+                                    MemoryType,
+                                )
                                 self.memory_manager.add_memory_for_agent(
                                     agent_type=MemoryScope.SECURITY_AGENT,
                                     memory_type=MemoryType.ERROR,
@@ -134,12 +137,12 @@ class SecurityAgent(multiprocessing.Process):
                                         "action": "DENY",
                                         "rule_pattern": pattern,
                                         "blocked_goal": goal,
-                                        "event_type": event.get("type", "unknown")
-                                    }
+                                        "event_type": event.get("type", "unknown"),
+                                    },
                                 )
                             except Exception as e:
                                 self.logger.error(f"Failed to store security event: {e}")
-                        
+
                         return False, reason
             except re.error as e:
                 self.logger.error(f"Invalid regex in rule '{rule_str}': {e}")

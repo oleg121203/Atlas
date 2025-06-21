@@ -1,11 +1,12 @@
-import unittest
 import os
 import shutil
+import unittest
 from unittest.mock import MagicMock
 
 from agents.agent_manager import AgentManager
-from utils.llm_manager import LLMManager
 from agents.memory_manager import MemoryManager
+from utils.llm_manager import LLMManager
+
 
 class TestAgentManager(unittest.TestCase):
     """Unit tests for the AgentManager class."""
@@ -26,11 +27,11 @@ class TestAgentManager(unittest.TestCase):
         self.mock_llm_manager = MagicMock(spec=LLMManager)
         self.mock_memory_manager = MagicMock(spec=MemoryManager)
         self.mock_callback = MagicMock()
-        
+
         self.agent_manager = AgentManager(
             llm_manager=self.mock_llm_manager,
             memory_manager=self.mock_memory_manager,
-            master_agent_update_callback=self.mock_callback
+            master_agent_update_callback=self.mock_callback,
         )
         self.agent_manager.logger = MagicMock()
 
@@ -48,7 +49,7 @@ class TestAgentManager(unittest.TestCase):
         # Assert
         # Check that the valid tool was loaded
         self.assertIn("valid_tool_func", self.agent_manager._tools)
-        self.assertEqual(self.agent_manager._tools["valid_tool_func"]['function'](), 'success')
+        self.assertEqual(self.agent_manager._tools["valid_tool_func"]["function"](), "success")
 
         # Check that the invalid tool was not loaded
         self.assertNotIn("invalid_tool_func", self.agent_manager._tools)
@@ -81,5 +82,5 @@ class TestAgentManager(unittest.TestCase):
         agent_names = self.agent_manager.list_agent_names()
         self.assertCountEqual(agent_names, ["Agent One", "Agent Two"], "Should return the names of all registered agents.")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

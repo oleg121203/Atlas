@@ -2,10 +2,10 @@
 Defines the abstract base class for all specialized agents.
 """
 
+import multiprocessing
+import threading
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Union
-import threading
-import multiprocessing
 
 from utils.logger import get_logger
 
@@ -34,7 +34,6 @@ class BaseAgent(ABC):
         Returns:
             A string containing the result of the task execution.
         """
-        pass
 
     def start(self) -> None:
         """Start the agent (can be overridden by subclasses)."""

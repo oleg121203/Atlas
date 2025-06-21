@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any, Optional
 
 #Try to import pyperclip safely for headless environments
 try:
@@ -26,8 +26,14 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-__all__ = ["ClipboardResult", "get_clipboard_text", "set_clipboard_text", 
-           "get_clipboard_image", "set_clipboard_image", "clear_clipboard"]
+__all__ = [
+    "ClipboardResult",
+    "clear_clipboard",
+    "get_clipboard_image",
+    "get_clipboard_text",
+    "set_clipboard_image",
+    "set_clipboard_text",
+]
 
 
 @dataclass
@@ -48,11 +54,11 @@ def get_clipboard_text() -> ClipboardResult:
         ClipboardResult with text content or error
     """
     start_time = time.time()
-    
+
     try:
         if not _PYPERCLIP_AVAILABLE and not _APPKIT_AVAILABLE:
             raise RuntimeError("No clipboard access available (missing pyperclip and AppKit)")
-            
+
         if _APPKIT_AVAILABLE:
             #Use native macOS clipboard
             pasteboard = NSPasteboard.generalPasteboard()
@@ -62,32 +68,32 @@ def get_clipboard_text() -> ClipboardResult:
             text = pyperclip.paste()
         else:
             raise RuntimeError("No clipboard access available")
-        
+
         execution_time = time.time() - start_time
-        
+
         if text is None:
             text = ""
-        
+
         logger.info(f"Retrieved {len(text)} characters from clipboard in {execution_time:.3f}s")
-        
+
         return ClipboardResult(
             success=True,
             action="get_text",
             content=text,
             content_type="text",
-            execution_time=execution_time
+            execution_time=execution_time,
         )
-        
+
     except Exception as e:
         execution_time = time.time() - start_time
-        error_msg = f"Failed to get clipboard text: {str(e)}"
+        error_msg = f"Failed to get clipboard text: {e!s}"
         logger.error(error_msg)
-        
+
         return ClipboardResult(
             success=False,
             action="get_text",
             error=error_msg,
-            execution_time=execution_time
+            execution_time=execution_time,
         )
 
 
@@ -101,11 +107,11 @@ def set_clipboard_text(text: str) -> ClipboardResult:
         ClipboardResult with operation status
     """
     start_time = time.time()
-    
+
     try:
         if not _PYPERCLIP_AVAILABLE and not _APPKIT_AVAILABLE:
             raise RuntimeError("No clipboard access available (missing pyperclip and AppKit)")
-            
+
         if _APPKIT_AVAILABLE:
             #Use native macOS clipboard
             pasteboard = NSPasteboard.generalPasteboard()
@@ -116,30 +122,30 @@ def set_clipboard_text(text: str) -> ClipboardResult:
             pyperclip.copy(text)
         else:
             raise RuntimeError("No clipboard access available")
-        
+
         execution_time = time.time() - start_time
-        
+
         logger.info(f"Set {len(text)} characters to clipboard in {execution_time:.3f}s")
-        
+
         return ClipboardResult(
             success=True,
             action="set_text",
             content=text,
             content_type="text",
-            execution_time=execution_time
+            execution_time=execution_time,
         )
-        
+
     except Exception as e:
         execution_time = time.time() - start_time
-        error_msg = f"Failed to set clipboard text: {str(e)}"
+        error_msg = f"Failed to set clipboard text: {e!s}"
         logger.error(error_msg)
-        
+
         return ClipboardResult(
             success=False,
             action="set_text",
             content=text,
             error=error_msg,
-            execution_time=execution_time
+            execution_time=execution_time,
         )
 
 
@@ -150,14 +156,14 @@ def get_clipboard_image() -> ClipboardResult:
         ClipboardResult with image data or error
     """
     start_time = time.time()
-    
+
     try:
         if not _APPKIT_AVAILABLE:
             raise NotImplementedError("Image clipboard operations require macOS AppKit")
-        
+
         pasteboard = NSPasteboard.generalPasteboard()
         image_types = pasteboard.types()
-        
+
         #Check for image types
         if "public.png" in image_types:
             image_data = pasteboard.dataForType_("public.png")
@@ -165,29 +171,29 @@ def get_clipboard_image() -> ClipboardResult:
             image_data = pasteboard.dataForType_("public.tiff")
         else:
             raise ValueError("No image found in clipboard")
-        
+
         execution_time = time.time() - start_time
-        
+
         logger.info(f"Retrieved image from clipboard in {execution_time:.3f}s")
-        
+
         return ClipboardResult(
             success=True,
             action="get_image",
             content=image_data,
             content_type="image",
-            execution_time=execution_time
+            execution_time=execution_time,
         )
-        
+
     except Exception as e:
         execution_time = time.time() - start_time
-        error_msg = f"Failed to get clipboard image: {str(e)}"
+        error_msg = f"Failed to get clipboard image: {e!s}"
         logger.error(error_msg)
-        
+
         return ClipboardResult(
             success=False,
             action="get_image",
             error=error_msg,
-            execution_time=execution_time
+            execution_time=execution_time,
         )
 
 
@@ -202,14 +208,14 @@ def set_clipboard_image(image_data: bytes, image_type: str = "png") -> Clipboard
         ClipboardResult with operation status
     """
     start_time = time.time()
-    
+
     try:
         if not _APPKIT_AVAILABLE:
             raise NotImplementedError("Image clipboard operations require macOS AppKit")
-        
+
         pasteboard = NSPasteboard.generalPasteboard()
         pasteboard.clearContents()
-        
+
         #Set appropriate type
         if image_type.lower() == "png":
             pasteboard.setData_forType_(image_data, "public.png")
@@ -217,28 +223,28 @@ def set_clipboard_image(image_data: bytes, image_type: str = "png") -> Clipboard
             pasteboard.setData_forType_(image_data, "public.tiff")
         else:
             raise ValueError(f"Unsupported image type: {image_type}")
-        
+
         execution_time = time.time() - start_time
-        
+
         logger.info(f"Set image to clipboard in {execution_time:.3f}s")
-        
+
         return ClipboardResult(
             success=True,
             action="set_image",
             content_type="image",
-            execution_time=execution_time
+            execution_time=execution_time,
         )
-        
+
     except Exception as e:
         execution_time = time.time() - start_time
-        error_msg = f"Failed to set clipboard image: {str(e)}"
+        error_msg = f"Failed to set clipboard image: {e!s}"
         logger.error(error_msg)
-        
+
         return ClipboardResult(
             success=False,
             action="set_image",
             error=error_msg,
-            execution_time=execution_time
+            execution_time=execution_time,
         )
 
 
@@ -249,7 +255,7 @@ def clear_clipboard() -> ClipboardResult:
         ClipboardResult with operation status
     """
     start_time = time.time()
-    
+
     try:
         if _APPKIT_AVAILABLE:
             #Use native macOS clipboard
@@ -258,25 +264,25 @@ def clear_clipboard() -> ClipboardResult:
         else:
             #Fallback to setting empty string
             pyperclip.copy("")
-        
+
         execution_time = time.time() - start_time
-        
+
         logger.info(f"Cleared clipboard in {execution_time:.3f}s")
-        
+
         return ClipboardResult(
             success=True,
             action="clear",
-            execution_time=execution_time
+            execution_time=execution_time,
         )
-        
+
     except Exception as e:
         execution_time = time.time() - start_time
-        error_msg = f"Failed to clear clipboard: {str(e)}"
+        error_msg = f"Failed to clear clipboard: {e!s}"
         logger.error(error_msg)
-        
+
         return ClipboardResult(
             success=False,
             action="clear",
             error=error_msg,
-            execution_time=execution_time
+            execution_time=execution_time,
         )

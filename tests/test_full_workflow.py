@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from agents.master_agent import MasterAgent
+
 
 class TestFullWorkflow(unittest.TestCase):
     """Tests a full, multi-agent workflow from goal to completion."""
@@ -18,7 +20,7 @@ class TestFullWorkflow(unittest.TestCase):
         mock_plan = [
             {"agent": "Browser Agent", "prompt": "Open the URL 'https://example.com'"},
             {"agent": "Screen Agent", "prompt": "Capture the main headline text from the current screen"},
-            {"agent": "System Interaction Agent", "prompt": "Save the following text to a file named 'headline.txt': [LAST_RESULT]"}
+            {"agent": "System Interaction Agent", "prompt": "Save the following text to a file named 'headline.txt': [LAST_RESULT]"},
         ]
         self.master_agent._generate_plan = MagicMock(return_value=mock_plan)
 
@@ -44,9 +46,9 @@ class TestFullWorkflow(unittest.TestCase):
         #Verify each agent was called in the correct order with the correct prompt
 
         mock_browser_agent.execute_task.assert_called_once_with(prompt="Open the URL 'https://example.com'", context={})
-        mock_screen_agent.execute_task.assert_called_once_with(prompt="Capture the main headline text from the current screen", context={'last_result': {"status": "success", "message": "URL opened"}})
-        mock_system_agent.execute_task.assert_called_once_with(prompt="Save the following text to a file named 'headline.txt': [LAST_RESULT]", context={'last_result': {"status": "success", "data": "Example Domain Headline"}})
+        mock_screen_agent.execute_task.assert_called_once_with(prompt="Capture the main headline text from the current screen", context={"last_result": {"status": "success", "message": "URL opened"}})
+        mock_system_agent.execute_task.assert_called_once_with(prompt="Save the following text to a file named 'headline.txt': [LAST_RESULT]", context={"last_result": {"status": "success", "data": "Example Domain Headline"}})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

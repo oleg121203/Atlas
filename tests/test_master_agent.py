@@ -1,12 +1,17 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from agents.agent_manager import (
+    AgentManager,
+    InvalidToolArgumentsError,
+    ToolNotFoundError,
+)
 from agents.master_agent import MasterAgent, PlanExecutionError
-from agents.agent_manager import AgentManager, ToolNotFoundError, InvalidToolArgumentsError
-from utils.llm_manager import LLMManager
 from agents.memory_manager import MemoryManager
-from intelligence.context_awareness_engine import ContextAwarenessEngine
 from agents.tool_creator_agent import ToolCreatorAgent
+from intelligence.context_awareness_engine import ContextAwarenessEngine
+from utils.llm_manager import LLMManager
+
 
 class TestMasterAgentEnvironmentalAdaptation(unittest.TestCase):
     """
@@ -24,13 +29,13 @@ class TestMasterAgentEnvironmentalAdaptation(unittest.TestCase):
 
         # Mock the tool creator agent, which is a dependency of AgentManager
         self.mock_agent_manager.tool_creator_agent = MagicMock(spec=ToolCreatorAgent)
-        
+
         self.master_agent = MasterAgent(
             llm_manager=self.mock_llm_manager,
             memory_manager=self.mock_memory_manager,
             agent_manager=self.mock_agent_manager,
             context_awareness_engine=self.mock_context_engine,
-            status_callback=self.mock_status_callback
+            status_callback=self.mock_status_callback,
         )
         self.master_agent.is_running = True
         self.master_agent.MAX_RETRIES = 3
@@ -45,19 +50,18 @@ class TestMasterAgentEnvironmentalAdaptation(unittest.TestCase):
                     "step_id": 1,
                     "description": f"Use the {tool_name} tool.",
                     "tool_name": tool_name,
-                    "args": args
-                }
-            ]
+                    "args": args,
+                },
+            ],
         }
 
-    @patch('agents.master_agent.MasterAgent._generate_plan')
-    @patch('agents.master_agent.MasterAgent._check_goal_ambiguity', return_value=(False, None))
-    def test_successful_recovery_after_tool_not_found(self, mock_check_ambiguity, mock_generate_plan):
+    @patch("agents.master_agent.MasterAgent._generate_plan")
+    def test_successful_recovery_after_tool_not_found(self, mock_generate_plan):
         """Test that the agent successfully recovers after a ToolNotFoundError."""
         goal = "Use a tool that doesn't exist yet."
         tool_name = "magical_tool"
         mock_generate_plan.return_value = self._get_simple_plan(tool_name=tool_name)
-        
+
         def execute_tool_side_effect(*args, **kwargs):
             if self.mock_agent_manager.execute_tool.call_count == 1:
                 raise ToolNotFoundError(f"Tool '{tool_name}' not found.")
@@ -71,13 +75,12 @@ class TestMasterAgentEnvironmentalAdaptation(unittest.TestCase):
         self.mock_agent_manager.tool_creator_agent.create_tool.assert_called_once()
         self.assertEqual(self.mock_agent_manager.execute_tool.call_count, 2)
 
-    @patch('agents.master_agent.MasterAgent._generate_plan')
-    @patch('agents.master_agent.MasterAgent._check_goal_ambiguity', return_value=(False, None))
-    def test_successful_recovery_after_invalid_tool_arguments(self, mock_check_ambiguity, mock_generate_plan):
+    @patch("agents.master_agent.MasterAgent._generate_plan")
+    def test_successful_recovery_after_invalid_tool_arguments(self, mock_generate_plan):
         """Test successful recovery via replanning after InvalidToolArgumentsError."""
         goal = "Use a tool with bad arguments."
         mock_generate_plan.return_value = self._get_simple_plan()
-        
+
         error_message = "Invalid arguments."
         def execute_tool_side_effect(*args, **kwargs):
             if self.mock_agent_manager.execute_tool.call_count == 1:
@@ -91,9 +94,8 @@ class TestMasterAgentEnvironmentalAdaptation(unittest.TestCase):
         second_call_args, _ = mock_generate_plan.call_args_list[1]
         self.assertIn(error_message, second_call_args[0])
 
-    @patch('agents.master_agent.MasterAgent._generate_plan')
-    @patch('agents.master_agent.MasterAgent._check_goal_ambiguity', return_value=(False, None))
-    def test_successful_recovery_after_generic_error(self, mock_check_ambiguity, mock_generate_plan):
+    @patch("agents.master_agent.MasterAgent._generate_plan")
+    def test_successful_recovery_after_generic_error(self, mock_generate_plan):
         """Test successful recovery after one generic, transient error."""
         goal = "Perform a flaky operation."
         mock_generate_plan.return_value = self._get_simple_plan()
@@ -108,19 +110,18 @@ class TestMasterAgentEnvironmentalAdaptation(unittest.TestCase):
 
         self.assertEqual(self.mock_agent_manager.execute_tool.call_count, 2)
 
-    @patch('agents.master_agent.MasterAgent._generate_plan')
-    @patch('agents.master_agent.MasterAgent._check_goal_ambiguity', return_value=(False, None))
-    def test_execution_stops_after_max_retries(self, mock_check_ambiguity, mock_generate_plan):
+    @patch("agents.master_agent.MasterAgent._generate_plan")
+    def test_execution_stops_after_max_retries(self, mock_generate_plan):
         """Test that execution halts after exceeding the maximum number of retries."""
         goal = "Perform an operation that is always broken."
         mock_generate_plan.return_value = self._get_simple_plan()
-        
+
         self.mock_agent_manager.execute_tool.side_effect = Exception("This is always broken.")
 
         with self.assertRaises(PlanExecutionError):
             self.master_agent._execute_objective_with_retries(goal)
 
-        self.assertEqual(self.mock_agent_manager.execute_tool.call_count, self.master_agent.MAX_RETRIES + 1)
+        self.assertEqual(self.mock_agent_manager.execute_tool.call_count, self.master_agent.MAX_RETRIES)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

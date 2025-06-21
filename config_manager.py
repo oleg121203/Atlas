@@ -29,7 +29,7 @@ class ConfigManager:
                 if self.path.suffix == ".json":
                     return json.load(f)
                 return yaml.safe_load(f) or {}
-        except (IOError, yaml.YAMLError, json.JSONDecodeError) as e:
+        except (OSError, yaml.YAMLError, json.JSONDecodeError) as e:
             logger.error(f"Failed to load config from {self.path}: {e}. Creating default.")
             self._create_default()
             return self.load()
@@ -43,7 +43,7 @@ class ConfigManager:
                 else:
                     yaml.safe_dump(data, f, sort_keys=False)
             logger.info(f"Configuration saved to {self.path}")
-        except (IOError, yaml.YAMLError) as e:
+        except (OSError, yaml.YAMLError) as e:
             logger.error(f"Failed to save config to {self.path}: {e}")
 
     def get_app_data_path(self, subdirectory_name: str) -> Path:
@@ -62,9 +62,9 @@ class ConfigManager:
         import os
         config = self.load()
         #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv('OPENAI_API_KEY', '') or 
-               config.get('openai_api_key', '') or
-               config.get('api_keys', {}).get('openai', ''))
+        key = (os.getenv("OPENAI_API_KEY", "") or
+               config.get("openai_api_key", "") or
+               config.get("api_keys", {}).get("openai", ""))
         return key
 
     def get_gemini_api_key(self) -> str:
@@ -72,9 +72,9 @@ class ConfigManager:
         import os
         config = self.load()
         #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv('GEMINI_API_KEY', '') or 
-               config.get('gemini_api_key', '') or
-               config.get('api_keys', {}).get('gemini', ''))
+        key = (os.getenv("GEMINI_API_KEY", "") or
+               config.get("gemini_api_key", "") or
+               config.get("api_keys", {}).get("gemini", ""))
         return key
 
     def get_groq_api_key(self) -> str:
@@ -82,9 +82,9 @@ class ConfigManager:
         import os
         config = self.load()
         #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv('GROQ_API_KEY', '') or 
-               config.get('groq_api_key', '') or
-               config.get('api_keys', {}).get('groq', ''))
+        key = (os.getenv("GROQ_API_KEY", "") or
+               config.get("groq_api_key", "") or
+               config.get("api_keys", {}).get("groq", ""))
         return key
 
     def get_mistral_api_key(self) -> str:
@@ -92,9 +92,9 @@ class ConfigManager:
         import os
         config = self.load()
         #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv('MISTRAL_API_KEY', '') or 
-               config.get('mistral_api_key', '') or
-               config.get('api_keys', {}).get('mistral', ''))
+        key = (os.getenv("MISTRAL_API_KEY", "") or
+               config.get("mistral_api_key", "") or
+               config.get("api_keys", {}).get("mistral", ""))
         return key
 
     def get_current_provider(self) -> str:
@@ -102,16 +102,16 @@ class ConfigManager:
         import os
         config = self.load()
         #Пріоритет: .env файл → конфіг
-        return (os.getenv('DEFAULT_LLM_PROVIDER', '') or 
-                config.get('current_provider', 'gemini'))
+        return (os.getenv("DEFAULT_LLM_PROVIDER", "") or
+                config.get("current_provider", "gemini"))
 
     def get_current_model(self) -> str:
         """Get current LLM model from .env file or config."""
         import os
         config = self.load()
         #Пріоритет: .env файл → конфіг
-        return (os.getenv('DEFAULT_LLM_MODEL', '') or 
-                config.get('current_model', 'gemini-1.5-flash'))
+        return (os.getenv("DEFAULT_LLM_MODEL", "") or
+                config.get("current_model", "gemini-1.5-flash"))
 
     def get_model_name(self) -> str:
         """Get model name (alias for get_current_model)."""
@@ -120,17 +120,17 @@ class ConfigManager:
     def get_setting(self, key: str, default=None):
         """Get a setting from config with fallback to default."""
         config = self.load()
-        
+
         #Handle API keys specially
-        if key == 'groq_api_key':
+        if key == "groq_api_key":
             return self.get_groq_api_key()
-        elif key == 'mistral_api_key':
+        if key == "mistral_api_key":
             return self.get_mistral_api_key()
-        elif key == 'gemini_api_key':
+        if key == "gemini_api_key":
             return self.get_gemini_api_key()
-        elif key == 'openai_api_key':
+        if key == "openai_api_key":
             return self.get_openai_api_key()
-            
+
         return config.get(key, default)
 
     def set_setting(self, key: str, value: Any):
@@ -143,20 +143,20 @@ class ConfigManager:
         """Set LLM provider and model in configuration."""
         try:
             config = self.load()
-            
+
             if provider:
-                config['current_provider'] = provider
+                config["current_provider"] = provider
                 logger.info(f"Set LLM provider to: {provider}")
-            
+
             if model:
-                config['current_model'] = model
+                config["current_model"] = model
                 logger.info(f"Set LLM model to: {model}")
-            
+
             #Save to disk
             self.save(config)
             logger.info(f"✅ LLM configuration updated: provider={provider}, model={model}")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Error setting LLM provider/model: {e}")
             return False
@@ -165,22 +165,22 @@ class ConfigManager:
         """Set API key for specific LLM provider."""
         try:
             config = self.load()
-            
+
             #Initialize api_keys section if it doesn't exist
-            if 'api_keys' not in config:
-                config['api_keys'] = {}
-            
+            if "api_keys" not in config:
+                config["api_keys"] = {}
+
             #Set the API key
-            config['api_keys'][provider.lower()] = api_key
-            
+            config["api_keys"][provider.lower()] = api_key
+
             #Also set in the direct key format for backwards compatibility
-            config[f'{provider.lower()}_api_key'] = api_key
-            
+            config[f"{provider.lower()}_api_key"] = api_key
+
             #Save to disk
             self.save(config)
             logger.info(f"✅ Set {provider} API key")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Error setting {provider} API key: {e}")
             return False
@@ -202,8 +202,8 @@ class ConfigManager:
                 "file_access_threshold": 70,
                 "rules": [
                     "#Example Rule: Deny all shell commands that contain 'rm -rf'",
-                    "DENY,TERMINAL,.*rm -rf.*"
-                ]
+                    "DENY,TERMINAL,.*rm -rf.*",
+                ],
             },
         }
         self.save(default_cfg)

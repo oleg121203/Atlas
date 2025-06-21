@@ -1,17 +1,17 @@
 """End-to-end test for the SecurityAgent's blocking and notification workflow."""
 
 import multiprocessing
-import time
-import unittest
+import os
 
 #Add project root to path to allow direct imports
 import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import time
+import unittest
 
-from utils.logger import LOG_FILE_PATH
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from agents.security_agent import SecurityAgent
+from utils.logger import LOG_FILE_PATH
 
 
 class TestSecurityWorkflow(unittest.TestCase):
@@ -43,7 +43,7 @@ class TestSecurityWorkflow(unittest.TestCase):
     def test_block_malicious_goal_and_notify(self):
         """Verify that a malicious goal is blocked and a notification is triggered."""
         #1. Send rule and notification settings to the agent
-        rules = ["DENY, goal, rm -rf"] 
+        rules = ["DENY, goal, rm -rf"]
         notification_channels = {"email": True, "telegram": False, "sms": False}
 
         self.parent_conn.send({"type": "UPDATE_RULES", "details": {"rules": rules}})
@@ -52,7 +52,7 @@ class TestSecurityWorkflow(unittest.TestCase):
         #2. Send a malicious goal
         malicious_goal = "Use the terminal to delete all files with rm -rf /"
         event = {"type": "GOAL_EXECUTION_REQUEST", "details": {"goal": malicious_goal}}
-        
+
         self.parent_conn.send(event)
 
         #3. Wait for and check the response
@@ -66,7 +66,7 @@ class TestSecurityWorkflow(unittest.TestCase):
         #5. Assert that the notification was logged
         #Give the logger time to flush
         time.sleep(0.2)
-        with open(LOG_FILE_PATH, 'r') as f:
+        with open(LOG_FILE_PATH) as f:
             log_content = f.read()
 
         self.assertIn("SIMULATING EMAIL NOTIFICATION", log_content)
@@ -109,5 +109,5 @@ class TestSecurityWorkflow(unittest.TestCase):
         self.assertLess(avg_latency, 0.1, "Security check latency is above the 100ms threshold.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

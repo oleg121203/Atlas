@@ -17,9 +17,9 @@ print("\n📦 CURRENT macOS DEPENDENCIES:")
 macos_deps = [
     "pyobjc-core==11.1",
     "pyobjc-framework-Cocoa==11.1 (включає Foundation)",
-    "pyobjc-framework-Quartz==11.1", 
+    "pyobjc-framework-Quartz==11.1",
     "pyobjc-framework-ApplicationServices==11.1",
-    "pyobjc-framework-CoreServices==11.1"
+    "pyobjc-framework-CoreServices==11.1",
 ]
 
 for dep in macos_deps:
@@ -29,11 +29,11 @@ print("\n🎯 CRITICAL DEPENDENCIES FOR HELPER SYNC TELL:")
 critical_deps = [
     "requests >= 2.32.4",
     "PyYAML >= 6.0.2",
-    "openai >= 1.88.0", 
+    "openai >= 1.88.0",
     "google-generativeai >= 0.7.0",
     "pyobjc-core == 11.1",
     "pyobjc-framework-Cocoa == 11.1",
-    "pyobjc-framework-Quartz == 11.1"
+    "pyobjc-framework-Quartz == 11.1",
 ]
 
 for dep in critical_deps:

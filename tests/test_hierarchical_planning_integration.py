@@ -1,14 +1,15 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
-from agents.master_agent import MasterAgent
+import pytest
+
 from agents.agent_manager import AgentManager
-from utils.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
-from intelligence.context_awareness_engine import ContextAwarenessEngine
+from agents.master_agent import MasterAgent
+from agents.planning.operational_planner import OperationalPlanner
 from agents.planning.strategic_planner import StrategicPlanner
 from agents.planning.tactical_planner import TacticalPlanner
-from agents.planning.operational_planner import OperationalPlanner
+from intelligence.context_awareness_engine import ContextAwarenessEngine
+from utils.llm_manager import LLMManager
 
 
 @pytest.fixture
@@ -51,7 +52,7 @@ class TestHierarchicalPlanningIntegration:
                 {
                     "tool_name": "search_web",
                     "arguments": {"query": "scientific papers on rising sea levels"},
-                }
+                },
             ],
         }
 
@@ -59,13 +60,13 @@ class TestHierarchicalPlanningIntegration:
         master_agent.strategic_planner = MagicMock(spec=StrategicPlanner)
         master_agent.tactical_planner = MagicMock(spec=TacticalPlanner)
         master_agent.operational_planner = MagicMock(spec=OperationalPlanner)
-        
+
         master_agent.strategic_planner.generate_strategic_plan.return_value = strategic_objectives
         master_agent.tactical_planner.generate_tactical_plan.return_value = tactical_plan
         master_agent.operational_planner.generate_operational_plan.return_value = operational_plan
-        
+
         with patch.object(
-            master_agent, "_execute_plan"
+            master_agent, "_execute_plan",
         ) as mock_execute_plan:
             # Act
             master_agent.run_once(goal)

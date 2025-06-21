@@ -26,29 +26,29 @@ class ScreenAgent(BaseAgent):
                 #In a real scenario, this image would be passed to another tool or agent.
                 #For now, we just confirm it was taken.
                 self.logger.info(f"Screen captured successfully. Image size: {image.size}")
-                
+
                 #Store observation in memory if available
                 if self.memory_manager:
                     self.memory_manager.add_memory_for_agent(
                         agent_type=MemoryScope.SCREEN_AGENT,
                         memory_type=MemoryType.OBSERVATION,
                         content=f"Screen captured: {image.width}x{image.height} pixels",
-                        metadata={"prompt": prompt, "success": True, "dimensions": f"{image.width}x{image.height}"}
+                        metadata={"prompt": prompt, "success": True, "dimensions": f"{image.width}x{image.height}"},
                     )
-                
+
                 return f"Screen captured successfully. Image dimensions: {image.width}x{image.height}."
             except Exception as e:
                 self.logger.error(f"Failed to capture screen: {e}")
-                
+
                 #Store error in memory if available
                 if self.memory_manager:
                     self.memory_manager.add_memory_for_agent(
                         agent_type=MemoryScope.SCREEN_AGENT,
                         memory_type=MemoryType.ERROR,
-                        content=f"Screen capture failed: {str(e)}",
-                        metadata={"prompt": prompt, "success": False, "error": str(e)}
+                        content=f"Screen capture failed: {e!s}",
+                        metadata={"prompt": prompt, "success": False, "error": str(e)},
                     )
-                
+
                 return f"Error capturing screen: {e}"
 
         return f"Unknown screen task: '{prompt}'. Please specify 'capture' or 'screenshot'."

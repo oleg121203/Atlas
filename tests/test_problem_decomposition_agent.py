@@ -1,9 +1,11 @@
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
 from agents.problem_decomposition_agent import ProblemDecompositionAgent
+
 # Temporarily comment out the import due to missing LLMResponse
-# from utils.llm_manager import LLMManager  # noqa: F401
+# from utils.llm_manager import LLMManager
 
 # Mock LLMManager and LLMResponse classes if they are not available
 class LLMResponse:
@@ -36,38 +38,35 @@ def test_decompose_goal_successful_path(decomposition_agent, mock_llm_manager):
     complex_goal = "Develop a go-to-market strategy for a new AI-powered code assistant."
 
     def mock_chat_router(messages):
-        user_prompt = messages[1]['content']
+        user_prompt = messages[1]["content"]
 
         # --- Evaluation Prompts ---
         if "Thought to Evaluate" in user_prompt:
             if "Identify target developer segments" in user_prompt:
                 return LLMResponse("0.9", "mock_model", 10, 1, 11)
-            elif "Create a beta testing program" in user_prompt:
+            if "Create a beta testing program" in user_prompt:
                 return LLMResponse("0.95", "mock_model", 10, 1, 11)
-            else:
-                return LLMResponse("0.5", "mock_model", 10, 1, 11)  # Lower score for other paths
+            return LLMResponse("0.5", "mock_model", 10, 1, 11)  # Lower score for other paths
 
         # --- Generation Prompts ---
-        else:
-            # Response for the root node
-            if "go-to-market strategy" in user_prompt:
-                return LLMResponse(
-                    "1. Identify target developer segments (e.g., enterprise, startup, student).\n"
-                    "2. Draft initial pricing tiers.\n"
-                    "3. Brainstorm product names.",
-                    "mock_model", 50, 3, 53
-                )
-            # Response for the best first-level thought
-            elif "Identify target developer segments" in user_prompt:
-                return LLMResponse(
-                    "1. Create a beta testing program for early adopters.\n"
-                    "2. Develop content marketing (blog posts, tutorials).\n"
-                    "3. Plan a social media campaign.",
-                    "mock_model", 50, 3, 53
-                )
-            # Generic response for other, less optimal paths
-            else:
-                return LLMResponse("1. Generic thought.", "mock_model", 20, 1, 21)
+        # Response for the root node
+        if "go-to-market strategy" in user_prompt:
+            return LLMResponse(
+                "1. Identify target developer segments (e.g., enterprise, startup, student).\n"
+                "2. Draft initial pricing tiers.\n"
+                "3. Brainstorm product names.",
+                "mock_model", 50, 3, 53,
+            )
+        # Response for the best first-level thought
+        if "Identify target developer segments" in user_prompt:
+            return LLMResponse(
+                "1. Create a beta testing program for early adopters.\n"
+                "2. Develop content marketing (blog posts, tutorials).\n"
+                "3. Plan a social media campaign.",
+                "mock_model", 50, 3, 53,
+            )
+        # Generic response for other, less optimal paths
+        return LLMResponse("1. Generic thought.", "mock_model", 20, 1, 21)
 
     mock_llm_manager.chat.side_effect = mock_chat_router
     mock_llm_manager.chat.reset_mock()
@@ -90,12 +89,11 @@ def test_decompose_goal_no_viable_thoughts(decomposition_agent, mock_llm_manager
     complex_goal = "Solve an impossible problem."
 
     def mock_chat_router(messages):
-        user_prompt = messages[1]['content']
+        user_prompt = messages[1]["content"]
 
         if "Thought to Evaluate" in user_prompt:
             return LLMResponse("0.1", "mock_model", 10, 1, 11)  # All thoughts score very low
-        else:
-            return LLMResponse("1. Bad idea 1.\n2. Bad idea 2.", "mock_model", 20, 2, 22)
+        return LLMResponse("1. Bad idea 1.\n2. Bad idea 2.", "mock_model", 20, 2, 22)
 
     mock_llm_manager.chat.side_effect = mock_chat_router
     mock_llm_manager.chat.reset_mock()
@@ -112,12 +110,11 @@ def test_decompose_goal_empty_response(decomposition_agent, mock_llm_manager):
     complex_goal = "Handle empty input."
 
     def mock_chat_router(messages):
-        user_prompt = messages[1]['content']
+        user_prompt = messages[1]["content"]
 
         if "Thought to Evaluate" in user_prompt:
             return LLMResponse("0.5", "mock_model", 10, 1, 11)
-        else:
-            return LLMResponse("", "mock_model", 0, 0, 0)  # Empty response
+        return LLMResponse("", "mock_model", 0, 0, 0)  # Empty response
 
     mock_llm_manager.chat.side_effect = mock_chat_router
     mock_llm_manager.chat.reset_mock()
@@ -133,12 +130,11 @@ def test_decompose_goal_max_depth_reached(decomposition_agent, mock_llm_manager)
     complex_goal = "Deep problem requiring many steps."
 
     def mock_chat_router(messages):
-        user_prompt = messages[1]['content']
+        user_prompt = messages[1]["content"]
 
         if "Thought to Evaluate" in user_prompt:
             return LLMResponse("0.9", "mock_model", 10, 1, 11)  # High score for all thoughts
-        else:
-            return LLMResponse("1. Next step 1.\n2. Next step 2.", "mock_model", 20, 2, 22)
+        return LLMResponse("1. Next step 1.\n2. Next step 2.", "mock_model", 20, 2, 22)
 
     mock_llm_manager.chat.side_effect = mock_chat_router
     mock_llm_manager.chat.reset_mock()
@@ -155,20 +151,18 @@ def test_decompose_goal_breadth_pruning(decomposition_agent, mock_llm_manager):
     complex_goal = "Problem with many possible paths."
 
     def mock_chat_router(messages):
-        user_prompt = messages[1]['content']
+        user_prompt = messages[1]["content"]
 
         if "Thought to Evaluate" in user_prompt:
             if "Best thought" in user_prompt:
                 return LLMResponse("0.95", "mock_model", 10, 1, 11)
-            elif "Good thought" in user_prompt:
+            if "Good thought" in user_prompt:
                 return LLMResponse("0.8", "mock_model", 10, 1, 11)
-            else:
-                return LLMResponse("0.2", "mock_model", 10, 1, 11)  # Low score for others
-        else:
-            return LLMResponse(
-                "1. Best thought.\n2. Good thought.\n3. Poor thought.\n4. Worst thought.",
-                "mock_model", 40, 4, 44
-            )
+            return LLMResponse("0.2", "mock_model", 10, 1, 11)  # Low score for others
+        return LLMResponse(
+            "1. Best thought.\n2. Good thought.\n3. Poor thought.\n4. Worst thought.",
+            "mock_model", 40, 4, 44,
+        )
 
     mock_llm_manager.chat.side_effect = mock_chat_router
     mock_llm_manager.chat.reset_mock()

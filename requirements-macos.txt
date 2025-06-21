@@ -10,6 +10,7 @@ types-pyyaml>=6.0.12
 # GUI Framework
 customtkinter>=5.2.0
 tkinter-tooltip>=2.0.0
+darkdetect>=0.8.0     # macOS dark mode detection
 
 # AI and ML
 openai>=1.3.0
@@ -23,11 +24,41 @@ sentence-transformers>=2.2.0
 pandas>=2.0.0
 numpy>=1.24.0
 pillow>=10.0.0
+matplotlib>=3.8.0     # For data visualization
 
 # Network and HTTP
 requests>=2.31.0
 aiohttp>=3.8.0
 websockets>=11.0.0
+
+# System Interaction
+psutil>=5.9.5
+pynput>=1.7.6
+pyautogui>=0.9.54
+pyobjc-core>=10.0     # macOS native interface
+pyobjc-framework-Cocoa>=10.0  # macOS Cocoa interface
+pyobjc-framework-Quartz>=10.0  # macOS Quartz interface for screen capture
+
+# Security
+cryptography>=45.0.0
+bcrypt>=4.0.1
+keyring>=24.2.0       # macOS keychain access
+
+# Storage and Database
+sqlalchemy>=2.0.0
+pyyaml>=6.0.1
+
+# Logging and Monitoring
+coloredlogs>=15.0.1
+tqdm>=4.66.0
+
+# Utilities
+python-dotenv>=1.0.0
+platformdirs>=4.0.0
+pydantic>=2.4.2
+dataclasses-json>=0.6.0
+py2app>=0.28.6        # For macOS application bundling
+rumps>=0.4.0          # macOS status bar app support
 
 # Automation and System Integration
 pyautogui>=0.9.54

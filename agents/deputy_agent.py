@@ -42,14 +42,14 @@ class DeputyAgent(BaseAgent):
         """The core loop where the agent monitors the log file."""
         self.logger.info("Deputy Agent monitoring loop started.")
         try:
-            with open(LOG_FILE_PATH, 'r') as f:
+            with open(LOG_FILE_PATH) as f:
                 f.seek(0, 2)  #Go to the end of the file
                 while self.is_running:
                     line = f.readline()
                     if not line:
                         time.sleep(1)  #Wait for new lines
                         continue
-                    
+
                     if "ERROR" in line:
                         self.logger.warning(f"Anomaly Detected! Log entry: {line.strip()}")
                         #In a real scenario, this would trigger a more complex response.

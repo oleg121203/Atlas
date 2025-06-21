@@ -4,24 +4,25 @@ Test script for chat mode detection
 """
 
 from agents.chat_context_manager import ChatContextManager
-from utils.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
 from agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
+from utils.llm_manager import LLMManager
+
 
 def test_mode_detection():
     """Test mode detection for various messages"""
-    
+
     #Initialize managers
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker)
     memory_manager = EnhancedMemoryManager(llm_manager, config_manager)
-    
+
     chat_manager = ChatContextManager(
-        memory_manager=memory_manager
+        memory_manager=memory_manager,
     )
-    
+
     #Test messages
     test_messages = [
         ("Привіт", "CASUAL_CHAT"),
@@ -34,15 +35,15 @@ def test_mode_detection():
         ("Show me your capabilities", "SYSTEM_HELP"),
         ("Take a screenshot", "GOAL_SETTING"),
     ]
-    
+
     print("🧪 Testing Chat Mode Detection:")
     print("=" * 50)
-    
+
     for message, expected in test_messages:
         context = chat_manager.analyze_message(message)
         detected = context.mode.value.upper()
         confidence = context.confidence
-        
+
         status = "✅" if detected == expected else "❌"
         print(f"{status} '{message}' → {detected} (confidence: {confidence:.3f})")
         if detected != expected:

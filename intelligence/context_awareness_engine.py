@@ -1,8 +1,9 @@
-import subprocess
 import os
-from typing import Optional, Dict, Any
+import subprocess
+from typing import Any, Dict, Optional
 
 from utils.logger import get_logger
+
 
 class ContextAwarenessEngine:
     """Monitors the user's environment to build a dynamic understanding of their workflow."""
@@ -17,14 +18,14 @@ class ContextAwarenessEngine:
     def get_current_context(self) -> Dict[str, Any]:
         """Gathers all available context about the user's environment."""
         context = {
-            "git_branch": self.get_git_branch()
+            "git_branch": self.get_git_branch(),
             # Future context sources will be added here
         }
         return context
 
     def get_git_branch(self) -> Optional[str]:
         """Determines the current Git branch of the project."""
-        git_dir = os.path.join(self.project_root, '.git')
+        git_dir = os.path.join(self.project_root, ".git")
         if not os.path.isdir(git_dir):
             self.logger.warning("Not a Git repository. Cannot determine branch.")
             return None
@@ -32,11 +33,11 @@ class ContextAwarenessEngine:
         try:
             # Ensure the command is run within the project's root directory
             result = subprocess.run(
-                ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
             )
             branch_name = result.stdout.strip()
             self.logger.info(f"Detected current Git branch: {branch_name}")

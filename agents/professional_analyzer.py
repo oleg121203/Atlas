@@ -4,20 +4,20 @@ Professional Code Analyzer for Atlas System Help Mode
 Advanced problem detection and solution recommendation system
 """
 
-import re
 import ast
 import logging
-from typing import Dict, List, Optional, Any
-from pathlib import Path
+import re
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 class IssueType(Enum):
     """Types of issues that can be detected."""
     PERFORMANCE = "performance"
-    SECURITY = "security" 
+    SECURITY = "security"
     COMPATIBILITY = "compatibility"
     MEMORY_LEAK = "memory_leak"
     CODE_QUALITY = "code_quality"
@@ -59,157 +59,157 @@ class AnalysisResult:
 
 class ProfessionalCodeAnalyzer:
     """Advanced code analyzer for professional problem detection."""
-    
+
     def __init__(self) -> None:
         self.patterns = self._initialize_patterns()
         self.metrics_cache: Dict[str, Any] = {}
-        
+
     def _initialize_patterns(self) -> Dict[str, Dict[str, Any]]:
         """Initialize detection patterns for various issues."""
         return {
-            'security_issues': {
-                'patterns': [
-                    r'eval\s*\(',
-                    r'exec\s*\(',
-                    r'subprocess\..*shell=True',
-                    r'os\.system\(',
-                    r'input\(\).*exec',
-                    r'pickle\.loads?\(',
-                    r'yaml\.load\(',
+            "security_issues": {
+                "patterns": [
+                    r"eval\s*\(",
+                    r"exec\s*\(",
+                    r"subprocess\..*shell=True",
+                    r"os\.system\(",
+                    r"input\(\).*exec",
+                    r"pickle\.loads?\(",
+                    r"yaml\.load\(",
                 ],
-                'severity': Severity.HIGH,
-                'description': 'Potential security vulnerability detected'
+                "severity": Severity.HIGH,
+                "description": "Potential security vulnerability detected",
             },
-            
-            'performance_issues': {
-                'patterns': [
-                    r'for\s+\w+\s+in\s+range\(len\(',
-                    r'\.append\(.*\)\s*$',  #In loops
-                    r'time\.sleep\(\d+\)',
-                    r'requests\.get\(.*timeout=None',
-                    r'while\s+True:(?!\s*#\s*break)',
+
+            "performance_issues": {
+                "patterns": [
+                    r"for\s+\w+\s+in\s+range\(len\(",
+                    r"\.append\(.*\)\s*$",  #In loops
+                    r"time\.sleep\(\d+\)",
+                    r"requests\.get\(.*timeout=None",
+                    r"while\s+True:(?!\s*#\s*break)",
                 ],
-                'severity': Severity.MEDIUM,
-                'description': 'Performance optimization opportunity'
+                "severity": Severity.MEDIUM,
+                "description": "Performance optimization opportunity",
             },
-            
-            'memory_issues': {
-                'patterns': [
-                    r'global\s+\w+\s*=\s*\[',
-                    r'cache\s*=\s*\{\}',
-                    r'\.read\(\)(?!\s*\.close)',
-                    r'open\(.*\)(?!\s*with)',
+
+            "memory_issues": {
+                "patterns": [
+                    r"global\s+\w+\s*=\s*\[",
+                    r"cache\s*=\s*\{\}",
+                    r"\.read\(\)(?!\s*\.close)",
+                    r"open\(.*\)(?!\s*with)",
                 ],
-                'severity': Severity.MEDIUM,
-                'description': 'Potential memory leak or resource management issue'
+                "severity": Severity.MEDIUM,
+                "description": "Potential memory leak or resource management issue",
             },
-            
-            'error_handling': {
-                'patterns': [
-                    r'except:(?!\s*#)',
-                    r'except\s+Exception:(?!\s*#)',
-                    r'pass(?!\s*#)',
-                    r'try:.*\n.*except.*:\s*pass',
+
+            "error_handling": {
+                "patterns": [
+                    r"except:(?!\s*#)",
+                    r"except\s+Exception:(?!\s*#)",
+                    r"pass(?!\s*#)",
+                    r"try:.*\n.*except.*:\s*pass",
                 ],
-                'severity': Severity.HIGH,
-                'description': 'Poor error handling detected'
+                "severity": Severity.HIGH,
+                "description": "Poor error handling detected",
             },
-            
-            'code_quality': {
-                'patterns': [
-                    r'def\s+\w+\(.*\):(?:\s*\n){3,}',  #Empty functions
-                    r'TODO|FIXME|HACK|XXX',
-                    r'print\(',  #Debug prints
-                    r'import\s+\*',
-                    r'lambda.*:.*lambda',  #Complex lambdas
+
+            "code_quality": {
+                "patterns": [
+                    r"def\s+\w+\(.*\):(?:\s*\n){3,}",  #Empty functions
+                    r"TODO|FIXME|HACK|XXX",
+                    r"print\(",  #Debug prints
+                    r"import\s+\*",
+                    r"lambda.*:.*lambda",  #Complex lambdas
                 ],
-                'severity': Severity.LOW,
-                'description': 'Code quality improvement opportunity'
-            }
+                "severity": Severity.LOW,
+                "description": "Code quality improvement opportunity",
+            },
         }
-    
+
     async def analyze_codebase(self, root_path: str, focus_areas: Optional[List[str]] = None) -> AnalysisResult:
         """Perform comprehensive codebase analysis."""
         issues: List[Issue] = []
         metrics: Dict[str, Any] = {}
-        
+
         #1. File-level analysis
         python_files = self._find_python_files(root_path)
-        
+
         for file_path in python_files:
             if focus_areas and not any(area in str(file_path) for area in focus_areas):
                 continue
-                
+
             file_issues = await self._analyze_file(file_path)
             issues.extend(file_issues)
-        
+
         #2. Architecture analysis
         arch_issues = await self._analyze_architecture(root_path)
         issues.extend(arch_issues)
-        
+
         #3. Dependency analysis
         dep_issues = await self._analyze_dependencies(root_path)
         issues.extend(dep_issues)
-        
+
         #4. Calculate metrics
         metrics = self._calculate_metrics(python_files, issues)
-        
+
         #5. Generate recommendations
         recommendations = self._generate_recommendations(issues, metrics)
-        
+
         #6. Create summary
         summary = self._create_summary(issues, metrics)
-        
+
         return AnalysisResult(
             issues=sorted(issues, key=lambda x: (x.severity.value, -x.confidence)),
             metrics=metrics,
             recommendations=recommendations,
-            summary=summary
+            summary=summary,
         )
-    
+
     async def _analyze_file(self, file_path: Path) -> List[Issue]:
         """Analyze a single Python file for issues."""
         issues = []
-        
+
         try:
-            content = file_path.read_text(encoding='utf-8')
-            lines = content.split('\n')
-            
+            content = file_path.read_text(encoding="utf-8")
+            lines = content.split("\n")
+
             #Pattern-based analysis
             for category, config in self.patterns.items():
-                for pattern in config['patterns']:
+                for pattern in config["patterns"]:
                     for line_num, line in enumerate(lines, 1):
                         if re.search(pattern, line):
                             issue = Issue(
-                                type=IssueType(category.split('_')[0].lower()),
-                                severity=config['severity'],
+                                type=IssueType(category.split("_")[0].lower()),
+                                severity=config["severity"],
                                 title=f"{category.replace('_', ' ').title()} detected",
-                                description=config['description'],
+                                description=config["description"],
                                 file_path=str(file_path),
                                 line_number=line_num,
                                 code_snippet=line.strip(),
                                 suggested_fix=self._suggest_fix(pattern, line),
                                 confidence=0.8,
-                                tags=[category]
+                                tags=[category],
                             )
                             issues.append(issue)
-            
+
             #AST-based analysis
             ast_issues = self._analyze_ast(file_path, content)
             issues.extend(ast_issues)
-            
+
         except Exception as e:
             logger.warning(f"Could not analyze {file_path}: {e}")
-        
+
         return issues
-    
+
     def _analyze_ast(self, file_path: Path, content: str) -> List[Issue]:
         """Perform AST-based analysis for deeper insights."""
         issues = []
-        
+
         try:
             tree = ast.parse(content)
-            
+
             #Complexity analysis
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
@@ -225,9 +225,9 @@ class ProfessionalCodeAnalyzer:
                             code_snippet=f"def {node.name}(...)",
                             suggested_fix="Break down into smaller functions",
                             confidence=0.9,
-                            tags=["complexity", "refactoring"]
+                            tags=["complexity", "refactoring"],
                         ))
-        
+
         except SyntaxError as e:
             issues.append(Issue(
                 type=IssueType.CODE_QUALITY,
@@ -239,53 +239,53 @@ class ProfessionalCodeAnalyzer:
                 code_snippet="",
                 suggested_fix="Fix syntax error",
                 confidence=1.0,
-                tags=["syntax"]
+                tags=["syntax"],
             ))
-        
+
         return issues
-    
+
     async def _analyze_architecture(self, root_path: str) -> List[Issue]:
         """Analyze overall architecture patterns."""
         issues: List[Issue] = []
-        
+
         #Check for circular imports
         #Check for proper separation of concerns
         #Check for design pattern violations
-        
+
         return issues
-    
+
     async def _analyze_dependencies(self, root_path: str) -> List[Issue]:
         """Analyze dependency issues."""
         issues = []
-        
+
         req_files = [
             Path(root_path) / "requirements.txt",
-            Path(root_path) / "requirements-linux.txt", 
-            Path(root_path) / "requirements-macos.txt"
+            Path(root_path) / "requirements-linux.txt",
+            Path(root_path) / "requirements-macos.txt",
         ]
-        
+
         for req_file in req_files:
             if req_file.exists():
                 dep_issues = self._check_dependencies(req_file)
                 issues.extend(dep_issues)
-        
+
         return issues
-    
+
     def _check_dependencies(self, req_file: Path) -> List[Issue]:
         """Check for dependency issues."""
         issues = []
-        
+
         try:
             content = req_file.read_text()
-            lines = content.split('\n')
-            
+            lines = content.split("\n")
+
             for line_num, line in enumerate(lines, 1):
                 line = line.strip()
-                if not line or line.startswith('#'):
+                if not line or line.startswith("#"):
                     continue
-                
+
                 #Check for pinned versions
-                if '==' not in line and '>=' not in line:
+                if "==" not in line and ">=" not in line:
                     issues.append(Issue(
                         type=IssueType.DEPENDENCY,
                         severity=Severity.MEDIUM,
@@ -296,134 +296,130 @@ class ProfessionalCodeAnalyzer:
                         code_snippet=line,
                         suggested_fix=f"Pin version: {line}>=x.x.x",
                         confidence=0.7,
-                        tags=["dependencies", "versioning"]
+                        tags=["dependencies", "versioning"],
                     ))
-        
+
         except Exception as e:
             logger.warning(f"Could not analyze dependencies in {req_file}: {e}")
-        
+
         return issues
-    
+
     def _suggest_fix(self, pattern: str, code_line: str) -> str:
         """Suggest a fix for detected pattern."""
         fixes = {
-            r'eval\s*\(': "Use ast.literal_eval() for safe evaluation",
-            r'exec\s*\(': "Avoid exec(), use alternative approaches",
-            r'subprocess\..*shell=True': "Use shell=False and pass command as list",
-            r'for\s+\w+\s+in\s+range\(len\(': "Use enumerate() or iterate directly",
-            r'except:': "Catch specific exceptions instead of bare except",
-            r'print\(': "Use logging instead of print statements",
+            r"eval\s*\(": "Use ast.literal_eval() for safe evaluation",
+            r"exec\s*\(": "Avoid exec(), use alternative approaches",
+            r"subprocess\..*shell=True": "Use shell=False and pass command as list",
+            r"for\s+\w+\s+in\s+range\(len\(": "Use enumerate() or iterate directly",
+            r"except:": "Catch specific exceptions instead of bare except",
+            r"print\(": "Use logging instead of print statements",
         }
-        
+
         for pat, fix in fixes.items():
             if re.search(pat, pattern):
                 return fix
-        
+
         return "Review and improve this code pattern"
-    
+
     def _calculate_complexity(self, node: ast.FunctionDef) -> int:
         """Calculate cyclomatic complexity of a function."""
         complexity = 1  #Base complexity
-        
+
         for child in ast.walk(node):
-            if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor)):
+            if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor)) or isinstance(child, ast.ExceptHandler) or isinstance(child, (ast.And, ast.Or)):
                 complexity += 1
-            elif isinstance(child, ast.ExceptHandler):
-                complexity += 1
-            elif isinstance(child, (ast.And, ast.Or)):
-                complexity += 1
-        
+
         return complexity
-    
+
     def _find_python_files(self, root_path: str) -> List[Path]:
         """Find all Python files in the project."""
         root = Path(root_path)
         python_files = []
-        
-        exclude_dirs = {'.git', '__pycache__', '.pytest_cache', 'node_modules', '.venv', 'venv'}
-        
+
+        exclude_dirs = {".git", "__pycache__", ".pytest_cache", "node_modules", ".venv", "venv"}
+
         for file_path in root.rglob("*.py"):
             if not any(excluded in file_path.parts for excluded in exclude_dirs):
                 python_files.append(file_path)
-        
+
         return python_files
-    
+
     def _calculate_metrics(self, files: List[Path], issues: List[Issue]) -> Dict[str, Any]:
         """Calculate code quality metrics."""
-        total_lines = sum(len(f.read_text().split('\n')) for f in files if f.exists())
-        
+        total_lines = sum(len(f.read_text().split("\n")) for f in files if f.exists())
+
         metrics: Dict[str, Any] = {
-            'total_files': len(files),
-            'total_lines': total_lines,
-            'issues_per_file': len(issues) / len(files) if files else 0,
-            'critical_issues': len([i for i in issues if i.severity == Severity.CRITICAL]),
-            'high_issues': len([i for i in issues if i.severity == Severity.HIGH]),
-            'medium_issues': len([i for i in issues if i.severity == Severity.MEDIUM]),
-            'low_issues': len([i for i in issues if i.severity == Severity.LOW]),
-            'issue_types': {},
-            'quality_score': 0
+            "total_files": len(files),
+            "total_lines": total_lines,
+            "issues_per_file": len(issues) / len(files) if files else 0,
+            "critical_issues": len([i for i in issues if i.severity == Severity.CRITICAL]),
+            "high_issues": len([i for i in issues if i.severity == Severity.HIGH]),
+            "medium_issues": len([i for i in issues if i.severity == Severity.MEDIUM]),
+            "low_issues": len([i for i in issues if i.severity == Severity.LOW]),
+            "issue_types": {},
+            "quality_score": 0,
         }
-        
+
         #Count issue types
         issue_types: Dict[str, int] = {}
         for issue in issues:
             issue_type = issue.type.value
             issue_types[issue_type] = issue_types.get(issue_type, 0) + 1
-        
-        metrics['issue_types'] = issue_types
-        
+
+        metrics["issue_types"] = issue_types
+
         #Calculate quality score (0-100)
         base_score = 100
-        critical_count = int(metrics['critical_issues'])
-        high_count = int(metrics['high_issues'])
-        medium_count = int(metrics['medium_issues'])
-        low_count = int(metrics['low_issues'])
-        
+        critical_count = int(metrics["critical_issues"])
+        high_count = int(metrics["high_issues"])
+        medium_count = int(metrics["medium_issues"])
+        low_count = int(metrics["low_issues"])
+
         base_score -= critical_count * 20
         base_score -= high_count * 10
         base_score -= medium_count * 5
         base_score -= low_count * 1
-        
-        metrics['quality_score'] = max(0, base_score)
-        
+
+        metrics["quality_score"] = max(0, base_score)
+
         return metrics
-    
+
     def _generate_recommendations(self, issues: List[Issue], metrics: Dict[str, Any]) -> List[str]:
         """Generate actionable recommendations."""
         recommendations = []
-        
+
         #Critical issues first
-        critical_count = metrics['critical_issues']
+        critical_count = metrics["critical_issues"]
         if critical_count > 0:
             recommendations.append(f"🚨 URGENT: Fix {critical_count} critical issues immediately")
-        
+
         #High priority issues
-        high_count = metrics['high_issues']
+        high_count = metrics["high_issues"]
         if high_count > 0:
             recommendations.append(f"⚠️ HIGH PRIORITY: Address {high_count} high-priority issues")
-        
+
         #Most common issue types
-        issue_types = metrics['issue_types']
+        issue_types = metrics["issue_types"]
         if issue_types:
             most_common = max(issue_types.items(), key=lambda x: x[1])
             recommendations.append(f"📊 Focus on {most_common[0]} issues ({most_common[1]} found)")
-        
+
         #Quality score based recommendations
-        quality_score = metrics['quality_score']
+        quality_score = metrics["quality_score"]
         if quality_score < 50:
             recommendations.append("🔧 Consider major refactoring - quality score is low")
         elif quality_score < 75:
             recommendations.append("⭐ Good foundation, focus on medium-priority improvements")
         else:
             recommendations.append("✨ Excellent code quality! Focus on optimization")
-        
+
         return recommendations
-    
+
     def _create_summary(self, issues: List[Issue], metrics: Dict[str, Any]) -> str:
         """Create analysis summary."""
         total_issues = len(issues)
-        quality_score = metrics['quality_score']
-        
+        quality_score = metrics["quality_score"]
+
         summary = f"""
 📋 ANALYSIS SUMMARY
 ==================
@@ -441,17 +437,16 @@ class ProfessionalCodeAnalyzer:
 {self._get_professional_assessment(quality_score, total_issues)}
 """
         return summary.strip()
-    
+
     def _get_professional_assessment(self, quality_score: int, total_issues: int) -> str:
         """Provide professional assessment of code quality."""
         if quality_score >= 90 and total_issues < 5:
             return "Exceptional code quality. Ready for production deployment."
-        elif quality_score >= 75:
+        if quality_score >= 75:
             return "Good code quality with minor improvements needed."
-        elif quality_score >= 50:
+        if quality_score >= 50:
             return "Moderate quality. Requires significant improvements before production."
-        else:
-            return "Poor code quality. Major refactoring required before deployment."
+        return "Poor code quality. Major refactoring required before deployment."
 
 #Integration functions for Chat Context Manager
 def create_professional_analysis_prompt(focus_area: str, user_question: str) -> str:

@@ -1,26 +1,26 @@
 """Tests for dynamic tool creation logic in MasterAgent._execute_plan."""
 
-from typing import Any, Dict
 import unittest
+from typing import Any, Dict
 
-from agents.master_agent import MasterAgent
 from agents.agent_manager import ToolNotFoundError
+from agents.master_agent import MasterAgent
 
 
-class _StubLLMManager:  # noqa: D401 (simple stub)
+class _StubLLMManager:
     """Minimal stub for LLMManager (not used by these tests)."""
 
-    def chat(self, *args: Any, **kwargs: Any) -> Any:  # noqa: D401
+    def chat(self, *args: Any, **kwargs: Any) -> Any:
         class _Resp:  # pylint: disable=too-few-public-methods
             response_text = ""
         return _Resp()
 
 
-class _StubMemoryManager:  # noqa: D401
+class _StubMemoryManager:
     """Minimal stub for MemoryManager (not used by these tests)."""
 
 
-class _StubContextAwarenessEngine:  # noqa: D401
+class _StubContextAwarenessEngine:
     """Minimal stub for ContextAwarenessEngine (not used by these tests)."""
 
 
@@ -37,7 +37,7 @@ class _StubAgentManager:
     # ---------------------------------------------------------------------
     # Core API used by MasterAgent
     # ---------------------------------------------------------------------
-    def execute_tool(self, tool_name: str, args: Dict[str, Any]):  # noqa: D401, ANN001
+    def execute_tool(self, tool_name: str, args: Dict[str, Any]):
         """Simulate execution or creation of tools."""
         self.calls.append(tool_name)
         # Simulate dynamic tool creation helper
@@ -54,7 +54,7 @@ class _StubAgentManager:
 class TestDynamicToolCreation(unittest.TestCase):
     """Verify that MasterAgent triggers dynamic tool creation when a tool is missing."""
 
-    def setUp(self) -> None:  # noqa: D401
+    def setUp(self) -> None:
         self.agent_manager = _StubAgentManager()
         self.master_agent = MasterAgent(
             agent_manager=self.agent_manager,
@@ -63,15 +63,15 @@ class TestDynamicToolCreation(unittest.TestCase):
             context_awareness_engine=_StubContextAwarenessEngine(),
         )
 
-    def test_missing_tool_triggers_creation(self):  # noqa: D401
+    def test_missing_tool_triggers_creation(self):
         plan = {
             "steps": [
                 {
                     "tool_name": "dummy_tool",
                     "description": "Execute dummy tool",
                     "arguments": {},
-                }
-            ]
+                },
+            ],
         }
 
         # Mark agent as running so _execute_plan proceeds.

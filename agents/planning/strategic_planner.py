@@ -4,8 +4,8 @@ Defines the Strategic Planner for decomposing high-level goals into strategic ob
 import re
 from typing import List
 
-from utils.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
+from utils.llm_manager import LLMManager
 from utils.logger import get_logger
 
 
@@ -96,7 +96,7 @@ This sequence covers the full lifecycle of a secure refactoring project.
             if not objectives:
                 self.logger.warning("Could not parse numbered list from LLM response. Falling back to manual parsing.")
                 lines = [line.strip() for line in response_text.strip().split("\n") if line.strip()]
-                if lines and lines[0].endswith(':'):
+                if lines and lines[0].endswith(":"):
                     objectives = lines[1:]
                 else:
                     objectives = lines

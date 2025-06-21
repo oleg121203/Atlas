@@ -4,12 +4,13 @@ Defines the Operational Planner for translating tactical steps into executable c
 
 import json
 import re
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from utils.llm_manager import LLMManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope
 from agents.agent_manager import AgentManager
+from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope
+from utils.llm_manager import LLMManager
 from utils.logger import get_logger
+
 
 class OperationalPlanner:
     """
@@ -28,7 +29,7 @@ class OperationalPlanner:
         """
         feedback_memories = self.memory_manager.search_memory(agent_type=MemoryScope.MASTER_AGENT, query=f"feedback related to goal: {goal}", limit=5)
         knowledge_memories = self.memory_manager.search_memory(agent_type=MemoryScope.SYSTEM_KNOWLEDGE, query=f"general knowledge for: {goal}", limit=5)
-        
+
         system_prompt = self._get_planning_prompt(goal, feedback_memories, knowledge_memories, context)
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": goal}]
 
@@ -48,7 +49,7 @@ class OperationalPlanner:
                 self.logger.info(f"LLM Chain-of-Thought reasoning:\n---\n{thinking_process}\n---")
             else:
                 self.logger.warning("LLM response did not contain a <thinking> block as per the prompt.")
-            
+
             json_str = self._extract_json_from_response(response_str)
             if not json_str:
                 self.logger.error(f"Could not extract JSON from LLM response: {response_str}")

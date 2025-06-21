@@ -1,10 +1,12 @@
-import pytest
 from unittest.mock import MagicMock
 
-from agents.planning.strategic_planner import StrategicPlanner
-from utils.llm_manager import LLMManager
-from agents.token_tracker import TokenUsage
+import pytest
+
 from agents.enhanced_memory_manager import EnhancedMemoryManager
+from agents.planning.strategic_planner import StrategicPlanner
+from agents.token_tracker import TokenUsage
+from utils.llm_manager import LLMManager
+
 
 @pytest.fixture
 def mock_llm_manager():
@@ -43,11 +45,11 @@ class TestStrategicPlanner:
         assert strategic_plan == [
             "First objective.",
             "Second objective.",
-            "Third objective."
+            "Third objective.",
         ]
         mock_llm_manager.chat.assert_called_once()
         call_args, _ = mock_llm_manager.chat.call_args
-        assert goal in call_args[0][1]['content'] # Goal is in the user message
+        assert goal in call_args[0][1]["content"] # Goal is in the user message
 
     def test_generate_strategic_plan_fallback_parsing(self, mock_llm_manager, mock_memory_manager):
         """Test fallback parsing when the response is not a numbered list."""
@@ -67,7 +69,7 @@ class TestStrategicPlanner:
         # Assert
         assert strategic_plan == [
             "First objective.",
-            "Second objective."
+            "Second objective.",
         ]
         mock_llm_manager.chat.assert_called_once()
 

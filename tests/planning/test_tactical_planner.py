@@ -1,11 +1,13 @@
-import pytest
 import json
 from unittest.mock import MagicMock
 
-from agents.planning.tactical_planner import TacticalPlanner
-from utils.llm_manager import LLMManager
-from agents.token_tracker import TokenUsage
+import pytest
+
 from agents.enhanced_memory_manager import EnhancedMemoryManager
+from agents.planning.tactical_planner import TacticalPlanner
+from agents.token_tracker import TokenUsage
+from utils.llm_manager import LLMManager
+
 
 @pytest.fixture
 def mock_llm_manager():
@@ -28,8 +30,8 @@ class TestTacticalPlanner:
         expected_plan = {
             "steps": [
                 {"sub_goal": "First sub-goal", "description": "Do the first thing."},
-                {"sub_goal": "Second sub-goal", "description": "Do the second thing."}
-            ]
+                {"sub_goal": "Second sub-goal", "description": "Do the second thing."},
+            ],
         }
         # The planner expects a raw JSON string, not one wrapped in markdown
         llm_response_text = json.dumps(expected_plan)
@@ -45,7 +47,7 @@ class TestTacticalPlanner:
         assert tactical_plan == expected_plan
         mock_llm_manager.chat.assert_called_once()
         call_args, _ = mock_llm_manager.chat.call_args
-        assert objective in call_args[0][1]['content']
+        assert objective in call_args[0][1]["content"]
 
     def test_generate_tactical_plan_invalid_json(self, mock_llm_manager, mock_memory_manager):
         """Test handling of a response with invalid JSON."""

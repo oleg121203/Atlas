@@ -4,7 +4,9 @@ Custom logging handler to display log messages in a Tkinter widget.
 
 import logging
 import queue
+
 import customtkinter as ctk
+
 
 class GuiLogger(logging.Handler):
     """A thread-safe handler class which writes logging records to a CTkTextbox widget."""
@@ -21,7 +23,7 @@ class GuiLogger(logging.Handler):
         self.textbox.tag_config("CRITICAL", foreground="red")
         self.textbox.tag_config("DEBUG", foreground="gray")
 
-        self.textbox.configure(state='disabled')
+        self.textbox.configure(state="disabled")
         self.start_polling()
 
     def emit(self, record: logging.LogRecord):
@@ -38,15 +40,15 @@ class GuiLogger(logging.Handler):
             while not self.log_queue.empty():
                 record = self.log_queue.get_nowait()
                 msg = self.format(record)
-                
+
                 #Determine the tag based on log level
                 level_tag = record.levelname
                 if level_tag not in ["INFO", "WARNING", "ERROR", "CRITICAL", "DEBUG"]:
                     level_tag = "INFO" #Default tag
 
-                self.textbox.configure(state='normal')
-                self.textbox.insert(ctk.END, msg + '\n', (level_tag,))
-                self.textbox.configure(state='disabled')
+                self.textbox.configure(state="normal")
+                self.textbox.insert(ctk.END, msg + "\n", (level_tag,))
+                self.textbox.configure(state="disabled")
                 self.textbox.see(ctk.END) #Scroll to the bottom
         except queue.Empty:
             pass  #This can happen if the queue becomes empty between the check and get

@@ -27,7 +27,7 @@ try:
 except ImportError:
     _PYTESSERACT_AVAILABLE = False
 
-__all__ = ["ocr_image", "ocr_file"]
+__all__ = ["ocr_file", "ocr_image"]
 
 
 def _vision_ocr(img: Image.Image) -> str:
@@ -48,24 +48,23 @@ def ocr_image(img: Image.Image) -> str:
     """Return recognized text from *img* using best available backend."""
     if not _PIL_AVAILABLE:
         raise RuntimeError("PIL (Pillow) is not available. Cannot perform OCR on images.")
-        
+
     if _VISION_AVAILABLE:
         try:
             return _vision_ocr(img)
         except Exception:
             pass  #fall through
-            
+
     if _PYTESSERACT_AVAILABLE:
         return pytesseract.image_to_string(img)
-    else:
-        raise RuntimeError("No OCR backend available (missing pytesseract and Vision)")
+    raise RuntimeError("No OCR backend available (missing pytesseract and Vision)")
 
 
 def ocr_file(path: Path | str, *, lang: Optional[str] = None) -> str:
     """OCR an image file at *path* and return text."""
     if not _PIL_AVAILABLE:
         raise RuntimeError("PIL (Pillow) is not available. Cannot open image files for OCR.")
-        
+
     img = Image.open(Path(path))
     if lang and _PYTESSERACT_AVAILABLE:
         return pytesseract.image_to_string(img, lang=lang)

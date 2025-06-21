@@ -18,7 +18,7 @@ class TextAgent(BaseAgent):
     def execute_task(self, prompt: str, context: Dict[str, Any]) -> str:
         self.logger.info(f"Executing text task: Summarizing text of length {len(prompt)}")
 
-        summarization_prompt = f"Please summarize the following text concisely:\n\n---\n{prompt}\n---" 
+        summarization_prompt = f"Please summarize the following text concisely:\n\n---\n{prompt}\n---"
 
         try:
             #For now, we use the default provider configured in LLMManager.

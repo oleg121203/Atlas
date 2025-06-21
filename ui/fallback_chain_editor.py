@@ -1,5 +1,7 @@
+from typing import Callable, List
+
 import customtkinter as ctk
-from typing import List, Callable
+
 
 class FallbackChainEditor(ctk.CTkToplevel):
     """A Toplevel window to edit the fallback chain for an agent."""
@@ -84,12 +86,10 @@ class FallbackChainEditor(ctk.CTkToplevel):
     def _move_up(self):
         """Move the selected model up in the chain."""
         #Placeholder for moving an item up
-        pass
 
     def _move_down(self):
         """Move the selected model down in the chain."""
         #Placeholder for moving an item down
-        pass
 
     def _save_and_close(self):
         """Save the changes and close the window."""

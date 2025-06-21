@@ -1,8 +1,9 @@
 """Ollama backend wrapper using the REST API."""
 from __future__ import annotations
 
-import requests
 from typing import List
+
+import requests
 
 from utils.llm_manager import LLMResponse
 from utils.logger import get_logger
@@ -16,7 +17,7 @@ class OllamaBackend:
         self.model = model
         self.api_url = f"{host}/api/chat"
 
-    def chat(self, messages: List[dict[str, str]], **kwargs) -> LLMResponse:  #noqa: D401, ANN001
+    def chat(self, messages: List[dict[str, str]], **kwargs) -> LLMResponse:
         payload = {
             "model": self.model,
             "messages": messages,

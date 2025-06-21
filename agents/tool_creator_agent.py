@@ -2,10 +2,10 @@
 Defines the ToolCreatorAgent for dynamically generating new tools.
 """
 
+import ast
 import os
 import re
-import ast
-from typing import Optional, Dict, Any, TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from utils.llm_manager import LLMManager
 from utils.logger import get_logger
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class ToolCreatorAgent:
     """An agent that can write new Python tool functions based on a description."""
 
-    def __init__(self, llm_manager: LLMManager, memory_manager: 'MemoryManager', tool_dir: str = "tools/generated"):
+    def __init__(self, llm_manager: LLMManager, memory_manager: "MemoryManager", tool_dir: str = "tools/generated"):
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         self.logger = get_logger()
@@ -31,32 +31,32 @@ class ToolCreatorAgent:
 
     def _get_creation_prompt(self, tool_description: str, examples: Optional[List[Dict[str, Any]]] = None) -> str:
         """Constructs the prompt for the LLM to generate a tool."""
-        
+
         examples_text = ""
         if examples:
             successful_examples = []
             failed_examples = []
             for ex in examples:
-                doc = ex.get('document', {})
+                doc = ex.get("document", {})
                 if not doc:
                     continue
-                
-                desc = doc.get('description')
-                res = doc.get('result', {})
-                status = res.get('status')
-                
-                if status == 'success':
-                    code = res.get('code')
+
+                desc = doc.get("description")
+                res = doc.get("result", {})
+                status = res.get("status")
+
+                if status == "success":
+                    code = res.get("code")
                     if code:
                         successful_examples.append(f"Description: {desc}\n```python\n{code}\n```")
-                elif status == 'error':
-                    message = res.get('message')
+                elif status == "error":
+                    message = res.get("message")
                     failed_examples.append(f"Description: {desc}\nError: {message}")
 
             if successful_examples:
                 examples_text += "\n\n**Here are some examples of successful past attempts for similar requests:**\n"
                 examples_text += "\n---\n".join(successful_examples)
-            
+
             if failed_examples:
                 examples_text += "\n\n**Here are some examples of FAILED past attempts. Do NOT repeat these mistakes:**\n"
                 examples_text += "\n---\n".join(failed_examples)
@@ -106,7 +106,7 @@ def get_current_weather(city: str) -> Dict[str, Any]:
 
     def _extract_python_code(self, response: str) -> Optional[str]:
         """Extracts Python code from a markdown block."""
-        match = re.search(r'```python\n(.*?)\n```', response, re.DOTALL)
+        match = re.search(r"```python\n(.*?)\n```", response, re.DOTALL)
         if match:
             return match.group(1).strip()
         return None
@@ -134,17 +134,17 @@ def get_current_weather(city: str) -> Dict[str, Any]:
     def create_tool(self, tool_description: str) -> Dict[str, Any]:
         """Generates, validates, and saves a new tool function, learning from past attempts."""
         self.logger.info(f"Attempting to create a new tool for: '{tool_description}'")
-        
+
         past_attempts = self.memory_manager.search(
             collection="tool_creation_history",
             query=tool_description,
-            limit=3
+            limit=3,
         )
 
         prompt = self._get_creation_prompt(tool_description, past_attempts)
         result: Dict[str, Any] = {}
         code_generated = None
-        
+
         try:
             llm_result = self.llm_manager.chat([{"role": "system", "content": prompt}])
             if not llm_result or not llm_result.response_text:
@@ -171,11 +171,11 @@ def get_current_weather(city: str) -> Dict[str, Any]:
                                 f.write(code)
                             self.logger.info(f"Successfully created new tool: {file_path}")
                             result = {
-                                "status": "success", 
+                                "status": "success",
                                 "message": f"Tool '{function_name}' created at {file_path}",
                                 "tool_name": function_name,
                                 "file_path": file_path,
-                                "code": code
+                                "code": code,
                             }
 
         except Exception as e:
@@ -184,14 +184,14 @@ def get_current_weather(city: str) -> Dict[str, Any]:
 
         doc_to_save = {
             "description": tool_description,
-            "result": result
+            "result": result,
         }
         if result.get("status") != "success" and code_generated:
-             doc_to_save['result']['code_generated'] = code_generated
+             doc_to_save["result"]["code_generated"] = code_generated
 
         self.memory_manager.add(
             collection="tool_creation_history",
-            document=doc_to_save
+            document=doc_to_save,
         )
 
         return result

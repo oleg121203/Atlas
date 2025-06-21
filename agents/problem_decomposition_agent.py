@@ -2,18 +2,19 @@
 Defines the Problem Decomposition Agent responsible for Tree-of-Thought reasoning.
 """
 import re
-from typing import List, Dict, Optional
 from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 from utils import llm_manager
 from utils.logger import get_logger
+
 
 @dataclass
 class Thought:
     """Represents a single node in the Tree-of-Thought."""
     text: str
-    parent: Optional['Thought'] = None
-    children: List['Thought'] = field(default_factory=list)
+    parent: Optional["Thought"] = None
+    children: List["Thought"] = field(default_factory=list)
     score: float = 0.0
 
 class ProblemDecompositionAgent:
@@ -73,8 +74,8 @@ Your Output:
         self.logger.debug(f"Generating next thoughts for: {current_thought.text}")
         system_prompt = self._get_generation_prompt()
         # Modified user prompt to focus on current thought, avoiding ambiguity with complex goal
-        user_prompt = f"Current Thought to expand: \"{current_thought.text}\""
-        
+        user_prompt = f'Current Thought to expand: "{current_thought.text}"'
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -85,7 +86,7 @@ Your Output:
             if not llm_result or not llm_result.response_text:
                 self.logger.error("LLM returned no content for thought generation.")
                 return []
-            
+
             response_text = llm_result.response_text
             thoughts = re.findall(r"^\d+\.\s*(.*)", response_text, re.MULTILINE)
             # Filter out any thoughts that are empty or just whitespace
@@ -112,14 +113,14 @@ Your Output:
             if not llm_result or not llm_result.response_text:
                 self.logger.error("LLM returned no content for thought evaluation.")
                 return 0.0
-            
+
             response_text = llm_result.response_text.strip()
             self.logger.debug(f"LLM raw response for thought evaluation: {response_text}")
 
             score_match = re.search(r"(\d\.\d+)", response_text)
             if score_match:
                 return float(score_match.group(1))
-            
+
             self.logger.warning(f"Could not parse score from LLM response: '{response_text}'. Defaulting to 0.0.")
             return 0.0
         except Exception as e:
@@ -145,17 +146,17 @@ Your Output:
         best_path: List[Thought] = [root]
         best_score = 0.0
         current_thought = root
-        
+
         for depth in range(max_depth):
             # Generate new thoughts from the current thought
             new_thoughts = self._generate_thoughts(current_thought, complex_goal)
             if not new_thoughts:
                 self.logger.error("ToT process failed to find a viable path.")
                 return None
-            
+
             self.logger.debug(f"Depth {depth + 1}: Generated thoughts: {new_thoughts}")
             print(f"Depth {depth + 1}: Generated thoughts: {new_thoughts}")
-            
+
             # Evaluate and score the new thoughts
             scored_thoughts = []
             for thought_text in new_thoughts:
@@ -166,17 +167,17 @@ Your Output:
                     scored_thoughts.append(new_thought)
                     self.logger.debug(f"Depth {depth + 1}: Thought '{thought_text}' scored {score}")
                     print(f"Depth {depth + 1}: Thought '{thought_text}' scored {score}")
-            
+
             if not scored_thoughts:
                 self.logger.error("ToT process failed to find a viable path.")
                 return None
-            
+
             # Prune to the top 'breadth' thoughts
             scored_thoughts.sort(key=lambda x: x.score, reverse=True)
             top_thoughts = scored_thoughts[:breadth]
             self.logger.debug(f"Depth {depth + 1}: Top thoughts after pruning: {[t.text for t in top_thoughts]}")
             print(f"Depth {depth + 1}: Top thoughts after pruning: {[t.text for t in top_thoughts]}")
-            
+
             # Select the best thought to continue from, preferring one not already in the path
             best_new_thought = None
             path_texts = [t.text for t in best_path[1:]]  # Exclude the root node from duplicate check
@@ -188,7 +189,7 @@ Your Output:
                     break
             if best_new_thought is None and top_thoughts:
                 best_new_thought = top_thoughts[0]
-            
+
             if best_new_thought:
                 best_path.append(best_new_thought)
                 best_score = best_new_thought.score
@@ -198,9 +199,9 @@ Your Output:
             else:
                 self.logger.error("No viable thought found at this depth.")
                 break
-        
+
         if len(best_path) <= 1:  # Only root node, no actual decomposition
             return None
-        
+
         self.logger.info(f"Best path found with score {best_score}: {[t.text for t in best_path[1:]]}")
         return [t.text for t in best_path[1:]]

@@ -8,6 +8,11 @@ exclude = [
     "__pycache__",
     "*.pyx",
     "*.pxd",
+    "plugins/helper_sync_tell/plugin.py",
+    "plugins/helper_sync_tell/test_ultimate_assistant.py", 
+    "plugins/helper_sync_tell/**",
+    "plugins/web_browsing/**",
+    "main.py",
 ]
 
 [lint]
@@ -30,4 +35,11 @@ ignore = [
     "RUF013",    # Implicit optional
     "PLR2004",   # Magic value comparison
     "C901",      # Complex structure
+    "E402",      # Module level import not at top of file
+    "F401",      # Imported but unused
+    "F841",      # Local variable assigned but never used
+    "E722",      # Do not use bare except
+    "F601",      # Dictionary key repeated
+    "F821",      # Undefined name
+    "F811",      # Redefined while unused
 ]

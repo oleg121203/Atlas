@@ -7,14 +7,15 @@ TokenTracker to monitor and log token usage for all API calls.
 """
 
 import logging
-import requests
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
-from openai import OpenAI
 import google.generativeai as genai
+import requests
+from openai import OpenAI
 
 from agents.token_tracker import TokenTracker, TokenUsage
+
 
 @dataclass
 class LLMResponse:
@@ -30,37 +31,37 @@ class LLMManager:
     def __init__(self, token_tracker: TokenTracker, config_manager=None):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.token_tracker = token_tracker
-        
+
         #Use provided config manager or fall back to utils config manager
         self.config_manager = config_manager or utils_config_manager
-        
+
         #Initialize clients for different providers
         #Note: OpenAI client is created dynamically when needed
         self.gemini_client: Optional[Any] = None
         self.current_provider = "gemini"  #Default provider
         self.current_model = "gemini-1.5-flash"  #Default model
-        
+
         #Add missing model attributes
         self.gemini_model = "gemini-1.5-flash"
         self.openai_model = "gpt-4-turbo"
         self.anthropic_model = "claude-3-sonnet-20240229"
         self.groq_model = "llama3-8b-8192"
-        
+
         self._initialize_clients()
 
     def _initialize_clients(self):
         """Initializes all available LLM clients."""
         #OpenAI client is created dynamically when needed
         self._initialize_gemini()
-        
+
         #Set current provider from config after initialization
         configured_provider = self.config_manager.get_current_provider()
         configured_model = self.config_manager.get_current_model()
-        
+
         if configured_provider:
             self.current_provider = configured_provider.lower()
             self.logger.info(f"Set current provider to: {self.current_provider} (from config)")
-            
+
             #Set appropriate model for the provider
             if configured_model:
                 self.current_model = configured_model
@@ -77,22 +78,22 @@ class LLMManager:
         else:
             #Ensure defaults are consistent
             self.logger.info(f"Using default provider: {self.current_provider} with model: {self.current_model}")
-        
+
     def _initialize_gemini(self):
         """Initializes the Gemini client using the API key from the config."""
         api_key = self.config_manager.get_gemini_api_key()
         if not api_key or api_key.strip() == "":
             self.logger.warning("Gemini API key not found in config. Gemini client is not available.")
             return
-            
+
         #Додаткова verification на тестові ключі
         if api_key.startswith("test_") or "test" in api_key.lower():
             self.logger.warning("Test Gemini API key detected. Gemini client is not available.")
             return
-            
+
         try:
             genai.configure(api_key=api_key)
-            self.gemini_client = genai.GenerativeModel('gemini-1.5-flash')
+            self.gemini_client = genai.GenerativeModel("gemini-1.5-flash")
             self.logger.info("Gemini API key is valid and client is initialized.")
         except Exception as e:
             self.gemini_client = None
@@ -112,61 +113,61 @@ class LLMManager:
     def get_available_providers(self) -> Dict[str, List[str]]:
         """Returns available providers and their models."""
         providers = {}
-        
+
         #OpenAI models (check API key dynamically)
         openai_key = self.config_manager.get_openai_api_key()
         if self._is_valid_openai_key(openai_key):
             providers["openai"] = [
                 "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4",
-                "gpt-3.5-turbo", "gpt-3.5-turbo-16k"
+                "gpt-3.5-turbo", "gpt-3.5-turbo-16k",
             ]
-            
+
         #Gemini models
         if self.gemini_client:
             providers["gemini"] = [
-                "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"
+                "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro",
             ]
-            
+
         #Ollama models (local)
         providers["ollama"] = [
-            "llama3.2", "llama3.1", "mistral", "codellama", "phi3", "qwen2", "llama2"
+            "llama3.2", "llama3.1", "mistral", "codellama", "phi3", "qwen2", "llama2",
         ]
-        
+
         #Groq models (if API key is available)
-        if self.config_manager.get_setting('groq_api_key'):
+        if self.config_manager.get_setting("groq_api_key"):
             providers["groq"] = [
                 "llama3-8b-8192", "llama3-70b-8192", "mixtral-8x7b-32768",
-                "gemma-7b-it", "whisper-large-v3"
+                "gemma-7b-it", "whisper-large-v3",
             ]
-        
+
         #Mistral models (if API key is available)
-        if self.config_manager.get_setting('mistral_api_key'):
+        if self.config_manager.get_setting("mistral_api_key"):
             providers["mistral"] = [
                 "mistral-tiny", "mistral-small", "mistral-medium", "mistral-large-latest",
-                "open-mistral-7b", "open-mixtral-8x7b", "open-mixtral-8x22b"
+                "open-mistral-7b", "open-mixtral-8x7b", "open-mixtral-8x22b",
             ]
-        
+
         return providers
 
     def _is_valid_openai_key(self, api_key: str) -> bool:
         """Check if OpenAI API key is valid (not placeholder)."""
         if not api_key or api_key.strip() == "":
             return False
-            
+
         #Check for placeholder/invalid keys
         placeholder_indicators = [
             "your-openai-key-here", "your_openai_api_key_here", "placeholder",
-            "#openai key not configured", "not configured", "sk-placeholder"
+            "#openai key not configured", "not configured", "sk-placeholder",
         ]
-        
-        if (api_key.startswith("test_") or 
-            api_key.startswith("sk-test") or 
+
+        if (api_key.startswith("test_") or
+            api_key.startswith("sk-test") or
             api_key.startswith("#") or
             any(indicator in api_key.lower() for indicator in placeholder_indicators) or
             api_key in ["111", "test", "demo", "example"] or
             len(api_key) < 20):
             return False
-            
+
         return True
 
     def _is_openai_available(self) -> bool:
@@ -174,30 +175,30 @@ class LLMManager:
         api_key = self.config_manager.get_openai_api_key()
         if not api_key or api_key.strip() == "":
             return False
-            
+
         #Check for placeholder/invalid keys
         placeholder_indicators = [
             "your-openai-key-here", "your_openai_api_key_here", "placeholder",
-            "#openai key not configured", "not configured", "sk-placeholder"
+            "#openai key not configured", "not configured", "sk-placeholder",
         ]
-        
-        if (api_key.startswith("test_") or 
-            api_key.startswith("sk-test") or 
+
+        if (api_key.startswith("test_") or
+            api_key.startswith("sk-test") or
             api_key.startswith("#") or
             any(indicator in api_key.lower() for indicator in placeholder_indicators) or
             api_key in ["111", "test", "demo", "example"] or
             len(api_key) < 20):  #Real OpenAI keys are much longer
             return False
-            
+
         return True
 
     def _validate_provider_model(self, provider: str, model: str) -> tuple[str, str]:
         """Validate and fix provider/model combinations to ensure compatibility."""
         provider = provider.lower()
-        
+
         #Get available providers and their models
         available_providers = self.get_available_providers()
-        
+
         #If the provider is not available, fallback to an available one
         if provider not in available_providers:
             if "gemini" in available_providers:
@@ -210,7 +211,7 @@ class LLMManager:
                 model = "llama3.1"
             else:
                 raise ValueError("No LLM providers are available. Please configure at least one API key.")
-        
+
         #Validate model for the selected provider
         if provider in available_providers:
             available_models = available_providers[provider]
@@ -222,7 +223,7 @@ class LLMManager:
                     model = fallback_model
                 else:
                     raise ValueError(f"No models available for provider '{provider}'")
-        
+
         return provider, model
 
     def chat(
@@ -247,7 +248,7 @@ class LLMManager:
         #Use provided parameters or fall back to current settings
         use_provider = provider or self.current_provider
         use_model = model or self.current_model
-        
+
         #Validate and fix provider/model combination
         try:
             use_provider, use_model = self._validate_provider_model(use_provider, use_model)
@@ -258,17 +259,16 @@ class LLMManager:
         #Route to appropriate provider
         if use_provider == "openai":
             return self._chat_openai(messages, tools, use_model)
-        elif use_provider == "gemini":
+        if use_provider == "gemini":
             return self._chat_gemini(messages, tools, use_model)
-        elif use_provider == "ollama":
+        if use_provider == "ollama":
             return self._chat_ollama(messages, tools, use_model)
-        elif use_provider == "groq":
+        if use_provider == "groq":
             return self._chat_groq(messages, tools, use_model)
-        elif use_provider == "mistral":
+        if use_provider == "mistral":
             return self._chat_mistral(messages, tools, use_model)
-        else:
-            self.logger.error(f"Unsupported provider: {use_provider}")
-            raise ValueError(f"Unsupported provider: {use_provider}")
+        self.logger.error(f"Unsupported provider: {use_provider}")
+        raise ValueError(f"Unsupported provider: {use_provider}")
 
     def _chat_openai(self, messages: list[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gpt-3.5-turbo") -> TokenUsage:
         """Handle OpenAI chat requests."""
@@ -277,7 +277,7 @@ class LLMManager:
         if not self._is_valid_openai_key(api_key):
             self.logger.warning("OpenAI API key is invalid or placeholder, falling back to Gemini.")
             return self._chat_gemini(messages, tools, "gemini-1.5-flash")
-        
+
         #Create client dynamically (like Groq)
         try:
             from openai import OpenAI
@@ -337,15 +337,15 @@ class LLMManager:
 
         try:
             #Fix: Ensure we use valid Gemini models only
-            if model and model.startswith('gpt'):
+            if model and model.startswith("gpt"):
                 #If someone tries to use GPT model with Gemini, use default Gemini model
                 original_model = model
-                model = self.gemini_model or 'gemini-1.5-flash'
+                model = self.gemini_model or "gemini-1.5-flash"
                 self.logger.warning(f"⚠️  Switching from GPT model '{original_model}' to Gemini model: {model}")
-            
+
             #Ensure we have a valid Gemini model
-            if not model or not model.startswith('gemini'):
-                model = 'gemini-1.5-flash'
+            if not model or not model.startswith("gemini"):
+                model = "gemini-1.5-flash"
                 self.logger.info(f"Using default Gemini model: {model}")
 
             #Convert OpenAI format messages to Gemini format
@@ -365,7 +365,7 @@ class LLMManager:
                 raise ValueError("Google Generative AI library not installed")
 
             #Extract response text
-            response_text = response.text if hasattr(response, 'text') else str(response)
+            response_text = response.text if hasattr(response, "text") else str(response)
 
             #Estimate token usage (Gemini doesn't always provide exact counts)
             prompt_tokens = len(prompt.split()) * 1.3  #Rough estimation
@@ -395,22 +395,21 @@ class LLMManager:
             payload = {
                 "model": model,
                 "messages": messages,
-                "stream": False
+                "stream": False,
             }
-            
+
             response = requests.post(url, json=payload, timeout=60)
-            
+
             if response.status_code != 200:
                 error_msg = response.text
                 #Check for specific Ollama errors and provide helpful messages
                 if "not found" in error_msg and "try pulling it first" in error_msg:
                     raise Exception(f"Model '{model}' not found in Ollama. Please run: ollama pull {model}")
-                else:
-                    raise Exception(f"Ollama request failed with status {response.status_code}: {error_msg}")
-            
+                raise Exception(f"Ollama request failed with status {response.status_code}: {error_msg}")
+
             result = response.json()
             response_text = result.get("message", {}).get("content", "")
-            
+
             #Estimate token usage
             prompt_text = " ".join([msg["content"] for msg in messages])
             prompt_tokens = len(prompt_text.split()) * 1.3
@@ -437,7 +436,7 @@ class LLMManager:
 
     def _chat_groq(self, messages: list[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "llama3-8b-8192") -> TokenUsage:
         """Handle Groq chat requests."""
-        api_key = self.config_manager.get_setting('groq_api_key')
+        api_key = self.config_manager.get_setting("groq_api_key")
         if not api_key:
             self.logger.error("Groq API key not found in config.")
             raise ValueError("Groq API key not found. Please set it in config.")
@@ -447,18 +446,18 @@ class LLMManager:
             from openai import OpenAI
             groq_client = OpenAI(
                 api_key=api_key,
-                base_url="https://api.groq.com/openai/v1"
+                base_url="https://api.groq.com/openai/v1",
             )
-            
+
             kwargs = {
                 "model": model,
                 "messages": messages,
                 "temperature": 0.7,
             }
             #Note: Groq has limited tool support
-            
+
             response = groq_client.chat.completions.create(**kwargs)
-            
+
             message = response.choices[0].message
             prompt_tokens = response.usage.prompt_tokens if response.usage else 0
             completion_tokens = response.usage.completion_tokens if response.usage else 0
@@ -481,11 +480,11 @@ class LLMManager:
 
     def _chat_mistral(self, messages: list[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "mistral-tiny") -> TokenUsage:
         """Handle Mistral chat requests."""
-        api_key = self.config_manager.get_setting('mistral_api_key')
+        api_key = self.config_manager.get_setting("mistral_api_key")
         if not api_key or api_key.strip() == "":
             self.logger.error("Mistral API key not found in config.")
             raise ValueError("Mistral API key not found. Please set it in config.")
-            
+
         #Додаткова verification на тестові ключі
         if api_key.startswith("test_") or "test" in api_key.lower():
             self.logger.error("Test Mistral API key detected.")
@@ -495,24 +494,24 @@ class LLMManager:
             url = "https://api.mistral.ai/v1/chat/completions"
             headers = {
                 "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-            
+
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.7
+                "temperature": 0.7,
             }
-            
+
             response = requests.post(url, headers=headers, json=payload, timeout=60)
-            
+
             if response.status_code != 200:
                 raise Exception(f"Mistral request failed with status {response.status_code}: {response.text}")
-            
+
             result = response.json()
             message = result["choices"][0]["message"]["content"]
             usage = result.get("usage", {})
-            
+
             token_usage = TokenUsage(
                 response_text=message,
                 tool_calls=None,
@@ -535,16 +534,16 @@ class LLMManager:
             self.logger.warning("OpenAI not available for embeddings. Returning empty embedding.")
             #Return a placeholder embedding of appropriate size for compatibility
             return [0.0] * 1536  #Standard OpenAI embedding size
-            
+
         try:
             #Create OpenAI client dynamically
             api_key = self.config_manager.get_openai_api_key()
             openai_client = OpenAI(api_key=api_key)
-            
+
             text = text.replace("\n", " ")
             response = openai_client.embeddings.create(
                 input=[text],
-                model=model
+                model=model,
             )
             embedding = response.data[0].embedding
             self.logger.debug(f"Successfully generated embedding for text: '{text[:50]}...'")
@@ -558,9 +557,9 @@ class LLMManager:
         provider = provider.lower()
         if provider == "openai":
             return self._is_openai_available()
-        elif provider == "gemini":
+        if provider == "gemini":
             return self.gemini_client is not None
-        elif provider == "ollama":
+        if provider == "ollama":
             #Check if Ollama is running
             try:
                 response = requests.get("http://localhost:11434/api/version", timeout=5)
@@ -568,9 +567,9 @@ class LLMManager:
             except:
                 return False
         elif provider == "groq":
-            return bool(self.config_manager.get_setting('groq_api_key'))
+            return bool(self.config_manager.get_setting("groq_api_key"))
         elif provider == "mistral":
-            return bool(self.config_manager.get_setting('mistral_api_key'))
+            return bool(self.config_manager.get_setting("mistral_api_key"))
         return False
 
     def get_current_provider_info(self) -> Dict[str, str]:
@@ -578,12 +577,11 @@ class LLMManager:
         return {
             "provider": self.current_provider,
             "model": self.current_model,
-            "available": self.is_provider_available(self.current_provider)
+            "available": self.is_provider_available(self.current_provider),
         }
 
     def stop_all_llm_calls(self):
         """Stops any ongoing LLM calls."""
-        pass
 
     def check_ollama_models(self) -> Dict[str, bool]:
         """Check which Ollama models are available locally."""
@@ -592,19 +590,18 @@ class LLMManager:
             if response.status_code == 200:
                 data = response.json()
                 installed_models = [model["name"].split(":")[0] for model in data.get("models", [])]
-                
+
                 available_models = {}
                 suggested_models = ["llama3.2", "llama3.1", "mistral", "codellama", "phi3", "qwen2"]
-                
+
                 for model in suggested_models:
                     available_models[model] = model in installed_models
-                    
+
                 return available_models
-            else:
-                return {}
+            return {}
         except:
             return {}
-    
+
     def get_ollama_install_command(self, model: str) -> str:
         """Get the command to install an Ollama model."""
         return f"ollama pull {model}"

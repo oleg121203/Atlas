@@ -5,7 +5,7 @@ import importlib.util
 import inspect
 import json
 from pathlib import Path
-from typing import Any, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
     from agents.agent_manager import AgentManager
@@ -38,12 +38,12 @@ class PluginManager:
 
             if not manifest_path.exists() or not plugin_file_path.exists():
                 self.logger.warning(
-                    f"Skipping '{plugin_name}' as it lacks a manifest or plugin file."
+                    f"Skipping '{plugin_name}' as it lacks a manifest or plugin file.",
                 )
                 continue
 
             try:
-                with open(manifest_path, "r") as f:
+                with open(manifest_path) as f:
                     manifest = json.load(f)
 
                 spec = importlib.util.spec_from_file_location(
@@ -64,16 +64,16 @@ class PluginManager:
                         sig = inspect.signature(module.register)
                         #Enhanced parameter detection for better plugin integration
                         param_names = list(sig.parameters.keys())
-                        
+
                         #Prepare arguments based on plugin requirements
                         call_args = {}
-                        if 'llm_manager' in param_names:
-                            call_args['llm_manager'] = llm_manager
-                        if 'atlas_app' in param_names:
-                            call_args['atlas_app'] = atlas_app
-                        if 'agent_manager' in param_names:
-                            call_args['agent_manager'] = self.agent_manager
-                        
+                        if "llm_manager" in param_names:
+                            call_args["llm_manager"] = llm_manager
+                        if "atlas_app" in param_names:
+                            call_args["atlas_app"] = atlas_app
+                        if "agent_manager" in param_names:
+                            call_args["agent_manager"] = self.agent_manager
+
                         #Call with appropriate arguments
                         if len(sig.parameters) > 0:
                             if call_args:
@@ -83,7 +83,7 @@ class PluginManager:
                                 registration_data = module.register(llm_manager)
                         else:
                             registration_data = module.register()
-                            
+
                     except Exception as e:
                         self.logger.error(f"Error calling register() for plugin '{plugin_name}': {e}")
                         continue
@@ -93,9 +93,9 @@ class PluginManager:
                     elif isinstance(registration_data, list):
                         #For backward compatibility with plugins returning only a list of tools
                         tools = registration_data
-                    
+
                     self.logger.info(
-                        f"Plugin '{plugin_name}' registered {len(tools)} tools and {len(agents)} agents."
+                        f"Plugin '{plugin_name}' registered {len(tools)} tools and {len(agents)} agents.",
                     )
 
                 self.plugins[plugin_name] = {
@@ -110,7 +110,7 @@ class PluginManager:
 
             except Exception as e:
                 self.logger.error(
-                    f"Failed to load plugin '{plugin_name}': {e}", exc_info=True
+                    f"Failed to load plugin '{plugin_name}': {e}", exc_info=True,
                 )
 
     def get_all_plugins(self) -> Dict[str, Dict[str, Any]]:
@@ -122,58 +122,58 @@ class PluginManager:
         if plugin_name not in self.plugins:
             self.logger.warning(f"Plugin '{plugin_name}' not found")
             return False
-            
+
         try:
             plugin_data = self.plugins[plugin_name]
             tools = plugin_data.get("tools", [])
             agents = plugin_data.get("agents", [])
-            
+
             #Register tools
             for tool in tools:
-                if hasattr(tool, '__name__'):
+                if hasattr(tool, "__name__"):
                     tool_name = tool.__name__
-                    self.agent_manager.add_tool(tool_name, tool, getattr(tool, '__doc__', ''))
-                    
+                    self.agent_manager.add_tool(tool_name, tool, getattr(tool, "__doc__", ""))
+
             #Register agents (if any)
             for agent in agents:
-                if hasattr(agent, 'name'):
+                if hasattr(agent, "name"):
                     self.agent_manager.add_agent(agent.name, agent)
-                    
+
             self.logger.info(f"Plugin '{plugin_name}' enabled successfully")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to enable plugin '{plugin_name}': {e}")
             return False
-    
+
     def disable_plugin(self, plugin_name: str) -> bool:
         """Disable a plugin by unregistering its tools and agents."""
         if plugin_name not in self.plugins:
             self.logger.warning(f"Plugin '{plugin_name}' not found")
             return False
-            
+
         try:
             plugin_data = self.plugins[plugin_name]
             tools = plugin_data.get("tools", [])
             agents = plugin_data.get("agents", [])
-            
+
             #Unregister tools
             for tool in tools:
-                if hasattr(tool, '__name__'):
+                if hasattr(tool, "__name__"):
                     tool_name = tool.__name__
-                    if hasattr(self.agent_manager, 'remove_tool'):
+                    if hasattr(self.agent_manager, "remove_tool"):
                         self.agent_manager.remove_tool(tool_name)
-                    elif hasattr(self.agent_manager, '_tools') and tool_name in self.agent_manager._tools:
+                    elif hasattr(self.agent_manager, "_tools") and tool_name in self.agent_manager._tools:
                         del self.agent_manager._tools[tool_name]
-                        
+
             #Unregister agents (if any)
             for agent in agents:
-                if hasattr(agent, 'name') and hasattr(self.agent_manager, 'remove_agent'):
+                if hasattr(agent, "name") and hasattr(self.agent_manager, "remove_agent"):
                     self.agent_manager.remove_agent(agent.name)
-                    
+
             self.logger.info(f"Plugin '{plugin_name}' disabled successfully")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to disable plugin '{plugin_name}': {e}")
             return False
@@ -182,22 +182,22 @@ class PluginManager:
         """Get the current status of a plugin."""
         if plugin_name not in self.plugins:
             return {"exists": False, "enabled": False}
-            
+
         plugin_data = self.plugins[plugin_name]
         tools = plugin_data.get("tools", [])
-        
+
         #Check if plugin tools are registered
         enabled = False
-        if tools and hasattr(self.agent_manager, '_tools'):
+        if tools and hasattr(self.agent_manager, "_tools"):
             for tool in tools:
-                if hasattr(tool, '__name__') and tool.__name__ in self.agent_manager._tools:
+                if hasattr(tool, "__name__") and tool.__name__ in self.agent_manager._tools:
                     enabled = True
                     break
-                    
+
         return {
             "exists": True,
             "enabled": enabled,
             "manifest": plugin_data.get("manifest", {}),
             "tool_count": len(tools),
-            "agent_count": len(plugin_data.get("agents", []))
+            "agent_count": len(plugin_data.get("agents", [])),
         }

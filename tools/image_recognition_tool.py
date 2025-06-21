@@ -32,28 +32,27 @@ def find_template_in_image(template_path: str, image_path: str, threshold: float
     if not _CV2_AVAILABLE:
         logger.error("OpenCV (cv2) is not available. Cannot perform image recognition.")
         return None
-        
+
     try:
         #Read images
         template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
         image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-        
+
         if template is None or image is None:
             logger.error(f"Failed to load images: template={template_path}, image={image_path}")
             return None
-        
+
         #Perform template matching
         result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-        
+
         if max_val >= threshold:
             logger.info(f"Template found at {max_loc} with confidence {max_val}")
             return max_loc
-        else:
-            logger.info(f"No match found above threshold {threshold}. Best match confidence: {max_val}")
-            return None
+        logger.info(f"No match found above threshold {threshold}. Best match confidence: {max_val}")
+        return None
     except Exception as e:
-        logger.error(f"Error in template matching: {str(e)}")
+        logger.error(f"Error in template matching: {e!s}")
         return None
 
 def find_object_in_image(image_path: str, object_cascade_path: str) -> list:
@@ -70,24 +69,24 @@ def find_object_in_image(image_path: str, object_cascade_path: str) -> list:
     if not _CV2_AVAILABLE:
         logger.error("OpenCV (cv2) is not available. Cannot perform object detection.")
         return []
-        
+
     try:
         #Load image and cascade classifier
         image = cv2.imread(image_path)
         if image is None:
             logger.error(f"Failed to load image: {image_path}")
             return []
-        
+
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         cascade = cv2.CascadeClassifier(object_cascade_path)
         if cascade.empty():
             logger.error(f"Failed to load cascade classifier: {object_cascade_path}")
             return []
-        
+
         #Detect objects
         objects = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
         logger.info(f"Found {len(objects)} objects in image")
         return objects.tolist()
     except Exception as e:
-        logger.error(f"Error in object detection: {str(e)}")
+        logger.error(f"Error in object detection: {e!s}")
         return []

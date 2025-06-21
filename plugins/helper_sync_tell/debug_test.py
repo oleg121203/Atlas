@@ -3,8 +3,8 @@
 Debug test for Helper Sync Tell plugin.
 """
 
-import sys
 import os
+import sys
 import traceback
 
 print("🔍 Helper Sync Tell Plugin Debug Test")
@@ -34,17 +34,17 @@ try:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
-    
+
     import plugin
     print("✅ Plugin module imported successfully")
-    
+
     #Check if main function exists
-    if hasattr(plugin, 'register_enhanced_helper_sync_tell_tool'):
+    if hasattr(plugin, "register_enhanced_helper_sync_tell_tool"):
         print("✅ Registration function found")
     else:
         print("❌ Registration function not found")
         print(f"Available attributes: {[attr for attr in dir(plugin) if not attr.startswith('_')]}")
-        
+
 except Exception as e:
     print(f"❌ Plugin import error: {e}")
     traceback.print_exc()
@@ -56,9 +56,9 @@ try:
     print(f"Result type: {type(result)}")
     if isinstance(result, dict):
         print(f"Result keys: {list(result.keys())}")
-        if 'tools' in result:
+        if "tools" in result:
             print(f"Tools count: {len(result['tools'])}")
-        if 'metadata' in result:
+        if "metadata" in result:
             print(f"Metadata: {result['metadata']}")
 except Exception as e:
     print(f"❌ Plugin execution error: {e}")
@@ -66,7 +66,7 @@ except Exception as e:
 
 print("\n5. Testing encoding...")
 try:
-    with open('plugin.py', 'r', encoding='utf-8') as f:
+    with open("plugin.py", encoding="utf-8") as f:
         content = f.read()
         #Check for problematic characters
         non_ascii_chars = [c for c in content if ord(c) > 127]

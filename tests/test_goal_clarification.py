@@ -1,6 +1,6 @@
+import json
 import unittest
 from unittest.mock import MagicMock, patch
-import json
 
 from agents.master_agent import MasterAgent
 from utils.llm_manager import LLMManager, LLMResponse
@@ -20,7 +20,7 @@ class TestGoalClarification(unittest.TestCase):
             agent_manager=self.mock_agent_manager,
             memory_manager=self.mock_memory_manager,
             context_awareness_engine=self.mock_memory_manager,
-            status_callback=self.mock_status_callback
+            status_callback=self.mock_status_callback,
         )
         # Ensure status_callback is set to our mock from the beginning
         self.master_agent.status_callback = self.mock_status_callback
@@ -39,18 +39,18 @@ class TestGoalClarification(unittest.TestCase):
         print(f"Agent state before run_once - is_running: {self.master_agent.is_running}, is_paused: {self.master_agent.is_paused}")
 
         #Mock the execution to prevent further processing
-        with patch.object(self.master_agent, '_execute_objective_with_retries', return_value=None) as mock_execute:
+        with patch.object(self.master_agent, "_execute_objective_with_retries", return_value=None) as mock_execute:
             self.master_agent.run_once(clear_goal)
 
             #Assert that clarification was NOT requested
             self.assertFalse(self.master_agent.is_clarifying)
             self.assertIsNone(self.master_agent.clarification_question)
-            
+
             #Debug: Print all status callback calls
             print("Status Callback Calls:")
             for call in self.mock_status_callback.call_args_list:
                 print(f"Call: {call[0][0]}")
-            
+
             #Check that the status callback for clarification was not called
             clarification_call_found = any(
                 call[0][0].get("type") == "request_clarification"
@@ -91,7 +91,7 @@ class TestGoalClarification(unittest.TestCase):
         self.master_agent.goals = [ambiguous_goal]
 
         #Run to the point of asking for clarification
-        with patch.object(self.master_agent, 'pause', lambda: None): #Prevent real pausing
+        with patch.object(self.master_agent, "pause", lambda: None): #Prevent real pausing
             self.master_agent.run_once(ambiguous_goal)
 
         #Update mock to return non-ambiguous response for the clarified goal before providing clarification
@@ -99,7 +99,7 @@ class TestGoalClarification(unittest.TestCase):
         self.mock_llm_manager.chat.return_value = clear_response
 
         #Mock execution to check if it's called with the new goal, applying mock before provide_clarification
-        with patch.object(self.master_agent, '_execute_objective_with_retries', return_value=None) as mock_execute:
+        with patch.object(self.master_agent, "_execute_objective_with_retries", return_value=None) as mock_execute:
             #Manually provide clarification
             self.master_agent.provide_clarification(user_clarification)
 
@@ -112,5 +112,5 @@ class TestGoalClarification(unittest.TestCase):
             mock_execute.assert_called_with(clarified_goal)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
