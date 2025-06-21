@@ -81,7 +81,7 @@ Your Output:
         ]
 
         try:
-            llm_result: llm_manager.LLMResponse = self.llm_manager.chat(messages)
+            llm_result = self.llm_manager.chat(messages)  # type: ignore
             if not llm_result or not llm_result.response_text:
                 self.logger.error("LLM returned no content for thought generation.")
                 return []
@@ -108,7 +108,7 @@ Your Output:
         ]
 
         try:
-            llm_result: llm_manager.LLMResponse = self.llm_manager.chat(messages)
+            llm_result = self.llm_manager.chat(messages)  # type: ignore
             if not llm_result or not llm_result.response_text:
                 self.logger.error("LLM returned no content for thought evaluation.")
                 return 0.0

@@ -191,7 +191,7 @@ dist/
 
 # Cache directories
 .cache/
-.windsurf/
+.windsur/
 
 # IDE settings
 .vscode/

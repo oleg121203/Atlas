@@ -4,32 +4,39 @@ import json
 import re
 import threading
 import time
-from typing import Any, Dict, List, Optional, Callable, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, Callable, cast
 
+from agents.browser_agent import BrowserAgent
+try:
+    from agents.enhanced_memory_manager import EnhancedMemoryManager as MemoryManager
+    from agents.memory_manager import MemoryType, MemoryScope  # type: ignore
+except ImportError:
+    from agents.memory_manager import MemoryManager, MemoryType, MemoryScope  # type: ignore
+
+from agents.creator_authentication import CreatorAuthentication
+from agents.agent_manager import AgentManager, ToolNotFoundError, InvalidToolArgumentsError
+from intelligence.context_awareness_engine import ContextAwarenessEngine
+try:
+    from agents.models import Plan, TokenUsage  # type: ignore
+except ImportError:
+    # Define a fallback if needed
+    class _FallbackTokenUsage:
+        def __init__(self, prompt_tokens=0, completion_tokens=0, total_tokens=0):
+            self.prompt_tokens = prompt_tokens
+            self.completion_tokens = completion_tokens
+            self.total_tokens = total_tokens
+    TokenUsage = _FallbackTokenUsage  # type: ignore
+
+from utils.llm_manager import LLMManager
+from agents.screen_agent import ScreenAgent
+from agents.system_interaction_agent import SystemInteractionAgent
+from agents.text_agent import TextAgent
 from utils.logger import get_logger
-
+from monitoring.metrics_manager import metrics_manager
 from agents.planning.strategic_planner import StrategicPlanner
 from agents.planning.tactical_planner import TacticalPlanner
 from agents.planning.operational_planner import OperationalPlanner
 from agents.problem_decomposition_agent import ProblemDecompositionAgent
-from agents.agent_manager import ToolNotFoundError, InvalidToolArgumentsError
-from monitoring.metrics_manager import metrics_manager
-
-if TYPE_CHECKING:
-    from agents.memory_manager import MemoryManager
-    from agents.creator_authentication import CreatorAuthentication
-    from agents.agent_manager import AgentManager
-    from intelligence.context_awareness_engine import ContextAwarenessEngine
-    from agents.memory.memory_manager import MemoryScope
-    from agents.models import Plan
-    from utils.creator_authentication import CreatorAuthentication
-    from utils.llm_manager import LLMManager
-    from agents.screen_agent import ScreenAgent
-    from agents.system_interaction_agent import SystemInteractionAgent
-    from agents.text_agent import TextAgent
-    from utils.logger import get_logger
-    from monitoring.metrics_manager import metrics_manager
-
 
 class PlanExecutionError(Exception):
     """Custom exception for errors during plan execution, containing the failed step."""
@@ -91,7 +98,8 @@ class MasterAgent:
         self.clarification_question: Optional[str] = None
 
         # Set the callback on the agent manager to receive tool updates
-        self.agent_manager.master_agent_update_callback = self._on_tools_updated
+        if self.agent_manager is not None:
+            self.agent_manager.master_agent_update_callback = self._on_tools_updated
 
         if not self.agent_manager.has_agents:  # Check for registered agents
             self._register_default_agents()
@@ -149,12 +157,38 @@ class MasterAgent:
             f"The executed plan was:\n{json.dumps(plan_to_record, indent=2)}"
         )
 
-        self.memory_manager.add_memory_for_agent(
-            agent_type=MemoryScope.USER_DATA,
-            memory_type=MemoryType.FEEDBACK,
-            content=memory_content,
-            metadata={"goal": goal, "feedback": feedback_str, "plan_id": plan_to_record.get("id", "N/A")}
-        )
+        # Use a fallback method if add_memory_for_agent with specific types isn't available
+        try:
+            if self.memory_manager is not None:
+                if hasattr(self.memory_manager, 'add_memory_for_agent'):
+                    self.memory_manager.add_memory_for_agent(
+                        agent_type=MemoryScope.USER_DATA if hasattr(MemoryScope, 'USER_DATA') else 'user_data',  # type: ignore
+                        memory_type=MemoryType.FEEDBACK if hasattr(MemoryType, 'FEEDBACK') else 'feedback',  # type: ignore
+                        content=memory_content,
+                        metadata={"goal": goal, "feedback": feedback_str, "plan_id": plan_to_record.get("id", "N/A")}
+                    )
+                else:
+                    self.logger.warning("add_memory_for_agent method not available in MemoryManager")
+            else:
+                self.logger.warning("MemoryManager is not initialized. Skipping memory addition.")
+        except Exception as e:
+            self.logger.error(f"Failed to add memory for agent: {e}")
+
+        if hasattr(self.memory_manager, 'add_memory'):
+            try:
+                self.memory_manager.add_memory(
+                    content=memory_content,
+                    metadata={"goal": goal, "feedback": feedback_str, "plan_id": plan_to_record.get("id", "N/A")}
+                )  # type: ignore
+            except TypeError:
+                # Handle case where collection_name is not needed
+                self.memory_manager.add_memory(
+                    collection_name='default',
+                    content=memory_content,
+                    metadata={"goal": goal, "feedback": feedback_str, "plan_id": plan_to_record.get("id", "N/A")}
+                )
+        else:
+            self.logger.warning("Memory manager does not support adding memories.")
         self.logger.info(f"Stored {feedback_str} feedback for goal: '{goal}'")
 
     def run_once(self, goal: str) -> None:
@@ -162,7 +196,8 @@ class MasterAgent:
         if self.is_paused or not self.is_running:
             return
 
-        self.status_callback({"type": "info", "content": f"Starting new goal: {goal}"})
+        if self.status_callback is not None:
+            self.status_callback({"type": "info", "content": f"Starting new goal: {goal}"})
         self.last_goal = goal
         original_goal = goal
 
@@ -172,7 +207,8 @@ class MasterAgent:
             self.is_clarifying = True
             self.clarification_question = question
             self.is_paused = True
-            self.status_callback({"type": "request_clarification", "content": question})
+            if self.status_callback is not None:
+                self.status_callback({"type": "request_clarification", "content": question})
             self.logger.info(f"Goal '{goal}' is ambiguous. Asking for clarification: {question}")
             return
 
@@ -181,6 +217,7 @@ class MasterAgent:
         if is_complex_goal:
             self.logger.info("Complex goal detected. Engaging Tree-of-Thought for decomposition.")
             sub_goals = self.problem_decomposition_agent.decompose_goal(goal)
+            sub_goals = cast(List[str], sub_goals)  # Ensure not Optional
             self.logger.info(f"Decomposed complex goal into {len(sub_goals)} sub-goals.")
         else:
             sub_goals = [goal]
@@ -191,11 +228,13 @@ class MasterAgent:
                 self._execute_objective_with_retries(sub_goal)
 
             self.logger.info(f"Successfully completed main goal: '{original_goal}'")
-            self.status_callback({"type": "info", "content": "Goal achieved successfully."})
+            if self.status_callback is not None:
+                self.status_callback({"type": "info", "content": "Goal achieved successfully."})
 
         except Exception as e:
             self.logger.error(f"Failed to achieve goal '{original_goal}' due to a critical error in one of its objectives: {e}", exc_info=True)
-            self.status_callback({"type": "error", "content": f"Failed to achieve goal '{original_goal}'."})
+            if self.status_callback is not None:
+                self.status_callback({"type": "error", "content": f"Failed to achieve goal '{original_goal}'."})
 
     def stop(self) -> None:
         """Stops the agent's execution loop."""
@@ -224,7 +263,7 @@ class MasterAgent:
             self.clarification_question = None
             self.is_paused = False  # Resume execution
             self.logger.info(f"Clarification received. New goal: {clarified_goal}")
-            if self.status_callback:
+            if self.status_callback is not None:
                 self.status_callback({"type": "info", "content": "Clarification received. Resuming..."})
 
     def provide_clarification(self, clarification: str) -> None:
@@ -242,7 +281,7 @@ class MasterAgent:
             self.clarification_question = None
             self.is_paused = False  # Resume execution
             self.logger.info(f"Clarification received. New goal: {clarified_goal}")
-            if self.status_callback:
+            if self.status_callback is not None:
                 self.status_callback({"type": "info", "content": "Clarification received. Resuming..."})
             
             # Resume processing with the clarified goal
@@ -279,47 +318,52 @@ class MasterAgent:
 
     def _decompose_goal(self, goal: str) -> Optional[List[str]]:
         """Decomposes a complex goal into a list of simpler sub-goals."""
-        if self.status_callback:
-            self.status_callback({"type": "info", "content": "Analyzing goal complexity..."})
+        if self.status_callback is not None:
+            self.status_callback({"type": "info", "content": "Analyzing goal complexity..."})  # type: ignore
         
         decomposition_prompt = f"""You are a helpful assistant that breaks down complex goals into a series of smaller, manageable sub-goals. 
-        Analyze the following user goal. If the goal is simple and can be accomplished in a single plan (e.g., 'take a screenshot', 'check the weather'), respond with a JSON array containing only the original goal. 
-        If the goal is complex (e.g., 'research a topic and write a summary', 'plan a trip'), break it down into a logical sequence of sub-goals.
+        Given a complex goal, analyze it and provide a list of sub-goals that can be executed sequentially to achieve the main goal.
+        Respond with a JSON array of strings, like ["sub-goal 1", "sub-goal 2", ...].
+        If the goal is simple and cannot be broken down further, respond with a single-item array like ["{goal}"].
         
-        Respond ONLY with a valid JSON array of strings. Do not include any other text or explanation.
-        
-        User Goal: \"{goal}\""""
+        Goal: "{goal}"
+        """
         
         try:
             messages = [{"role": "system", "content": decomposition_prompt}]
-            llm_result = self.llm_manager.chat(messages)
-            
-            if not llm_result or not llm_result.response_text:
-                self.logger.error("LLM provided no response for goal decomposition.")
-                return None
+            if self.llm_manager is not None:
+                llm_result = self.llm_manager.chat(messages)  # type: ignore
+                
+                if not llm_result or not llm_result.response_text:
+                    self.logger.error("LLM provided no response for goal decomposition.")
+                    return None
+                json_response = self._extract_json_from_response(llm_result.response_text)
+                if not json_response:
+                    self.logger.error(f"Failed to extract JSON from decomposition response: {llm_result.response_text}")
+                    return [goal]  # Fallback to original goal
 
-            json_response = self._extract_json_from_response(llm_result.response_text)
-            if not json_response:
-                self.logger.error(f"Failed to extract valid JSON from decomposition response: {llm_result.response_text}")
-                return [goal]  # Fallback to original goal
+                sub_goals = json.loads(json_response)
+                if not isinstance(sub_goals, list):
+                    self.logger.error("LLM response for goal decomposition is not a valid list.")
+                    return [goal]  # Fallback to original goal
 
-            sub_goals = json.loads(json_response)
-            if isinstance(sub_goals, list) and all(isinstance(g, str) for g in sub_goals):
+                if len(sub_goals) == 0:  # type: ignore
+                    self.logger.warning("LLM returned an empty list for goal decomposition.")
+                    return [goal]  # Fallback to original goal
+
+                for sub_goal in sub_goals:  # type: ignore
+                    if not isinstance(sub_goal, str):
+                        self.logger.warning(f"Invalid sub-goal type in decomposition: {type(sub_goal)}")
+                        return [goal]  # Fallback if any item is not a string
+
                 return sub_goals
-            else:
-                self.logger.error(f"Decomposition response is not a list of strings: {sub_goals}")
-                return [goal]  # Fallback to original goal
-
-        except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decoding failed for decomposition: {e}\nResponse was: {llm_result.response_text}", exc_info=True)
-            return [goal]  # Fallback to original goal
         except Exception as e:
-            self.logger.error(f"An unexpected error occurred during goal decomposition: {e}", exc_info=True)
-            return None
+            self.logger.error(f"Error decomposing goal: {e}", exc_info=True)
+            return [goal]  # Fallback to original goal on any error
 
     def _check_goal_ambiguity(self, goal: str) -> Tuple[bool, Optional[str]]:
         """Checks if a goal is ambiguous and returns a clarification question if so."""
-        if self.status_callback:
+        if self.status_callback is not None:
             self.status_callback({"type": "info", "content": "Checking goal for ambiguity..."})
 
         prompt = f"""You are an analytical assistant. Your task is to evaluate a user's goal for ambiguity.
@@ -345,24 +389,25 @@ Your response must be ONLY the JSON object.
 """
         try:
             messages = [{"role": "system", "content": prompt}]
-            llm_result = self.llm_manager.chat(messages)
+            if self.llm_manager is not None:
+                llm_result = self.llm_manager.chat(messages)  # type: ignore
 
-            if not llm_result or not llm_result.response_text:
-                self.logger.warning("LLM provided no response for ambiguity check.")
+                if not llm_result or not llm_result.response_text:
+                    self.logger.warning("LLM provided no response for ambiguity check.")
+                    return False, None
+
+                json_response = self._extract_json_from_response(llm_result.response_text)
+                if not json_response:
+                    self.logger.error(f"Failed to extract JSON from ambiguity check response: {llm_result.response_text}")
+                    return False, None
+
+                data = json.loads(json_response)
+                is_ambiguous = data.get("is_ambiguous", False)
+                question = data.get("question", "")
+
+                if is_ambiguous and question:
+                    return True, question
                 return False, None
-
-            json_response = self._extract_json_from_response(llm_result.response_text)
-            if not json_response:
-                self.logger.error(f"Failed to extract JSON from ambiguity check response: {llm_result.response_text}")
-                return False, None
-
-            data = json.loads(json_response)
-            is_ambiguous = data.get("is_ambiguous", False)
-            question = data.get("question", "")
-
-            if is_ambiguous and question:
-                return True, question
-            return False, None
 
         except (json.JSONDecodeError, KeyError) as e:
             self.logger.error(f"Error processing ambiguity check response: {e}\nResponse was: {llm_result.response_text}", exc_info=True)
@@ -406,7 +451,7 @@ Your response must be ONLY the JSON object.
             self.logger.warning(f"Using generic recovery for an unrecognized error type: {type(error).__name__}")
             return self._create_recovery_goal(original_goal, plan, failed_step, error, context)
 
-    def _create_recovery_goal(self, original_goal: str, plan: Dict[str, Any], failed_step: Dict[str, Any], error: Exception, context: Dict[str, Any]) -> str:
+    def _create_recovery_goal(self, original_goal: str, plan: Dict[str, Any], failed_step: Dict[str, Any], error: Optional[Exception] = None, context: Optional[Dict[str, Any]] = None) -> str:
         """
         Analyzes an error and generates a specialized recovery goal using an LLM.
         This forms the core of the agent's self-correction and learning loop.
@@ -417,8 +462,7 @@ Your response must be ONLY the JSON object.
         plan_summary = json.dumps(plan, indent=2, default=str)
         context_summary = json.dumps(context, indent=2, default=str)
 
-        system_prompt = """
-        You are a meta-cognitive reasoning engine integrated into an autonomous agent. Your purpose is to analyze execution failures and devise a robust recovery strategy.
+        recovery_prompt = """You are a meta-cognitive reasoning engine integrated into an autonomous agent. Your purpose is to analyze execution failures and devise a robust recovery strategy.
 
         Analyze the provided context, which includes the original goal, the plan, the failed step, the error, and the execution history. Your analysis should identify the most likely root cause of the failure (e.g., flawed assumption, incorrect tool usage, environmental change, invalid arguments).
 
@@ -456,45 +500,80 @@ Your response must be ONLY the JSON object.
         """
 
         messages = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": recovery_prompt},
             {"role": "user", "content": user_prompt},
         ]
 
         try:
             self.logger.info("Querying LLM for a recovery goal...")
-            response = self.llm_manager.chat(messages=messages)
-            
-            if not response:
-                raise ValueError("LLM returned an empty response.")
+            if self.llm_manager is not None:
+                response = self.llm_manager.chat(messages=messages)
+                
+                if not response:
+                    raise ValueError("LLM returned an empty response.")
 
-            recovery_goal = response.strip()
-            self.logger.info(f"Generated recovery goal: '{recovery_goal}'")
-            return recovery_goal
+                if hasattr(response, 'response_text'):
+                    recovery_goal = response.response_text.strip()  # type: ignore
+                else:
+                    recovery_goal = str(response).strip()
+                self.logger.info(f"Generated recovery goal: '{recovery_goal}'")
+                return recovery_goal
         except Exception as e:
             self.logger.error(f"Failed to generate recovery goal from LLM: {e}", exc_info=True)
             # Fallback to a simpler, default recovery goal
             return f"Attempt to recover from the failure in achieving the goal: '{original_goal}' after the error: '{error}'"
 
-    def _resolve_dependencies(self, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
-        """Resolves template variables in arguments from the execution context."""
-        resolved_args = {}
-        for key, value in args.items():
-            if isinstance(value, str):
-                def replacer(match):
-                    step_num = int(match.group(1))
-                    ref_step = f"step_{step_num}"
-                    if ref_step in context and "output" in context[ref_step]:
-                        self.logger.info(f"Resolving dependency for '{key}': using output from step {step_num}")
-                        return str(context[ref_step]["output"])
+    def _execute_objective_with_retries(self, objective: str) -> None:
+        current_goal = objective
+        self.retry_count = 0
+        while self.retry_count < self.MAX_RETRIES:
+            try:
+                if self.status_callback is not None:
+                    self.status_callback({"type": "info", "content": f"Executing objective: {current_goal}"})  # type: ignore
+                plan = self._generate_plan(current_goal)
+                if not plan or not plan.get("steps"):
+                    self.logger.error(f"Invalid plan generated for goal: {current_goal}")
+                    raise ValueError(f"Invalid plan for goal: {current_goal}")
+                self._execute_plan(plan)
+                if self.status_callback is not None:
+                    self.status_callback({"type": "success", "content": f"Completed objective: {current_goal}"})  # type: ignore
+                break
+            except PlanExecutionError as e:
+                self.logger.error(f"Plan execution failed: {str(e)}")
+                self.retry_count += 1
+                if self.retry_count < self.MAX_RETRIES:
+                    recovery_goal = self._recover_from_error(
+                        original_goal=current_goal,
+                        plan=e.step,
+                        failed_step=e.step,
+                        error=e.original_exception,
+                        context=getattr(e, 'context', {})  # Safely access context attribute with fallback
+                    )
+                    if recovery_goal:
+                        if self.status_callback is not None:
+                            self.status_callback({"type": "warning", "content": f"Retrying with recovery goal: {recovery_goal}"})  # type: ignore
+                        current_goal = recovery_goal
                     else:
-                        self.logger.warning(f"Could not resolve dependency: {match.group(0)}. Context is missing the value.")
-                        return match.group(0)
+                        if self.status_callback is not None:
+                            self.status_callback({"type": "error", "content": f"Failed to generate recovery goal after {self.retry_count} retries."})  # type: ignore
+                        self.logger.error(f"Failed to generate recovery goal after {self.retry_count} retries.")
+                        raise
+                else:
+                    if self.status_callback is not None:
+                        self.status_callback({"type": "error", "content": f"Failed to achieve objective after {self.retry_count} retries."})  # type: ignore
+                    self.logger.error(f"Failed to achieve objective after {self.retry_count} retries.")
+                    raise
+            except Exception as e:
+                self.logger.error(f"An unexpected error occurred while processing objective '{objective}': {e}", exc_info=True)
+                raise e  # Re-raise as a critical failure
 
-                resolved_value = re.sub(r"\{\{step_(\d+)\.output\}\}", replacer, value)
-                resolved_args[key] = resolved_value
-            else:
-                resolved_args[key] = value
-        return resolved_args
+    def _track_token_usage(self, token_usage: 'TokenUsage') -> None:  # type: ignore
+        if token_usage is not None:
+            if not hasattr(self, 'token_counts'):
+                self.token_counts = {'prompt': 0, 'completion': 0, 'total': 0}
+            self.token_counts['prompt'] += token_usage.prompt_tokens  # type: ignore
+            self.token_counts['completion'] += token_usage.completion_tokens  # type: ignore
+            self.token_counts['total'] += token_usage.total_tokens  # type: ignore
 
     def _execute_plan(self, plan: Dict[str, Any]) -> None:
         """
@@ -502,15 +581,20 @@ Your response must be ONLY the JSON object.
         Raises:
             PlanExecutionError: If any step fails due to a tool error or other exception.
         """
+        if plan is None:
+            self.logger.error("Plan is None, cannot execute.")
+            raise ValueError("Plan is None")
+        steps = plan.get("steps", [])
+        if steps is None:
+            self.logger.error("Steps in plan are None, cannot execute.")
+            raise ValueError("Steps in plan are None")
         self.logger.info("Starting plan execution.")
         self.execution_context = {}  # Reset context for new plan
 
-        steps = plan.get("steps", [])
-        if not steps:
-            self.logger.warning("Plan has no steps to execute.")
-            return
-
-        for i, step in enumerate(steps):
+        for i, step in enumerate(steps):  # type: ignore
+            if step is None:
+                self.logger.error("Step in plan is None, skipping.")
+                continue
             if not self.is_running:
                 self.logger.info("Execution stopped mid-plan.")
                 return
@@ -527,39 +611,85 @@ Your response must be ONLY the JSON object.
                     raise ValueError("Step is missing 'tool_name'.")
 
                 self.logger.info(f"Executing step {step_num}/{len(steps)}: {step.get('description', 'No description')}")
-                if self.status_callback:
+                if self.status_callback is not None:
                     self.status_callback({"type": "step_start", "data": {"index": i, "description": step.get('description'), "step": step}})
 
                 # Resolve dependencies from context
                 resolved_args = self._resolve_dependencies(step.get("arguments", {}), self.execution_context)
 
                 # Execute the tool via the agent manager
-                result = self.agent_manager.execute_tool(tool_name, resolved_args)
-                metrics_manager.record_tool_usage(tool_name, success=True)
-                
-                # Update execution context
-                self.execution_context[f"step_{step_num}"] = {"output": result, "status": "success"}
-                self.logger.info(f"Step {step_num} executed successfully. Result: {str(result)[:100]}...")
-                if self.status_callback:
-                    self.status_callback({
-                        "type": "step_end", 
-                        "data": {
-                            "index": i, 
-                            "status": "success", 
-                            "result": str(result)[:200],
-                            "step": {"tool_name": tool_name, "arguments": resolved_args}
-                        }
-                    })
+                if self.agent_manager is not None:
+                    result = self.agent_manager.execute_tool(tool_name, resolved_args)
+                    metrics_manager.record_tool_usage(tool_name, success=True)
+                    
+                    # Update execution context
+                    self.execution_context[f"step_{step_num}"] = {"output": result, "status": "success"}
+                    self.logger.info(f"Step {step_num} executed successfully. Result: {str(result)[:100]}...")
+                    if self.status_callback is not None:
+                        self.status_callback({
+                            "type": "step_end", 
+                            "data": {
+                                "index": i, 
+                                "status": "success", 
+                                "result": str(result)[:200],
+                                "step": {"tool_name": tool_name, "arguments": resolved_args}
+                            }
+                        })
 
             except (ToolNotFoundError, InvalidToolArgumentsError, ValueError) as e:
-                metrics_manager.record_tool_usage(tool_name, success=False)
+                if self.agent_manager is not None:
+                    metrics_manager.record_tool_usage(tool_name, success=False)
                 self.logger.warning(f"Tool execution failed for step {step_num}: {e}")
                 self.execution_context[f"step_{step_num}"] = {"output": str(e), "status": "failure"}
-                if self.status_callback:
+                if self.status_callback is not None:
                     self.status_callback({
                         "type": "step_end",
                         "data": {"index": i, "status": "failure", "error": str(e), "step": {"tool_name": tool_name, "arguments": resolved_args}}
                     })
+                
+                # Attempt dynamic tool creation if tool not found
+                if isinstance(e, ToolNotFoundError):
+                    self.logger.info(f"Attempting to create missing tool: {tool_name}")
+                    if self.status_callback is not None:
+                        self.status_callback({
+                            "type": "info",
+                            "content": f"Tool {tool_name} not found. Attempting to create it..."
+                        })
+                    try:
+                        tool_description = step.get('description', f'Functionality for {tool_name}')
+                        if self.agent_manager is not None:
+                            self.agent_manager.execute_tool("create_tool", {"tool_name": tool_name, "description": tool_description})
+                        self.logger.info(f"Successfully created tool: {tool_name}")
+                        if self.status_callback is not None:
+                            self.status_callback({
+                                "type": "info",
+                                "content": f"Tool {tool_name} created successfully. Retrying execution..."
+                            })
+                        # Retry the step with the newly created tool
+                        result = self.agent_manager.execute_tool(tool_name, resolved_args)
+                        metrics_manager.record_tool_usage(tool_name, success=True)
+                        self.execution_context[f"step_{step_num}"] = {"output": result, "status": "success"}
+                        self.logger.info(f"Step {step_num} executed successfully after tool creation. Result: {str(result)[:100]}...")
+                        if self.status_callback is not None:
+                            self.status_callback({
+                                "type": "step_end", 
+                                "data": {
+                                    "index": i, 
+                                    "status": "success", 
+                                    "result": str(result)[:200],
+                                    "step": {"tool_name": tool_name, "arguments": resolved_args}
+                                }
+                            })
+                        continue  # Move to next step
+                    except Exception as create_error:
+                        self.logger.error(f"Failed to create tool {tool_name}: {create_error}")
+                        if self.status_callback is not None:
+                            self.status_callback({
+                                "type": "error",
+                                "content": f"Failed to create tool {tool_name}: {create_error}"
+                            })
+                        raise PlanExecutionError(message=f"Tool creation failed: {create_error}", step=step, original_exception=create_error)
+                
                 raise PlanExecutionError(message=str(e), step=step, original_exception=e)
             
             except Exception as e:
@@ -567,7 +697,7 @@ Your response must be ONLY the JSON object.
                     metrics_manager.record_tool_usage(tool_name, success=False)
                 self.logger.error(f"An unexpected error occurred during step {step_num}: {e}", exc_info=True)
                 self.execution_context[f"step_{step_num}"] = {"output": str(e), "status": "failure"}
-                if self.status_callback:
+                if self.status_callback is not None:
                     self.status_callback({
                         "type": "step_end",
                         "data": {"index": i, "status": "failure", "error": str(e), "step": {"tool_name": tool_name, "arguments": resolved_args}}
@@ -576,64 +706,64 @@ Your response must be ONLY the JSON object.
 
         self.logger.info("Plan execution completed successfully.")
 
-    def _execute_objective_with_retries(self, objective: str) -> None:
-        """
-        Executes a single objective with the full planning hierarchy and retry logic.
-        Raises an exception if the objective fails after all retries.
-        """
-        self.retry_count = 0
-        current_goal = objective
-
-        while self.retry_count < self.MAX_RETRIES:
+    def _execute_tool(self, tool_name: str, tool_args: Dict[str, Any], step: Dict[str, Any]) -> Any:
+        try:
+            if tool_name not in self.agent_manager.available_tools:  # type: ignore
+                raise ToolNotFoundError(f"Tool '{tool_name}' not found in available tools.")
+            
+            resolved_args = self._resolve_dependencies(tool_args, self.execution_context)
+            
+            if self.status_callback is not None:
+                self.status_callback({
+                    "type": "info",
+                    "content": f"Executing tool '{tool_name}' with arguments: {resolved_args}"
+                })  # type: ignore
+            
+            tool_instance = self.agent_manager.available_tools[tool_name]  # type: ignore
             try:
-                # 1. Strategic Planning
-                self.status_callback({"type": "info", "content": f"Phase 1: Decomposing objective '{current_goal}' into strategic objectives..."})
-                strategic_objectives = self.strategic_planner.generate_strategic_plan(current_goal)
-                self.logger.info(f"Generated {len(strategic_objectives)} strategic objectives.")
+                result = tool_instance(**resolved_args)
+                if self.status_callback is not None:
+                    self.status_callback({
+                        "type": "success",
+                        "content": f"Tool '{tool_name}' executed successfully."
+                    })  # type: ignore
+                return result
+            except TypeError as te:
+                error_msg = f"Invalid arguments for tool '{tool_name}': {str(te)}"
+                self.logger.error(error_msg, exc_info=True)
+                raise InvalidToolArgumentsError(error_msg)  # type: ignore
+        except Exception as e:
+            if isinstance(e, ToolNotFoundError):
+                raise e
+            if isinstance(e, InvalidToolArgumentsError):
+                raise e
+            error_msg = f"Unexpected error executing tool '{tool_name}': {str(e)}"
+            self.logger.error(error_msg, exc_info=True)
+            raise Exception(error_msg)
 
-                for i, strat_obj in enumerate(strategic_objectives):
-                    self.logger.info(f"Executing Strategic Objective {i+1}/{len(strategic_objectives)}: {strat_obj}")
-                    
-                    # 2. Tactical Planning
-                    self.status_callback({"type": "info", "content": "Phase 2: Breaking down objective into tactical steps..."})
-                    tactical_plan = self.tactical_planner.generate_tactical_plan(strat_obj)
-                    self.logger.info(f"Generated tactical plan for objective: '{strat_obj}'")
-
-                    # 3. Operational Planning
-                    self.status_callback({"type": "info", "content": "Phase 3: Generating operational plan..."})
-                    operational_plan = self.operational_planner.generate_operational_plan(tactical_plan, context={'strategic_objectives': strategic_objectives})
-                    self.logger.info(f"Generated operational plan with {len(operational_plan.get('steps', []))} steps.")
-
-                    # 4. Plan Execution
-                    self._execute_plan(operational_plan)
-
-                self.logger.info(f"Successfully completed objective: {current_goal}")
-                return  # Success, exit the method
-
-            except PlanExecutionError as e:
-                self.logger.error(f"Execution failed for objective '{current_goal}': {e}")
-                self.retry_count += 1
-                if self.retry_count < self.MAX_RETRIES:
-                    self.logger.info(f"Retrying... (Attempt {self.retry_count + 1}/{self.MAX_RETRIES})")
-                    recovery_goal = self._create_recovery_goal(
-                        original_goal=current_goal,
-                        plan=self.last_plan,
-                        failed_step=e.step,
-                        error=e.original_exception,
-                        context=self.execution_context
-                    )
-                    current_goal = recovery_goal # Use the recovery goal for the next attempt
-                else:
-                    self.logger.error(f"Max retries reached for objective '{objective}'.")
-                    raise e # Re-raise the exception to be caught by the caller
-
-            except Exception as e:
-                self.logger.critical(f"An unexpected critical error occurred while processing objective '{objective}': {e}", exc_info=True)
-                raise e # Re-raise as a critical failure
-
-        # This part is reached if retries are exhausted
-        self.logger.error(f"Failed to achieve objective '{objective}' after {self.MAX_RETRIES} retries.")
-        raise Exception(f"Failed to achieve objective '{objective}' after {self.MAX_RETRIES} retries.")
+    def _generate_plan(self, goal: str) -> Dict[str, Any]:
+        if self.status_callback is not None:
+            self.status_callback({"type": "info", "content": f"Generating plan for goal: {goal}"})  # type: ignore
+        
+        messages = [
+            {"role": "system", "content": "You are a helpful AI assistant tasked with generating a detailed plan to achieve a specific goal using available tools."},
+            {"role": "user", "content": f"Generate a plan to achieve the following goal: {goal}. Available tools: {', '.join(self._available_tools())}"}
+        ]
+        
+        llm_result = self.llm_manager.chat(messages)  # type: ignore
+        if not llm_result or not llm_result.response_text:
+            self.logger.error("LLM provided no response for plan generation.")
+            raise ValueError("Failed to generate plan: No response from LLM")
+        
+        plan_text = llm_result.response_text.strip()  # type: ignore
+        try:
+            plan = json.loads(plan_text)
+            if not isinstance(plan, dict) or "steps" not in plan or not isinstance(plan["steps"], list) or len(plan["steps"]) == 0:  # type: ignore
+                raise ValueError("Invalid plan format: 'steps' must be a non-empty list")
+            return plan
+        except json.JSONDecodeError:
+            self.logger.error(f"Failed to parse plan as JSON: {plan_text}")
+            raise ValueError("Failed to parse plan as JSON")
 
     def _execution_loop(self) -> None:
         """The core loop where the agent processes its goals."""
@@ -657,12 +787,111 @@ Your response must be ONLY the JSON object.
         self.logger.info("MasterAgent received notification of tool update. Prompt will be regenerated on next planning cycle.")
         self._tools_changed = True
 
-
-
     def _register_default_agents(self) -> None:
         """Registers the default set of specialized agents."""
-        self.agent_manager.add_agent("BrowserAgent", BrowserAgent())
-        self.agent_manager.add_agent("ScreenAgent", ScreenAgent())
-        self.agent_manager.add_agent("TextAgent", TextAgent(self.llm_manager))
-        self.agent_manager.add_agent("SystemInteractionAgent", SystemInteractionAgent())
-        self.logger.info("Registered default specialized agents.")
+        if self.agent_manager is not None:
+            self.agent_manager.add_agent("BrowserAgent", BrowserAgent())
+            self.agent_manager.add_agent("ScreenAgent", ScreenAgent())
+            self.agent_manager.add_agent("TextAgent", TextAgent(self.llm_manager))
+            self.agent_manager.add_agent("SystemInteractionAgent", SystemInteractionAgent())
+            self.logger.info("Registered default specialized agents.")
+
+    def decompose_goal(self, goal: str) -> List[str]:
+        sub_goals = []
+        messages = [
+            {"role": "system", "content": "You are a helpful AI assistant tasked with decomposing complex goals into smaller, manageable sub-goals."},
+            {"role": "user", "content": f"Decompose the following goal into smaller sub-goals: {goal}"}
+        ]
+        llm_result = self.llm_manager.chat(messages)  # type: ignore
+        if llm_result and llm_result.response_text:
+            try:
+                response_json = json.loads(llm_result.response_text)  # type: ignore
+                if "sub_goals" in response_json and isinstance(response_json["sub_goals"], list):
+                    sub_goals.extend(response_json["sub_goals"])
+            except json.JSONDecodeError:
+                self.logger.warning("Failed to parse decompose_goal response as JSON, attempting manual extraction")
+                sub_goals.extend(self._extract_sub_goals_manually(llm_result.response_text))  # type: ignore
+        if not sub_goals:
+            sub_goals.append(goal)
+        return sub_goals
+
+    def _resolve_dependencies(self, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+        """Resolves template variables in arguments from the execution context."""
+        resolved_args = {}
+        for key, value in args.items():
+            if isinstance(value, str):
+                def replacer(match):
+                    step_num = int(match.group(1))
+                    ref_step = f"step_{step_num}"
+                    if ref_step in context and "output" in context[ref_step]:
+                        self.logger.info(f"Resolving dependency for '{key}': using output from step {step_num}")
+                        return str(context[ref_step]["output"])
+                    else:
+                        self.logger.warning(f"Could not resolve dependency: {match.group(0)}. Context is missing the value.")
+                        return match.group(0)
+                
+                resolved_value = re.sub(r"\{\{step_(\d+)\.output\}\}", replacer, value)
+                resolved_args[key] = resolved_value
+            else:
+                resolved_args[key] = value
+        return resolved_args
+
+    def _available_tools(self) -> List[str]:
+        if self.agent_manager is not None:
+            tool_names = list(self.agent_manager.available_tools.keys())  # type: ignore
+            if len(tool_names) > 0:  # type: ignore
+                return tool_names
+        return []
+
+    def achieve_goal(self, goal: str) -> Any:
+        if self.status_callback is not None:
+            self.status_callback({"type": "info", "content": f"Starting to achieve goal: {goal}"})  # type: ignore
+        
+        if self.llm_manager is None:
+            self.logger.error("LLMManager is not initialized. Cannot proceed with goal.")
+            raise ValueError("LLMManager is not initialized.")
+        
+        sub_goals = self.decompose_goal(goal)
+        if len(sub_goals) == 0:  # type: ignore
+            self.logger.error("No sub-goals were generated from goal decomposition.")
+            raise ValueError("Failed to decompose goal into sub-goals.")
+        
+        if self.status_callback is not None:
+            self.status_callback({
+                "type": "info",
+                "content": f"Decomposed goal into {len(sub_goals)} sub-goals."  # type: ignore
+            })  # type: ignore
+        
+        for i, sub_goal in enumerate(sub_goals):  # type: ignore
+            self.logger.info(f"Processing sub-goal {i+1}/{len(sub_goals)}: {sub_goal}")  # type: ignore
+            if self.status_callback is not None:
+                self.status_callback({
+                    "type": "info",
+                    "content": f"Processing sub-goal {i+1}/{len(sub_goals)}: {sub_goal}"  # type: ignore
+                })  # type: ignore
+            self._execute_objective_with_retries(sub_goal)
+        
+        if self.status_callback is not None:
+            self.status_callback({"type": "success", "content": f"Achieved goal: {goal}"})  # type: ignore
+        self.logger.info(f"Successfully achieved goal: {goal}")
+        return None
+
+    def _add_memory_for_agents(self, title: str, content: str, memory_type: Any, scope: Any) -> None:
+        """Adds a memory record for each agent managed by AgentManager, using safe fallbacks for older APIs."""
+        if self.agent_manager is None:
+            return
+        for agent_name in self.agent_manager.get_all_agent_names():  # type: ignore[attr-defined]
+            if hasattr(self.agent_manager, "add_memory_for_agent"):
+                try:
+                    self.agent_manager.add_memory_for_agent(
+                        agent_name,
+                        title,
+                        content,
+                        memory_type if memory_type is not None else MemoryType,  # type: ignore[name-defined]
+                        scope if scope is not None else MemoryScope,  # type: ignore[name-defined]
+                    )
+                except TypeError:
+                    # Fallback for legacy signature without type/scope
+                    self.agent_manager.add_memory_for_agent(agent_name, title, content)  # type: ignore[attr-defined]
+            else:
+                self.logger.warning("AgentManager does not expose add_memory_for_agent()")
