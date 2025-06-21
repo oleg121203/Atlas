@@ -1,6 +1,16 @@
 # .ruff.toml - Additional configuration to make pre-commit pass
 # This extends the settings in pyproject.toml
 
+# Additional files to exclude from checking
+exclude = [
+    "unused",
+    "venv-macos",
+    "__pycache__",
+    "*.pyx",
+    "*.pxd",
+]
+
+[lint]
 # Additional ignores to make pre-commit pass for now
 # These can be gradually fixed in the future
 ignore = [
@@ -20,13 +30,4 @@ ignore = [
     "RUF013",    # Implicit optional
     "PLR2004",   # Magic value comparison
     "C901",      # Complex structure
-]
-
-# Additional files to exclude from checking
-exclude = [
-    "unused",
-    "venv-macos",
-    "__pycache__",
-    "*.pyx",
-    "*.pxd",
 ]
