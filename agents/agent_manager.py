@@ -125,6 +125,10 @@ class AgentManager:
         self._agents[name] = agent_instance
         self.logger.info(f"Registered agent: {name}")
 
+    def get_agent(self, name: str):
+        """Return a registered agent by name or *None* if not present (legacy helper)."""
+        return self._agents.get(name)
+
     def add_tool(self, name: str, tool_function: Callable, description: str = None, silent_overwrite: bool = False) -> None:
         """Registers a new tool function."""
         if name in self._tools:
@@ -191,6 +195,32 @@ class AgentManager:
     def get_tool_names(self) -> List[str]:
         """Returns a list of the names of all registered tools."""
         return list(self._tools.keys())
+
+    def get_tool_schemas(self) -> List[Dict[str, Any]]:
+        """Generates a list of schemas for all available tools."""
+        schemas = []
+        for tool_name, tool_info in self._tools.items():
+            func = tool_info['function']
+            try:
+                sig = inspect.signature(func)
+                params = []
+                for param in sig.parameters.values():
+                    param_info = {
+                        "name": param.name,
+                        "type": str(param.annotation) if param.annotation != inspect.Parameter.empty else 'Any',
+                        "required": param.default == inspect.Parameter.empty
+                    }
+                    params.append(param_info)
+                
+                schema = {
+                    "name": tool_name,
+                    "description": tool_info['doc'],
+                    "arguments": params
+                }
+                schemas.append(schema)
+            except (ValueError, TypeError) as e:
+                self.logger.warning(f"Could not generate schema for tool '{tool_name}': {e}")
+        return schemas
 
     def get_generated_tools_details(self) -> List[Dict[str, Any]]:
         """Returns a list of dictionaries with details about each generated tool."""

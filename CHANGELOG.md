@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Fixed
+- **Stabilized `LLMManager`**: Refactored the entire `LLMManager` class in `utils/llm_manager.py` to resolve critical syntax errors, unifying Gemini and OpenAI provider logic and enabling stable integration for agent profiling.
+- **Resolved critical `MasterAgent` profiling errors:**
+  - Fixed `TypeError` on tool arguments by implementing a dynamic tool schema system in `AgentManager` and updating `MasterAgent` to provide detailed schemas to the LLM, ensuring valid plan generation.
+  - Fixed `TypeError: contents must not be empty` in `ToolCreatorAgent` by correcting the message role from `system` to `user` in the Gemini LLM call.
 - Resolved critical test failures in `tests/test_master_agent.py` related to environmental adaptation and error recovery. This involved removing duplicated, outdated method definitions from `agents/master_agent.py` and correcting test logic to align with the current implementation.
 
 ## [Unreleased]

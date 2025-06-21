@@ -1,0 +1,316 @@
+INFO: Setting up the environment for profiling...
+2025-06-22 00:29:26,897 - INFO - Setting up the environment for profiling...
+2025-06-22 00:29:26,898 - INFO - Gemini API key is valid and client is initialized.
+2025-06-22 00:29:26,898 - INFO - Set current provider to: gemini (from config)
+2025-06-22 00:29:26,898 - INFO - Set current model to: gemini-1.5-flash (from config)
+2025-06-22 00:29:26,906 - INFO - Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+2025-06-22 00:29:26,983 - INFO - EnhancedMemoryManager initialized. Database path: /Users/developer/.atlas/memory
+INFO: ToolCreatorAgent initialized. Tools will be saved in 'tools/generated'
+2025-06-22 00:29:26,983 - INFO - ToolCreatorAgent initialized. Tools will be saved in 'tools/generated'
+INFO: Registered tool: create_tool
+2025-06-22 00:29:26,983 - INFO - Registered tool: create_tool
+INFO: Reloading generated tools from 'tools/generated'...
+2025-06-22 00:29:26,983 - INFO - Reloading generated tools from 'tools/generated'...
+INFO: Registered tool: hello_world
+2025-06-22 00:29:26,984 - INFO - Registered tool: hello_world
+INFO: Dynamically loaded and registered tool: 'hello_world' from hello_world.py in 0.0003s
+2025-06-22 00:29:26,984 - INFO - Dynamically loaded and registered tool: 'hello_world' from hello_world.py in 0.0003s
+INFO: Finished reloading tools in 0.0003 seconds.
+2025-06-22 00:29:26,984 - INFO - Finished reloading tools in 0.0003 seconds.
+INFO: Loading built-in tools...
+2025-06-22 00:29:26,984 - INFO - Loading built-in tools...
+INFO: Registered tool: capture_screen
+2025-06-22 00:29:26,984 - INFO - Registered tool: capture_screen
+INFO: Registered tool: get_clipboard_text
+2025-06-22 00:29:26,984 - INFO - Registered tool: get_clipboard_text
+INFO: Registered tool: set_clipboard_text
+2025-06-22 00:29:26,984 - INFO - Registered tool: set_clipboard_text
+INFO: Registered tool: get_clipboard_image
+2025-06-22 00:29:26,984 - INFO - Registered tool: get_clipboard_image
+INFO: Registered tool: set_clipboard_image
+2025-06-22 00:29:26,984 - INFO - Registered tool: set_clipboard_image
+INFO: Registered tool: clear_clipboard
+2025-06-22 00:29:26,984 - INFO - Registered tool: clear_clipboard
+INFO: Registered tool: click_at
+2025-06-22 00:29:26,984 - INFO - Registered tool: click_at
+INFO: Registered tool: move_mouse
+2025-06-22 00:29:26,984 - INFO - Registered tool: move_mouse
+INFO: Registered tool: type_text
+2025-06-22 00:29:26,984 - INFO - Registered tool: type_text
+INFO: Registered tool: press_key
+2025-06-22 00:29:26,984 - INFO - Registered tool: press_key
+INFO: Registered tool: ocr_image
+2025-06-22 00:29:26,984 - INFO - Registered tool: ocr_image
+INFO: Registered tool: ocr_file
+2025-06-22 00:29:26,984 - INFO - Registered tool: ocr_file
+INFO: Registered tool: find_template_in_image
+2025-06-22 00:29:26,984 - INFO - Registered tool: find_template_in_image
+INFO: Registered tool: find_object_in_image
+2025-06-22 00:29:26,984 - INFO - Registered tool: find_object_in_image
+INFO: Registered tool: execute_command
+2025-06-22 00:29:26,984 - INFO - Registered tool: execute_command
+INFO: Registered tool: execute_script
+2025-06-22 00:29:26,984 - INFO - Registered tool: execute_script
+INFO: Registered tool: get_environment
+2025-06-22 00:29:26,984 - INFO - Registered tool: get_environment
+INFO: Registered tool: change_directory
+2025-06-22 00:29:26,984 - INFO - Registered tool: change_directory
+INFO: Registered tool: kill_process
+2025-06-22 00:29:26,984 - INFO - Registered tool: kill_process
+INFO: Registered tool: send_email
+2025-06-22 00:29:26,984 - INFO - Registered tool: send_email
+INFO: Registered tool: send_telegram
+2025-06-22 00:29:26,984 - INFO - Registered tool: send_telegram
+INFO: Registered tool: send_sms
+2025-06-22 00:29:26,984 - INFO - Registered tool: send_sms
+INFO: Registered tool: open_url
+2025-06-22 00:29:26,984 - INFO - Registered tool: open_url
+INFO: Registered tool: translate_text
+2025-06-22 00:29:26,985 - INFO - Registered tool: translate_text
+INFO: Registered tool: detect_language
+2025-06-22 00:29:26,985 - INFO - Registered tool: detect_language
+INFO: Successfully loaded 25 built-in tools
+2025-06-22 00:29:26,985 - INFO - Successfully loaded 25 built-in tools
+INFO: Context Awareness Engine initialized for project root: /Users/developer/Documents/Atlas
+2025-06-22 00:29:26,985 - INFO - Context Awareness Engine initialized for project root: /Users/developer/Documents/Atlas
+INFO: Enhanced Browser Agent initialized.
+2025-06-22 00:29:26,985 - INFO - Enhanced Browser Agent initialized.
+INFO: Advanced Web Browsing Plugin is available
+2025-06-22 00:29:26,986 - INFO - Advanced Web Browsing Plugin is available
+INFO: Registered agent: BrowserAgent
+2025-06-22 00:29:26,986 - INFO - Registered agent: BrowserAgent
+INFO: Screen Agent initialized.
+2025-06-22 00:29:26,986 - INFO - Screen Agent initialized.
+INFO: Registered agent: ScreenAgent
+2025-06-22 00:29:26,986 - INFO - Registered agent: ScreenAgent
+INFO: Text Agent initialized.
+2025-06-22 00:29:26,986 - INFO - Text Agent initialized.
+INFO: Registered agent: TextAgent
+2025-06-22 00:29:26,986 - INFO - Registered agent: TextAgent
+INFO: System Interaction Agent initialized.
+2025-06-22 00:29:26,986 - INFO - System Interaction Agent initialized.
+INFO: Registered agent: SystemInteractionAgent
+2025-06-22 00:29:26,986 - INFO - Registered agent: SystemInteractionAgent
+INFO: Registered default specialized agents.
+2025-06-22 00:29:26,986 - INFO - Registered default specialized agents.
+INFO: MasterAgent initialized with creator authentication
+2025-06-22 00:29:26,986 - INFO - MasterAgent initialized with creator authentication
+INFO: MasterAgent and dependencies initialized successfully.
+2025-06-22 00:29:26,986 - INFO - MasterAgent and dependencies initialized successfully.
+INFO: Starting profiling for goal: 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.'
+2025-06-22 00:29:26,986 - INFO - Starting profiling for goal: 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.'
+INFO: Agent Status: Starting new goal: Write a python script to print 'hello world' to the console and save it as 'hello.py'.
+2025-06-22 00:29:26,986 - INFO - Agent Status: Starting new goal: Write a python script to print 'hello world' to the console and save it as 'hello.py'.
+INFO: Processing objective: 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.'
+2025-06-22 00:29:26,986 - INFO - Processing objective: 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.'
+INFO: Detected current Git branch: main
+2025-06-22 00:29:26,999 - INFO - Detected current Git branch: main
+INFO: Agent Status: Executing objective: Write a python script to print 'hello world' to the console and save it as 'hello.py'.
+2025-06-22 00:29:26,999 - INFO - Agent Status: Executing objective: Write a python script to print 'hello world' to the console and save it as 'hello.py'.
+INFO: Agent Status: Generating plan for goal: Write a python script to print 'hello world' to the console and save it as 'hello.py'.
+2025-06-22 00:29:26,999 - INFO - Agent Status: Generating plan for goal: Write a python script to print 'hello world' to the console and save it as 'hello.py'.
+2025-06-22 00:29:27,002 - INFO - Sending request to Gemini model 'gemini-1.5-flash' with system instruction and messages.
+2025-06-22 00:29:28,494 - INFO - Raw response from Gemini: response:
+GenerateContentResponse(
+    done=True,
+    iterator=None,
+    result=protos.GenerateContentResponse({
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "```json\n{\n  \"plan\": [\n    {\n      \"tool\": \"create_tool\",\n      \"args\": {\n        \"tool_name\": \"create_hello_py\",\n        \"code\": \"print('hello world')\"\n      }\n    },\n    {\n      \"tool\": \"execute_script\",\n      \"args\": {\n        \"script\": \"tool_name = 'create_hello_py'\\nwith open(f'{tool_name}.py', 'w') as f:\\n    f.write(tool_name.code)\"\n      }\n    }\n  ]\n}\n```\n"
+              }
+            ],
+            "role": "model"
+          },
+          "finish_reason": "STOP",
+          "safety_ratings": [
+            {
+              "category": "HARM_CATEGORY_HATE_SPEECH",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HARASSMENT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              "probability": "NEGLIGIBLE"
+            }
+          ],
+          "avg_logprobs": -0.0714552743094308
+        }
+      ],
+      "usage_metadata": {
+        "prompt_token_count": 356,
+        "candidates_token_count": 140,
+        "total_token_count": 496
+      },
+      "model_version": "gemini-1.5-flash"
+    }),
+)
+INFO: LLM raw response for plan generation: ```json
+{
+  "plan": [
+    {
+      "tool": "create_tool",
+      "args": {
+        "tool_name": "create_hello_py",
+        "code": "print('hello world')"
+      }
+    },
+    {
+      "tool": "execute_script",
+      "args": {
+        "script": "tool_name = 'create_hello_py'\nwith open(f'{tool_name}.py', 'w') as f:\n    f.write(tool_name.code)"
+      }
+    }
+  ]
+}
+```
+2025-06-22 00:29:28,688 - INFO - LLM raw response for plan generation: ```json
+{
+  "plan": [
+    {
+      "tool": "create_tool",
+      "args": {
+        "tool_name": "create_hello_py",
+        "code": "print('hello world')"
+      }
+    },
+    {
+      "tool": "execute_script",
+      "args": {
+        "script": "tool_name = 'create_hello_py'\nwith open(f'{tool_name}.py', 'w') as f:\n    f.write(tool_name.code)"
+      }
+    }
+  ]
+}
+```
+INFO: Extracted JSON from LLM response: {
+  "plan": [
+    {
+      "tool": "create_tool",
+      "args": {
+        "tool_name": "create_hello_py",
+        "code": "print('hello world')"
+      }
+    },
+    {
+      "tool": "execute_script",
+      "args": {
+        "script": "tool_name = 'create_hello_py'\nwith open(f'{tool_name}.py', 'w') as f:\n    f.write(tool_name.code)"
+      }
+    }
+  ]
+}
+2025-06-22 00:29:28,688 - INFO - Extracted JSON from LLM response: {
+  "plan": [
+    {
+      "tool": "create_tool",
+      "args": {
+        "tool_name": "create_hello_py",
+        "code": "print('hello world')"
+      }
+    },
+    {
+      "tool": "execute_script",
+      "args": {
+        "script": "tool_name = 'create_hello_py'\nwith open(f'{tool_name}.py', 'w') as f:\n    f.write(tool_name.code)"
+      }
+    }
+  ]
+}
+ERROR: An unexpected error occurred while processing objective 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.': Invalid plan format: 'steps' must be a non-empty list
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 529, in _execute_objective_with_retries
+    plan = self._generate_plan(current_goal)
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 805, in _generate_plan
+    raise ValueError("Invalid plan format: 'steps' must be a non-empty list")
+ValueError: Invalid plan format: 'steps' must be a non-empty list
+2025-06-22 00:29:28,688 - ERROR - An unexpected error occurred while processing objective 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.': Invalid plan format: 'steps' must be a non-empty list
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 529, in _execute_objective_with_retries
+    plan = self._generate_plan(current_goal)
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 805, in _generate_plan
+    raise ValueError("Invalid plan format: 'steps' must be a non-empty list")
+ValueError: Invalid plan format: 'steps' must be a non-empty list
+ERROR: Failed to achieve goal 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.' due to a critical error in one of its objectives: Invalid plan format: 'steps' must be a non-empty list
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 256, in run_once
+    self._execute_objective_with_retries(sub_goal)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 579, in _execute_objective_with_retries
+    raise e  # Re-raise as a critical failure
+    ^^^^^^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 529, in _execute_objective_with_retries
+    plan = self._generate_plan(current_goal)
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 805, in _generate_plan
+    raise ValueError("Invalid plan format: 'steps' must be a non-empty list")
+ValueError: Invalid plan format: 'steps' must be a non-empty list
+2025-06-22 00:29:28,691 - ERROR - Failed to achieve goal 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.' due to a critical error in one of its objectives: Invalid plan format: 'steps' must be a non-empty list
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 256, in run_once
+    self._execute_objective_with_retries(sub_goal)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 579, in _execute_objective_with_retries
+    raise e  # Re-raise as a critical failure
+    ^^^^^^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 529, in _execute_objective_with_retries
+    plan = self._generate_plan(current_goal)
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 805, in _generate_plan
+    raise ValueError("Invalid plan format: 'steps' must be a non-empty list")
+ValueError: Invalid plan format: 'steps' must be a non-empty list
+INFO: Agent Status: Failed to achieve goal 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.'.
+2025-06-22 00:29:28,692 - INFO - Agent Status: Failed to achieve goal 'Write a python script to print 'hello world' to the console and save it as 'hello.py'.'.
+INFO: Profiling finished.
+2025-06-22 00:29:28,692 - INFO - Profiling finished.
+INFO: Profiling data saved to /Users/developer/Documents/Atlas/dev-tools/profiling_output/master_agent_performance.pstats
+2025-06-22 00:29:28,700 - INFO - Profiling data saved to /Users/developer/Documents/Atlas/dev-tools/profiling_output/master_agent_performance.pstats
+INFO: Top 30 functions by cumulative time printed above.
+2025-06-22 00:29:28,710 - INFO - Top 30 functions by cumulative time printed above.
+         22990 function calls (22223 primitive calls) in 2.656 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1299 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      2/1    0.000    0.000    1.706    1.706 /Users/developer/Documents/Atlas/agents/master_agent.py:222(run_once)
+        1    0.000    0.000    1.691    1.691 /Users/developer/Documents/Atlas/agents/master_agent.py:514(_execute_objective_with_retries)
+        1    0.000    0.000    1.689    1.689 /Users/developer/Documents/Atlas/agents/master_agent.py:751(_generate_plan)
+        1    0.000    0.000    1.686    1.686 /Users/developer/Documents/Atlas/utils/llm_manager.py:229(chat)
+        1    0.000    0.000    1.686    1.686 /Users/developer/Documents/Atlas/utils/llm_manager.py:332(_chat_gemini)
+        3    0.000    0.000    1.671    0.557 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/google/api_core/gapic_v1/method.py:98(__call__)
+        3    0.000    0.000    1.671    0.557 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/google/api_core/retry/retry_unary.py:287(retry_wrapped_func)
+        3    0.000    0.000    1.671    0.557 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/google/api_core/retry/retry_unary.py:85(retry_target)
+        3    0.000    0.000    1.671    0.557 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/google/api_core/timeout.py:101(func_with_timeout)
+        3    0.000    0.000    1.671    0.557 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/google/api_core/grpc_helpers.py:73(error_remapped_callable)
+        3    0.950    0.317    1.671    0.557 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/grpc/_interceptor.py:268(__call__)
+        1    0.000    0.000    1.481    1.481 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/google/generativeai/generative_models.py:237(generate_content)
+        1    0.000    0.000    1.481    1.481 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py:702(generate_content)
+        1    0.000    0.000    0.505    0.505 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/posthog/consumer.py:73(upload)
+        1    0.000    0.000    0.505    0.505 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/posthog/consumer.py:94(next)
+        2    0.000    0.000    0.505    0.253 /opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/queue.py:180(get)
+    36/25    0.505    0.014    0.505    0.020 {method 'acquire' of '_thread.lock' objects}
+        1    0.000    0.000    0.474    0.474 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/posthog/consumer.py:124(request)
+        1    0.000    0.000    0.473    0.473 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/backoff/_sync.py:85(retry)
+        1    0.000    0.000    0.473    0.473 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/posthog/consumer.py:139(send_request)
+        1    0.000    0.000    0.473    0.473 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/posthog/request.py:146(batch_post)
+        1    0.000    0.000    0.473    0.473 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/posthog/request.py:45(post)
+        1    0.000    0.000    0.473    0.473 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/requests/sessions.py:626(post)
+        1    0.000    0.000    0.473    0.473 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/requests/sessions.py:500(request)
+        1    0.000    0.000    0.465    0.465 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/requests/sessions.py:673(send)
+        1    0.000    0.000    0.464    0.464 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/requests/adapters.py:613(send)
+        1    0.000    0.000    0.463    0.463 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/urllib3/connectionpool.py:592(urlopen)
+        1    0.000    0.000    0.463    0.463 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/urllib3/connectionpool.py:377(_make_request)
+        1    0.000    0.000    0.293    0.293 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/urllib3/connectionpool.py:1085(_validate_conn)
+        1    0.000    0.000    0.292    0.292 /Users/developer/Documents/Atlas/venv-macos/lib/python3.13/site-packages/urllib3/connection.py:718(connect)
+
+
+

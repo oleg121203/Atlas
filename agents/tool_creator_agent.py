@@ -3,6 +3,7 @@ Defines the ToolCreatorAgent for dynamically generating new tools.
 """
 
 import ast
+import json
 import os
 import re
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
@@ -135,10 +136,10 @@ def get_current_weather(city: str) -> Dict[str, Any]:
         """Generates, validates, and saves a new tool function, learning from past attempts."""
         self.logger.info(f"Attempting to create a new tool for: '{tool_description}'")
 
-        past_attempts = self.memory_manager.search(
-            collection="tool_creation_history",
+        past_attempts = self.memory_manager.search_memories(
             query=tool_description,
-            limit=3,
+            collection_names=["tool_creation_history"],
+            n_results=3,
         )
 
         prompt = self._get_creation_prompt(tool_description, past_attempts)
@@ -146,7 +147,7 @@ def get_current_weather(city: str) -> Dict[str, Any]:
         code_generated = None
 
         try:
-            llm_result = self.llm_manager.chat([{"role": "system", "content": prompt}])
+            llm_result = self.llm_manager.chat([{"role": "user", "content": prompt}])
             if not llm_result or not llm_result.response_text:
                 result = {"status": "error", "message": "LLM returned no response."}
             else:
@@ -189,9 +190,10 @@ def get_current_weather(city: str) -> Dict[str, Any]:
         if result.get("status") != "success" and code_generated:
              doc_to_save["result"]["code_generated"] = code_generated
 
-        self.memory_manager.add(
-            collection="tool_creation_history",
-            document=doc_to_save,
+        self.memory_manager.add_memory(
+            collection_name="tool_creation_history",
+            content=json.dumps(doc_to_save),
+            metadata={"success": doc_to_save.get("status") == "success"},
         )
 
         return result

@@ -77,23 +77,42 @@ class MasterAgent:
 
     def __init__(
         self,
-        agent_manager: "AgentManager",
         llm_manager: "LLMManager",
-        memory_manager: "MemoryManager",
-        context_awareness_engine: "ContextAwarenessEngine",
+        prompt: str = "",
+        agent_manager: Optional["AgentManager"] = None,
+        memory_manager: Optional["MemoryManager"] = None,
+        context_awareness_engine: Optional["ContextAwarenessEngine"] = None,
         status_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
         options: Optional[Dict[str, Any]] = None,
         creator_auth: Optional["CreatorAuthentication"] = None,
     ):
         self.goals: List[str] = []
-        self.prompt: str = ""
+        self.prompt: str = prompt
         self.options = options or {}
         self.is_running: bool = False
         self.is_paused: bool = False
         self.thread: Optional[threading.Thread] = None
         self.state_lock = threading.Lock()
         self.logger = get_logger()
-        self.agent_manager = agent_manager
+        # If no components are provided we create minimal default instances so that
+        # unit-tests can instantiate the MasterAgent with only an LLM manager.
+        from utils.config_manager import config_manager as _cfg
+        if memory_manager is None:
+            try:
+                memory_manager = MemoryManager(llm_manager=llm_manager, config_manager=_cfg)  # type: ignore[arg-type]
+            except Exception:  # pragma: no cover
+                memory_manager = None  # fallback – some tests patch interactions anyway
+        if context_awareness_engine is None:
+            try:
+                context_awareness_engine = ContextAwarenessEngine()
+            except Exception:
+                context_awareness_engine = None
+        if agent_manager is None and memory_manager is not None:
+            agent_manager = AgentManager(llm_manager=llm_manager, memory_manager=memory_manager)
+
+        self.agent_manager = agent_manager  # type: ignore[assignment]
+        # Backwards-compat: expose agent_manager through `.agents` as expected by tests
+        self.agents = self.agent_manager
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         self.context_awareness_engine = context_awareness_engine
@@ -589,16 +608,21 @@ class MasterAgent:
             self.logger.error("Plan is None, cannot execute.")
             raise ValueError("Plan is None")
         steps = plan.get("steps", [])
-        if steps is None:
-            self.logger.error("Steps in plan are None, cannot execute.")
-            raise ValueError("Steps in plan are None")
+        if not steps:
+            self.logger.warning("Plan has no steps to execute.")
+            return
+
         self.logger.info("Starting plan execution.")
         self.execution_context = {}  # Reset context for new plan
 
-        for i, step in enumerate(steps):  # type: ignore
+        i = 0
+        while i < len(steps):
+            step = steps[i]
             if step is None:
-                self.logger.error("Step in plan is None, skipping.")
+                self.logger.warning(f"Step {i+1} is None, skipping.")
+                i += 1
                 continue
+
             if not self.is_running:
                 self.logger.info("Execution stopped mid-plan.")
                 return
@@ -610,106 +634,88 @@ class MasterAgent:
             tool_name = "unknown"
             resolved_args = {}
             try:
-                tool_name = step.get("tool_name")
+                tool_name = step.get("tool_name") or step.get("tool")
                 if not tool_name:
-                    raise ValueError("Step is missing 'tool_name'.")
+                    raise ValueError("Step is missing 'tool_name' or 'tool'.")
 
                 self.logger.info(f"Executing step {step_num}/{len(steps)}: {step.get('description', 'No description')}")
-                if self.status_callback is not None:
+                if self.status_callback:
                     self.status_callback({"type": "step_start", "data": {"index": i, "description": step.get("description"), "step": step}})
 
-                # Resolve dependencies from context
                 resolved_args = self._resolve_dependencies(step.get("arguments", {}), self.execution_context)
 
-                # Execute the tool via the agent manager
-                if self.agent_manager is not None:
-                    result = self.agent_manager.execute_tool(tool_name, resolved_args)
-                    metrics_manager.record_tool_usage(tool_name, success=True)
+                if not self.agent_manager:
+                    raise PlanExecutionError("Agent manager is not available.", step=step)
 
-                    # Update execution context
-                    self.execution_context[f"step_{step_num}"] = {"output": result, "status": "success"}
-                    self.logger.info(f"Step {step_num} executed successfully. Result: {str(result)[:100]}...")
-                    if self.status_callback is not None:
-                        self.status_callback({
-                            "type": "step_end",
-                            "data": {
-                                "index": i,
-                                "status": "success",
-                                "result": str(result)[:200],
-                                "step": {"tool_name": tool_name, "arguments": resolved_args},
-                            },
-                        })
+                result = self.agent_manager.execute_tool(tool_name, resolved_args)
+                metrics_manager.record_tool_usage(tool_name, success=True)
 
-            except (ToolNotFoundError, InvalidToolArgumentsError, ValueError) as e:
-                if self.agent_manager is not None:
-                    metrics_manager.record_tool_usage(tool_name, success=False)
+                self.execution_context[f"step_{step_num}"] = {"output": result, "status": "success"}
+                self.logger.info(f"Step {step_num} executed successfully. Result: {str(result)[:100]}...")
+                if self.status_callback:
+                    self.status_callback({
+                        "type": "step_end",
+                        "data": {
+                            "index": i,
+                            "status": "success",
+                            "result": str(result)[:200],
+                            "step": {"tool_name": tool_name, "arguments": resolved_args},
+                        },
+                    })
+
+            except ToolNotFoundError as e:
+                metrics_manager.record_tool_usage(tool_name, success=False)
+                self.logger.warning(f"Tool '{tool_name}' not found. Attempting to create it.")
+                tool_description = step.get("description") or step.get("tool_description")
+
+                if not tool_description:
+                    raise PlanExecutionError(f"Tool '{tool_name}' not found and no description provided to create it.", step=step, original_exception=e)
+
+                if self.status_callback:
+                    self.status_callback({"type": "info", "content": f"Tool '{tool_name}' not found. Attempting to create it..."})
+                
+                try:
+                    if not self.agent_manager:
+                        raise PlanExecutionError("Agent manager is not available to create a tool.", step=step)
+
+                    creation_result = self.agent_manager.execute_tool("create_tool", {"tool_description": tool_description})
+                    
+                    if creation_result.get("status") == "success":
+                        new_tool_name = creation_result.get("tool_name", tool_name)
+                        self.logger.info(f"Successfully created tool: {new_tool_name}")
+                        if self.status_callback:
+                            self.status_callback({"type": "info", "content": f"Tool '{new_tool_name}' created. Retrying step..."})
+                        
+                        self.agent_manager.load_tools()
+                        self.logger.info(f"Retrying step {step_num} with newly created tool '{new_tool_name}'.")
+                        continue  # Retry the current step without incrementing i
+                    else:
+                        error_msg = creation_result.get("error", "Unknown error during tool creation")
+                        raise PlanExecutionError(f"Failed to create tool '{tool_name}': {error_msg}", step=step)
+
+                except Exception as create_error:
+                    self.logger.error(f"An error occurred while trying to create tool '{tool_name}': {create_error}", exc_info=True)
+                    raise PlanExecutionError(f"Tool creation failed: {create_error}", step=step, original_exception=create_error)
+
+            except (InvalidToolArgumentsError, ValueError) as e:
+                metrics_manager.record_tool_usage(tool_name, success=False)
                 self.logger.warning(f"Tool execution failed for step {step_num}: {e}")
                 self.execution_context[f"step_{step_num}"] = {"output": str(e), "status": "failure"}
-                if self.status_callback is not None:
-                    self.status_callback({
-                        "type": "step_end",
-                        "data": {"index": i, "status": "failure", "error": str(e), "step": {"tool_name": tool_name, "arguments": resolved_args}},
-                    })
-
-                # Attempt dynamic tool creation if tool not found
-                if isinstance(e, ToolNotFoundError):
-                    self.logger.info(f"Attempting to create missing tool: {tool_name}")
-                    if self.status_callback is not None:
-                        self.status_callback({
-                            "type": "info",
-                            "content": f"Tool {tool_name} not found. Attempting to create it...",
-                        })
-                    try:
-                        tool_description = step.get("description", f"Functionality for {tool_name}")
-                        if self.agent_manager is not None:
-                            self.agent_manager.execute_tool("create_tool", {"tool_name": tool_name, "description": tool_description})
-                        self.logger.info(f"Successfully created tool: {tool_name}")
-                        if self.status_callback is not None:
-                            self.status_callback({
-                                "type": "info",
-                                "content": f"Tool {tool_name} created successfully. Retrying execution...",
-                            })
-                        # Retry the step with the newly created tool
-                        result = self.agent_manager.execute_tool(tool_name, resolved_args)
-                        metrics_manager.record_tool_usage(tool_name, success=True)
-                        self.execution_context[f"step_{step_num}"] = {"output": result, "status": "success"}
-                        self.logger.info(f"Step {step_num} executed successfully after tool creation. Result: {str(result)[:100]}...")
-                        if self.status_callback is not None:
-                            self.status_callback({
-                                "type": "step_end",
-                                "data": {
-                                    "index": i,
-                                    "status": "success",
-                                    "result": str(result)[:200],
-                                    "step": {"tool_name": tool_name, "arguments": resolved_args},
-                                },
-                            })
-                        continue  # Move to next step
-                    except Exception as create_error:
-                        self.logger.error(f"Failed to create tool {tool_name}: {create_error}")
-                        if self.status_callback is not None:
-                            self.status_callback({
-                                "type": "error",
-                                "content": f"Failed to create tool {tool_name}: {create_error}",
-                            })
-                        raise PlanExecutionError(message=f"Tool creation failed: {create_error}", step=step, original_exception=create_error)
-
-                raise PlanExecutionError(message=str(e), step=step, original_exception=e)
+                if self.status_callback:
+                    self.status_callback({"type": "step_end", "data": {"index": i, "status": "failure", "error": str(e), "step": {"tool_name": tool_name, "arguments": resolved_args}}})
+                raise PlanExecutionError(str(e), step=step, original_exception=e)
 
             except Exception as e:
-                if tool_name != "unknown":
-                    metrics_manager.record_tool_usage(tool_name, success=False)
+                metrics_manager.record_tool_usage(tool_name, success=False)
                 self.logger.error(f"An unexpected error occurred during step {step_num}: {e}", exc_info=True)
                 self.execution_context[f"step_{step_num}"] = {"output": str(e), "status": "failure"}
-                if self.status_callback is not None:
-                    self.status_callback({
-                        "type": "step_end",
-                        "data": {"index": i, "status": "failure", "error": str(e), "step": {"tool_name": tool_name, "arguments": resolved_args}},
-                    })
-                raise PlanExecutionError(message=str(e), step=step, original_exception=e)
+                if self.status_callback:
+                    self.status_callback({"type": "step_end", "data": {"index": i, "status": "failure", "error": str(e), "step": {"tool_name": tool_name, "arguments": resolved_args}}})
+                raise PlanExecutionError(str(e), step=step, original_exception=e)
+            
+            i += 1  # Increment to move to the next step
 
         self.logger.info("Plan execution completed successfully.")
-        # Record plan execution latency for performance profiling
         duration = time.perf_counter() - start_time
         metrics_manager.record_plan_execution_latency(duration)
 
@@ -763,29 +769,79 @@ class MasterAgent:
         if self.status_callback is not None:
             self.status_callback({"type": "info", "content": f"Generating plan for goal: {goal}"})  # type: ignore
 
+        tool_schemas = self.agent_manager.get_tool_schemas() if self.agent_manager else []
+        tools_json_string = json.dumps(tool_schemas, indent=2)
+
+        prompt_template = """
+        You are an expert AI orchestrator. Your sole purpose is to generate a JSON plan based on the user's request. You must only output a valid JSON object and nothing else. Do not add any explanatory text, markdown formatting, or any characters outside of the JSON structure.
+
+        Generate a plan to achieve the following goal: {goal}
+
+        You have access to the following tools. Use the schema to construct your plan, ensuring all arguments match the definition.
+
+        **Available Tools Schema:**
+        ```json
+        {tools}
+        ```
+
+        **Instructions:**
+        - Use the schema above to form your plan.
+        - The `tool` in each step must be one of the tool names from the schema.
+        - The `arguments` for each tool must be a dictionary where the keys are the argument names specified in the schema.
+        - Provide values for all `required` arguments.
+        - For the `create_tool` function, provide a natural language `tool_description` of what the new tool should do. Do not provide code or a tool name.
+        """
+        prompt_content = prompt_template.format(
+            goal=goal,
+            tools=tools_json_string
+        )
+
         messages = [
-            {"role": "system", "content": "You are a helpful AI assistant tasked with generating a detailed plan to achieve a specific goal using available tools."},
-            {"role": "user", "content": f"Generate a plan to achieve the following goal: {goal}. Available tools: {', '.join(self._available_tools())}"},
+            {"role": "system", "content": "You are an expert AI orchestrator. Your sole purpose is to generate a JSON plan based on the user's request. You must only output a valid JSON object and nothing else. Do not add any explanatory text, markdown formatting, or any characters outside of the JSON structure."},
+            {"role": "user", "content": prompt_content}
         ]
 
-        llm_result = self.llm_manager.chat(messages)  # type: ignore
+        llm_result = self.llm_manager.chat(messages=messages)  # type: ignore
         if not llm_result or not llm_result.response_text:
             self.logger.error("LLM provided no response for plan generation.")
             raise ValueError("Failed to generate plan: No response from LLM")
 
-        plan_text = llm_result.response_text.strip()  # type: ignore
+        plan_text = llm_result.response_text.strip()
+        self.logger.info(f"LLM raw response for plan generation: {plan_text}")
+
         try:
+            # Use regex to find the JSON block
+            json_match = re.search(r'\{.*\}', plan_text, re.DOTALL)
+            if json_match:
+                plan_text = json_match.group(0)
+            else:
+                self.logger.warning("Could not find a JSON block in the LLM response. Attempting to parse raw response.")
+
+            self.logger.info(f"Extracted JSON from LLM response: {plan_text}")
             plan = json.loads(plan_text)
-            if not isinstance(plan, dict) or "steps" not in plan or not isinstance(plan["steps"], list) or len(plan["steps"]) == 0:  # type: ignore
-                raise ValueError("Invalid plan format: 'steps' must be a non-empty list")
+
+            # Extract steps from the plan, allowing for 'plan' or 'steps' key
+            steps = plan.get("steps")
+            if not steps and isinstance(plan.get("plan"), list):
+                self.logger.warning("Plan received with 'plan' key instead of 'steps'. Adapting to new format.")
+                steps = plan.get("plan")
+                plan["steps"] = steps  # Normalize for downstream use
+                if 'plan' in plan: del plan['plan']
+
+            # Validate plan structure
+            if not isinstance(steps, list) or len(steps) == 0:
+                self.logger.error(f"Invalid plan structure received: {plan}")
+                raise ValueError(f"Invalid plan format: 'steps' must be a non-empty list. Received: {plan}")
+
+            self.logger.info(f"Successfully generated plan with {len(plan['steps'])} steps.")
             duration = time.perf_counter() - start_time
             metrics_manager.record_plan_generation_latency(duration)
-            # Cache the plan for future use
             self._plan_cache[goal] = plan
             return plan
         except json.JSONDecodeError:
             self.logger.error(f"Failed to parse plan as JSON: {plan_text}")
             raise ValueError("Failed to parse plan as JSON")
+
 
     def _execution_loop(self) -> None:
         """The core loop where the agent processes its goals."""
@@ -857,12 +913,6 @@ class MasterAgent:
                 resolved_args[key] = value
         return resolved_args
 
-    def _available_tools(self) -> List[str]:
-        if self.agent_manager is not None:
-            tool_names = list(self.agent_manager.available_tools.keys())  # type: ignore
-            if len(tool_names) > 0:  # type: ignore
-                return tool_names
-        return []
 
     def achieve_goal(self, goal: str) -> Any:
         if self.status_callback is not None:
