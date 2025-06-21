@@ -8,10 +8,15 @@ from typing import Any, Dict, List, Optional, Tuple, Callable, cast
 
 from agents.browser_agent import BrowserAgent
 try:
-    from agents.enhanced_memory_manager import EnhancedMemoryManager as MemoryManager
-    from agents.memory_manager import MemoryType, MemoryScope  # type: ignore
-except ImportError:
-    from agents.memory_manager import MemoryManager, MemoryType, MemoryScope  # type: ignore
+    from agents.enhanced_memory_manager import EnhancedMemoryManager as MemoryManager  # type: ignore
+    from agents.memory_manager import MemoryType, MemoryScope  # type: ignore[attr-defined]
+except (ImportError, AttributeError):
+    try:
+        from agents.memory_manager import MemoryManager, MemoryType, MemoryScope  # type: ignore[attr-defined]
+    except (ImportError, AttributeError):
+        from agents.memory_manager import MemoryManager  # type: ignore
+        MemoryType = object  # type: ignore
+        MemoryScope = object  # type: ignore
 
 from agents.creator_authentication import CreatorAuthentication
 from agents.agent_manager import AgentManager, ToolNotFoundError, InvalidToolArgumentsError
@@ -85,6 +90,8 @@ class MasterAgent:
         self.last_goal: Optional[str] = None
         self.last_plan: Optional[Plan] = None
         self.execution_context: Dict[str, Any] = {}
+        # In-memory cache for generated plans to reduce redundant LLM calls
+        self._plan_cache: Dict[str, Dict[str, Any]] = {}
 
         # Hierarchical Planners
         self.strategic_planner = StrategicPlanner(llm_manager=self.llm_manager, memory_manager=self.memory_manager)
@@ -527,6 +534,14 @@ Your response must be ONLY the JSON object.
         current_goal = objective
         self.retry_count = 0
         while self.retry_count < self.MAX_RETRIES:
+            # Capture current environmental snapshot (if available)
+            baseline_context: Dict[str, Any] = {}
+            if self.context_awareness_engine is not None and hasattr(self.context_awareness_engine, "get_current_context"):
+                try:
+                    baseline_context = self.context_awareness_engine.get_current_context() or {}
+                except Exception:  # pragma: no cover – engine implementation may vary
+                    baseline_context = {}
+
             try:
                 if self.status_callback is not None:
                     self.status_callback({"type": "info", "content": f"Executing objective: {current_goal}"})  # type: ignore
@@ -542,6 +557,21 @@ Your response must be ONLY the JSON object.
                 self.logger.error(f"Plan execution failed: {str(e)}")
                 self.retry_count += 1
                 if self.retry_count < self.MAX_RETRIES:
+                    # Check for environmental changes since we started this attempt
+                    env_changed = False
+                    if self.context_awareness_engine is not None and hasattr(self.context_awareness_engine, "get_current_context"):
+                        try:
+                            latest_context = self.context_awareness_engine.get_current_context() or {}
+                            env_changed = latest_context != baseline_context
+                        except Exception:  # pragma: no cover
+                            env_changed = False
+
+                    if env_changed:
+                        if self.status_callback is not None:
+                            self.status_callback({"type": "info", "content": "Environment changed – regenerating plan."})  # type: ignore
+                        # On environmental change, simply restart loop with the same original goal (fresh plan)
+                        continue
+
                     recovery_goal = self._recover_from_error(
                         original_goal=current_goal,
                         plan=e.step,
@@ -576,6 +606,7 @@ Your response must be ONLY the JSON object.
             self.token_counts['total'] += token_usage.total_tokens  # type: ignore
 
     def _execute_plan(self, plan: Dict[str, Any]) -> None:
+        start_time = time.perf_counter()
         """
         Executes the steps outlined in the plan.
         Raises:
@@ -705,6 +736,9 @@ Your response must be ONLY the JSON object.
                 raise PlanExecutionError(message=str(e), step=step, original_exception=e)
 
         self.logger.info("Plan execution completed successfully.")
+        # Record plan execution latency for performance profiling
+        duration = time.perf_counter() - start_time
+        metrics_manager.record_plan_execution_latency(duration)
 
     def _execute_tool(self, tool_name: str, tool_args: Dict[str, Any], step: Dict[str, Any]) -> Any:
         try:
@@ -742,6 +776,17 @@ Your response must be ONLY the JSON object.
             raise Exception(error_msg)
 
     def _generate_plan(self, goal: str) -> Dict[str, Any]:
+        """Generate an execution plan for a goal.
+
+        This method now employs an in-memory cache to avoid redundant LLM calls
+        for repeat goals and records latency metrics for performance analysis.
+        """
+        # Check cache first
+        if goal in self._plan_cache:
+            self.logger.info("Using cached plan for goal: '%s'", goal)
+            return self._plan_cache[goal]
+
+        start_time = time.perf_counter()
         if self.status_callback is not None:
             self.status_callback({"type": "info", "content": f"Generating plan for goal: {goal}"})  # type: ignore
         
@@ -760,6 +805,10 @@ Your response must be ONLY the JSON object.
             plan = json.loads(plan_text)
             if not isinstance(plan, dict) or "steps" not in plan or not isinstance(plan["steps"], list) or len(plan["steps"]) == 0:  # type: ignore
                 raise ValueError("Invalid plan format: 'steps' must be a non-empty list")
+            duration = time.perf_counter() - start_time
+            metrics_manager.record_plan_generation_latency(duration)
+            # Cache the plan for future use
+            self._plan_cache[goal] = plan
             return plan
         except json.JSONDecodeError:
             self.logger.error(f"Failed to parse plan as JSON: {plan_text}")

@@ -69,6 +69,7 @@ known-first-party = ["agents", "utils", "intelligence", "monitoring", "tools", "
 "dev-tools/*.py" = ["S101", "T201"]  # Allow print and assert in dev tools
 
 [tool.mypy]
+exclude = ["unused/"]
 python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
