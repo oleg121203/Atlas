@@ -235,3 +235,103 @@ dev-tools/testing/*.jpg
 dev-tools/testing/*.jpeg
 dev-tools/testing/temp_*
 dev-tools/.atlas_code_cache.json
+
+# Atlas Development Tools
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+benchmark.json
+benchmark-main.json
+*-report.json
+trivy-results.sarif
+
+# Security and audit reports
+safety-report.json
+bandit-report.json
+security-reports/
+
+# Windsurf sessions (local only)
+.windsurf/sessions/
+.windsurf/context/
+
+# Development artifacts
+dev-tools/temp/
+docs/api/
+
+# Atlas Development Tools
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+benchmark.json
+benchmark-main.json
+*-report.json
+trivy-results.sarif
+
+# Security and audit reports
+safety-report.json
+bandit-report.json
+security-reports/
+
+# Windsurf sessions (local only)
+.windsurf/sessions/
+.windsurf/context/
+
+# Development artifacts
+dev-tools/temp/
+docs/api/
+
+# Atlas Development Tools
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+benchmark.json
+benchmark-main.json
+*-report.json
+trivy-results.sarif
+
+# Security and audit reports
+safety-report.json
+bandit-report.json
+security-reports/
+
+# Windsurf sessions (local only)
+.windsurf/sessions/
+.windsurf/context/
+
+# Development artifacts
+dev-tools/temp/
+docs/api/
+
+# Atlas Development Tools
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+benchmark.json
+benchmark-main.json
+*-report.json
+trivy-results.sarif
+
+# Security and audit reports
+safety-report.json
+bandit-report.json
+security-reports/
+
+# Windsurf sessions (local only)
+.windsurf/sessions/
+.windsurf/context/
+
+# Development artifacts
+dev-tools/temp/
+docs/api/

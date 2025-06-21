@@ -21,12 +21,12 @@ class ToolCreatorAgent:
         self.memory_manager = memory_manager
         self.logger = get_logger()
         self.tool_dir = tool_dir
-        if not os.path.exists(self.tool_dir):
-            os.makedirs(self.tool_dir)
-            init_path = os.path.join(self.tool_dir, "__init__.py")
-            if not os.path.exists(init_path):
-                with open(init_path, "w") as f:
-                    f.write("")
+        os.makedirs(self.tool_dir, exist_ok=True)
+        # Ensure the directory is a Python package
+        init_path = os.path.join(self.tool_dir, "__init__.py")
+        if not os.path.exists(init_path):
+            with open(init_path, "w") as f:
+                f.write("")
         self.logger.info(f"ToolCreatorAgent initialized. Tools will be saved in '{self.tool_dir}'")
 
     def _get_creation_prompt(self, tool_description: str, examples: Optional[List[Dict[str, Any]]] = None) -> str:
@@ -159,20 +159,24 @@ def get_current_weather(city: str) -> Dict[str, Any]:
                 else:
                     function_name = self._get_function_name(code)
                     if not function_name:
-                        result = {"status": "error", "message": "Could not determine function name from generated code."}
+                        result = {"status": "error", "message": "Could not find function definition in generated code"}
                     else:
                         file_name = f"{function_name}.py"
                         file_path = os.path.join(self.tool_dir, file_name)
-                        with open(file_path, "w") as f:
-                            f.write(code)
-                        self.logger.info(f"Successfully created new tool: {file_path}")
-                        result = {
-                            "status": "success", 
-                            "message": f"Tool '{function_name}' created at {file_path}",
-                            "tool_name": function_name,
-                            "file_path": file_path,
-                            "code": code
-                        }
+
+                        if os.path.exists(file_path):
+                            result = {"status": "error", "message": f"Tool file '{file_path}' already exists."}
+                        else:
+                            with open(file_path, "w") as f:
+                                f.write(code)
+                            self.logger.info(f"Successfully created new tool: {file_path}")
+                            result = {
+                                "status": "success", 
+                                "message": f"Tool '{function_name}' created at {file_path}",
+                                "tool_name": function_name,
+                                "file_path": file_path,
+                                "code": code
+                            }
 
         except Exception as e:
             self.logger.error(f"An unexpected error occurred in create_tool: {e}", exc_info=True)

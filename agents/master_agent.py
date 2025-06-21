@@ -243,6 +243,67 @@ class MasterAgent:
             if self.status_callback is not None:
                 self.status_callback({"type": "error", "content": f"Failed to achieve goal '{original_goal}'."})
 
+    def _execute_objective_with_retries(self, current_goal: str):
+        """Generates and executes a plan for an objective, with error handling and retries."""
+        for attempt in range(self.MAX_RETRIES + 1):
+            try:
+                plan = self._generate_plan(current_goal)
+                if not plan or not plan.get("steps"):
+                    self.logger.warning(f"Could not generate a plan for the objective: {current_goal}")
+                    return
+
+                self._execute_plan(plan)
+                self.logger.info(f"Successfully executed plan for objective: {current_goal}")
+                return  # Success, exit loop
+
+            except PlanExecutionError as e:
+                self.logger.warning(f"Plan execution failed (Attempt {attempt + 1}/{self.MAX_RETRIES + 1}). Error: {e.original_exception}")
+
+                if attempt >= self.MAX_RETRIES:
+                    self.logger.error(f"Failed to execute objective '{current_goal}' after {self.MAX_RETRIES + 1} attempts.")
+                    raise e
+
+                error = e.original_exception
+                step = e.step
+
+                if isinstance(error, ToolNotFoundError):
+                    self._handle_tool_not_found(error, step)
+                elif isinstance(error, InvalidToolArgumentsError):
+                    current_goal = self._handle_invalid_tool_arguments(current_goal, step, error)
+                else:
+                    self._handle_generic_execution_error(step, attempt + 1)
+            
+            except Exception as e:
+                self.logger.error(f"An unexpected error occurred while processing objective '{current_goal}': {e}", exc_info=True)
+                raise e
+
+    def _handle_tool_not_found(self, error: ToolNotFoundError, step: Dict[str, Any]):
+        """Handles a ToolNotFoundError by attempting to create the missing tool."""
+        self.logger.info(f"Attempting to recover from ToolNotFoundError for tool '{error.tool_name}'.")
+        tool_description = f"a tool that can be used to {step.get('description', 'perform a task')}"
+        creation_result = self.agent_manager.tool_creator_agent.create_tool(tool_description)
+        if creation_result.get("status") != "success":
+            self.logger.error("Failed to create the missing tool. Aborting objective.")
+            raise error # Re-raise if tool creation fails
+
+    def _handle_invalid_tool_arguments(self, goal: str, step: Dict[str, Any], error: InvalidToolArgumentsError) -> str:
+        """Handles an InvalidToolArgumentsError by regenerating the plan with error context."""
+        self.logger.info("Attempting to recover from InvalidToolArgumentsError by replanning.")
+        return self._generate_plan_with_error_context(goal, step, error)
+
+    def _handle_generic_execution_error(self, step: Dict[str, Any], attempt: int):
+        """Handles a generic error by logging and waiting before a retry."""
+        self.logger.info(f"Retrying step {step.get('step_id')} due to a transient error.")
+        if self.status_callback:
+            self.status_callback({'type': 'info', 'content': f"Retrying step {step.get('step_id')} (Attempt {attempt + 1}/{self.MAX_RETRIES + 1})..."})
+        time.sleep(0.1) # Short delay before retrying
+
+    def _generate_plan_with_error_context(self, original_goal: str, failed_step: Dict[str, Any], error: Exception) -> str:
+        """Creates a new goal to regenerate the plan, incorporating the error context."""
+        self.logger.info("Generating new plan with error context.")
+        error_context = f"The previous attempt failed at step {failed_step.get('step_id')}: '{failed_step.get('description')}'. The error was: {error}. Please generate a new plan to achieve the original goal: '{original_goal}'" 
+        return error_context
+
     def stop(self) -> None:
         """Stops the agent's execution loop."""
         with self.state_lock:

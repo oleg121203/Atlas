@@ -1,0 +1,2517 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-8.4.0, pluggy-1.6.0
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /Users/developer/Documents/Atlas
+configfile: pytest.ini
+plugins: anyio-4.9.0, langsmith-0.4.1, cov-6.2.1, benchmark-5.1.0
+collected 166 items
+
+tests/performance/test_core_performance.py FFF.F                         [  3%]
+tests/planning/test_strategic_planner.py ....                            [  5%]
+tests/planning/test_tactical_planner.py ....                             [  7%]
+tests/security/test_creator_session_memory.py ..                         [  9%]
+tests/security/test_enhanced_security.py ....                            [ 11%]
+tests/security/test_security_and_translation.py .F                       [ 12%]
+tests/test_agent_manager.py FFFF                                         [ 15%]
+tests/test_agent_manager_reloading.py F                                  [ 15%]
+tests/test_architecture.py F                                             [ 16%]
+tests/test_atlas_startup.py F                                            [ 16%]
+tests/test_chat_fix.py F                                                 [ 17%]
+tests/test_chat_improvements.py F                                        [ 18%]
+tests/test_chat_memory_system.py FFFF                                    [ 20%]
+tests/test_cleaned_context.py F                                          [ 21%]
+tests/test_clipboard_tool.py ...                                         [ 22%]
+tests/test_comprehensive_fixes.py FFFF                                   [ 25%]
+tests/test_config_fix.py FFF                                             [ 27%]
+tests/test_context_improvements.py ..                                    [ 28%]
+tests/test_creator_system_complete.py FF                                 [ 29%]
+tests/test_default_provider.py F                                         [ 30%]
+tests/test_dynamic_tool_creation.py .                                    [ 30%]
+tests/test_english_only_system.py .                                      [ 31%]
+tests/test_enhanced_memory_integration.py .F..                           [ 33%]
+tests/test_enhanced_memory_manager_fix.py ....                           [ 36%]
+tests/test_environmental_adaptation.py .                                 [ 36%]
+tests/test_error_recovery.py ...                                         [ 38%]
+tests/test_final_integration.py F                                        [ 39%]
+tests/test_final_system.py F                                             [ 39%]
+tests/test_full_config_flow.py FFF                                       [ 41%]
+tests/test_full_workflow.py F                                            [ 42%]
+tests/test_gemini_api.py FF                                              [ 43%]
+tests/test_goal_clarification.py ...                                     [ 45%]
+tests/test_gui_creation.py F                                             [ 45%]
+tests/test_gui_final.py FF                                               [ 46%]
+tests/test_hierarchical_planning_integration.py F                        [ 47%]
+tests/test_image_recognition_tool.py ......                              [ 51%]
+tests/test_llm_manager_config.py F                                       [ 51%]
+tests/test_master_agent.py F..F                                          [ 54%]
+tests/test_memory_fix.py F                                               [ 54%]
+tests/test_memory_help_responses.py .                                    [ 55%]
+tests/test_mode_detection_regression.py .                                [ 56%]
+tests/test_mode_system.py .FFF                                           [ 58%]
+tests/test_notification_tool.py ...                                      [ 60%]
+tests/test_ocr_tool.py .....                                             [ 63%]
+tests/test_openai_fallback.py F                                          [ 63%]
+tests/test_plugin_integration.py F                                       [ 64%]
+tests/test_problem_decomposition_agent.py .....                          [ 67%]
+tests/test_screenshot_complete.py FFFFFF                                 [ 71%]
+tests/test_screenshot_macos.py F                                         [ 71%]
+tests/test_screenshot_tool.py FFF.                                       [ 74%]
+tests/test_security_fail.py FF                                           [ 75%]
+tests/test_security_system.py FF                                         [ 76%]
+tests/test_security_workflow.py .F.                                      [ 78%]
+tests/test_simple_patterns.py ..                                         [ 79%]
+tests/test_terminal_tool.py ........                                     [ 84%]
+tests/test_thinking_quality.py FF                                        [ 85%]
+tests/test_tool_creator_agent.py ........                                [ 90%]
+tests/test_tools_loading.py F                                            [ 90%]
+tests/test_translation_initialization.py ..                              [ 92%]
+tests/test_translation_integration.py ..                                 [ 93%]
+tests/test_translation_system.py ...                                     [ 95%]
+tests/test_ui_components.py ..                                           [ 96%]
+tests/test_unified_config.py .                                           [ 96%]
+tests/test_utils_config.py F                                             [ 97%]
+tests/test_web_browsing.py FFFF                                          [100%]
+
+=================================== FAILURES ===================================
+_________ TestCorePerformance.test_master_agent_initialization_latency _________
+
+self = <test_core_performance.TestCorePerformance object at 0x10c4e3c50>
+benchmark = <pytest_benchmark.fixture.BenchmarkFixture object at 0x11d43f8c0>
+
+    @pytest.mark.performance
+    def test_master_agent_initialization_latency(self, benchmark):
+        """Test MasterAgent initialization time."""
+        def setup_master_agent():
+            # Mock dependencies to focus on initialization logic
+            with patch('agents.master_agent.AgentManager'), \
+                 patch('agents.master_agent.LLMManager'), \
+                 patch('agents.master_agent.TokenTracker'), \
+                 patch('intelligence.context_awareness_engine.ContextAwarenessEngine'):
+    
+                from agents.master_agent import MasterAgent
+                return MasterAgent(
+                    config_manager=Mock(),
+                    agent_manager=Mock(),
+                    llm_manager=Mock(),
+                    memory_manager=Mock()
+                )
+    
+>       result = benchmark(setup_master_agent)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/performance/test_core_performance.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:156: in __call__
+    return self._raw(function_to_benchmark, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:180: in _raw
+    duration, iterations, loops_range = self._calibrate_timer(runner)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:318: in _calibrate_timer
+    duration = runner(loops_range)
+               ^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:109: in runner
+    function_to_benchmark(*args, **kwargs)
+tests/performance/test_core_performance.py:21: in setup_master_agent
+    patch('agents.master_agent.TokenTracker'), \
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1497: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x11d545700>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'agents.master_agent' from '/Users/developer/Documents/Atlas/agents/master_agent.py'> does not have the attribute 'TokenTracker'
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1467: AttributeError
+______________ TestCorePerformance.test_llm_manager_response_time ______________
+
+self = <test_core_performance.TestCorePerformance object at 0x10c5b0190>
+benchmark = <pytest_benchmark.fixture.BenchmarkFixture object at 0x11d6887d0>
+
+    @pytest.mark.performance
+    def test_llm_manager_response_time(self, benchmark):
+        """Test LLM Manager response processing time."""
+        def process_mock_response():
+            with patch('utils.llm_manager.openai'), \
+                 patch('utils.llm_manager.anthropic'), \
+                 patch('utils.llm_manager.groq'):
+    
+                from utils.llm_manager import LLMManager
+                from agents.token_tracker import TokenTracker
+    
+                llm_manager = LLMManager(
+                    token_tracker=TokenTracker(),
+                    config_manager=Mock()
+                )
+    
+                # Mock a simple response processing
+                mock_response = Mock()
+                mock_response.choices = [Mock()]
+                mock_response.choices[0].message.content = "Test response"
+    
+                return llm_manager._extract_content_from_response(mock_response, "openai")
+    
+>       result = benchmark(process_mock_response)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/performance/test_core_performance.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:156: in __call__
+    return self._raw(function_to_benchmark, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:180: in _raw
+    duration, iterations, loops_range = self._calibrate_timer(runner)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:318: in _calibrate_timer
+    duration = runner(loops_range)
+               ^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:109: in runner
+    function_to_benchmark(*args, **kwargs)
+tests/performance/test_core_performance.py:42: in process_mock_response
+    with patch('utils.llm_manager.openai'), \
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1497: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x11d5aac50>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'utils.llm_manager' from '/Users/developer/Documents/Atlas/utils/llm_manager.py'> does not have the attribute 'openai'
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1467: AttributeError
+______________ TestCorePerformance.test_memory_operation_latency _______________
+
+self = <test_core_performance.TestCorePerformance object at 0x10c50be10>
+benchmark = <pytest_benchmark.fixture.BenchmarkFixture object at 0x11d688f50>
+
+    @pytest.mark.performance
+    def test_memory_operation_latency(self, benchmark):
+        """Test memory storage and retrieval latency."""
+        def memory_operations():
+            with patch('agents.enhanced_memory_manager.chromadb'):
+                from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryType
+    
+                memory_manager = EnhancedMemoryManager()
+    
+                # Store a memory entry
+                memory_id = memory_manager.store_memory(
+                    content="Test memory content",
+                    memory_type=MemoryType.TASK_EXECUTION,
+                    agent_name="test_agent"
+                )
+    
+                # Retrieve the memory
+                retrieved = memory_manager.retrieve_memories(
+                    query="test",
+                    memory_type=MemoryType.TASK_EXECUTION,
+                    limit=1
+                )
+    
+                return len(retrieved)
+    
+>       result = benchmark(memory_operations)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/performance/test_core_performance.py:92: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:156: in __call__
+    return self._raw(function_to_benchmark, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:180: in _raw
+    duration, iterations, loops_range = self._calibrate_timer(runner)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:318: in _calibrate_timer
+    duration = runner(loops_range)
+               ^^^^^^^^^^^^^^^^^^^
+venv/lib/python3.13/site-packages/pytest_benchmark/fixture.py:109: in runner
+    function_to_benchmark(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def memory_operations():
+        with patch('agents.enhanced_memory_manager.chromadb'):
+            from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryType
+    
+>           memory_manager = EnhancedMemoryManager()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: EnhancedMemoryManager.__init__() missing 2 required positional arguments: 'llm_manager' and 'config_manager'
+
+tests/performance/test_core_performance.py:74: TypeError
+______________ TestToolPerformance.test_code_reader_tool_latency _______________
+
+self = <test_core_performance.TestToolPerformance object at 0x10c5b02d0>
+benchmark = <pytest_benchmark.fixture.BenchmarkFixture object at 0x11d452fd0>
+
+    @pytest.mark.performance
+    def test_code_reader_tool_latency(self, benchmark):
+        """Test code reading tool performance."""
+        def read_mock_code():
+            with patch('tools.code_reader_tool.os.path.exists', return_value=True), \
+                 patch('builtins.open', mock_open_read_data="# Test code\nprint('hello')\n"):
+    
+                from tools.code_reader_tool import CodeReaderTool
+                tool = CodeReaderTool()
+                return tool.read_file("test.py")
+    
+        def mock_open_read_data(data):
+            from unittest.mock import mock_open
+            return mock_open(read_data=data)
+    
+        result = benchmark(read_mock_code)
+>       assert "Test code" in result
+E       AssertionError: assert 'Test code' in '❌ File not found: test.py'
+
+tests/performance/test_core_performance.py:134: AssertionError
+------------------------------ Captured log call -------------------------------
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+ERROR    root:code_reader_tool.py:120 Failed to load cache: the JSON object must be str, bytes or bytearray, not MagicMock
+_________________________ test_authentication_security _________________________
+
+    def test_authentication_security():
+        """Тест безпеки системи аутентифікації"""
+        print("\n🔐 ТЕСТ БЕЗПЕКИ АУТЕНТИФІКАЦІЇ")
+        print("=" * 50)
+    
+        auth = CreatorAuthentication()
+    
+        #Тест 1: Verification, чи system не розкриває зайвих деталей
+        print("\n📋 Тест виявлення творця:")
+        test_phrases = [
+            "я автор системи",
+            "i am the developer",
+            "я створив цю програму",
+            "звичайне повідомлення користувача"
+        ]
+    
+        for phrase in test_phrases:
+            result = auth.process_message_for_creator_detection(phrase)
+>           print(f"'{phrase}' -> {result.get('detected_level', 'unknown')}")
+                                   ^^^^^^^^^^
+E           AttributeError: 'CreatorIdentityLevel' object has no attribute 'get'
+
+tests/security/test_security_and_translation.py:78: AttributeError
+----------------------------- Captured stdout call -----------------------------
+
+🔐 ТЕСТ БЕЗПЕКИ АУТЕНТИФІКАЦІЇ
+==================================================
+
+📋 Тест виявлення творця:
+___________________ TestAgentManager.test_add_and_get_agent ____________________
+
+self = <tests.test_agent_manager.TestAgentManager testMethod=test_add_and_get_agent>
+
+    def test_add_and_get_agent(self):
+        """Verify that an agent can be added and then retrieved."""
+        mock_agent = MagicMock()
+        self.agent_manager.add_agent("Test Agent", mock_agent)
+>       retrieved_agent = self.agent_manager.get_agent("Test Agent")
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'AgentManager' object has no attribute 'get_agent'. Did you mean: 'add_agent'?
+
+tests/test_agent_manager.py:69: AttributeError
+------------------------------ Captured log call -------------------------------
+INFO     atlas:tool_creator_agent.py:30 ToolCreatorAgent initialized. Tools will be saved in 'tools/generated'
+INFO     atlas:agent_manager.py:145 Registered tool: create_tool
+INFO     atlas:agent_manager.py:81 Reloading generated tools from 'tools/generated'...
+INFO     atlas:agent_manager.py:145 Registered tool: hello_world
+INFO     atlas:agent_manager.py:113 Dynamically loaded and registered tool: 'hello_world' from hello_world.py in 0.0004s
+INFO     atlas:agent_manager.py:120 Finished reloading tools in 0.0007 seconds.
+INFO     atlas:agent_manager.py:124 Notifying MasterAgent of tool updates.
+INFO     atlas:agent_manager.py:238 Loading built-in tools...
+INFO     atlas:agent_manager.py:145 Registered tool: capture_screen
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: clear_clipboard
+INFO     atlas:agent_manager.py:145 Registered tool: click_at
+INFO     atlas:agent_manager.py:145 Registered tool: move_mouse
+INFO     atlas:agent_manager.py:145 Registered tool: type_text
+INFO     atlas:agent_manager.py:145 Registered tool: press_key
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_image
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_file
+INFO     atlas:agent_manager.py:145 Registered tool: find_template_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: find_object_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: execute_command
+INFO     atlas:agent_manager.py:145 Registered tool: execute_script
+INFO     atlas:agent_manager.py:145 Registered tool: get_environment
+INFO     atlas:agent_manager.py:145 Registered tool: change_directory
+INFO     atlas:agent_manager.py:145 Registered tool: kill_process
+INFO     atlas:agent_manager.py:145 Registered tool: send_email
+INFO     atlas:agent_manager.py:145 Registered tool: send_telegram
+INFO     atlas:agent_manager.py:145 Registered tool: send_sms
+INFO     atlas:agent_manager.py:145 Registered tool: open_url
+INFO     atlas:agent_manager.py:145 Registered tool: translate_text
+INFO     atlas:agent_manager.py:145 Registered tool: detect_language
+INFO     atlas:agent_manager.py:306 Successfully loaded 25 built-in tools
+_________________ TestAgentManager.test_get_nonexistent_agent __________________
+
+self = <tests.test_agent_manager.TestAgentManager testMethod=test_get_nonexistent_agent>
+
+    def test_get_nonexistent_agent(self):
+        """Verify that retrieving a non-existent agent returns None."""
+>       retrieved_agent = self.agent_manager.get_agent("Nonexistent Agent")
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'AgentManager' object has no attribute 'get_agent'. Did you mean: 'add_agent'?
+
+tests/test_agent_manager.py:74: AttributeError
+------------------------------ Captured log call -------------------------------
+INFO     atlas:tool_creator_agent.py:30 ToolCreatorAgent initialized. Tools will be saved in 'tools/generated'
+INFO     atlas:agent_manager.py:145 Registered tool: create_tool
+INFO     atlas:agent_manager.py:81 Reloading generated tools from 'tools/generated'...
+INFO     atlas:agent_manager.py:145 Registered tool: hello_world
+INFO     atlas:agent_manager.py:113 Dynamically loaded and registered tool: 'hello_world' from hello_world.py in 0.0002s
+INFO     atlas:agent_manager.py:120 Finished reloading tools in 0.0002 seconds.
+INFO     atlas:agent_manager.py:124 Notifying MasterAgent of tool updates.
+INFO     atlas:agent_manager.py:238 Loading built-in tools...
+INFO     atlas:agent_manager.py:145 Registered tool: capture_screen
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: clear_clipboard
+INFO     atlas:agent_manager.py:145 Registered tool: click_at
+INFO     atlas:agent_manager.py:145 Registered tool: move_mouse
+INFO     atlas:agent_manager.py:145 Registered tool: type_text
+INFO     atlas:agent_manager.py:145 Registered tool: press_key
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_image
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_file
+INFO     atlas:agent_manager.py:145 Registered tool: find_template_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: find_object_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: execute_command
+INFO     atlas:agent_manager.py:145 Registered tool: execute_script
+INFO     atlas:agent_manager.py:145 Registered tool: get_environment
+INFO     atlas:agent_manager.py:145 Registered tool: change_directory
+INFO     atlas:agent_manager.py:145 Registered tool: kill_process
+INFO     atlas:agent_manager.py:145 Registered tool: send_email
+INFO     atlas:agent_manager.py:145 Registered tool: send_telegram
+INFO     atlas:agent_manager.py:145 Registered tool: send_sms
+INFO     atlas:agent_manager.py:145 Registered tool: open_url
+INFO     atlas:agent_manager.py:145 Registered tool: translate_text
+INFO     atlas:agent_manager.py:145 Registered tool: detect_language
+INFO     atlas:agent_manager.py:306 Successfully loaded 25 built-in tools
+____________________ TestAgentManager.test_list_agent_names ____________________
+
+self = <tests.test_agent_manager.TestAgentManager testMethod=test_list_agent_names>
+
+    def test_list_agent_names(self):
+        """Verify that the manager correctly lists the names of all added agents."""
+        self.agent_manager.add_agent("Agent One", MagicMock())
+        self.agent_manager.add_agent("Agent Two", MagicMock())
+>       agent_names = self.agent_manager.list_agent_names()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'AgentManager' object has no attribute 'list_agent_names'
+
+tests/test_agent_manager.py:81: AttributeError
+------------------------------ Captured log call -------------------------------
+INFO     atlas:tool_creator_agent.py:30 ToolCreatorAgent initialized. Tools will be saved in 'tools/generated'
+INFO     atlas:agent_manager.py:145 Registered tool: create_tool
+INFO     atlas:agent_manager.py:81 Reloading generated tools from 'tools/generated'...
+INFO     atlas:agent_manager.py:145 Registered tool: hello_world
+INFO     atlas:agent_manager.py:113 Dynamically loaded and registered tool: 'hello_world' from hello_world.py in 0.0001s
+INFO     atlas:agent_manager.py:120 Finished reloading tools in 0.0002 seconds.
+INFO     atlas:agent_manager.py:124 Notifying MasterAgent of tool updates.
+INFO     atlas:agent_manager.py:238 Loading built-in tools...
+INFO     atlas:agent_manager.py:145 Registered tool: capture_screen
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: clear_clipboard
+INFO     atlas:agent_manager.py:145 Registered tool: click_at
+INFO     atlas:agent_manager.py:145 Registered tool: move_mouse
+INFO     atlas:agent_manager.py:145 Registered tool: type_text
+INFO     atlas:agent_manager.py:145 Registered tool: press_key
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_image
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_file
+INFO     atlas:agent_manager.py:145 Registered tool: find_template_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: find_object_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: execute_command
+INFO     atlas:agent_manager.py:145 Registered tool: execute_script
+INFO     atlas:agent_manager.py:145 Registered tool: get_environment
+INFO     atlas:agent_manager.py:145 Registered tool: change_directory
+INFO     atlas:agent_manager.py:145 Registered tool: kill_process
+INFO     atlas:agent_manager.py:145 Registered tool: send_email
+INFO     atlas:agent_manager.py:145 Registered tool: send_telegram
+INFO     atlas:agent_manager.py:145 Registered tool: send_sms
+INFO     atlas:agent_manager.py:145 Registered tool: open_url
+INFO     atlas:agent_manager.py:145 Registered tool: translate_text
+INFO     atlas:agent_manager.py:145 Registered tool: detect_language
+INFO     atlas:agent_manager.py:306 Successfully loaded 25 built-in tools
+_________________ TestAgentManager.test_resilient_tool_loading _________________
+
+self = <tests.test_agent_manager.TestAgentManager testMethod=test_resilient_tool_loading>
+
+    def test_resilient_tool_loading(self):
+        """
+        Test that AgentManager can load valid tools while safely skipping invalid ones.
+        """
+        # Act
+        self.agent_manager.reload_generated_tools(directory=self.temp_dir)
+    
+        # Assert
+        # Check that the valid tool was loaded
+        self.assertIn("valid_tool_func", self.agent_manager._tools)
+        self.assertEqual(self.agent_manager._tools["valid_tool_func"]['function'](), 'success')
+    
+        # Check that the invalid tool was not loaded
+        self.assertNotIn("invalid_tool_func", self.agent_manager._tools)
+    
+        # Check that an error was logged for the invalid file
+        self.agent_manager.logger.error.assert_called_once()
+        log_message = self.agent_manager.logger.error.call_args[0][0]
+        self.assertIn("Failed to load tool from", log_message)
+        self.assertIn("invalid_tool.py", log_message)
+    
+        # Check that the callback was called to notify of the update
+>       self.mock_callback.assert_called_once()
+
+tests/test_agent_manager.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock id='4793127600'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'mock' to have been called once. Called 2 times.
+E           Calls: [call.__bool__(), call(), call.__bool__(), call()].
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:958: AssertionError
+------------------------------ Captured log call -------------------------------
+INFO     atlas:tool_creator_agent.py:30 ToolCreatorAgent initialized. Tools will be saved in 'tools/generated'
+INFO     atlas:agent_manager.py:145 Registered tool: create_tool
+INFO     atlas:agent_manager.py:81 Reloading generated tools from 'tools/generated'...
+INFO     atlas:agent_manager.py:145 Registered tool: hello_world
+INFO     atlas:agent_manager.py:113 Dynamically loaded and registered tool: 'hello_world' from hello_world.py in 0.0001s
+INFO     atlas:agent_manager.py:120 Finished reloading tools in 0.0002 seconds.
+INFO     atlas:agent_manager.py:124 Notifying MasterAgent of tool updates.
+INFO     atlas:agent_manager.py:238 Loading built-in tools...
+INFO     atlas:agent_manager.py:145 Registered tool: capture_screen
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_text
+INFO     atlas:agent_manager.py:145 Registered tool: get_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: set_clipboard_image
+INFO     atlas:agent_manager.py:145 Registered tool: clear_clipboard
+INFO     atlas:agent_manager.py:145 Registered tool: click_at
+INFO     atlas:agent_manager.py:145 Registered tool: move_mouse
+INFO     atlas:agent_manager.py:145 Registered tool: type_text
+INFO     atlas:agent_manager.py:145 Registered tool: press_key
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_image
+INFO     atlas:agent_manager.py:145 Registered tool: ocr_file
+INFO     atlas:agent_manager.py:145 Registered tool: find_template_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: find_object_in_image
+INFO     atlas:agent_manager.py:145 Registered tool: execute_command
+INFO     atlas:agent_manager.py:145 Registered tool: execute_script
+INFO     atlas:agent_manager.py:145 Registered tool: get_environment
+INFO     atlas:agent_manager.py:145 Registered tool: change_directory
+INFO     atlas:agent_manager.py:145 Registered tool: kill_process
+INFO     atlas:agent_manager.py:145 Registered tool: send_email
+INFO     atlas:agent_manager.py:145 Registered tool: send_telegram
+INFO     atlas:agent_manager.py:145 Registered tool: send_sms
+INFO     atlas:agent_manager.py:145 Registered tool: open_url
+INFO     atlas:agent_manager.py:145 Registered tool: translate_text
+INFO     atlas:agent_manager.py:145 Registered tool: detect_language
+INFO     atlas:agent_manager.py:306 Successfully loaded 25 built-in tools
+______ TestAgentManagerReloading.test_reload_generated_tools_and_callback ______
+
+self = <tests.test_agent_manager_reloading.TestAgentManagerReloading testMethod=test_reload_generated_tools_and_callback>
+
+        def setUp(self):
+            """Set up a test environment before each test."""
+            self.generated_tools_dir = "test_temp_generated_tools"
+            os.makedirs(self.generated_tools_dir, exist_ok=True)
+    
+            self.tool_name = "dummy_reload_tool"
+            self.tool_code = f"""
+    def {self.tool_name}(arg1: str):
+        \"\"\"A dummy tool for testing reloading.\"\"\"
+        return f\"Processed: {{arg1}}\"
+    """
+            with open(os.path.join(self.generated_tools_dir, f"{self.tool_name}.py"), "w") as f:
+                f.write(self.tool_code)
+    
+            self.mock_update_callback = MagicMock()
+            self.mock_llm_manager = MagicMock(spec=LLMManager)
+>           self.agent_manager = AgentManager(llm_manager=self.mock_llm_manager)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: AgentManager.__init__() missing 1 required positional argument: 'memory_manager'
+
+tests/test_agent_manager_reloading.py:27: TypeError
+______________________________ test_task_manager _______________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧪 Тестую архітектуру Atlas TaskManager...
+✅ Всі компоненти імпортовано успішно!
+❌ Помилка: name 'utils_config_manager' is not defined
+----------------------------- Captured stderr call -----------------------------
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/tests/test_architecture.py", line 22, in test_task_manager
+    tm = TaskManager(max_concurrent_tasks=2)
+  File "/Users/developer/Documents/Atlas/agents/task_manager.py", line 206, in __init__
+    self.llm_manager = LLMManager(token_tracker)
+                       ~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/Users/developer/Documents/Atlas/utils/llm_manager.py", line 35, in __init__
+    self.config_manager = config_manager or utils_config_manager
+                                            ^^^^^^^^^^^^^^^^^^^^
+NameError: name 'utils_config_manager' is not defined. Did you mean: 'config_manager'?
+______________________________ test_atlas_startup ______________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+Тест: Імпорт модулів Atlas...
+✅ Модуль протоколів імпортовано
+✅ Протоколи безпеки пройдено
+✅ Модуль main.py імпортовано успішно
+✅ Клас AtlasApp знайдено
+✅ Atlas готовий до запуску з системою безпеки
+__________________________________ test_chat ___________________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧪 Тестування чату Atlas...
+✅ LLM Manager ініціалізовано
+📋 Доступні провайдери: ['gemini', 'ollama', 'groq', 'mistral']
+🔄 Поточний провайдер: gemini
+🤖 Поточна модель: gemini-1.5-flash
+💬 Тестування чату з Gemini...
+✅ Відповідь отримано: Привіт від Atlas!
+...
+📊 Токени: 13
+✅ Чат працює без помилок OpenAI!
+🔌 OpenAI доступність: False
+____________________________ test_chat_improvements ____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+✅ Успішно імпортований ChatContextManager
+✅ ChatContextManager ініціалізований
+
+Тест 1: Питання про пам'ять
+Повідомлення: Мене цікавить чи забезпечена в тебе пам'ять довгострокова і з розмежуванням по напрямку чату?
+Детектований режим: system_help
+Впевненість: 0.85
+Ключові слова: ['memory', 'storage', 'provided', 'long-term', 'interested']
+Згенерований промпт містить специфічну інформацію про пам'ять: True
+
+Тест 2: Привітання
+Повідомлення: Привіт друже, як тебе звати?
+Детектований режим: casual_chat
+Впевненість: 0.16
+
+Тест 3: Питання про інструменти
+Повідомлення: Які інструменти у вас є?
+Детектований режим: tool_inquiry
+Впевненість: 0.74
+
+✅ Всі тести пройшли успішно!
+__________________________ test_chat_memory_isolation __________________________
+
+    def test_chat_memory_isolation():
+        """Test that different chat modes have isolated memory."""
+    
+        #Create temporary directory for ChromaDB
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db_path = Path(temp_dir) / "test_chroma"
+>           memory_manager = EnhancedMemoryManager(db_path=str(db_path))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: EnhancedMemoryManager.__init__() got an unexpected keyword argument 'db_path'
+
+tests/test_chat_memory_system.py:25: TypeError
+_________________________ test_plugin_memory_isolation _________________________
+
+    def test_plugin_memory_isolation():
+        """Test plugin memory isolation."""
+    
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db_path = Path(temp_dir) / "test_chroma"
+>           memory_manager = EnhancedMemoryManager(db_path=str(db_path))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: EnhancedMemoryManager.__init__() got an unexpected keyword argument 'db_path'
+
+tests/test_chat_memory_system.py:96: TypeError
+_____________________________ test_dev_mode_memory _____________________________
+
+    def test_dev_mode_memory():
+        """Test development mode enhanced memory features."""
+    
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db_path = Path(temp_dir) / "test_chroma"
+>           memory_manager = EnhancedMemoryManager(db_path=str(db_path))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: EnhancedMemoryManager.__init__() got an unexpected keyword argument 'db_path'
+
+tests/test_chat_memory_system.py:152: TypeError
+_________________________ test_memory_cleanup_and_ttl __________________________
+
+    def test_memory_cleanup_and_ttl():
+        """Test memory cleanup and TTL functionality."""
+    
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db_path = Path(temp_dir) / "test_chroma"
+>           memory_manager = EnhancedMemoryManager(db_path=str(db_path))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: EnhancedMemoryManager.__init__() got an unexpected keyword argument 'db_path'
+
+tests/test_chat_memory_system.py:195: TypeError
+_________________________ test_english_only_processing _________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔍 Testing English-only Chat Context Manager...
+============================================================
+Testing mode detection with English messages:
+--------------------------------------------------
+✅ 'help me with atlas system'
+    Expected: system_help
+    Detected: system_help
+    Confidence: 0.44
+
+✅ 'what tools are available'
+    Expected: tool_inquiry
+    Detected: tool_inquiry
+    Confidence: 0.74
+
+✅ 'take a screenshot'
+    Expected: goal_setting
+    Detected: goal_setting
+    Confidence: 0.26
+
+✅ 'check system status'
+    Expected: status_check
+    Detected: status_check
+    Confidence: 0.25
+
+✅ 'configure settings'
+    Expected: configuration
+    Detected: configuration
+    Confidence: 0.44
+
+✅ 'hello how are you'
+    Expected: casual_chat
+    Detected: casual_chat
+    Confidence: 0.80
+
+Checking for non-English patterns/keywords:
+--------------------------------------------------
+✅ No non-English keywords or patterns found!
+
+============================================================
+🎉 SUCCESS: Chat Context Manager is now English-only!
+   ✅ All mode detection works correctly
+   ✅ No Ukrainian/Russian keywords remain
+   ✅ No Ukrainian/Russian patterns remain
+   ✅ System ready for English-only operation after translation
+_______________________________ test_config_ini ________________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧪 Testing config.ini...
+✅ Found section: OpenAI
+✅ Found section: Gemini
+✅ Found section: LLM
+✅ Gemini API key is set: AIzaSyDuD3X-6Nf1FThP...
+✅ LLM provider: gemini
+_____________________________ test_config_managers _____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🧪 Testing ConfigManager classes...
+✅ Main ConfigManager has set_llm_provider_and_model
+✅ Main ConfigManager has set_llm_api_key
+✅ Utils ConfigManager has set_llm_provider_and_model
+✅ Utils ConfigManager has set_llm_api_key
+_______________________________ test_llm_manager _______________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🧪 Testing LLMManager...
+❌ Error testing LLMManager: name 'utils_config_manager' is not defined
+__________________________ test_gemini_model_handling __________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🧪 Testing Gemini model handling...
+✅ Model switching works: gpt-3.5-turbo -> gemini-1.5-flash
+_____________________________ test_config_manager ______________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧪 Testing ConfigManager...
+✅ ConfigManager.set_llm_provider_and_model() works!
+✅ Current provider: gemini
+✅ Current model: gemini-1.5-flash
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:149 Set LLM provider to: gemini
+INFO     atlas:config_manager.py:153 Set LLM model to: gemini-1.5-flash
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:157 ✅ LLM configuration updated: provider=gemini, model=gemini-1.5-flash
+__________________________ test_utils_config_manager ___________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🧪 Testing utils ConfigManager...
+✅ utils ConfigManager.set_llm_provider_and_model() works!
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:149 Set LLM provider to: gemini
+INFO     atlas:config_manager.py:153 Set LLM model to: gemini-1.5-flash
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:157 ✅ LLM configuration updated: provider=gemini, model=gemini-1.5-flash
+_______________________________ test_llm_manager _______________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🧪 Testing LLM Manager...
+❌ LLM Manager test failed: name 'utils_config_manager' is not defined
+_______________________ test_creator_system_integration ________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔐 ТЕСТ ІНТЕГРАЦІЇ СИСТЕМИ ІДЕНТИФІКАЦІЇ ТВОРЦЯ АТЛАСА
+======================================================================
+
+✅ 1. Імпорт компонентів успішний
+
+🔧 2. Створення системи аутентифікації...
+   ✅ Система аутентифікації створена
+   ✅ Зашифровані протоколи підключені
+
+📋 3. Перевірка зашифрованих протоколів...
+   📊 Всього протоколів: 4
+   🔐 Статус шифрування: ACTIVE
+   🛡️ Обмежений доступ: True
+
+👤 4. Тест виявлення творця...
+
+❌ ПОМИЛКА: 'CreatorIdentityLevel' object has no attribute 'get'
+----------------------------- Captured stderr call -----------------------------
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/tests/test_creator_system_complete.py", line 50, in test_creator_system_integration
+    status = "🔍 Виявлено" if result.get('requires_authentication') else "👤 Звичайний користувач"
+                              ^^^^^^^^^^
+AttributeError: 'CreatorIdentityLevel' object has no attribute 'get'
+____________________________ test_protocol_security ____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🛡️ ДОДАТКОВИЙ ТЕСТ БЕЗПЕКИ ПРОТОКОЛІВ
+--------------------------------------------------
+📖 Тест читання протоколів без аутентифікації:
+   Читання дозволено: ✅ Так (Atlas має доступ)
+📝 Тест модифікації протоколів без аутентифікації:
+   Модифікація дозволена: ✅ Заборонено
+✅ Тест безпеки пройдено успішно!
+------------------------------ Captured log call -------------------------------
+WARNING  EncryptedCreatorProtocols:encrypted_creator_protocols.py:328 Protocol modification attempted without creator authentication
+____________________________ test_default_provider _____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔧 Testing LLM Manager Default Provider...
+📋 Config says: provider=gemini, model=gemini-1.5-flash
+🤖 LLM Manager: provider=gemini, model=gemini-1.5-flash
+🔌 OpenAI client: Not available
+💎 Gemini client: Available
+💬 Testing simple Gemini chat...
+✅ Chat response: Test successful
+
+📊 Tokens used: 9
+_______________ TestEnhancedMemoryManager.test_memory_isolation ________________
+
+self = <tests.test_enhanced_memory_integration.TestEnhancedMemoryManager testMethod=test_memory_isolation>
+
+    def test_memory_isolation(self):
+        """Test memory isolation between agents"""
+        #Add memory for different agents
+        self.memory_manager.add_memory_for_agent(
+            agent_type=MemoryScope.MASTER_AGENT,
+            memory_type=MemoryType.PLAN,
+            content="Master agent plan",
+            metadata={"agent": "master"}
+        )
+    
+        self.memory_manager.add_memory_for_agent(
+            agent_type=MemoryScope.SCREEN_AGENT,
+            memory_type=MemoryType.OBSERVATION,
+            content="Screen agent observation",
+            metadata={"agent": "screen"}
+        )
+    
+        #Search should return only Master Agent memories
+>       master_results = self.memory_manager.search_memories_for_agent(
+            agent_type=MemoryScope.MASTER_AGENT,
+            query="agent"
+        )
+E       TypeError: EnhancedMemoryManager.search_memories_for_agent() missing 1 required positional argument: 'memory_type'
+
+tests/test_enhanced_memory_integration.py:80: TypeError
+____________________________ test_final_integration ____________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🎯 ФІНАЛЬНИЙ ТЕСТ ІНТЕГРАЦІЇ ПОКРАЩЕНОЇ СИСТЕМИ
+============================================================
+
+1. Тест інтелектуального детектора...
+❌ Помилка тестування детектора: No module named 'intelligent_mode_detector'
+
+2. Тест інтеграції з advanced_thinking...
+✅ Інтеграція успішна
+✅ Simple command routing: правильно оброблено
+❌ Advanced thinking routing: неправильно оброблено
+✅ Directory listing: правильно оброблено
+❌ Problem analysis: неправильно оброблено
+
+3. Тест продуктивності детекції...
+❌ Помилка тесту продуктивності: No module named 'intelligent_mode_detector'
+
+============================================================
+📊 ПІДСУМОК ФІНАЛЬНОГО ТЕСТУВАННЯ
+============================================================
+✅ Успішно пройдено: 3.0/5
+📈 Успішність: 60.0%
+
+⚠️  ЗНАЙДЕНО 4 ПРОБЛЕМ:
+ 1. Помилка детектора: No module named 'intelligent_mode_detector'
+ 2. Обробка: Advanced thinking routing
+ 3. Обробка: Problem analysis
+ 4. Помилка тесту продуктивності: No module named 'intelligent_mode_detector'
+
+⚠️  Система потребує додаткових виправлень
+------------------------------ Captured log call -------------------------------
+WARNING  AdvancedAIThinkingTool:advanced_thinking.py:1046 Could not load intelligent mode detector: No module named 'intelligent_mode_detector'
+_____________________________ test_complete_system _____________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🎯 ФІНАЛЬНИЙ ТЕСТ СИСТЕМИ ATLAS
+==================================================
+🔑 Тестування API ключів...
+  💾 Збереження через ConfigManager...
+  📖 Перевірка збереження...
+    ✅ openai_api_key: збережено правильно
+    ❌ gemini_api_key: очікували 'AIzaSy1234567890abcdef1234567890abcdef12', отримали 'AIzaSyDuD3X-6Nf1FThPczA2NPpk3o4SxyI9zCU'
+    ❌ mistral_api_key: очікували 'mst_1234567890abcdef1234567890abcdef123456', отримали 'your-mistral-key-here'
+    ❌ groq_api_key: очікували 'gsk_1234567890abcdef1234567890abcdef123456', отримали 'your-groq-key-here'
+
+🤖 Тестування LLMManager...
+    ✅ LLMManager створено успішно
+    📋 Доступні провайдери: {'openai': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k'], 'gemini': ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'], 'ollama': ['llama3.2', 'llama3.1', 'mistral', 'codellama', 'phi3', 'qwen2', 'llama2'], 'groq': ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma-7b-it', 'whisper-large-v3'], 'mistral': ['mistral-tiny', 'mistral-small', 'mistral-medium', 'mistral-large-latest', 'open-mistral-7b', 'open-mixtral-8x7b', 'open-mixtral-8x22b']}
+
+🔄 Тестування перезавантаження...
+    ✅ openai_api_key: завантажено після перезапуску
+    ❌ gemini_api_key: втрачено після перезапуску
+    ❌ mistral_api_key: втрачено після перезапуску
+    ❌ groq_api_key: втрачено після перезапуску
+
+==================================================
+❌ ДЕЯКІ ТЕСТИ НЕ ПРОЙШЛИ
+🔧 Потрібне додаткове налаштування
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /var/folders/fv/rsf13ygd6430scf_j_v9__j00000gn/T/tmprqx9sozt/test_config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /var/folders/fv/rsf13ygd6430scf_j_v9__j00000gn/T/tmprqx9sozt/test_config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /var/folders/fv/rsf13ygd6430scf_j_v9__j00000gn/T/tmprqx9sozt/test_config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /var/folders/fv/rsf13ygd6430scf_j_v9__j00000gn/T/tmprqx9sozt/test_config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /var/folders/fv/rsf13ygd6430scf_j_v9__j00000gn/T/tmprqx9sozt/test_config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /var/folders/fv/rsf13ygd6430scf_j_v9__j00000gn/T/tmprqx9sozt/test_config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /var/folders/fv/rsf13ygd6430scf_j_v9__j00000gn/T/tmprqx9sozt/test_config.yaml
+___________________________ test_main_config_manager ___________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔧 Тестування основного ConfigManager...
+  💾 Збереження API ключів...
+  🔍 Перевірка збережених ключів...
+    ✅ openai_api_key: sk-real-op...
+    ❌ gemini_api_key: очікувався AIzaReal-g..., отримано AIzaSyDuD3...
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+__________________________ test_utils_config_manager ___________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🔧 Тестування utils ConfigManager...
+  💾 Збереження API ключів...
+  🔍 Перевірка збережених ключів...
+    ✅ openai_api_key: sk-utils-o...
+    ❌ gemini_api_key: очікувався AIzaUtils-..., отримано AIzaSyDuD3...
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+_________________________ test_llm_manager_integration _________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🤖 Тестування інтеграції з LLMManager...
+  ❌ Помилка LLMManager: name 'utils_config_manager' is not defined
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+__________________ TestFullWorkflow.test_multi_agent_workflow __________________
+
+self = <tests.test_full_workflow.TestFullWorkflow testMethod=test_multi_agent_workflow>
+
+    def setUp(self):
+        """Set up the test environment."""
+        self.mock_llm_manager = MagicMock()
+>       self.master_agent = MasterAgent(llm_manager=self.mock_llm_manager, prompt="Full Workflow Test")
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: MasterAgent.__init__() got an unexpected keyword argument 'prompt'
+
+tests/test_full_workflow.py:11: TypeError
+_______________________________ test_gemini_chat _______________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧪 Тестування Gemini API...
+❌ Помилка імпорту або ініціалізації: name 'utils_config_manager' is not defined
+_________________________________ test_config __________________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🔧 Тестування конфігурації...
+✅ config.ini знайдено
+✅ .env знайдено
+✅ GEMINI_API_KEY налаштовано
+______________________________ test_gui_creation _______________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🎨 ТЕСТ СТВОРЕННЯ GUI
+==============================
+🔑 Встановлення тестових API ключів...
+📋 Перевірка методів ConfigManager...
+  ✅ get_setting: є
+  ✅ set_setting: є
+  ✅ get_openai_api_key: є
+  ✅ get_gemini_api_key: є
+  ✅ get_mistral_api_key: є
+  ✅ get_groq_api_key: є
+  ✅ get_current_provider: є
+  ✅ get_current_model: є
+  ✅ get_model_name: є
+  ✅ load: є
+  ✅ save: є
+
+🖥️ Створення GUI компонента...
+  ✅ EnhancedSettingsView створено успішно
+  ✅ Змінні налаштувань ініціалізовані
+
+🎉 GUI тест пройшов успішно!
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+______________________________ test_gui_settings _______________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🖥️  Тестування GUI налаштувань...
+  💾 Збереження налаштувань через ConfigManager...
+  📖 Завантаження налаштувань для перевірки...
+    ✅ openai_api_key: збережено правильно
+    ✅ gemini_api_key: збережено правильно
+    ✅ mistral_api_key: збережено правильно
+    ✅ groq_api_key: збережено правильно
+    ✅ current_provider: збережено правильно
+    ✅ current_model: збережено правильно
+  🔑 Тестування методів API ключів...
+    ✅ openai: API ключ завантажено правильно
+    ❌ gemini: очікувався 'AIzaGUI-test-gemini-key-67890', отримано 'AIzaSyDuD3X-6Nf1FThPczA2NPpk3o4SxyI9zCU'
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+___________________________ test_config_consistency ____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🔄 Тестування консистентності конфігурації...
+  ✅ OpenAI ключ консистентний між ConfigManager'ами
+  ℹ️  Консистентність між різними ConfigManager може відрізнятися через різні шляхи збереження
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+_____ TestHierarchicalPlanningIntegration.test_full_planning_flow_success ______
+
+self = <tests.test_hierarchical_planning_integration.TestHierarchicalPlanningIntegration object at 0x11cc2e710>
+mock_dependencies = {'agent_manager': <MagicMock spec='AgentManager' id='4807777584'>, 'context_awareness_engine': <MagicMock spec='Contex...9264'>, 'creator_auth': <MagicMock id='4808950848'>, 'llm_manager': <MagicMock spec='LLMManager' id='4807774224'>, ...}
+
+    def test_full_planning_flow_success(self, mock_dependencies):
+        """Test a successful run through the entire planning hierarchy."""
+        # Arrange
+        master_agent = MasterAgent(**mock_dependencies)
+        master_agent.is_running = True  # Simulate that the agent is running
+    
+        goal = "Create a comprehensive report on climate change."
+        strategic_objectives = ["Gather data on rising sea levels."]
+        tactical_plan = {
+            "thought": "I need to find reliable sources and extract the data.",
+            "steps": [
+                {
+                    "sub_goal": "Search for scientific papers on sea levels",
+                    "description": "Use web search to find papers.",
+                },
+            ],
+        }
+        operational_plan = {
+            "thought": "I will use the 'search_web' tool.",
+            "description": "Search for papers",
+            "steps": [
+                {
+                    "tool_name": "search_web",
+                    "arguments": {"query": "scientific papers on rising sea levels"},
+                }
+            ],
+        }
+    
+        # Mock the planners and the final execution step
+        master_agent.strategic_planner = MagicMock(spec=StrategicPlanner)
+        master_agent.tactical_planner = MagicMock(spec=TacticalPlanner)
+        master_agent.operational_planner = MagicMock(spec=OperationalPlanner)
+    
+        master_agent.strategic_planner.generate_strategic_plan.return_value = strategic_objectives
+        master_agent.tactical_planner.generate_tactical_plan.return_value = tactical_plan
+        master_agent.operational_planner.generate_operational_plan.return_value = operational_plan
+    
+        with patch.object(
+            master_agent, "_execute_plan"
+        ) as mock_execute_plan:
+            # Act
+            master_agent.run_once(goal)
+    
+            # Assert
+            # Verify that each planner was called correctly
+>           master_agent.strategic_planner.generate_strategic_plan.assert_called_once_with(goal)
+
+tests/test_hierarchical_planning_integration.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='mock.generate_strategic_plan' id='4808958912'>
+args = ('Create a comprehensive report on climate change.',), kwargs = {}
+msg = "Expected 'generate_strategic_plan' to be called once. Called 0 times."
+
+    def assert_called_once_with(self, /, *args, **kwargs):
+        """assert that the mock was called exactly once and that that call was
+        with the specified arguments."""
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to be called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'generate_strategic_plan' to be called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:990: AssertionError
+------------------------------ Captured log call -------------------------------
+INFO     atlas:master_agent.py:113 MasterAgent initialized with creator authentication
+ERROR    atlas:master_agent.py:484 An unexpected error occurred during ambiguity check: expected string or bytes-like object, got 'MagicMock'
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 467, in _check_goal_ambiguity
+    json_response = self._extract_json_from_response(llm_result.response_text)
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 361, in _extract_json_from_response
+    match = re.search(r'```json\n(.*?)\n```', text, re.DOTALL)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/re/__init__.py", line 177, in search
+    return _compile(pattern, flags).search(string)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+TypeError: expected string or bytes-like object, got 'MagicMock'
+INFO     atlas:master_agent.py:234 Processing objective: 'Create a comprehensive report on climate change.'
+ERROR    atlas:master_agent.py:658 An unexpected error occurred while processing objective 'Create a comprehensive report on climate change.': Mock object has no attribute 'available_tools'
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 609, in _execute_objective_with_retries
+    plan = self._generate_plan(current_goal)
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 856, in _generate_plan
+    {"role": "user", "content": f"Generate a plan to achieve the following goal: {goal}. Available tools: {', '.join(self._available_tools())}"}
+                                                                                                                     ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 951, in _available_tools
+    tool_names = list(self.agent_manager.available_tools.keys())  # type: ignore
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 690, in __getattr__
+    raise AttributeError("Mock object has no attribute %r" % name)
+AttributeError: Mock object has no attribute 'available_tools'
+ERROR    atlas:master_agent.py:242 Failed to achieve goal 'Create a comprehensive report on climate change.' due to a critical error in one of its objectives: Mock object has no attribute 'available_tools'
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 235, in run_once
+    self._execute_objective_with_retries(sub_goal)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 659, in _execute_objective_with_retries
+    raise e  # Re-raise as a critical failure
+    ^^^^^^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 609, in _execute_objective_with_retries
+    plan = self._generate_plan(current_goal)
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 856, in _generate_plan
+    {"role": "user", "content": f"Generate a plan to achieve the following goal: {goal}. Available tools: {', '.join(self._available_tools())}"}
+                                                                                                                     ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 951, in _available_tools
+    tool_names = list(self.agent_manager.available_tools.keys())  # type: ignore
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 690, in __getattr__
+    raise AttributeError("Mock object has no attribute %r" % name)
+AttributeError: Mock object has no attribute 'available_tools'
+_______________________________ test_llm_manager _______________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🤖 Testing LLM Manager Configuration...
+✅ LLM Manager initialized successfully
+✅ Available providers: ['gemini', 'ollama', 'groq', 'mistral']
+  📱 Gemini models: ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro']
+  ℹ️  OpenAI not available (expected with placeholder key)
+  🏠 Ollama models: ['llama3.2', 'llama3.1', 'mistral', 'codellama', 'phi3', 'qwen2', 'llama2']
+✅ Current provider: gemini
+✅ Current model: gemini-1.5-flash
+✅ Valid combination: gemini/gemini-1.5-flash
+✅ Auto-corrected invalid model: gemini/gemini-1.5-flash
+✅ Fallback for invalid provider: gemini/gemini-1.5-flash
+🗣️ Testing simple chat with Gemini...
+✅ Chat response: Hello from Atlas!
+...
+✅ Token usage: 14 tokens
+
+🎯 LLM Manager Test Summary:
+========================================
+✅ LLM Manager initialization: OK
+✅ Provider discovery: OK
+✅ Provider/model validation: OK
+✅ Configuration handling: OK
+------------------------------ Captured log call -------------------------------
+WARNING  LLMManager:llm_manager.py:221 Model 'gpt-4' not available for gemini, using 'gemini-1.5-flash'
+WARNING  LLMManager:llm_manager.py:204 Provider 'invalid_provider' not available, falling back to Gemini
+_ TestMasterAgentEnvironmentalAdaptation.test_execution_stops_after_max_retries _
+
+self = <tests.test_master_agent.TestMasterAgentEnvironmentalAdaptation testMethod=test_execution_stops_after_max_retries>
+mock_check_ambiguity = <MagicMock name='_check_goal_ambiguity' id='5436804128'>
+mock_generate_plan = <MagicMock name='_generate_plan' id='5436803456'>
+
+    @patch('agents.master_agent.MasterAgent._generate_plan')
+    @patch('agents.master_agent.MasterAgent._check_goal_ambiguity', return_value=(False, None))
+    def test_execution_stops_after_max_retries(self, mock_check_ambiguity, mock_generate_plan):
+        """Test that execution halts after exceeding the maximum number of retries."""
+        goal = "Perform an operation that is always broken."
+        mock_generate_plan.return_value = self._get_simple_plan()
+    
+        self.mock_agent_manager.execute_tool.side_effect = Exception("This is always broken.")
+    
+        with self.assertRaises(PlanExecutionError):
+            self.master_agent._execute_objective_with_retries(goal)
+    
+>       self.assertEqual(self.mock_agent_manager.execute_tool.call_count, self.master_agent.MAX_RETRIES + 1)
+E       AssertionError: 3 != 4
+
+tests/test_master_agent.py:123: AssertionError
+------------------------------ Captured log call -------------------------------
+INFO     atlas:master_agent.py:113 MasterAgent initialized with creator authentication
+INFO     atlas:master_agent.py:683 Starting plan execution.
+INFO     atlas:master_agent.py:705 Executing step 1/1: Use the test_tool tool.
+ERROR    atlas:master_agent.py:790 An unexpected error occurred during step 1: This is always broken.
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 714, in _execute_plan
+    result = self.agent_manager.execute_tool(tool_name, resolved_args)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: This is always broken.
+ERROR    atlas:master_agent.py:618 Plan execution failed: This is always broken. (in step: Use the test_tool tool.)
+INFO     atlas:master_agent.py:491 Initiating recovery from error: Exception
+WARNING  atlas:master_agent.py:519 Using generic recovery for an unrecognized error type: Exception
+INFO     atlas:master_agent.py:527 Engaging meta-cognitive loop to create a recovery goal...
+INFO     atlas:master_agent.py:576 Querying LLM for a recovery goal...
+INFO     atlas:master_agent.py:587 Generated recovery goal: '<MagicMock name='mock.chat().response_text.strip()' id='5436807824'>'
+INFO     atlas:master_agent.py:683 Starting plan execution.
+INFO     atlas:master_agent.py:705 Executing step 1/1: Use the test_tool tool.
+ERROR    atlas:master_agent.py:790 An unexpected error occurred during step 1: This is always broken.
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 714, in _execute_plan
+    result = self.agent_manager.execute_tool(tool_name, resolved_args)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 714, in _execute_plan
+    result = self.agent_manager.execute_tool(tool_name, resolved_args)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: This is always broken.
+ERROR    atlas:master_agent.py:618 Plan execution failed: This is always broken. (in step: Use the test_tool tool.)
+INFO     atlas:master_agent.py:491 Initiating recovery from error: Exception
+WARNING  atlas:master_agent.py:519 Using generic recovery for an unrecognized error type: Exception
+INFO     atlas:master_agent.py:527 Engaging meta-cognitive loop to create a recovery goal...
+INFO     atlas:master_agent.py:576 Querying LLM for a recovery goal...
+INFO     atlas:master_agent.py:587 Generated recovery goal: '<MagicMock name='mock.chat().response_text.strip()' id='5436807824'>'
+INFO     atlas:master_agent.py:683 Starting plan execution.
+INFO     atlas:master_agent.py:705 Executing step 1/1: Use the test_tool tool.
+ERROR    atlas:master_agent.py:790 An unexpected error occurred during step 1: This is always broken.
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 714, in _execute_plan
+    result = self.agent_manager.execute_tool(tool_name, resolved_args)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 714, in _execute_plan
+    result = self.agent_manager.execute_tool(tool_name, resolved_args)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+  File "/Users/developer/Documents/Atlas/agents/master_agent.py", line 714, in _execute_plan
+    result = self.agent_manager.execute_tool(tool_name, resolved_args)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: This is always broken.
+ERROR    atlas:master_agent.py:618 Plan execution failed: This is always broken. (in step: Use the test_tool tool.)
+ERROR    atlas:master_agent.py:655 Failed to achieve objective after 3 retries.
+_ TestMasterAgentEnvironmentalAdaptation.test_successful_recovery_after_tool_not_found _
+
+self = <tests.test_master_agent.TestMasterAgentEnvironmentalAdaptation testMethod=test_successful_recovery_after_tool_not_found>
+mock_check_ambiguity = <MagicMock name='_check_goal_ambiguity' id='4808959584'>
+mock_generate_plan = <MagicMock name='_generate_plan' id='4808959248'>
+
+    @patch('agents.master_agent.MasterAgent._generate_plan')
+    @patch('agents.master_agent.MasterAgent._check_goal_ambiguity', return_value=(False, None))
+    def test_successful_recovery_after_tool_not_found(self, mock_check_ambiguity, mock_generate_plan):
+        """Test that the agent successfully recovers after a ToolNotFoundError."""
+        goal = "Use a tool that doesn't exist yet."
+        tool_name = "magical_tool"
+        mock_generate_plan.return_value = self._get_simple_plan(tool_name=tool_name)
+    
+        def execute_tool_side_effect(*args, **kwargs):
+            if self.mock_agent_manager.execute_tool.call_count == 1:
+                raise ToolNotFoundError(f"Tool '{tool_name}' not found.")
+            return {"status": "success", "output": "Tool executed successfully after creation."}
+        self.mock_agent_manager.execute_tool.side_effect = execute_tool_side_effect
+    
+        self.mock_agent_manager.tool_creator_agent.create_tool.return_value = {"status": "success"}
+    
+        self.master_agent._execute_objective_with_retries(goal)
+    
+>       self.mock_agent_manager.tool_creator_agent.create_tool.assert_called_once()
+
+tests/test_master_agent.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='mock.tool_creator_agent.create_tool' id='4797864592'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'create_tool' to have been called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:958: AssertionError
+------------------------------ Captured log call -------------------------------
+INFO     atlas:master_agent.py:113 MasterAgent initialized with creator authentication
+INFO     atlas:master_agent.py:683 Starting plan execution.
+INFO     atlas:master_agent.py:705 Executing step 1/1: Use the magical_tool tool.
+WARNING  atlas:master_agent.py:734 Tool execution failed for step 1: Tool 'magical_tool' not found.
+INFO     atlas:master_agent.py:744 Attempting to create missing tool: magical_tool
+INFO     atlas:master_agent.py:754 Successfully created tool: magical_tool
+INFO     atlas:master_agent.py:764 Step 1 executed successfully after tool creation. Result: {'status': 'success', 'output': 'Tool executed successfully after creation.'}...
+INFO     atlas:master_agent.py:799 Plan execution completed successfully.
+______________________________ test_memory_search ______________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧪 Testing memory search fix...
+✅ Memory search completed successfully. Found 0 results.
+------------------------------ Captured log call -------------------------------
+WARNING  LLMManager:llm_manager.py:535 OpenAI not available for embeddings. Returning empty embedding.
+WARNING  EnhancedMemoryManager:enhanced_memory_manager.py:251 Collection 'master_agent_plan' not found: Collection [master_agent_plan] does not exists
+__________________________ test_manual_mode_switching __________________________
+
+    def test_manual_mode_switching():
+        """Test manual mode switching functionality."""
+        print("👆 Testing Manual Mode Switching")
+        print("=" * 50)
+    
+        context_manager = ChatContextManager()
+    
+        #Test switching to manual mode
+        print(f"Initial auto mode: {context_manager.is_auto_mode}")
+    
+        #Switch to manual chat mode
+>       context_manager.set_manual_mode(ChatMode.CASUAL_CHAT)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ChatContextManager' object has no attribute 'set_manual_mode'
+
+tests/test_mode_system.py:56: AttributeError
+----------------------------- Captured stdout call -----------------------------
+👆 Testing Manual Mode Switching
+==================================================
+Initial auto mode: True
+____________________________ test_development_mode _____________________________
+
+    def test_development_mode():
+        """Test development mode functionality."""
+        print("🔧 Testing Development Mode")
+        print("=" * 50)
+    
+        context_manager = ChatContextManager()
+    
+        #Switch to development mode
+>       context_manager.set_manual_mode(ChatMode.DEVELOPMENT)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ChatContextManager' object has no attribute 'set_manual_mode'
+
+tests/test_mode_system.py:87: AttributeError
+----------------------------- Captured stdout call -----------------------------
+🔧 Testing Development Mode
+==================================================
+____________________________ test_mode_persistence _____________________________
+
+    def test_mode_persistence():
+        """Test mode persistence and state management."""
+        print("💾 Testing Mode Persistence")
+        print("=" * 50)
+    
+        context_manager = ChatContextManager()
+    
+        #Test state tracking
+        states = []
+    
+        #Auto mode
+        states.append(("Auto mode", context_manager.is_auto_mode, context_manager.current_mode))
+    
+        #Manual chat
+>       context_manager.set_manual_mode(ChatMode.CASUAL_CHAT)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ChatContextManager' object has no attribute 'set_manual_mode'
+
+tests/test_mode_system.py:129: AttributeError
+----------------------------- Captured stdout call -----------------------------
+💾 Testing Mode Persistence
+==================================================
+_____________________________ test_openai_fallback _____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔄 Testing OpenAI → Gemini Fallback...
+🧪 Test 1: Explicit OpenAI request with placeholder key...
+✅ Response received: Fallback test successful!
+
+✅ OpenAI → Gemini fallback works!
+
+🧪 Test 2: Direct _chat_openai call...
+✅ Response received: Please provide me with the test you would like me to take.  I need the questions or instructions to be able to complete a "Direct OpenAI test."
+
+✅ Direct OpenAI call fallback works!
+
+🧪 Test 3: Available providers...
+✅ OpenAI correctly not listed in available providers
+✅ Gemini correctly listed as available
+
+🎯 OpenAI Fallback Test Summary:
+========================================
+✅ Explicit OpenAI request → Gemini: OK
+✅ Direct OpenAI call → Gemini: OK
+✅ Provider availability check: OK
+✅ No 'OpenAI client not initialized' errors!
+------------------------------ Captured log call -------------------------------
+WARNING  LLMManager:llm_manager.py:204 Provider 'openai' not available, falling back to Gemini
+WARNING  LLMManager:llm_manager.py:278 OpenAI API key is invalid or placeholder, falling back to Gemini.
+___________________________ test_plugin_integration ____________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔗 ТЕСТ ІНТЕГРАЦІЇ ADVANCED THINKING ПЛАГІНА
+============================================================
+
+1. Перевірка реєстрації плагіна...
+✅ Плагін успішно зареєстровано
+✅ Інтеграція з help mode успішна
+
+2. Перевірка роботи help mode handler...
+✅ Help mode handler інтегровано
+
+📋 Тестування обробки запитів:
+✅ Простий запит правильно делегується: Проаналізуй архітектуру системи
+✅ Простий запит правильно делегується: Як покращити продуктивність Atlas?
+✅ Простий запит правильно делегується: Що не так з модулем пам'яті?
+✅ Простий запит правильно делегується: read file main.py
+
+3. Перевірка системи детекції режимів...
+📊 Поточна система детекції:
+   • Складні ключові слова: 24
+   • Прості ключові слова: 6
+
+⚠️  Потенційні конфлікти:
+   ⚠️  Конфлікт: 'search for architecture patterns'
+   ✅ Чистий: 'analyze file structure'
+   ✅ Чистий: 'how does memory manager work?'
+
+============================================================
+📊 ПІДСУМОК ТЕСТУВАННЯ ІНТЕГРАЦІЇ
+============================================================
+⚠️  ЗНАЙДЕНО 1 ПРОБЛЕМ:
+ 1. Конфліктний запит: 'search for architecture patterns'
+------------------------------ Captured log call -------------------------------
+WARNING  AdvancedAIThinkingTool:advanced_thinking.py:1046 Could not load intelligent mode detector: No module named 'intelligent_mode_detector'
+WARNING  AdvancedAIThinkingTool:advanced_thinking.py:1046 Could not load intelligent mode detector: No module named 'intelligent_mode_detector'
+_________________________________ test_imports _________________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+============================================================
+TESTING IMPORTS
+============================================================
+✅ PIL: Available
+✅ pathlib: Available
+✅ tempfile: Available
+✅ subprocess: Available
+
+macOS-specific imports:
+✅ Quartz: Available
+__________________________ test_native_screencapture ___________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+============================================================
+TESTING NATIVE SCREENCAPTURE
+============================================================
+✅ screencapture found at: /usr/sbin/screencapture
+✅ Screenshot captured: 2940x1912 pixels
+_____________________________ test_quartz_capture ______________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+============================================================
+TESTING QUARTZ CAPTURE
+============================================================
+✅ Quartz imports successful
+✅ CGImage created successfully
+✅ Image properties: 3840x4072, bytes_per_row: 15360
+✅ Image data extracted: 62545920 bytes
+✅ PIL Image created: 3840x4072 pixels, mode: RGBA
+✅ Converted to RGB: RGB
+___________________________ test_applescript_capture ___________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+============================================================
+TESTING APPLESCRIPT CAPTURE
+============================================================
+✅ osascript found at: /usr/bin/osascript
+❌ AppleScript failed: 84:96: syntax error: A unknown token can’t go after this identifier. (-2740)
+
+________________________________ test_pyautogui ________________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+============================================================
+TESTING PYAUTOGUI
+============================================================
+✅ PyAutoGUI imported successfully
+✅ PyAutoGUI screenshot: <MagicMock name='mock.screenshot().size.__getitem__()' id='4797088160'>x<MagicMock name='mock.screenshot().size.__getitem__()' id='4797088160'> pixels
+__________________________ test_integrated_screenshot __________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+============================================================
+TESTING INTEGRATED SCREENSHOT TOOL
+============================================================
+✅ Screenshot tool imported
+❌ Integrated screenshot error: 'bytes' object has no attribute 'size'
+----------------------------- Captured stderr call -----------------------------
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/tests/test_screenshot_complete.py", line 238, in test_integrated_screenshot
+    print(f"✅ Integrated screenshot: {img.size[0]}x{img.size[1]} pixels, mode: {img.mode}")
+                                       ^^^^^^^^
+AttributeError: 'bytes' object has no attribute 'size'
+_______________________________ test_screenshots _______________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🍎 Testing Atlas screenshot functionality on macOS...
+
+📊 Platform Information:
+  system: Darwin
+  is_macos: True
+  has_display: True
+
+🔍 Testing native macOS screenshot methods...
+✅ Native screencapture: Working
+✅ AppleScript: Working
+✅ Available methods: native_screencapture, applescript
+
+📸 Testing main screenshot function...
+❌ Main screenshot test failed: 'bytes' object has no attribute 'size'
+----------------------------- Captured stderr call -----------------------------
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/tests/test_screenshot_macos.py", line 57, in test_screenshots
+    print(f"✅ Screenshot captured: {img.size} pixels ({img.mode})")
+                                     ^^^^^^^^
+AttributeError: 'bytes' object has no attribute 'size'
+_______________ TestScreenshotTool.test_capture_screen_and_save ________________
+
+self = <tests.test_screenshot_tool.TestScreenshotTool testMethod=test_capture_screen_and_save>
+mock_datetime = <MagicMock name='datetime' id='4797098912'>
+mock_mkdir = <MagicMock name='mkdir' id='4797096896'>
+mock_capture_quartz = <MagicMock name='_capture_quartz' id='4797089168'>
+
+    @patch('tools.screenshot_tool._QUARTZ_AVAILABLE', True)
+    @patch('tools.screenshot_tool._capture_quartz')
+    @patch('pathlib.Path.mkdir')
+    @patch('tools.screenshot_tool.datetime')
+    def test_capture_screen_and_save(self, mock_datetime, mock_mkdir, mock_capture_quartz):
+        """Test capture_screen saves the image when a path is provided."""
+        mock_capture_quartz.return_value = self.mock_image
+    
+        #Mock the strftime call to return a fixed timestamp
+        mock_datetime.datetime.now.return_value.strftime.return_value = "20250617T153000"
+    
+        save_path = Path("/tmp/screenshot.png")
+        capture_screen(save_to=save_path)
+    
+>       mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+
+tests/test_screenshot_tool.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='mkdir' id='4797096896'>, args = ()
+kwargs = {'exist_ok': True, 'parents': True}
+msg = "Expected 'mkdir' to be called once. Called 0 times."
+
+    def assert_called_once_with(self, /, *args, **kwargs):
+        """assert that the mock was called exactly once and that that call was
+        with the specified arguments."""
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to be called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'mkdir' to be called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:990: AssertionError
+________ TestScreenshotTool.test_capture_screen_with_pyautogui_fallback ________
+
+self = <tests.test_screenshot_tool.TestScreenshotTool testMethod=test_capture_screen_with_pyautogui_fallback>
+mock_pyautogui_screenshot = <MagicMock name='screenshot' id='4797088496'>
+
+    @patch('tools.screenshot_tool._QUARTZ_AVAILABLE', False)
+    @patch('tools.screenshot_tool.pyautogui.screenshot')
+    def test_capture_screen_with_pyautogui_fallback(self, mock_pyautogui_screenshot):
+        """Test capture_screen falls back to pyautogui."""
+        mock_pyautogui_screenshot.return_value = self.mock_image
+    
+        img = capture_screen()
+    
+>       mock_pyautogui_screenshot.assert_called_once()
+
+tests/test_screenshot_tool.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='screenshot' id='4797088496'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'screenshot' to have been called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:958: AssertionError
+______________ TestScreenshotTool.test_capture_screen_with_quartz ______________
+
+self = <tests.test_screenshot_tool.TestScreenshotTool testMethod=test_capture_screen_with_quartz>
+mock_capture_quartz = <MagicMock name='_capture_quartz' id='4797098240'>
+
+    @patch('tools.screenshot_tool._QUARTZ_AVAILABLE', True)
+    @patch('tools.screenshot_tool._capture_quartz')
+    def test_capture_screen_with_quartz(self, mock_capture_quartz):
+        """Test capture_screen uses Quartz when available."""
+        mock_capture_quartz.return_value = self.mock_image
+    
+        img = capture_screen()
+    
+>       mock_capture_quartz.assert_called_once()
+
+tests/test_screenshot_tool.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='_capture_quartz' id='4797098240'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected '_capture_quartz' to have been called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:958: AssertionError
+_________________________ test_with_damaged_protocols __________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+Тест 1: Створення екземпляра з пошкодженими протоколами...
+✅ Екземпляр створено
+Тест 2: Перевірка цілісності пошкоджених протоколів...
+✅ Правильно виявлено пошкоджені протоколи
+------------------------------ Captured log call -------------------------------
+ERROR    DamagedProtocols:encrypted_creator_protocols.py:257 Encrypted protocols not found
+___________________________ test_main_security_fail ____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+Тест 3: Симуляція запуску Atlas з пошкодженими протоколами...
+✅ Atlas правильно відмовився запускатися
+✅ Показано повідомлення: 'Не шукайте Бога на небі, шукайте в серці своєму, в собі !'
+------------------------------ Captured log call -------------------------------
+ERROR    DamagedProtocols:encrypted_creator_protocols.py:257 Encrypted protocols not found
+___________________________ test_security_protocols ____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+Тест 1: Створення екземпляра протоколів...
+✅ Успішно
+Тест 2: Перевірка цілісності протоколів...
+✅ Протоколи цілі та доступні
+Тест 3: Перевірка доступу до протоколів...
+✅ Доступ до протоколів дозволено
+Тест 4: Спроба читання протоколу...
+✅ Протокол успішно прочитано
+Назва протоколу: Creator Identity Protocol
+____________________________ test_main_app_security ____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+Тест 5: Перевірка функції безпеки з main.py...
+✅ Система пройшла перевірку безпеки
+✅ Atlas може запускатися
+__________ TestSecurityWorkflow.test_block_malicious_goal_and_notify ___________
+
+self = <tests.test_security_workflow.TestSecurityWorkflow testMethod=test_block_malicious_goal_and_notify>
+
+    def test_block_malicious_goal_and_notify(self):
+        """Verify that a malicious goal is blocked and a notification is triggered."""
+        #1. Send rule and notification settings to the agent
+        rules = ["DENY, goal, rm -rf"]
+        notification_channels = {"email": True, "telegram": False, "sms": False}
+    
+        self.parent_conn.send({"type": "UPDATE_RULES", "details": {"rules": rules}})
+        self.parent_conn.send({"type": "UPDATE_NOTIFICATION_SETTINGS", "details": {"channels": notification_channels}})
+    
+        #2. Send a malicious goal
+        malicious_goal = "Use the terminal to delete all files with rm -rf /"
+        event = {"type": "GOAL_EXECUTION_REQUEST", "details": {"goal": malicious_goal}}
+    
+        self.parent_conn.send(event)
+    
+        #3. Wait for and check the response
+        self.assertTrue(self.parent_conn.poll(timeout=2), "Agent did not respond in time.")
+        response = self.parent_conn.recv()
+    
+        #4. Assert the action was blocked
+        self.assertEqual(response.get("action"), "BLOCK")
+        self.assertIn("Execution blocked by rule: 'rm -rf'", response.get("reason", ""))
+    
+        #5. Assert that the notification was logged
+        #Give the logger time to flush
+        time.sleep(0.2)
+>       with open(LOG_FILE_PATH, 'r') as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/Users/developer/.atlas/logs/atlas.log.jsonl'
+
+tests/test_security_workflow.py:69: FileNotFoundError
+----------------------------- Captured stdout call -----------------------------
+Warning: PyAutoGUI not available for mouse/keyboard: Headless environment detected
+----------------------------- Captured stderr call -----------------------------
+2025-06-21 22:35:06,190 - INFO - Security Agent process started.
+2025-06-21 22:35:06,191 - INFO - Security Agent received event: {'type': 'UPDATE_RULES', 'details': '...'}
+2025-06-21 22:35:06,191 - INFO - Security rules updated. 1 rules loaded.
+2025-06-21 22:35:06,191 - INFO - Security Agent received event: {'type': 'UPDATE_NOTIFICATION_SETTINGS', 'details': {'channels': {'email': True, 'telegram': False, 'sms': False}}}
+2025-06-21 22:35:06,191 - INFO - Notification settings updated: {'email': True, 'telegram': False, 'sms': False}
+2025-06-21 22:35:06,191 - INFO - Security Agent received event: {'type': 'GOAL_EXECUTION_REQUEST', 'details': {'goal': 'Use the terminal to delete all files with rm -rf /'}}
+2025-06-21 22:35:06,191 - INFO - Evaluating goal execution request...
+2025-06-21 22:35:06,191 - WARNING - Execution blocked by rule: 'rm -rf'
+2025-06-21 22:35:06,191 - INFO - SIMULATING EMAIL NOTIFICATION to admin@example.com:
+2025-06-21 22:35:06,191 - INFO -   Subject: Atlas Security Alert
+2025-06-21 22:35:06,191 - INFO -   Body: An action was blocked by the Atlas Security Agent.
+
+Reason: Execution blocked by rule: 'rm -rf'
+2025-06-21 22:35:07,192 - INFO - Security Agent process finished.
+------------------------------ Captured log call -------------------------------
+INFO     atlas:security_agent.py:65 Security Agent stopping...
+____________________________ test_thinking_quality _____________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧠 ТЕСТ ЯКОСТІ АЛГОРИТМУ ДУМАННЯ
+==================================================
+
+1. Тест: Архітектурний аналіз
+Запит: Проаналізуй архітектуру пам'яті в Atlas та запропонуй покращення
+----------------------------------------
+📊 Контекст: домен=system_architecture, складність=4/5
+🎯 Стратегія: architectural ✅
+❓ Питань згенеровано: 4
+📋 Стратегічні питання:
+   1. Яка загальна архітектура: Проаналізуй архітектуру пам'яті в Atlas та запропонуй покращення?
+   2. Які ключові компоненти та їх відповідальності в: Проаналізуй архітектуру пам'яті в Atlas та запропонуй покращення?
+   3. Як компоненти взаємодіють та інтегруються в: Проаналізуй архітектуру пам'яті в Atlas та запропонуй покращення?
+   ... та ще 1 питань
+📈 Оцінка якості: 100%
+
+2. Тест: Усунення проблем
+Запит: Що не так з модулем думання чи аналізу?
+----------------------------------------
+📊 Контекст: домен=system_architecture, складність=3/5
+🎯 Стратегія: troubleshooting ✅
+❓ Питань згенеровано: 4
+📋 Стратегічні питання:
+   1. Які проблеми або недоліки існують з: Що не так з модулем думання чи аналізу??
+   2. Які кореневі причини проблем в: Що не так з модулем думання чи аналізу??
+   3. Які рішення або виправлення могли б вирішити: Що не так з модулем думання чи аналізу??
+   ... та ще 1 питань
+📈 Оцінка якості: 100%
+
+3. Тест: Творче покращення
+Запит: Як можна покращити алгоритм мислення AI асистента?
+----------------------------------------
+📊 Контекст: домен=software_engineering, складність=3/5
+🎯 Стратегія: creative ✅
+❓ Питань згенеровано: 4
+📋 Стратегічні питання:
+   1. Які поточні обмеження: Як можна покращити алгоритм мислення AI асистента??
+   2. Які інноваційні підходи могли б покращити: Як можна покращити алгоритм мислення AI асистента??
+   3. Які нові технології могли б удосконалити: Як можна покращити алгоритм мислення AI асистента??
+   ... та ще 1 питань
+📈 Оцінка якості: 100%
+
+4. Тест: Порівняльний аналіз
+Запит: Порівняй різні стратегії мислення в AI системах
+----------------------------------------
+📊 Контекст: домен=system_architecture, складність=2/5
+🎯 Стратегія: comparative ✅
+❓ Питань згенеровано: 4
+📋 Стратегічні питання:
+   1. Які різні підходи існують до: Порівняй різні стратегії мислення в AI системах?
+   2. Як порівнюються ці підходи в контексті: Порівняй різні стратегії мислення в AI системах?
+   3. Які переваги та недоліки кожного варіанту для: Порівняй різні стратегії мислення в AI системах?
+   ... та ще 1 питань
+📈 Оцінка якості: 100%
+
+==================================================
+📊 ПІДСУМОК ТЕСТУВАННЯ ЯКОСТІ
+==================================================
+• Архітектурний аналіз: 100% ✅
+• Усунення проблем: 100% ✅
+• Творче покращення: 100% ✅
+• Порівняльний аналіз: 100% ✅
+
+🎯 Середня оцінка: 100.0%
+🎉 ВІДМІННО! Алгоритм працює на високому рівні
+_____________________________ test_meta_cognition ______________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+
+🧠 ТЕСТ МЕТА-КОГНІТИВНИХ ЗДІБНОСТЕЙ
+==================================================
+📝 Аналіз виконано: 171 символів
+🎯 Рівень впевненості: 0.50
+❓ Невизначеностей знайдено: 1
+🔍 Ключові невизначеності:
+   • Limited analysis due to LLM unavailability
+📊 Мета-когнітивна оцінка: 100%
+______________________________ test_tools_loading ______________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔧 ТЕСТ ЗАВАНТАЖЕННЯ ІНСТРУМЕНТІВ
+==================================================
+❌ Помилка під час тестування: cannot import name 'EnhancedMemoryManager' from 'agents.memory_manager' (/Users/developer/Documents/Atlas/agents/memory_manager.py)
+----------------------------- Captured stderr call -----------------------------
+Traceback (most recent call last):
+  File "/Users/developer/Documents/Atlas/tests/test_tools_loading.py", line 22, in test_tools_loading
+    from agents.memory_manager import EnhancedMemoryManager
+ImportError: cannot import name 'EnhancedMemoryManager' from 'agents.memory_manager' (/Users/developer/Documents/Atlas/agents/memory_manager.py). Did you mean: 'enhanced_memory_manager'?
+__________________________ test_utils_config_manager ___________________________
+Expected None, but test returned True. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+✅ Успішний імпорт utils.ConfigManager
+✅ Створено ConfigManager
+
+🔑 Тестування API ключів:
+  OpenAI: Встановлено
+  Gemini: Встановлено
+  Mistral: Встановлено
+  Groq: Встановлено
+
+⚙️  Тестування get_setting:
+  get_setting('gemini_api_key'): Встановлено
+  Поточний провайдер: gemini
+  Поточна модель: gemini-1.5-flash
+
+💾 Тестування збереження/завантаження:
+  ✅ Збереження працює
+  ✅ Завантаження працює: 2 ключів
+------------------------------ Captured log call -------------------------------
+INFO     atlas:config_manager.py:45 Configuration saved to /Users/developer/.atlas/config.yaml
+____________________________ test_basic_navigation _____________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🧪 Testing basic navigation...
+❌ Basic navigation test failed: module 'plugin' has no attribute 'navigate_to_url'
+_______________________________ test_car_search ________________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🚗 Testing car search workflow...
+📍 Navigating to AutoRia...
+❌ Car search test failed: module 'plugin' has no attribute 'navigate_to_url'
+____________________________ test_fallback_methods _____________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🔄 Testing fallback methods...
+❌ Fallback methods test failed: module 'plugin' has no attribute 'get_browser'
+_________________________ test_enhanced_browser_agent __________________________
+Expected None, but test returned False. Did you mean to use `assert` instead of `return`?
+----------------------------- Captured stdout call -----------------------------
+🤖 Testing Enhanced Browser Agent integration...
+❌ Enhanced Browser Agent test failed: No module named 'browser_agent'
+=============================== warnings summary ===============================
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_agent_specific_memory
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_memory_isolation
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_memory_isolation
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_memory_stats
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_memory_stats
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_ttl_metadata
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_ttl_metadata
+tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_ttl_metadata
+  /Users/developer/Documents/Atlas/venv/lib/python3.13/site-packages/chromadb/api/types.py:603: DeprecationWarning: The EmbeddingFunction class does not implement name(). This will be required in a future version.
+    self.name() is NotImplemented
+
+tests/test_enhanced_memory_integration.py: 11 warnings
+  /Users/developer/Documents/Atlas/venv/lib/python3.13/site-packages/chromadb/api/collection_configuration.py:762: DeprecationWarning: The EmbeddingFunction class does not implement name(). This will be required in a future version.
+    embedding_function.name() != "default"
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.13.5-final-0 _______________
+
+Name                                                      Stmts   Miss  Cover
+-----------------------------------------------------------------------------
+agents/__init__.py                                            0      0   100%
+agents/agent_manager.py                                     229    104    55%
+agents/base_agent.py                                         35     23    34%
+agents/browser_agent.py                                     198    178    10%
+agents/chat_context_manager.py                              187     42    78%
+agents/chat_translation_manager.py                           58     11    81%
+agents/creator_authentication.py                            378    170    55%
+agents/creator_memory_manager.py                            168    168     0%
+agents/deputy_agent.py                                       46     46     0%
+agents/encrypted_creator_protocols.py                       188    108    43%
+agents/enhanced_deputy_agent.py                             363    323    11%
+agents/enhanced_memory_manager.py                           238     65    73%
+agents/enhanced_plugin_manager.py                           184    154    16%
+agents/enhanced_security_agent.py                           267    231    13%
+agents/master_agent.py                                      636    317    50%
+agents/memory_manager.py                                     87     70    20%
+agents/planning/__init__.py                                   0      0   100%
+agents/planning/operational_planner.py                       59     43    27%
+agents/planning/strategic_planner.py                         43      4    91%
+agents/planning/tactical_planner.py                          47      4    91%
+agents/plugin_manager.py                                    124    124     0%
+agents/problem_decomposition_agent.py                       109     14    87%
+agents/professional_analyzer.py                             196    196     0%
+agents/providers/__init__.py                                  0      0   100%
+agents/providers/ollama_backend.py                           22     22     0%
+agents/screen_agent.py                                       23     16    30%
+agents/security_agent.py                                    105     32    70%
+agents/system_interaction_agent.py                           19     13    32%
+agents/task_aware_master_agent.py                           216    216     0%
+agents/task_manager.py                                      319    237    26%
+agents/text_agent.py                                         17     11    35%
+agents/token_tracker.py                                      29      6    79%
+agents/tool_creator_agent.py                                102     30    71%
+config_manager.py                                           117     37    68%
+debug_imports.py                                             10     10     0%
+intelligence/__init__.py                                      0      0   100%
+intelligence/context_awareness_engine.py                     33     25    24%
+logger.py                                                    28     28     0%
+main.py                                                    1520   1391     8%
+monitoring/__init__.py                                        0      0   100%
+monitoring/metrics_manager.py                                76     32    58%
+plugin_manager.py                                           124    109    12%
+plugins/__init__.py                                           0      0   100%
+plugins/helper_sync_tell/__init__.py                          0      0   100%
+plugins/helper_sync_tell/advanced_thinking.py               536    226    58%
+plugins/helper_sync_tell/check_macos_dependencies.py         65     65     0%
+plugins/helper_sync_tell/comprehensive_validation.py        148    148     0%
+plugins/helper_sync_tell/contextual_analyzer.py             293    293     0%
+plugins/helper_sync_tell/debug_test.py                       65     65     0%
+plugins/helper_sync_tell/demo.py                             50     50     0%
+plugins/helper_sync_tell/enhanced_test.py                    32     32     0%
+plugins/helper_sync_tell/final_fix_report.py                 25     25     0%
+plugins/helper_sync_tell/final_validation.py                 46     46     0%
+plugins/helper_sync_tell/hybrid_integration.py              112    112     0%
+plugins/helper_sync_tell/integration.py                      33     33     0%
+plugins/helper_sync_tell/meta_cognitive_engine.py           248    248     0%
+plugins/helper_sync_tell/perfect_integration.py              95     95     0%
+plugins/helper_sync_tell/plugin.py                          358    325     9%
+plugins/helper_sync_tell/post_load_integration.py            60     60     0%
+plugins/helper_sync_tell/production_report.py                69     69     0%
+plugins/helper_sync_tell/quick_status.py                     26     26     0%
+plugins/helper_sync_tell/real_world_test.py                  95     95     0%
+plugins/helper_sync_tell/simple_integration_test.py          17     17     0%
+plugins/helper_sync_tell/simple_plugin.py                    93     93     0%
+plugins/helper_sync_tell/simple_test.py                      24     24     0%
+plugins/helper_sync_tell/startup.py                          42     42     0%
+plugins/helper_sync_tell/ultimate_ai_assistant.py           423    423     0%
+plugins/helper_sync_tell/validate_macos_requirements.py      68     68     0%
+plugins/web_browsing/__init__.py                              0      0   100%
+plugins/web_browsing/plugin.py                              478    478     0%
+plugins/web_browsing/setup.py                                89     89     0%
+tools/__init__.py                                             8      0   100%
+tools/chat_memory_demo.py                                   179    179     0%
+tools/clipboard_tool.py                                     119     69    42%
+tools/code_reader_tool.py                                   676    640     5%
+tools/dependency_analyzer.py                                269    269     0%
+tools/generated/__init__.py                                   0      0   100%
+tools/generated/hello_world.py                                5      1    80%
+tools/image_recognition_tool.py                              48     12    75%
+tools/memory_demo.py                                         78     78     0%
+tools/memory_migration.py                                   166    166     0%
+tools/mouse_keyboard_tool.py                                100     67    33%
+tools/notification_tool.py                                   14      0   100%
+tools/ocr_tool.py                                            45     17    62%
+tools/performance_profiler.py                               276    276     0%
+tools/screenshot_tool.py                                    106     85    20%
+tools/simple_memory_test.py                                 133    133     0%
+tools/terminal_tool.py                                      115     31    73%
+tools/translation_tool.py                                    87     10    89%
+tools/web_browser_tool.py                                    14     10    29%
+ui/__init__.py                                                0      0   100%
+ui/chat_history_view.py                                     186     77    59%
+ui/context_menu.py                                          255    217    15%
+ui/enhanced_plugin_manager.py                               305    280     8%
+ui/enhanced_settings.py                                     515    208    60%
+ui/fallback_chain_editor.py                                  62     62     0%
+ui/goal_history.py                                          286    251    12%
+ui/plan_view.py                                              63     56    11%
+ui/status_panel.py                                          121    109    10%
+ui/tool_management_view.py                                  145    130    10%
+utils/__init__.py                                             0      0   100%
+utils/config_manager.py                                     117     25    79%
+utils/gui_logger.py                                          34     26    24%
+utils/intelligent_mode_detector.py                          178    178     0%
+utils/linux_utils.py                                         23     23     0%
+utils/llm_manager.py                                        318    182    43%
+utils/logger.py                                              35     14    60%
+utils/macos_screenshot.py                                    55     15    73%
+utils/macos_utils.py                                         56     39    30%
+utils/platform_utils.py                                      38     17    55%
+utils/security_doc_crypto.py                                 37     37     0%
+-----------------------------------------------------------------------------
+TOTAL                                                     15457  11846    23%
+Coverage XML written to file coverage.xml
+
+------------------------------------------------------------------------------------------------ benchmark: 2 tests -----------------------------------------------------------------------------------------------
+Name (time in us)                      Min                    Max                Mean                StdDev              Median                 IQR            Outliers  OPS (Kops/s)            Rounds  Iterations
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_screenshot_tool_latency       87.1670 (1.0)      48,162.8330 (2.61)     127.2987 (1.0)        768.2766 (1.0)       92.5410 (1.0)        7.6670 (1.0)         1;495        7.8555 (1.0)        3943           1
+test_code_reader_tool_latency     624.0420 (7.16)     18,470.5830 (1.0)      966.7314 (7.59)     1,249.0917 (1.63)     824.5830 (8.91)     227.9275 (29.73)        5;22        1.0344 (0.13)        345           1
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Legend:
+  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.
+  OPS: Operations Per Second, computed as 1 / Mean
+=========================== short test summary info ============================
+FAILED tests/performance/test_core_performance.py::TestCorePerformance::test_master_agent_initialization_latency
+FAILED tests/performance/test_core_performance.py::TestCorePerformance::test_llm_manager_response_time
+FAILED tests/performance/test_core_performance.py::TestCorePerformance::test_memory_operation_latency
+FAILED tests/performance/test_core_performance.py::TestToolPerformance::test_code_reader_tool_latency
+FAILED tests/security/test_security_and_translation.py::test_authentication_security
+FAILED tests/test_agent_manager.py::TestAgentManager::test_add_and_get_agent
+FAILED tests/test_agent_manager.py::TestAgentManager::test_get_nonexistent_agent
+FAILED tests/test_agent_manager.py::TestAgentManager::test_list_agent_names
+FAILED tests/test_agent_manager.py::TestAgentManager::test_resilient_tool_loading
+FAILED tests/test_agent_manager_reloading.py::TestAgentManagerReloading::test_reload_generated_tools_and_callback
+FAILED tests/test_architecture.py::test_task_manager - Failed: Expected None,...
+FAILED tests/test_atlas_startup.py::test_atlas_startup - Failed: Expected Non...
+FAILED tests/test_chat_fix.py::test_chat - Failed: Expected None, but test re...
+FAILED tests/test_chat_improvements.py::test_chat_improvements - Failed: Expe...
+FAILED tests/test_chat_memory_system.py::test_chat_memory_isolation - TypeErr...
+FAILED tests/test_chat_memory_system.py::test_plugin_memory_isolation - TypeE...
+FAILED tests/test_chat_memory_system.py::test_dev_mode_memory - TypeError: En...
+FAILED tests/test_chat_memory_system.py::test_memory_cleanup_and_ttl - TypeEr...
+FAILED tests/test_cleaned_context.py::test_english_only_processing - Failed: ...
+FAILED tests/test_comprehensive_fixes.py::test_config_ini - Failed: Expected ...
+FAILED tests/test_comprehensive_fixes.py::test_config_managers - Failed: Expe...
+FAILED tests/test_comprehensive_fixes.py::test_llm_manager - Failed: Expected...
+FAILED tests/test_comprehensive_fixes.py::test_gemini_model_handling - Failed...
+FAILED tests/test_config_fix.py::test_config_manager - Failed: Expected None,...
+FAILED tests/test_config_fix.py::test_utils_config_manager - Failed: Expected...
+FAILED tests/test_config_fix.py::test_llm_manager - Failed: Expected None, bu...
+FAILED tests/test_creator_system_complete.py::test_creator_system_integration
+FAILED tests/test_creator_system_complete.py::test_protocol_security - Failed...
+FAILED tests/test_default_provider.py::test_default_provider - Failed: Expect...
+FAILED tests/test_enhanced_memory_integration.py::TestEnhancedMemoryManager::test_memory_isolation
+FAILED tests/test_final_integration.py::test_final_integration - Failed: Expe...
+FAILED tests/test_final_system.py::test_complete_system - Failed: Expected No...
+FAILED tests/test_full_config_flow.py::test_main_config_manager - Failed: Exp...
+FAILED tests/test_full_config_flow.py::test_utils_config_manager - Failed: Ex...
+FAILED tests/test_full_config_flow.py::test_llm_manager_integration - Failed:...
+FAILED tests/test_full_workflow.py::TestFullWorkflow::test_multi_agent_workflow
+FAILED tests/test_gemini_api.py::test_gemini_chat - Failed: Expected None, bu...
+FAILED tests/test_gemini_api.py::test_config - Failed: Expected None, but tes...
+FAILED tests/test_gui_creation.py::test_gui_creation - Failed: Expected None,...
+FAILED tests/test_gui_final.py::test_gui_settings - Failed: Expected None, bu...
+FAILED tests/test_gui_final.py::test_config_consistency - Failed: Expected No...
+FAILED tests/test_hierarchical_planning_integration.py::TestHierarchicalPlanningIntegration::test_full_planning_flow_success
+FAILED tests/test_llm_manager_config.py::test_llm_manager - Failed: Expected ...
+FAILED tests/test_master_agent.py::TestMasterAgentEnvironmentalAdaptation::test_execution_stops_after_max_retries
+FAILED tests/test_master_agent.py::TestMasterAgentEnvironmentalAdaptation::test_successful_recovery_after_tool_not_found
+FAILED tests/test_memory_fix.py::test_memory_search - Failed: Expected None, ...
+FAILED tests/test_mode_system.py::test_manual_mode_switching - AttributeError...
+FAILED tests/test_mode_system.py::test_development_mode - AttributeError: 'Ch...
+FAILED tests/test_mode_system.py::test_mode_persistence - AttributeError: 'Ch...
+FAILED tests/test_openai_fallback.py::test_openai_fallback - Failed: Expected...
+FAILED tests/test_plugin_integration.py::test_plugin_integration - Failed: Ex...
+FAILED tests/test_screenshot_complete.py::test_imports - Failed: Expected Non...
+FAILED tests/test_screenshot_complete.py::test_native_screencapture - Failed:...
+FAILED tests/test_screenshot_complete.py::test_quartz_capture - Failed: Expec...
+FAILED tests/test_screenshot_complete.py::test_applescript_capture - Failed: ...
+FAILED tests/test_screenshot_complete.py::test_pyautogui - Failed: Expected N...
+FAILED tests/test_screenshot_complete.py::test_integrated_screenshot - Failed...
+FAILED tests/test_screenshot_macos.py::test_screenshots - Failed: Expected No...
+FAILED tests/test_screenshot_tool.py::TestScreenshotTool::test_capture_screen_and_save
+FAILED tests/test_screenshot_tool.py::TestScreenshotTool::test_capture_screen_with_pyautogui_fallback
+FAILED tests/test_screenshot_tool.py::TestScreenshotTool::test_capture_screen_with_quartz
+FAILED tests/test_security_fail.py::test_with_damaged_protocols - Failed: Exp...
+FAILED tests/test_security_fail.py::test_main_security_fail - Failed: Expecte...
+FAILED tests/test_security_system.py::test_security_protocols - Failed: Expec...
+FAILED tests/test_security_system.py::test_main_app_security - Failed: Expect...
+FAILED tests/test_security_workflow.py::TestSecurityWorkflow::test_block_malicious_goal_and_notify
+FAILED tests/test_thinking_quality.py::test_thinking_quality - Failed: Expect...
+FAILED tests/test_thinking_quality.py::test_meta_cognition - Failed: Expected...
+FAILED tests/test_tools_loading.py::test_tools_loading - Failed: Expected Non...
+FAILED tests/test_utils_config.py::test_utils_config_manager - Failed: Expect...
+FAILED tests/test_web_browsing.py::test_basic_navigation - Failed: Expected N...
+FAILED tests/test_web_browsing.py::test_car_search - Failed: Expected None, b...
+FAILED tests/test_web_browsing.py::test_fallback_methods - Failed: Expected N...
+FAILED tests/test_web_browsing.py::test_enhanced_browser_agent - Failed: Expe...
+============ 74 failed, 92 passed, 19 warnings in 66.14s (0:01:06) =============

@@ -95,16 +95,11 @@ This sequence covers the full lifecycle of a secure refactoring project.
 
             if not objectives:
                 self.logger.warning("Could not parse numbered list from LLM response. Falling back to manual parsing.")
-                # Fallback: remove the thinking block and split by newlines.
-                plan_text = response_text
-                if thinking_match:
-                    plan_text = response_text[thinking_match.end():]
-                
-                objectives = [
-                    line.strip().lstrip('0123456789. ') 
-                    for line in plan_text.strip().split('\n') 
-                    if line.strip() and not line.startswith("<")
-                ]
+                lines = [line.strip() for line in response_text.strip().split("\n") if line.strip()]
+                if lines and lines[0].endswith(':'):
+                    objectives = lines[1:]
+                else:
+                    objectives = lines
                 # Filter out any empty strings that might result
                 objectives = [obj for obj in objectives if obj]
 

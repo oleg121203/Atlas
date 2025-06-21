@@ -83,7 +83,8 @@ This document outlines the strat- **Governance Enhancements & Protocol Hardening
   - [x] Instrument plan generation and execution latency metrics for performance profiling.
   - [ ] Conduct latency measurements to ensure tools meet the <100ms requirement.
 - **Expand Test Coverage:** Increase test coverage to include edge cases and new features.
-  - [ ] Develop tests for dynamic tool creation scenarios.
+  - [x] Develop tests for dynamic tool creation scenarios.
+  - [x] Add edge case tests for `ToolCreatorAgent` to improve robustness.
   - [ ] Create tests for environmental adaptation logic under varying system states.
   - [ ] Add tests for error recovery in complex, multi-step plans.
 - **Resolve Type Errors:** Address and fix all `mypy` type errors across the codebase for robustness.
