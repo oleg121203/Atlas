@@ -143,7 +143,7 @@ orjson==3.10.18
 osascript==2020.12.3
 overrides==7.7.0
 packageurl-python==0.17.1
-packaging==24.2
+packaging==25.0
 pandas==2.3.0
 parso==0.8.4
 pathspec==0.12.1
