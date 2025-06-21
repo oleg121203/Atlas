@@ -11,6 +11,14 @@ import logging
 from typing import Tuple
 from dataclasses import dataclass
 
+
+try:
+    from utils.llm_manager import LLMManager
+    LLM_MANAGER_AVAILABLE = True
+except ImportError:
+    LLM_MANAGER_AVAILABLE = False
+    LLMManager = None  # type: ignore
+
 logger = logging.getLogger(__name__)
 
 @dataclass

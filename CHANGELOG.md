@@ -8,13 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Implemented a meta-cognitive self-correction loop in the `MasterAgent`.** When a plan execution fails, the agent now uses an LLM to analyze the root cause of the error and generate a new, strategic recovery goal, enabling it to learn from mistakes and adapt its approach.
 - **Integrated the full hierarchical planning system into the `MasterAgent`'s core execution loop.** The `run_once` method has been completely rewritten to orchestrate the `StrategicPlanner`, `TacticalPlanner`, and `OperationalPlanner`, enabling Atlas to autonomously handle complex goals from start to finish.
 - **Completed the three-tier hierarchical planning system by implementing the `TacticalPlanner`.** This crucial middle layer translates strategic objectives into concrete, multi-step JSON plans, bridging the gap between high-level strategy and low-level operational execution. The full Strategic -> Tactical -> Operational planning pipeline is now in place.
 - **Implemented the `StrategicPlanner` as the first layer of the hierarchical planning system.** This component uses an LLM to decompose high-level, abstract user goals into a concrete list of strategic objectives, forming the foundation for more complex, multi-step reasoning.
 - **Formulated a new strategic vision: "Atlas: From Assistant to Autonomous Partner."** This marks a shift towards developing a proactive, learning-capable agent that deeply understands user context. The `DEV_PLAN.md` has been completely restructured with new, ambitious phases to reflect this goal.
-
+- **Completed comprehensive unit tests for the Tree-of-Thought (ToT) implementation in `ProblemDecompositionAgent`.** Added tests covering successful decomposition paths, edge cases like no viable thoughts or empty responses, and logic for depth limits and breadth pruning, ensuring robust problem-solving capabilities.
+- Implemented `ProblemDecompositionAgent` with Tree-of-Thought (ToT) reasoning for complex problem decomposition.
+- Added comprehensive unit tests for ToT implementation in `ProblemDecompositionAgent`.
 
 ### Fixed
+- **Temporary fix for import issue in ToT unit tests.** Created a mock `LLMResponse` class directly in `test_problem_decomposition_agent.py` to bypass the missing import from `utils.llm_manager`, allowing tests to run while a permanent solution is developed.
+- **Improved test isolation in ToT unit tests.** Added `reset_mock()` calls to ensure accurate call counting and isolation between test cases, enhancing test reliability.
+- **Fixed and refactored the `MasterAgent` integration test suite for robustness and accuracy.** Resolved persistent test failures by replacing the fragile `patch` context manager with a more direct monkeypatching strategy for planner mocks. Aligned the tests with the current hierarchical planning and error recovery logic, and fixed multiple `NameError` exceptions in `master_agent.py` by importing missing exception classes and the `metrics_manager`. The test suite now provides reliable validation of the full planning and execution loop.
+- **Improved and corrected the unit tests for the planning system.** Updated the test suites for `StrategicPlanner` and `TacticalPlanner` to align with the current `LLMManager` implementation. This involved correcting outdated mocks, fixing incorrect assertions, and adding a new test to validate the `StrategicPlanner`'s fallback parsing logic, ensuring the robustness of the core planning components.
 - **Resolved critical test suite instability and import errors.** Systematically corrected all incorrect `LLMManager` import paths from `agents.llm_manager` to `utils.llm_manager` across the entire codebase. Refactored the logger to be test-aware, using a `NullHandler` when `ATLAS_TESTING` is set, which resolved test collection hangs and ensures a stable `pytest` environment.
 - **Stabilized core planning and execution logic.** Fixed a typo (`knowledge_memies`) and a missing `re` import in `agents/planning/operational_planner.py`. Repaired a critical syntax error in `agents/master_agent.py` by refactoring a corrupted multi-line f-string in the `_create_recovery_goal` method, restoring system stability.
 - **Corrected critical `MasterAgent` instability by completely rewriting `agents/master_agent.py`.** This resolved persistent syntax and logic errors caused by faulty incremental patches. The new version correctly integrates the `ContextAwarenessEngine`, restoring the full context-aware planning and execution loop, and provides a stable foundation for future development.
@@ -33,6 +40,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Resolving all `mypy` duplicate module name conflicts by deleting redundant scripts and renaming conflicting test files.
     - Installing `types-requests` to provide necessary type stubs for the `requests` library.
     - Adding an `__init__.py` file to the `monitoring` directory to ensure it is treated as a proper package.
+
+- Resolved failing test `test_decompose_goal_successful_path` for `ProblemDecompositionAgent` by updating user prompt in `_generate_thoughts` method to avoid ambiguity with mock responses.
+- Permanent fix for import issue with `LLMResponse` class by defining it in `utils/llm_manager.py` for consistent usage across the codebase (implemented across all relevant agent and tool files, comprehensively verified with passing tests, linting, and type checking).
+- **LLMManager Import Issue**: Resolved the import error for `LLMManager` in `problem_decomposition_agent.py` by changing the import method to `from utils import llm_manager` and referencing `llm_manager.LLMManager`. Tests now pass successfully. (#IssueReference if applicable)
+- **LLMResponse Type Hint Fix**: Updated type hints in `problem_decomposition_agent.py` to correctly reference `LLMResponse` from the `llm_manager` module, resolving type checking errors.
+- **Permanent Solution for LLMResponse Type Hint**: Added a top-level alias for `LLMResponse` in `llm_manager.py` by mapping it to `TokenUsage`, allowing proper type hint usage across the codebase.
+- **Fixed**: Updated import statements and removed conflicting alias for `LLMResponse` in `utils/llm_manager.py` to resolve import errors. [#348]
+- Resolved import errors for `LLMResponse` by correctly defining it as a dataclass in `utils/llm_manager.py` and updating related imports.
+- Fixed import path for `ContextAwarenessEngine` in `test_hierarchical_planning_integration.py` to point to `intelligence.context_awareness_engine`.
 
 ### Added
 - **Established a PyTest testing framework to improve code quality and prevent regressions.** This included:

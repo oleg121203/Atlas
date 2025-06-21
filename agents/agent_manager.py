@@ -48,6 +48,11 @@ class AgentManager:
         #Load built-in tools
         self.load_builtin_tools()
 
+    @property
+    def has_agents(self) -> bool:
+        """Returns True if there are any registered agents."""
+        return bool(self._agents)
+
     def clear_tools(self):
         """Clears all registered tools except the essential ones."""
         #Preserve essential tools if needed, or clear completely

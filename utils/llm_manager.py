@@ -9,13 +9,20 @@ TokenTracker to monitor and log token usage for all API calls.
 import logging
 import requests
 from typing import List, Dict, Any, Optional
+from dataclasses import dataclass
 
 from openai import OpenAI
 import google.generativeai as genai
 
 from agents.token_tracker import TokenTracker, TokenUsage
-from utils.config_manager import config_manager as utils_config_manager
 
+@dataclass
+class LLMResponse:
+    response_text: str
+    model: str
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
 
 class LLMManager:
     """Manages interactions with multiple Language Model providers."""

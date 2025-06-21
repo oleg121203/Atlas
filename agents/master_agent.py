@@ -6,17 +6,22 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Callable, Tuple, TYPE_CHECKING
 
+from utils.logger import get_logger
+
+from agents.planning.strategic_planner import StrategicPlanner
+from agents.planning.tactical_planner import TacticalPlanner
+from agents.planning.operational_planner import OperationalPlanner
+from agents.problem_decomposition_agent import ProblemDecompositionAgent
+from agents.agent_manager import ToolNotFoundError, InvalidToolArgumentsError
+from monitoring.metrics_manager import metrics_manager
+
 if TYPE_CHECKING:
     from agents.memory_manager import MemoryManager
     from agents.creator_authentication import CreatorAuthentication
     from agents.agent_manager import AgentManager
-    from agents.context_awareness_engine import ContextAwarenessEngine
-    from agents.memory.memory_manager import EnhancedMemoryManager, MemoryScope
-    from agents.models import Plan, PlanStep, ToolCall
-    from agents.planning.strategic_planner import StrategicPlanner
-    from agents.planning.tactical_planner import TacticalPlanner
-    from agents.planning.operational_planner import OperationalPlanner
-    from agents.tool_registry import ToolRegistry
+    from intelligence.context_awareness_engine import ContextAwarenessEngine
+    from agents.memory.memory_manager import MemoryScope
+    from agents.models import Plan
     from utils.creator_authentication import CreatorAuthentication
     from utils.llm_manager import LLMManager
     from agents.screen_agent import ScreenAgent
@@ -78,6 +83,7 @@ class MasterAgent:
         self.strategic_planner = StrategicPlanner(llm_manager=self.llm_manager, memory_manager=self.memory_manager)
         self.tactical_planner = TacticalPlanner(llm_manager=self.llm_manager, memory_manager=self.memory_manager)
         self.operational_planner = OperationalPlanner(llm_manager=self.llm_manager, memory_manager=self.memory_manager, agent_manager=self.agent_manager)
+        self.problem_decomposition_agent = ProblemDecompositionAgent(llm_manager=self.llm_manager)
         self.retry_count = 0
 
         # State for goal clarification
@@ -87,7 +93,7 @@ class MasterAgent:
         # Set the callback on the agent manager to receive tool updates
         self.agent_manager.master_agent_update_callback = self._on_tools_updated
 
-        if not self.agent_manager._agents:  # Check internal agent dict
+        if not self.agent_manager.has_agents:  # Check for registered agents
             self._register_default_agents()
         self.logger.info("MasterAgent initialized with creator authentication")
 
@@ -156,71 +162,40 @@ class MasterAgent:
         if self.is_paused or not self.is_running:
             return
 
-        self.status_callback({"type": "info", "data": {"message": f"Starting new goal: {goal}"}})
+        self.status_callback({"type": "info", "content": f"Starting new goal: {goal}"})
         self.last_goal = goal
         original_goal = goal
-        self.retry_count = 0
 
-        while self.retry_count < self.MAX_RETRIES:
-            try:
-                # Phase 1: Strategic Planning
-                self.status_callback({"type": "info", "data": {"message": "Phase 1: Decomposing goal into strategic objectives..."}})
-                strategic_objectives = self.strategic_planner.generate_strategic_plan(goal)
-                if not strategic_objectives:
-                    self.logger.error("Strategic planner failed to generate objectives.")
-                    raise Exception("Could not devise a strategic plan.")
-                self.logger.info(f"Generated strategic objectives: {strategic_objectives}")
-                self.status_callback({"type": "strategic_plan", "data": strategic_objectives})
+        # Check for goal ambiguity before proceeding
+        is_ambiguous, question = self._check_goal_ambiguity(goal)
+        if is_ambiguous:
+            self.is_clarifying = True
+            self.clarification_question = question
+            self.is_paused = True
+            self.status_callback({"type": "request_clarification", "content": question})
+            self.logger.info(f"Goal '{goal}' is ambiguous. Asking for clarification: {question}")
+            return
 
-                # Execute plans for each strategic objective
-                for i, objective in enumerate(strategic_objectives):
-                    self.status_callback({"type": "info", "data": {"message": f"Executing Strategic Objective {i+1}/{len(strategic_objectives)}: {objective}"}})
-                    
-                    # Phase 2: Tactical Planning
-                    self.status_callback({"type": "info", "data": {"message": f"Phase 2: Breaking down objective into tactical steps..."}})
-                    tactical_plan = self.tactical_planner.generate_tactical_plan(objective)
-                    if not tactical_plan or 'steps' not in tactical_plan:
-                        self.logger.error(f"Tactical planner failed for objective: {objective}")
-                        continue # Try the next strategic objective
-                    self.logger.info(f"Generated tactical plan: {tactical_plan}")
-                    self.status_callback({"type": "tactical_plan", "data": tactical_plan})
+        # Complexity Gate: Use ToT for complex goals.
+        is_complex_goal = len(goal.split()) > 20
+        if is_complex_goal:
+            self.logger.info("Complex goal detected. Engaging Tree-of-Thought for decomposition.")
+            sub_goals = self.problem_decomposition_agent.decompose_goal(goal)
+            self.logger.info(f"Decomposed complex goal into {len(sub_goals)} sub-goals.")
+        else:
+            sub_goals = [goal]
 
-                    # Phase 3: Operational Planning & Execution
-                    for tactical_step in tactical_plan.get('steps', []) :
-                        sub_goal = tactical_step.get('sub_goal')
-                        description = tactical_step.get('description')
-                        self.status_callback({"type": "info", "data": {"message": f"Executing: {description}"}})
-                        
-                        context = self.context_awareness_engine.get_current_context()
-                        operational_plan = self.operational_planner.generate_operational_plan(sub_goal, context)
-                        
-                        if not operational_plan:
-                            raise PlanExecutionError("Failed to generate operational plan.", tactical_step, Exception("Operational planner returned None"))
+        try:
+            for sub_goal in sub_goals:
+                self.logger.info(f"Processing objective: '{sub_goal}'")
+                self._execute_objective_with_retries(sub_goal)
 
-                        self.last_plan = operational_plan
-                        self.logger.info(f"Generated operational plan: {operational_plan.get('description')}")
-                        self.status_callback({"type": "operational_plan", "data": operational_plan})
-                        
-                        self._execute_plan(operational_plan)
+            self.logger.info(f"Successfully completed main goal: '{original_goal}'")
+            self.status_callback({"type": "info", "content": "Goal achieved successfully."})
 
-                self.logger.info("Goal achieved successfully.")
-                self.status_callback({"type": "info", "data": {"message": "Goal achieved successfully."}})
-                return  # Exit after successful completion of all objectives
-
-            except PlanExecutionError as e:
-                self.logger.warning(f"Execution failed: {e}. Attempting recovery ({self.retry_count + 1}/{self.MAX_RETRIES}).")
-                self.status_callback({"type": "info", "data": {"message": f"Execution failed. Attempting recovery..."}})
-                recovery_goal = self._create_recovery_goal(original_goal, self.last_plan, e.step, e.original_exception, self.execution_context)
-                goal = recovery_goal  # Set the new goal for the next loop iteration
-                self.retry_count += 1
-            
-            except Exception as e:
-                self.logger.error(f"A critical error occurred in run_once: {e}", exc_info=True)
-                self.status_callback({"type": "error", "data": {"message": f"A critical error occurred: {e}"}})
-                return  # Exit on critical failure
-
-        self.logger.error(f"Failed to achieve goal '{original_goal}' after {self.MAX_RETRIES} retries.")
-        self.status_callback({"type": "error", "data": {"message": f"Failed to achieve goal after {self.MAX_RETRIES} retries."}})
+        except Exception as e:
+            self.logger.error(f"Failed to achieve goal '{original_goal}' due to a critical error in one of its objectives: {e}", exc_info=True)
+            self.status_callback({"type": "error", "content": f"Failed to achieve goal '{original_goal}'."})
 
     def stop(self) -> None:
         """Stops the agent's execution loop."""
@@ -269,6 +244,10 @@ class MasterAgent:
             self.logger.info(f"Clarification received. New goal: {clarified_goal}")
             if self.status_callback:
                 self.status_callback({"type": "info", "content": "Clarification received. Resuming..."})
+            
+            # Resume processing with the clarified goal
+            if self.is_running:
+                self.run_once(clarified_goal)
 
     def _extract_json_from_response(self, text: str) -> Optional[str]:
         """Extracts a JSON object or array from a string, even if it's in a markdown block."""
@@ -428,17 +407,73 @@ Your response must be ONLY the JSON object.
             return self._create_recovery_goal(original_goal, plan, failed_step, error, context)
 
     def _create_recovery_goal(self, original_goal: str, plan: Dict[str, Any], failed_step: Dict[str, Any], error: Exception, context: Dict[str, Any]) -> str:
-        """Creates a new goal to recover from a failed step, including execution context."""
-        self.logger.info("Creating a recovery goal...")
-        context_summary = json.dumps(context, indent=2)
-        return f"""The original sub-goal was: '{original_goal}'.
-A plan was created, but it failed at the step: {failed_step.get('description')}.
-The error was: '{error}'.
+        """
+        Analyzes an error and generates a specialized recovery goal using an LLM.
+        This forms the core of the agent's self-correction and learning loop.
+        """
+        self.logger.info("Engaging meta-cognitive loop to create a recovery goal...")
 
-Here is the execution context from previous successful steps:
-{context_summary}
+        # Serialize the context for the prompt, ensuring all data is convertible to string
+        plan_summary = json.dumps(plan, indent=2, default=str)
+        context_summary = json.dumps(context, indent=2, default=str)
 
-Please create a new plan to achieve the original sub-goal. Analyze the context and error to avoid repeating the mistake. The overall objective is still: {self.last_goal}"""
+        system_prompt = """
+        You are a meta-cognitive reasoning engine integrated into an autonomous agent. Your purpose is to analyze execution failures and devise a robust recovery strategy.
+
+        Analyze the provided context, which includes the original goal, the plan, the failed step, the error, and the execution history. Your analysis should identify the most likely root cause of the failure (e.g., flawed assumption, incorrect tool usage, environmental change, invalid arguments).
+
+        Based on your analysis, generate a new, single, high-level goal to overcome the problem. The new goal must be:
+        1.  **Actionable:** It should be a clear instruction that the agent can execute.
+        2.  **Self-Contained:** It should not depend on prior, failed assumptions.
+        3.  **Strategic:** It should aim to fix the root cause, not just the symptom.
+
+        Return ONLY the new goal as a single line of text.
+        """
+
+        user_prompt = f"""
+        **Execution Failure Report**
+
+        **1. Original Goal:**
+        {original_goal}
+
+        **2. Failed Plan:**
+        ```json
+        {plan_summary}
+        ```
+
+        **3. Failed Step:**
+        {failed_step.get('description', 'No description')}
+
+        **4. Error Message:**
+        {error}
+
+        **5. Execution Context (Previous Steps):**
+        ```json
+        {context_summary}
+        ```
+
+        **Task:** Analyze this failure and provide a new, strategic recovery goal.
+        """
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+
+        try:
+            self.logger.info("Querying LLM for a recovery goal...")
+            response = self.llm_manager.chat(messages=messages)
+            
+            if not response:
+                raise ValueError("LLM returned an empty response.")
+
+            recovery_goal = response.strip()
+            self.logger.info(f"Generated recovery goal: '{recovery_goal}'")
+            return recovery_goal
+        except Exception as e:
+            self.logger.error(f"Failed to generate recovery goal from LLM: {e}", exc_info=True)
+            # Fallback to a simpler, default recovery goal
+            return f"Attempt to recover from the failure in achieving the goal: '{original_goal}' after the error: '{error}'"
 
     def _resolve_dependencies(self, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         """Resolves template variables in arguments from the execution context."""
@@ -541,6 +576,65 @@ Please create a new plan to achieve the original sub-goal. Analyze the context a
 
         self.logger.info("Plan execution completed successfully.")
 
+    def _execute_objective_with_retries(self, objective: str) -> None:
+        """
+        Executes a single objective with the full planning hierarchy and retry logic.
+        Raises an exception if the objective fails after all retries.
+        """
+        self.retry_count = 0
+        current_goal = objective
+
+        while self.retry_count < self.MAX_RETRIES:
+            try:
+                # 1. Strategic Planning
+                self.status_callback({"type": "info", "content": f"Phase 1: Decomposing objective '{current_goal}' into strategic objectives..."})
+                strategic_objectives = self.strategic_planner.generate_strategic_plan(current_goal)
+                self.logger.info(f"Generated {len(strategic_objectives)} strategic objectives.")
+
+                for i, strat_obj in enumerate(strategic_objectives):
+                    self.logger.info(f"Executing Strategic Objective {i+1}/{len(strategic_objectives)}: {strat_obj}")
+                    
+                    # 2. Tactical Planning
+                    self.status_callback({"type": "info", "content": "Phase 2: Breaking down objective into tactical steps..."})
+                    tactical_plan = self.tactical_planner.generate_tactical_plan(strat_obj)
+                    self.logger.info(f"Generated tactical plan for objective: '{strat_obj}'")
+
+                    # 3. Operational Planning
+                    self.status_callback({"type": "info", "content": "Phase 3: Generating operational plan..."})
+                    operational_plan = self.operational_planner.generate_operational_plan(tactical_plan, context={'strategic_objectives': strategic_objectives})
+                    self.logger.info(f"Generated operational plan with {len(operational_plan.get('steps', []))} steps.")
+
+                    # 4. Plan Execution
+                    self._execute_plan(operational_plan)
+
+                self.logger.info(f"Successfully completed objective: {current_goal}")
+                return  # Success, exit the method
+
+            except PlanExecutionError as e:
+                self.logger.error(f"Execution failed for objective '{current_goal}': {e}")
+                self.retry_count += 1
+                if self.retry_count < self.MAX_RETRIES:
+                    self.logger.info(f"Retrying... (Attempt {self.retry_count + 1}/{self.MAX_RETRIES})")
+                    recovery_goal = self._create_recovery_goal(
+                        original_goal=current_goal,
+                        plan=self.last_plan,
+                        failed_step=e.step,
+                        error=e.original_exception,
+                        context=self.execution_context
+                    )
+                    current_goal = recovery_goal # Use the recovery goal for the next attempt
+                else:
+                    self.logger.error(f"Max retries reached for objective '{objective}'.")
+                    raise e # Re-raise the exception to be caught by the caller
+
+            except Exception as e:
+                self.logger.critical(f"An unexpected critical error occurred while processing objective '{objective}': {e}", exc_info=True)
+                raise e # Re-raise as a critical failure
+
+        # This part is reached if retries are exhausted
+        self.logger.error(f"Failed to achieve objective '{objective}' after {self.MAX_RETRIES} retries.")
+        raise Exception(f"Failed to achieve objective '{objective}' after {self.MAX_RETRIES} retries.")
+
     def _execution_loop(self) -> None:
         """The core loop where the agent processes its goals."""
         self.logger.info("Execution loop started.")
@@ -557,7 +651,6 @@ Please create a new plan to achieve the original sub-goal. Analyze the context a
                 break
         self.is_running = False
         self.logger.info("Execution loop finished.")
-    """Orchestrates goal execution by coordinating specialized agents and tools."""
 
     def _on_tools_updated(self):
         """Callback function for when the agent_manager reloads tools."""
@@ -573,5 +666,3 @@ Please create a new plan to achieve the original sub-goal. Analyze the context a
         self.agent_manager.add_agent("TextAgent", TextAgent(self.llm_manager))
         self.agent_manager.add_agent("SystemInteractionAgent", SystemInteractionAgent())
         self.logger.info("Registered default specialized agents.")
-
-

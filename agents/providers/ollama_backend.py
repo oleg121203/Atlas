@@ -4,8 +4,8 @@ from __future__ import annotations
 import requests
 from typing import List
 
+from utils.llm_manager import LLMResponse
 from utils.logger import get_logger
-from ..llm_manager import LLMResult
 
 logger = get_logger(__name__)
 
@@ -16,7 +16,7 @@ class OllamaBackend:
         self.model = model
         self.api_url = f"{host}/api/chat"
 
-    def chat(self, messages: List[dict[str, str]], **kwargs) -> LLMResult:  #noqa: D401, ANN001
+    def chat(self, messages: List[dict[str, str]], **kwargs) -> LLMResponse:  #noqa: D401, ANN001
         payload = {
             "model": self.model,
             "messages": messages,
@@ -30,8 +30,9 @@ class OllamaBackend:
             prompt_tokens = data.get("prompt_eval_count", 0)
             completion_tokens = data.get("eval_count", 0)
 
-            return LLMResult(
+            return LLMResponse(
                 response_text=data.get("message", {}).get("content", ""),
+                model=self.model,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=prompt_tokens + completion_tokens,

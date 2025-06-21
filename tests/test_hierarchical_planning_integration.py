@@ -5,7 +5,7 @@ from agents.master_agent import MasterAgent
 from agents.agent_manager import AgentManager
 from utils.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.context_awareness_engine import ContextAwarenessEngine
+from intelligence.context_awareness_engine import ContextAwarenessEngine
 from agents.planning.strategic_planner import StrategicPlanner
 from agents.planning.tactical_planner import TacticalPlanner
 from agents.planning.operational_planner import OperationalPlanner

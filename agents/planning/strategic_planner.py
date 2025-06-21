@@ -27,38 +27,44 @@ class StrategicPlanner:
         self.logger = get_logger(self.__class__.__name__)
 
     def _get_system_prompt(self) -> str:
-        """Constructs the system prompt for the strategic planning LLM."""
+        """Constructs the system prompt for the strategic planning LLM, incorporating Chain-of-Thought."""
         return """
 You are the Strategic Planner for an autonomous agent named Atlas.
 Your role is to decompose a high-level, abstract user goal into a concise list of concrete, actionable strategic objectives.
-Each objective should be a clear, high-level step that moves towards completing the overall goal.
 
-**Mandate:**
-- Analyze the user's goal.
-- Break it down into a sequence of 3-5 strategic objectives.
-- The objectives should be logical and sequential.
-- Output ONLY the objectives as a numbered list. Do not add any preamble, commentary, or other text.
+**Process:**
+1.  **Think Step-by-Step:** First, reason about the user's goal inside `<thinking>` XML tags. Analyze the request, consider potential ambiguities, identify key components, and outline a logical flow. This is your scratchpad.
+2.  **Generate the Plan:** After your reasoning, provide the final plan. The plan should be a concise, numbered list of strategic objectives.
+
+**Mandate for the Final Plan:**
+- The plan must be a sequence of 3-5 strategic objectives.
+- Each objective must be a clear, high-level step that moves towards completing the overall goal.
+- Output ONLY the `<thinking>` block followed by the numbered list. Do not add any other preamble or commentary.
 
 **Example:**
 User Goal: "Refactor the authentication system to improve security."
 
 Your Output:
+<thinking>
+The user wants to refactor the auth system for better security. This is a common but critical task.
+1.  **Assess:** I need to understand the current system first. What are its weaknesses? An audit is the logical first step.
+2.  **Research:** I shouldn't just patch the old system. A modern, well-vetted library is probably better. I need to find one that fits the current tech stack.
+3.  **Implement:** This is the core development work. I'll need to replace the old code with the new library.
+4.  **Verify:** Security-related changes must be thoroughly tested. This includes unit, integration, and maybe even some penetration testing.
+5.  **Deploy & Monitor:** After deployment, I need to watch for any issues, like login failures or performance problems.
+This sequence covers the full lifecycle of a secure refactoring project.
+</thinking>
 1. Audit the existing authentication system for vulnerabilities.
-2. Research and select a modern, secure authentication library.
+2. Research and select a modern, secure authentication library that fits the project's tech stack.
 3. Implement the new authentication library, replacing the old system.
-4. Write comprehensive tests for the new authentication flow.
+4. Write comprehensive tests for the new authentication flow, including security checks.
 5. Deploy the new system and monitor for issues.
 """
 
     def generate_strategic_plan(self, high_level_goal: str) -> List[str]:
         """
-        Takes a high-level goal and breaks it down into a list of strategic objectives.
-
-        Args:
-            high_level_goal: The abstract goal from the user.
-
-        Returns:
-            A list of strings, where each string is a strategic objective.
+        Takes a high-level goal and breaks it down into a list of strategic objectives
+        using Chain-of-Thought reasoning.
         """
         self.logger.info(f"Generating strategic plan for high-level goal: '{high_level_goal}'")
         system_prompt = self._get_system_prompt()
@@ -76,14 +82,37 @@ Your Output:
             response_text = llm_result.response_text
             self.logger.debug(f"LLM raw response for strategic plan: {response_text}")
 
-            # Parse the numbered list from the response
+            # Extract and log the Chain-of-Thought reasoning
+            thinking_match = re.search(r"<thinking>(.*?)</thinking>", response_text, re.DOTALL)
+            if thinking_match:
+                thinking_process = thinking_match.group(1).strip()
+                self.logger.info(f"LLM Chain-of-Thought reasoning:\n---\n{thinking_process}\n---")
+            else:
+                self.logger.warning("LLM response did not contain a <thinking> block as per the prompt.")
+
+            # Parse the numbered list from the response. This is robust to the thinking block's presence.
             objectives = re.findall(r"^\d+\.\s*(.*)", response_text, re.MULTILINE)
 
             if not objectives:
-                self.logger.warning("Could not parse objectives from LLM response. Falling back to newline splitting.")
-                objectives = [line.strip() for line in response_text.split('\n') if line.strip() and not line.lower().startswith("your output")]
+                self.logger.warning("Could not parse numbered list from LLM response. Falling back to manual parsing.")
+                # Fallback: remove the thinking block and split by newlines.
+                plan_text = response_text
+                if thinking_match:
+                    plan_text = response_text[thinking_match.end():]
+                
+                objectives = [
+                    line.strip().lstrip('0123456789. ') 
+                    for line in plan_text.strip().split('\n') 
+                    if line.strip() and not line.startswith("<")
+                ]
+                # Filter out any empty strings that might result
+                objectives = [obj for obj in objectives if obj]
 
-            self.logger.info(f"Generated {len(objectives)} strategic objectives.")
+            if objectives:
+                self.logger.info(f"Generated {len(objectives)} strategic objectives.")
+            else:
+                self.logger.error("Failed to extract any strategic objectives from the LLM response.")
+
             return objectives
 
         except Exception as e:

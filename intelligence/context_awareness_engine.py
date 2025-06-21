@@ -2,7 +2,7 @@ import subprocess
 import os
 from typing import Optional
 
-from utils.logging_utils import get_logger
+from utils.logger import get_logger
 
 class ContextAwarenessEngine:
     """Monitors the user's environment to build a dynamic understanding of their workflow."""

@@ -7,7 +7,7 @@ import re
 from typing import List, Dict, Any, Optional
 
 from utils.llm_manager import LLMManager
-from agents.memory.memory_manager import EnhancedMemoryManager, MemoryScope
+from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope
 from agents.agent_manager import AgentManager
 from utils.logger import get_logger
 
@@ -24,10 +24,10 @@ class OperationalPlanner:
 
     def generate_operational_plan(self, goal: str, context: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Takes a tactical goal and generates a JSON plan of tool commands.
+        Takes a tactical goal and generates a JSON plan of tool commands using Chain-of-Thought.
         """
         feedback_memories = self.memory_manager.search_memory(agent_type=MemoryScope.MASTER_AGENT, query=f"feedback related to goal: {goal}", limit=5)
-        knowledge_memories = self.memory_manager.search_memory(agent_type=MemoryScope.GENERAL, query=f"general knowledge for: {goal}", limit=5)
+        knowledge_memories = self.memory_manager.search_memory(agent_type=MemoryScope.SYSTEM_KNOWLEDGE, query=f"general knowledge for: {goal}", limit=5)
         
         system_prompt = self._get_planning_prompt(goal, feedback_memories, knowledge_memories, context)
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": goal}]
@@ -40,6 +40,14 @@ class OperationalPlanner:
 
             response_str = llm_result.response_text
             self.logger.debug(f"LLM raw response for plan: {response_str}")
+
+            # Extract and log the Chain-of-Thought reasoning
+            thinking_match = re.search(r"<thinking>(.*?)</thinking>", response_str, re.DOTALL)
+            if thinking_match:
+                thinking_process = thinking_match.group(1).strip()
+                self.logger.info(f"LLM Chain-of-Thought reasoning:\n---\n{thinking_process}\n---")
+            else:
+                self.logger.warning("LLM response did not contain a <thinking> block as per the prompt.")
             
             json_str = self._extract_json_from_response(response_str)
             if not json_str:
@@ -53,7 +61,7 @@ class OperationalPlanner:
             return None
 
     def _get_planning_prompt(self, goal: str, feedback: List[Dict[str, Any]], knowledge: List[Dict[str, Any]], context: Dict[str, Any]) -> str:
-        """Constructs the system prompt for the planning LLM."""
+        """Constructs the system prompt for the planning LLM, incorporating Chain-of-Thought."""
         tools_string = self.agent_manager.get_tools_string()
 
         feedback_context = "No feedback from past attempts."
@@ -72,7 +80,10 @@ class OperationalPlanner:
         prompt = f"""
         You are the planning module for an autonomous agent named Atlas.
         Your task is to create a detailed, step-by-step JSON plan to achieve a given goal.
-        You have access to a set of tools.
+
+        **Process:**
+        1.  **Think Step-by-Step:** First, reason about the goal inside `<thinking>` XML tags. Analyze the goal, available tools, context, and past feedback. Formulate a robust sequence of tool calls.
+        2.  **Generate the Plan:** After your reasoning, provide the final plan as a single JSON object.
 
         Available Tools:
         {tools_string}
@@ -86,13 +97,7 @@ class OperationalPlanner:
         **Relevant General Knowledge:**
         {general_context}
 
-        **Your Mandate:**
-        Based on the goal and the critique of past attempts, devise a new, superior plan.
-        - If past attempts FAILED, your new plan MUST propose a different sequence of actions or use different arguments to avoid repeating the same mistakes.
-        - Do not repeat a failed plan. Think critically and devise a novel approach.
-        - If past attempts succeeded, consider if the plan can be made more efficient or robust.
-
-        **Your Plan (MUST be a single JSON object):**
+        **Mandate for the Final JSON Plan:**
         - The plan must be a JSON object with two keys: "description" and "steps".
         - "description" should be a brief, user-friendly summary of the plan.
         - "steps" must be a list of JSON objects, where each object represents a single step.
@@ -100,8 +105,9 @@ class OperationalPlanner:
         - "tool_name" must be one of the available tools.
         - "arguments" must be a JSON object of key-value pairs for the tool's parameters.
         - Use the special syntax `{{{{step_N.output}}}}` to reference the output of a previous step (e.g., `{{{{step_1.output}}}}`).
+        - If past attempts FAILED, your new plan MUST propose a different sequence of actions or use different arguments to avoid repeating the same mistakes.
 
-        Generate the plan now.
+        Output ONLY the `<thinking>` block followed by the raw JSON object. Do not add any other preamble or markdown code fences.
         """
         return prompt
 

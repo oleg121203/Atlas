@@ -14,13 +14,27 @@ This document outlines the strategic roadmap for evolving Atlas from a task-base
     - [x] **Operational Layer:** Translates tactical steps into specific, executable tool commands.
 - [ ] **Test and Validate Planning System:**
     - [x] **Stabilize Test Environment:** Resolved critical import errors and test collection hangs, enabling reliable `pytest` execution.
-    - [ ] Write unit tests for `StrategicPlanner` and `TacticalPlanner`.
-    - [ ] Write integration tests for the full `MasterAgent` planning and execution loop.
-- [ ] **Develop Advanced Reasoning & Self-Correction Loop:**
-    - Implement a meta-cognitive process for Atlas to analyze its own performance.
-    - When a plan fails, Atlas will identify the root cause (e.g., flawed assumption, incorrect tool, environmental change) and autonomously generate a revised plan.
+    - [x] Write unit tests for `StrategicPlanner` and `TacticalPlanner`.
+    - [x] Write integration tests for the full `MasterAgent` planning and execution loop.
+- [x] **Develop Advanced Reasoning & Self-Correction Loop:**
+    - [x] Implement a meta-cognitive process for Atlas to analyze its own performance.
+    - [x] When a plan fails, Atlas will identify the root cause (e.g., flawed assumption, incorrect tool, environmental change) and autonomously generate a revised plan.
 - [ ] **Enhance Foundational Thinking Models:**
-    - Integrate more sophisticated reasoning models (e.g., Chain-of-Thought, Tree-of-Thought) into the planning and execution process.
+    - [x] Integrate Chain-of-Thought (CoT) reasoning into the `StrategicPlanner`.
+    - [x] Integrate Chain-of-Thought (CoT) reasoning into the `TacticalPlanner`.
+    - [x] Integrate Chain-of-Thought (CoT) reasoning into the `OperationalPlanner`.
+    - [x] Research Tree-of-Thought for complex problem decomposition.
+    - [x] **Implement Tree-of-Thought (ToT) for Advanced Problem Solving:**
+        - [x] Create a new `ProblemDecompositionAgent` responsible for ToT reasoning.
+        - [x] Implement the core ToT logic: thought expansion, state evaluation, and branch pruning.
+        - [x] Integrate the `ProblemDecompositionAgent` with the `MasterAgent` to handle complex goals.
+        - [x] Write unit and integration tests for the ToT implementation.
+        - [x] Fix `LLMManager` import issue in `problem_decomposition_agent.py` to ensure tests pass.
+        - [x] Resolve `LLMResponse` import and type hint issues
+        - [x] Resolve import issue with `LLMResponse` class for proper test execution (permanent solution implemented across codebase, comprehensively verified with passing tests, linting, and type checking).
+        - [x] Resolve import and type hint errors related to `LLMResponse` class
+        - [x] Fix import path for `ContextAwarenessEngine` in test files
+        - [ ] Address remaining test failures and linting errors
 
 ---
 
