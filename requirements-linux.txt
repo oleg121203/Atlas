@@ -1,3 +1,9 @@
+# Type stubs for development
+types-requests>=2.32.0
+types-urllib3>=1.26.25
+types-setuptools>=80.9.0
+types-pyyaml>=6.0.12
+
 # Linux Development Requirements (Python 3.12)
 # Core dependencies for Linux development environment
 

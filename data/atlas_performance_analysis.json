@@ -1,0 +1,11 @@
+{
+  "timestamp": 1750526634.918484,
+  "metrics": [],
+  "targets": {
+    "screen_tools": 100,
+    "input_tools": 100,
+    "planning": 500,
+    "execution": 1000,
+    "memory_search": 200
+  }
+}

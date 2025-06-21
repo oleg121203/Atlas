@@ -1,6 +1,6 @@
 import subprocess
 import os
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from utils.logger import get_logger
 
@@ -14,7 +14,7 @@ class ContextAwarenessEngine:
         self.project_root = project_root
         self.logger.info(f"Context Awareness Engine initialized for project root: {self.project_root}")
 
-    def get_current_context(self) -> dict:
+    def get_current_context(self) -> Dict[str, Any]:
         """Gathers all available context about the user's environment."""
         context = {
             "git_branch": self.get_git_branch()

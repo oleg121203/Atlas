@@ -4,7 +4,7 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def open_url(url: str):
+def open_url(url: str) -> str:
     """
     Opens the specified URL in the default web browser.
 

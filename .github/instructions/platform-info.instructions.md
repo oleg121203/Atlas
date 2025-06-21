@@ -121,6 +121,47 @@ except ImportError:
 
 This dual-environment approach ensures robust development on Linux while delivering a native macOS experience.
 
+## Windsurf AI Development Instructions
+
+### Core Development Philosophy
+- **Creative Automation Excellence**: Implement solutions that exceed industry best practices through innovative approaches
+- **Autonomous Workflow**: Maintain continuous development momentum without pausing for user input
+- **Code Modification Protocol**: Only modify Atlas core code when explicitly requested by the user
+- **Protocol-Driven Development**: Follow established Windsurf protocols for quality, security, and continuous integration
+
+### Windsurf Development Protocols
+1. **Never-Stop Execution**: After completing any task, immediately proceed to the next logical step as defined in DEV_PLAN.md
+2. **Creative Problem Solving**: Approach challenges with innovative solutions that surpass conventional methods
+3. **Quality Excellence**: Maintain type safety, security, and performance standards automatically
+4. **Documentation Integrity**: Update CHANGELOG.md and DEV_PLAN.md for all significant changes
+5. **Protocol Compliance**: Follow .windsurf/rules/ protocols strictly for all development activities
+
+### Recommended Windsurf Model Configuration
+For Atlas development protocols and automated workflows:
+
+**Primary Recommendation: Claude 3 Opus (Sonnet v3.5)**
+- **Strengths**: Superior code reasoning, complex system understanding, autonomous task execution
+- **Use Case**: Core Atlas development, protocol implementation, type safety improvements
+- **Performance**: Excellent for multi-step reasoning and continuous development workflows
+
+**Alternative Options:**
+- **Gemini Pro 2.5**: Good for creative problem solving and innovative approaches
+- **GPT-4o**: Reliable for standard development tasks and documentation
+- **DeepSeek V3**: Cost-effective for routine protocol enforcement
+- **o3-mini**: Efficient for focused, specific development tasks
+
+### Windsurf Integration Best Practices
+- Configure for autonomous operation with minimal user interruption
+- Leverage Atlas's existing CI/CD pipeline for quality assurance
+- Maintain cross-platform compatibility (Linux dev / macOS target)
+- Use established monitoring and metrics for performance tracking
+
+### Model Selection Guidance
+**For Protocol-Heavy Development**: Claude 3 Opus (Sonnet v3.5)
+**For Creative Innovation**: Gemini Pro 2.5
+**For Cost-Effective Maintenance**: DeepSeek V3
+**For Focused Tasks**: o3-mini
+
 ## AI System Internal Instructions
 
 ### Core Security Directive: Access Control

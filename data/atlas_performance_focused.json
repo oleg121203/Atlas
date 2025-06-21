@@ -1,0 +1,202 @@
+{
+  "timestamp": 1750526707.522648,
+  "total_operations": 22,
+  "performance_targets": {
+    "screen_tools": 100,
+    "input_tools": 100,
+    "planning": 500,
+    "execution": 1000,
+    "memory_search": 200
+  },
+  "results": [
+    {
+      "operation": "strategic_planning_simple_goal",
+      "duration_ms": 56.61929100097041,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "tactical_planning_simple_goal",
+      "duration_ms": 31.114082999920356,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "operational_planning_simple_goal",
+      "duration_ms": 21.08583300105238,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "strategic_planning_medium_goal",
+      "duration_ms": 51.09950000041863,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "tactical_planning_medium_goal",
+      "duration_ms": 31.092875000467757,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "operational_planning_medium_goal",
+      "duration_ms": 21.083875000840635,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "strategic_planning_complex_goal",
+      "duration_ms": 51.1514170011651,
+      "memory_delta_mb": 0.03125,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "tactical_planning_complex_goal",
+      "duration_ms": 31.26104100010707,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "operational_planning_complex_goal",
+      "duration_ms": 21.087791999889305,
+      "memory_delta_mb": 0.0,
+      "target_ms": 500,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "screenshot_capture",
+      "duration_ms": 81.24400000087917,
+      "memory_delta_mb": 0.0,
+      "target_ms": 100,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "screen_analysis",
+      "duration_ms": 151.22962500026915,
+      "memory_delta_mb": 0.0,
+      "target_ms": 100,
+      "status": "FAIL",
+      "recommendations": [
+        "Critical: 1.5x over target - immediate optimization needed"
+      ]
+    },
+    {
+      "operation": "ui_detection",
+      "duration_ms": 120.6764580001618,
+      "memory_delta_mb": 0.0,
+      "target_ms": 100,
+      "status": "WARN",
+      "recommendations": [
+        "Consider optimization - 1.2x over target"
+      ]
+    },
+    {
+      "operation": "text_input",
+      "duration_ms": 51.268624998556334,
+      "memory_delta_mb": 0.0,
+      "target_ms": 100,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "mouse_click",
+      "duration_ms": 31.15429199897335,
+      "memory_delta_mb": 0.0,
+      "target_ms": 100,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "keyboard_shortcut",
+      "duration_ms": 41.204375000233995,
+      "memory_delta_mb": 0.0,
+      "target_ms": 100,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "simple_execution",
+      "duration_ms": 201.20070800112444,
+      "memory_delta_mb": 0.0,
+      "target_ms": 1000,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "medium_execution",
+      "duration_ms": 601.2642079986108,
+      "memory_delta_mb": 0.0,
+      "target_ms": 1000,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "complex_execution",
+      "duration_ms": 1201.1348329997418,
+      "memory_delta_mb": 0.0,
+      "target_ms": 1000,
+      "status": "WARN",
+      "recommendations": [
+        "Consider optimization - 1.2x over target"
+      ]
+    },
+    {
+      "operation": "memory_search_simple",
+      "duration_ms": 50.65320799985784,
+      "memory_delta_mb": 0.0,
+      "target_ms": 200,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "memory_search_complex",
+      "duration_ms": 181.24212499969872,
+      "memory_delta_mb": 0.0,
+      "target_ms": 200,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "memory_store",
+      "duration_ms": 31.26091699959943,
+      "memory_delta_mb": 0.0,
+      "target_ms": 200,
+      "status": "PASS",
+      "recommendations": []
+    },
+    {
+      "operation": "memory_retrieve",
+      "duration_ms": 41.358874999787076,
+      "memory_delta_mb": 0.0,
+      "target_ms": 200,
+      "status": "PASS",
+      "recommendations": []
+    }
+  ],
+  "summary": {
+    "pass_count": 19,
+    "warn_count": 2,
+    "fail_count": 1,
+    "avg_duration_ms": 140.93127072737843,
+    "performance_score": 91.81818181818181
+  }
+}

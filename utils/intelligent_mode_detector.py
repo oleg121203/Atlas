@@ -5,7 +5,7 @@
 
 import re
 import logging
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional, Any
 from enum import Enum
 from dataclasses import dataclass
 
@@ -36,7 +36,7 @@ class IntelligentModeDetector:
         self.patterns = self._initialize_detection_patterns()
         
         #Статистика для навчання
-        self.detection_stats = {
+        self.detection_stats: Dict[str, Any] = {
             "total_detections": 0,
             "mode_counts": {},
             "accuracy_feedback": []

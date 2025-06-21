@@ -21,7 +21,7 @@ class TokenTracker:
     This helps in monitoring costs and staying within API limits.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock = threading.Lock()
         self._prompt_tokens = 0
         self._completion_tokens = 0

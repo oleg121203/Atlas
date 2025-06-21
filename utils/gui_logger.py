@@ -12,7 +12,7 @@ class GuiLogger(logging.Handler):
     def __init__(self, textbox: ctk.CTkTextbox):
         super().__init__()
         self.textbox = textbox
-        self.log_queue = queue.Queue()
+        self.log_queue: queue.Queue = queue.Queue()
 
         #Define color tags for different log levels
         self.textbox.tag_config("INFO", foreground="white")

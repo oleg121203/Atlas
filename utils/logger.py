@@ -54,7 +54,7 @@ def get_logger(name: str = "atlas") -> Logger:
     return logger
 
 
-def add_handler(handler: Handler, name: str = "atlas"):
+def add_handler(handler: Handler, name: str = "atlas") -> None:
     """Add a new handler to the specified logger."""
     logger = logging.getLogger(name)
     logger.addHandler(handler)

@@ -5,7 +5,7 @@ class MetricsManager:
     _instance: Optional['MetricsManager'] = None
     _lock = threading.Lock()
 
-    def __new__(cls):
+    def __new__(cls) -> 'MetricsManager':
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -13,34 +13,34 @@ class MetricsManager:
                     cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if hasattr(self, '_initialized') and self._initialized:
             return
+        self._initialized: bool = True
         self.tool_load_times: Dict[str, float] = {}
         self.memory_search_latencies: List[float] = []
         self.tool_usage_stats: Dict[str, Dict[str, int]] = {}
         # Performance metrics
         self.plan_generation_latencies: List[float] = []
         self.plan_execution_latencies: List[float] = []
-        self._initialized = True
 
-    def record_tool_load_time(self, tool_name: str, duration: float):
+    def record_tool_load_time(self, tool_name: str, duration: float) -> None:
         """Records the loading time for a specific tool."""
         self.tool_load_times[tool_name] = duration
 
-    def record_memory_search_latency(self, duration: float):
+    def record_memory_search_latency(self, duration: float) -> None:
         """Records a memory search latency event."""
         self.memory_search_latencies.append(duration)
 
-    def record_plan_generation_latency(self, duration: float):
+    def record_plan_generation_latency(self, duration: float) -> None:
         """Records the latency for plan generation (seconds)."""
         self.plan_generation_latencies.append(duration)
 
-    def record_plan_execution_latency(self, duration: float):
+    def record_plan_execution_latency(self, duration: float) -> None:
         """Records the latency for full plan execution (seconds)."""
         self.plan_execution_latencies.append(duration)
 
-    def record_tool_usage(self, tool_name: str, success: bool):
+    def record_tool_usage(self, tool_name: str, success: bool) -> None:
         """Records a tool usage event (success or failure)."""
         if tool_name not in self.tool_usage_stats:
             self.tool_usage_stats[tool_name] = {"success": 0, "failure": 0}
@@ -103,7 +103,7 @@ class MetricsManager:
         """Returns the success/failure stats for all tools."""
         return self.tool_usage_stats.copy()
 
-    def clear_data(self):
+    def clear_data(self) -> None:
         """Clears all stored metrics."""
         self.tool_load_times.clear()
         self.memory_search_latencies.clear()
@@ -111,5 +111,5 @@ class MetricsManager:
         self.plan_generation_latencies.clear()
         self.plan_execution_latencies.clear()
 
-#Singleton instance to be used across the application
-metrics_manager = MetricsManager()
+# Singleton instance to be used across the application
+metrics_manager: MetricsManager = MetricsManager()

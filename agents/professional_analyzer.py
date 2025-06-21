@@ -60,11 +60,11 @@ class AnalysisResult:
 class ProfessionalCodeAnalyzer:
     """Advanced code analyzer for professional problem detection."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.patterns = self._initialize_patterns()
-        self.metrics_cache = {}
+        self.metrics_cache: Dict[str, Any] = {}
         
-    def _initialize_patterns(self) -> Dict[str, Dict]:
+    def _initialize_patterns(self) -> Dict[str, Dict[str, Any]]:
         """Initialize detection patterns for various issues."""
         return {
             'security_issues': {
@@ -128,10 +128,10 @@ class ProfessionalCodeAnalyzer:
             }
         }
     
-    async def analyze_codebase(self, root_path: str, focus_areas: List[str] = None) -> AnalysisResult:
+    async def analyze_codebase(self, root_path: str, focus_areas: Optional[List[str]] = None) -> AnalysisResult:
         """Perform comprehensive codebase analysis."""
-        issues = []
-        metrics = {}
+        issues: List[Issue] = []
+        metrics: Dict[str, Any] = {}
         
         #1. File-level analysis
         python_files = self._find_python_files(root_path)
@@ -246,7 +246,7 @@ class ProfessionalCodeAnalyzer:
     
     async def _analyze_architecture(self, root_path: str) -> List[Issue]:
         """Analyze overall architecture patterns."""
-        issues = []
+        issues: List[Issue] = []
         
         #Check for circular imports
         #Check for proper separation of concerns
@@ -352,7 +352,7 @@ class ProfessionalCodeAnalyzer:
         """Calculate code quality metrics."""
         total_lines = sum(len(f.read_text().split('\n')) for f in files if f.exists())
         
-        metrics = {
+        metrics: Dict[str, Any] = {
             'total_files': len(files),
             'total_lines': total_lines,
             'issues_per_file': len(issues) / len(files) if files else 0,
@@ -365,16 +365,24 @@ class ProfessionalCodeAnalyzer:
         }
         
         #Count issue types
+        issue_types: Dict[str, int] = {}
         for issue in issues:
             issue_type = issue.type.value
-            metrics['issue_types'][issue_type] = metrics['issue_types'].get(issue_type, 0) + 1
+            issue_types[issue_type] = issue_types.get(issue_type, 0) + 1
+        
+        metrics['issue_types'] = issue_types
         
         #Calculate quality score (0-100)
         base_score = 100
-        base_score -= metrics['critical_issues'] * 20
-        base_score -= metrics['high_issues'] * 10
-        base_score -= metrics['medium_issues'] * 5
-        base_score -= metrics['low_issues'] * 1
+        critical_count = int(metrics['critical_issues'])
+        high_count = int(metrics['high_issues'])
+        medium_count = int(metrics['medium_issues'])
+        low_count = int(metrics['low_issues'])
+        
+        base_score -= critical_count * 20
+        base_score -= high_count * 10
+        base_score -= medium_count * 5
+        base_score -= low_count * 1
         
         metrics['quality_score'] = max(0, base_score)
         

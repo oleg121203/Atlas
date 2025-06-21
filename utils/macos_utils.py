@@ -62,7 +62,9 @@ def configure_macos_screenshot():
     }
     
     #Create screenshots directory
-    screenshot_config['default_location'].mkdir(parents=True, exist_ok=True)
+    screenshots_path = screenshot_config['default_location']
+    assert isinstance(screenshots_path, Path)
+    screenshots_path.mkdir(parents=True, exist_ok=True)
     
     return screenshot_config
 
