@@ -15,3 +15,5 @@ Ensures code quality and adherence to project architecture.
 7. **Dependency Audit**: ensure `requirements.txt` remains minimal and pinned.
 8. **Review Cycle**: self-review code diff, update `CHANGELOG.md`, then proceed.
 9. **Language Consistency**: Ensure all comments, docstrings, and documentation are written in English.
+10. **Code Coverage**: Maintain ≥ 90% statement coverage across tests. Failing the threshold blocks CI.
+11. **Performance Regression**: Add automated benchmarks; flag any tool or function whose latency regresses by >10% versus the latest main branch.

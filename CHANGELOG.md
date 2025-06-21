@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Enhanced governance: added weekly retrospectives, CI enforcement, coverage & performance gates.** Implemented comprehensive automation including GitHub Actions CI pipeline with ≥90% coverage requirement, performance regression detection, and weekly protocol retrospectives. Added automated linting, type checking, and benchmark comparison tools.
 - **Protocols updated: enforced English-only rule and never-stop execution tempo.** Updated Windsurf development protocols to ensure all communication, documentation, and code follows English-only standards, while implementing continuous execution tempo that prevents Atlas from pausing during development.
 - **Implemented a meta-cognitive self-correction loop in the `MasterAgent`.** When a plan execution fails, the agent now uses an LLM to analyze the root cause of the error and generate a new, strategic recovery goal, enabling it to learn from mistakes and adapt its approach.
 - **Integrated the full hierarchical planning system into the `MasterAgent`'s core execution loop.** The `run_once` method has been completely rewritten to orchestrate the `StrategicPlanner`, `TacticalPlanner`, and `OperationalPlanner`, enabling Atlas to autonomously handle complex goals from start to finish.

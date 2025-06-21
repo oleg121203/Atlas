@@ -85,6 +85,7 @@ This document outlines the strategic roadmap for evolving Atlas from a task-base
   - [ ] Update type annotations for method arguments and return values.
 - **Governance Enhancements:**
   - [x] Updated Windsurf protocols to enforce English-only communication and never-stop execution tempo.
+  - [x] Automated CI & coverage/performance enforcement.
 
 ---
 

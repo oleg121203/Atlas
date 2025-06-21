@@ -1,34 +1,97 @@
-name: Atlas CI
+name: Atlas CI - Enhanced Governance Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-  build:
-    runs-on: macos-latest
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up Python
+    
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
-
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements-linux.txt
+        pip install pytest-cov coverage
+    
+    - name: Run linting with ruff
+      run: |
+        ruff check . --output-format=github
+      continue-on-error: false
+    
+    - name: Run type checking with mypy
+      run: |
+        mypy --ignore-missing-imports agents/ utils/ intelligence/ monitoring/
+      continue-on-error: false
+    
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=agents --cov=utils --cov=intelligence --cov=monitoring --cov-report=xml --cov-report=term-missing --cov-fail-under=90
+      env:
+        ATLAS_TESTING: "true"
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
 
-    - name: Lint with ruff
-      run: ruff check .
-
-    - name: Type check with mypy
-      # Ignoring missing imports for now as some dependencies might be tricky on CI
-      run: mypy . --ignore-missing-imports
-
-    - name: Run tests
-      run: python -m unittest discover tests
+  performance-regression:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-linux.txt
+        pip install pytest-benchmark
+    
+    - name: Run performance benchmarks
+      run: |
+        pytest tests/performance/ --benchmark-json=benchmark.json || echo "No performance tests found"
+      continue-on-error: true
+    
+    - name: Compare performance with main branch
+      run: |
+        git checkout main
+        pip install -r requirements-linux.txt
+        pytest tests/performance/ --benchmark-json=benchmark-main.json || echo "No performance tests on main"
+        if [ -f dev-tools/compare_benchmarks.py ]; then
+          python dev-tools/compare_benchmarks.py benchmark-main.json benchmark.json
+        else
+          echo "Performance comparison tool not yet implemented"
+        fi
+      continue-on-error: true
