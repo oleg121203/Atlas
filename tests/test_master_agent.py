@@ -60,20 +60,32 @@ class TestMasterAgentEnvironmentalAdaptation(unittest.TestCase):
         """Test that the agent successfully recovers after a ToolNotFoundError."""
         goal = "Use a tool that doesn't exist yet."
         tool_name = "magical_tool"
-        mock_generate_plan.return_value = self._get_simple_plan(tool_name=tool_name)
+        plan = self._get_simple_plan(tool_name=tool_name)
+        mock_generate_plan.return_value = plan
 
-        def execute_tool_side_effect(*args, **kwargs):
-            if self.mock_agent_manager.execute_tool.call_count == 1:
-                raise ToolNotFoundError(f"Tool '{tool_name}' not found.")
-            return {"status": "success", "output": "Tool executed successfully after creation."}
+        def execute_tool_side_effect(called_tool_name, *args, **kwargs):
+            # First call for the tool fails
+            if called_tool_name == tool_name and self.mock_agent_manager.execute_tool.call_count == 1:
+                raise ToolNotFoundError(f"Tool '{called_tool_name}' not found.")
+            # Second call is to create the tool
+            elif called_tool_name == "create_tool":
+                return {"status": "success", "output": "Tool created."}
+            # Third call for the tool succeeds
+            elif called_tool_name == tool_name:
+                return {"status": "success", "output": "Tool executed successfully after creation."}
+            return {}  # Default return
+
         self.mock_agent_manager.execute_tool.side_effect = execute_tool_side_effect
-
-        self.mock_agent_manager.tool_creator_agent.create_tool.return_value = {"status": "success"}
 
         self.master_agent._execute_objective_with_retries(goal)
 
-        self.mock_agent_manager.tool_creator_agent.create_tool.assert_called_once()
-        self.assertEqual(self.mock_agent_manager.execute_tool.call_count, 2)
+        # Check that create_tool was called via execute_tool
+        self.mock_agent_manager.execute_tool.assert_any_call(
+            "create_tool",
+            {'tool_name': tool_name, 'description': plan['steps'][0]['description']}
+        )
+        # The tool is executed, then create_tool is called, then the tool is executed again.
+        self.assertEqual(self.mock_agent_manager.execute_tool.call_count, 3)
 
     @patch("agents.master_agent.MasterAgent._generate_plan")
     def test_successful_recovery_after_invalid_tool_arguments(self, mock_generate_plan):

@@ -23,6 +23,7 @@ sentence-transformers>=2.2.0
 pandas>=2.0.0
 numpy>=1.24.0
 pillow>=10.0.0
+matplotlib>=3.8.0     # For data visualization
 
 # Network and HTTP
 requests>=2.31.0
@@ -37,6 +38,7 @@ pyautogui>=0.9.54
 # Security
 cryptography>=45.0.0
 bcrypt>=4.0.1
+keyring>=24.2.0
 
 # Storage and Database
 sqlalchemy>=2.0.0
@@ -45,6 +47,7 @@ pyyaml>=6.0.1
 # Logging and Monitoring
 coloredlogs>=15.0.1
 tqdm>=4.66.0
+rich>=13.0.0
 
 # Utilities
 python-dotenv>=1.0.0
@@ -58,29 +61,16 @@ pynput>=1.7.6
 psutil>=5.9.0
 watchdog>=3.0.0
 
-# Security and Encryption
-cryptography>=41.0.0
-keyring>=24.0.0
+# Platform utilities
+distro>=1.8.0  # Linux distribution detection
+xvfbwrapper>=0.2.9  # Virtual display for headless testing
 
-# Development Tools (Linux specific)
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-black>=23.0.0
-flake8>=6.0.0
-mypy>=1.5.0
+# CI/CD Integration
+docker>=6.1.0  # Docker SDK for Python
 
 # Documentation
 markdown>=3.5.0
 pygments>=2.16.0
 
-# Configuration and Logging
-pyyaml>=6.0.0
-python-dotenv>=1.0.0
-rich>=13.0.0
-
-# Platform utilities
-distro>=1.8.0  # Linux distribution detection
-xvfbwrapper>=0.2.9  # Virtual display for headless testing
-
-# Development and testing tools
-docker>=6.1.0  # Docker SDK for Python
+# NOTE: For development tools (ruff, mypy, pytest, etc.), 
+# see requirements-dev.txt instead

@@ -19,10 +19,6 @@ Ruff is configured in two places:
 
 The `.ruff.toml` file temporarily ignores some common linting errors to allow commits to proceed while the codebase is being improved. These ignored rules can be gradually fixed over time.
 
-## Development Tools
-
-A comprehensive guide to all development tools used in the Atlas project, including linting tools, can be found in the [Tools Guide](docs/TOOLS.md).
-
 ## Temporarily Ignored Rules
 
 The following rules are temporarily ignored in `.ruff.toml`:
@@ -61,3 +57,19 @@ The pre-commit hook also runs mypy for type checking. While it reports errors, i
 ## Secret Detection
 
 The pre-commit hook includes basic secret detection to prevent accidentally committing sensitive information.
+
+## Related Documentation
+
+For more detailed information about development tools and requirements:
+
+- [Tools Documentation](docs/TOOLS.md) - Comprehensive guide to all development tools
+- [Requirements Management](docs/REQUIREMENTS.md) - Platform-specific requirements strategy
+- [Development Plan](DEV_PLAN.md) - Overall development roadmap and plans
+
+## Installation
+
+All linting tools are included in the `requirements-dev.txt` file. Install them with:
+
+```bash
+pip install -r requirements-dev.txt
+```

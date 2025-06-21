@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- Resolved critical test failures in `tests/test_master_agent.py` related to environmental adaptation and error recovery. This involved removing duplicated, outdated method definitions from `agents/master_agent.py` and correcting test logic to align with the current implementation.
+
+## [Unreleased]
+
 ### Added
 - **Improved `ToolCreatorAgent` robustness.** Added a new test case to handle scenarios where the LLM generates valid Python code without a function definition. The agent now returns a more specific error message in this situation, improving error handling and test coverage.
 

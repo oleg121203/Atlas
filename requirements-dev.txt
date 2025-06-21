@@ -6,6 +6,7 @@ ruff>=0.12.0          # Fast Python linter used in pre-commit hooks
 mypy>=1.9.0           # Static type checking
 black>=24.6.0         # Code formatter
 isort>=5.12.0         # Import sorter
+flake8>=6.0.0         # Python linter (legacy)
 
 # Type Stubs
 types-requests>=2.32.0
@@ -17,24 +18,28 @@ types-pyyaml>=6.0.12
 pytest>=8.1.0         # Testing framework
 pytest-cov>=5.0.0     # Test coverage reporting
 pytest-mock>=3.14.0   # Mocking support for pytest
+pytest-asyncio>=0.21.0 # Async testing support
+
+# Documentation
 interrogate>=1.5.0    # Docstring coverage checker
 pydocstyle>=6.3.0     # Docstring style checker
+sphinx>=7.3.3         # Documentation generator
+sphinx-rtd-theme>=2.0.0  # Read the Docs theme for Sphinx
 
 # Security Tools
 safety>=2.3.5         # Dependency security checker
 bandit>=1.7.8         # Security linter for Python
 gitleaks>=8.18.0      # Secret scanning
+trivy-python>=0.1.0   # Vulnerability scanner (mentioned in Windsurf protocols)
 
 # Performance
 py-spy>=0.3.14        # Sampling profiler for Python
 line-profiler>=4.1.2  # Line-by-line profiling
-
-# Documentation
-sphinx>=7.3.3         # Documentation generator
-sphinx-rtd-theme>=2.0.0  # Read the Docs theme for Sphinx
+scalene>=1.5.20       # CPU+GPU+memory profiler
 
 # CI/CD
 pre-commit>=3.6.0     # Pre-commit hook manager
+tox>=4.11.3           # Test automation
 
 # Project Management
 bump2version>=1.0.1   # Version management
