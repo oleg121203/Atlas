@@ -214,6 +214,11 @@ class MasterAgent:
             self.logger.warning("Memory manager does not support adding memories.")
         self.logger.info(f"Stored {feedback_str} feedback for goal: '{goal}'")
 
+    def _check_goal_ambiguity(self, goal: str) -> Tuple[bool, Optional[str]]:
+        """Placeholder for goal ambiguity check."""
+        # For now, assume no goal is ambiguous to allow profiling to proceed.
+        return False, None
+
     def run_once(self, goal: str) -> None:
         """Runs the full hierarchical planning and execution loop for a given goal."""
         if self.is_paused or not self.is_running:
