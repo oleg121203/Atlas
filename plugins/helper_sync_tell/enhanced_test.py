@@ -4,7 +4,6 @@ Enhanced test for the Helper Sync Tell plugin.
 """
 
 import sys
-import os
 
 def test_enhanced_plugin():
     """Test the enhanced plugin functionality."""

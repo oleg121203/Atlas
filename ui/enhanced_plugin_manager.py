@@ -10,10 +10,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import json
 import os
-import importlib.util
-import sys
-from typing import Dict, List, Optional, Any
-from datetime import datetime
+from typing import Dict, Any
 
 
 class PluginInfo:

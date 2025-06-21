@@ -6,9 +6,9 @@ Ensures all internal processing happens in English while providing localized res
 """
 
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Tuple
 from dataclasses import dataclass
-from tools.translation_tool import TranslationTool, TranslationResult
+from tools.translation_tool import TranslationTool
 
 logger = logging.getLogger(__name__)
 

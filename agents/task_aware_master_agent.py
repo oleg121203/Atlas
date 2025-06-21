@@ -8,19 +8,16 @@ This is an enhanced version of MasterAgent that supports:
 """
 
 import json
-import logging
-import re
 import threading
 import time
-from typing import Any, Dict, List, Optional, Callable, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from agents.memory_manager import MemoryManager
 
 from agents.agent_manager import AgentManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
-from agents.master_agent import MasterAgent as BaseMasterAgent, TaskExecutionError
-from utils.logger import get_logger
+from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryType
+from agents.master_agent import MasterAgent as BaseMasterAgent
 
 
 class TaskAwareMasterAgent(BaseMasterAgent):
@@ -412,7 +409,7 @@ def demo_task_aware_agent():
     #but we'll create a simple demo here
     
     try:
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         from agents.agent_manager import AgentManager
         from agents.enhanced_memory_manager import EnhancedMemoryManager
         
@@ -438,7 +435,7 @@ def demo_task_aware_agent():
             memory_scope="task_demo_task_2"
         )
         
-        print(f"✅ Created isolated agents:")
+        print("✅ Created isolated agents:")
         print(f"   Agent 1: {agent1.task_id} (scope: {agent1.memory_scope})")
         print(f"   Agent 2: {agent2.task_id} (scope: {agent2.memory_scope})")
         
@@ -455,7 +452,7 @@ def demo_task_aware_agent():
             {}
         )
         
-        print(f"\n📊 Task Results:")
+        print("\n📊 Task Results:")
         print(f"   Task 1: {result1}")
         print(f"   Task 2: {result2}")
         
@@ -463,11 +460,11 @@ def demo_task_aware_agent():
         summary1 = agent1.get_task_summary()
         summary2 = agent2.get_task_summary()
         
-        print(f"\n🧠 Memory Isolation Verification:")
+        print("\n🧠 Memory Isolation Verification:")
         print(f"   Task 1 operations: {summary1.get('operations', {})}")
         print(f"   Task 2 operations: {summary2.get('operations', {})}")
         
-        print(f"\n✅ Task isolation demo completed successfully!")
+        print("\n✅ Task isolation demo completed successfully!")
         
     except Exception as e:
         print(f"❌ Demo failed: {e}")

@@ -6,7 +6,6 @@ Run this script to see the tool in action with sample complex queries.
 """
 
 import sys
-import os
 import logging
 from pathlib import Path
 
@@ -23,7 +22,7 @@ logging.basicConfig(
 try:
     from utils.platform_utils import get_platform_info
     from config_manager import ConfigManager
-    from agents.llm_manager import LLMManager
+    from utils.llm_manager import LLMManager
     from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
     
     #Import the HelperSyncTellTool from the plugin

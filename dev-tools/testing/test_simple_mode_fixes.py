@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.chat_context_manager import ChatContextManager, ChatMode
+from agents.chat_context_manager import ChatContextManager
 
 def test_mode_fixes_simple():
     """Простий тест виправлених режимів"""
@@ -63,7 +63,7 @@ def test_mode_fixes_simple():
             print(f"     Виявлено:  {detected} (впевненість: {confidence:.3f})")
             
             if detected != expected:
-                print(f"     ⚠️  ПОМИЛКА!")
+                print("     ⚠️  ПОМИЛКА!")
             print()
             
         except Exception as e:

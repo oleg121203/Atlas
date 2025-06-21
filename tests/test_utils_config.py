@@ -4,7 +4,6 @@
 """
 
 import sys
-import os
 sys.path.append('/workspaces/autoclicker')
 
 def test_utils_config_manager():

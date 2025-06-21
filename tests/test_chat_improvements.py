@@ -4,7 +4,6 @@
 """
 
 import sys
-import os
 sys.path.append('/workspaces/Atlas')
 
 def test_chat_improvements():
@@ -20,7 +19,7 @@ def test_chat_improvements():
         test_message = "Мене цікавить чи забезпечена в тебе пам'ять довгострокова і з розмежуванням по напрямку чату?"
         context = manager.analyze_message(test_message)
         
-        print(f"\nТест 1: Питання про пам'ять")
+        print("\nТест 1: Питання про пам'ять")
         print(f"Повідомлення: {test_message}")
         print(f"Детектований режим: {context.mode.value}")
         print(f"Впевненість: {context.confidence:.2f}")
@@ -35,7 +34,7 @@ def test_chat_improvements():
         test_message2 = "Привіт друже, як тебе звати?"
         context2 = manager.analyze_message(test_message2)
         
-        print(f"\nТест 2: Привітання")
+        print("\nТест 2: Привітання")
         print(f"Повідомлення: {test_message2}")
         print(f"Детектований режим: {context2.mode.value}")
         print(f"Впевненість: {context2.confidence:.2f}")
@@ -44,12 +43,12 @@ def test_chat_improvements():
         test_message3 = "Які інструменти у вас є?"
         context3 = manager.analyze_message(test_message3)
         
-        print(f"\nТест 3: Питання про інструменти")
+        print("\nТест 3: Питання про інструменти")
         print(f"Повідомлення: {test_message3}")
         print(f"Детектований режим: {context3.mode.value}")
         print(f"Впевненість: {context3.confidence:.2f}")
         
-        print(f"\n✅ Всі тести пройшли успішно!")
+        print("\n✅ Всі тести пройшли успішно!")
         
     except ImportError as e:
         print(f"❌ Помилка імпорту: {e}")

@@ -4,10 +4,8 @@ Translate Ukrainian comments and docstrings to English in Python files
 Following Atlas development standards for cross-platform compatibility
 """
 
-import os
 import re
 from pathlib import Path
-from typing import Dict, List
 
 #Translation dictionary for common Ukrainian programming terms
 TRANSLATIONS = {
@@ -202,7 +200,7 @@ def main():
                 if translate_comments_in_file(py_file):
                     translated_files += 1
     
-    print(f"\n📊 SUMMARY:")
+    print("\n📊 SUMMARY:")
     print(f"   Total files processed: {total_files}")
     print(f"   Files translated: {translated_files}")
     print(f"   Files unchanged: {total_files - translated_files}")

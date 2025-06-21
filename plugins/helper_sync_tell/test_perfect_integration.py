@@ -4,7 +4,6 @@ Comprehensive test for the perfect Helper Sync Tell plugin integration.
 """
 
 import sys
-import os
 import logging
 
 #Setup logging
@@ -22,9 +21,9 @@ def test_perfect_integration():
     try:
         #Test 1: Plugin Import and Registration
         total_tests += 1
-        print(f"\n📝 Test 1: Plugin Import and Registration")
+        print("\n📝 Test 1: Plugin Import and Registration")
         
-        from plugin import EnhancedHelperSyncTellTool, register
+        from plugin import register
         registration = register()
         
         if registration['tools'] and len(registration['tools']) > 0:
@@ -37,7 +36,7 @@ def test_perfect_integration():
             
         #Test 2: Basic Functionality
         total_tests += 1
-        print(f"\n📝 Test 2: Basic Structured Thinking")
+        print("\n📝 Test 2: Basic Structured Thinking")
         
         if registration['tools']:
             tool = registration['tools'][0]
@@ -51,16 +50,16 @@ def test_perfect_integration():
             response = tool(test_query, mock_tools)
             
             if len(response) > 100 and "analysis" in response.lower():
-                print(f"✅ Structured thinking works correctly")
+                print("✅ Structured thinking works correctly")
                 print(f"✅ Response length: {len(response)} characters")
                 success_count += 1
             else:
-                print(f"❌ Structured thinking test failed")
+                print("❌ Structured thinking test failed")
                 print(f"   Response length: {len(response)}")
         
         #Test 3: Performance and Error Handling
         total_tests += 1
-        print(f"\n📝 Test 3: Performance and Error Handling")
+        print("\n📝 Test 3: Performance and Error Handling")
         
         if registration['tools']:
             tool = registration['tools'][0]
@@ -82,7 +81,7 @@ def test_perfect_integration():
         
         #Test 4: Memory Integration (if available)
         total_tests += 1
-        print(f"\n📝 Test 4: Advanced Features")
+        print("\n📝 Test 4: Advanced Features")
         
         if registration['tools']:
             tool = registration['tools'][0]
@@ -102,7 +101,7 @@ def test_perfect_integration():
         
         #Test 5: Integration Readiness
         total_tests += 1
-        print(f"\n📝 Test 5: Integration Readiness")
+        print("\n📝 Test 5: Integration Readiness")
         
         try:
             from perfect_integration import integrate_plugin_with_atlas, validate_integration
@@ -133,7 +132,7 @@ def test_perfect_integration():
             print(f"❌ Integration import failed: {e}")
         
         #Final Results
-        print(f"\n📊 Test Results Summary")
+        print("\n📊 Test Results Summary")
         print("-" * 40)
         print(f"Tests Passed: {success_count}/{total_tests}")
         print(f"Success Rate: {(success_count/total_tests)*100:.1f}%")
@@ -157,7 +156,7 @@ def demo_usage():
     print("-" * 40)
     
     try:
-        from plugin import EnhancedHelperSyncTellTool, register
+        from plugin import register
         
         #Register plugin
         registration = register()
@@ -182,14 +181,14 @@ def demo_usage():
         
         response = tool(demo_query, atlas_tools)
         
-        print(f"\n📋 Structured Response:")
+        print("\n📋 Structured Response:")
         print("-" * 30)
         print(response)
         
         #Show performance stats
         if hasattr(tool, 'get_performance_stats'):
             stats = tool.get_performance_stats()
-            print(f"\n📈 Performance Stats:")
+            print("\n📈 Performance Stats:")
             print(f"   Queries processed: {stats['queries_processed']}")
             print(f"   Average response time: {stats['average_response_time']:.2f}s")
             print(f"   Successful breakdowns: {stats['successful_breakdowns']}")

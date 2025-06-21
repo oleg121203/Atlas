@@ -5,7 +5,6 @@
 """
 
 import sys
-import os
 import traceback
 import importlib.util
 from pathlib import Path

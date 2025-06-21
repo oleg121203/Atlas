@@ -11,7 +11,7 @@ print('🧪 Testing Atlas enhanced components (simplified)...')
 try:
     from ui.status_panel import StatusPanel
     from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
-    from ui.goal_history import GoalHistoryManager, GoalHistoryWindow
+    from ui.goal_history import GoalHistoryManager
     from ui.enhanced_settings import EnhancedSettingsView
     from agents.enhanced_security_agent import EnhancedSecurityAgent
     from agents.enhanced_deputy_agent import EnhancedDeputyAgent

@@ -7,7 +7,6 @@ Atlas Final Verification Script
 import os
 import sys
 import configparser
-import subprocess
 from pathlib import Path
 
 def final_verification():
@@ -178,7 +177,7 @@ def check_llm_manager_attributes():
             def add_usage(self, usage):
                 pass
         
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         
         token_tracker = MockTokenTracker()
         llm_mgr = LLMManager(token_tracker)

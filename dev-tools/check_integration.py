@@ -4,7 +4,6 @@
 """
 
 import sys
-import os
 from pathlib import Path
 
 #Додаємо шляхи
@@ -35,7 +34,7 @@ def check_atlas_integration():
     print("\n🔗 Перевірка інтеграції advanced_thinking:")
     try:
         sys.path.insert(0, str(base_dir / "plugins" / "helper_sync_tell"))
-        from advanced_thinking import register, AdvancedAIThinkingTool
+        from advanced_thinking import register
         
         #Тест реєстрації
         result = register()
@@ -46,7 +45,7 @@ def check_atlas_integration():
             #Verification capabilities
             if hasattr(tool, 'capabilities'):
                 caps = tool.capabilities
-                print(f"📊 Можливості:")
+                print("📊 Можливості:")
                 for cap, available in caps.items():
                     status = "✅" if available else "❌"
                     print(f"   {status} {cap}")
@@ -60,7 +59,7 @@ def check_atlas_integration():
     #Verification детектора
     print("\n🧠 Перевірка інтелектуального детектора:")
     try:
-        from intelligent_mode_detector import IntelligentModeDetector, ChatMode
+        from intelligent_mode_detector import IntelligentModeDetector
         
         detector = IntelligentModeDetector()
         

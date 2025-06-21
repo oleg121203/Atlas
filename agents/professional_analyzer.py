@@ -7,11 +7,10 @@ Advanced problem detection and solution recommendation system
 import re
 import ast
 import logging
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
-import json
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,6 @@ and special encryption for vector data during creator sessions.
 
 import re
 import time
-import hashlib
 import random
 import logging
 import threading
@@ -21,7 +20,6 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
-import json
 
 
 class CreatorIdentityLevel(Enum):

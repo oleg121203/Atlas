@@ -1,10 +1,10 @@
 import unittest
 import os
 import shutil
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from agents.tool_creator_agent import ToolCreatorAgent
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 
 class TestToolCreatorAgent(unittest.TestCase):
 

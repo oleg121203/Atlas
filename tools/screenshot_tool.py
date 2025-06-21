@@ -4,12 +4,11 @@ Uses platform-specific capture methods with fallbacks.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Optional
 
 from PIL import Image  #type: ignore
-from utils.platform_utils import IS_MACOS, IS_LINUX, IS_WINDOWS, IS_HEADLESS
+from utils.platform_utils import IS_MACOS, IS_LINUX, IS_HEADLESS
 
 #Import macOS-specific screenshot utilities
 if IS_MACOS:
@@ -34,11 +33,7 @@ if IS_MACOS:
             kCGWindowListOptionOnScreenOnly,
             kCGWindowImageDefault,
             CGRectInfinite,
-            CGImageGetWidth,
-            CGImageGetHeight,
-            CGImageGetBytesPerRow,
-            CGImageGetDataProvider,
-            CGDataProviderCopyData,
+
         )
         _QUARTZ_AVAILABLE = True
     except ImportError as e:
@@ -47,13 +42,11 @@ if IS_MACOS:
     except Exception:  #pragma: no cover
         _QUARTZ_AVAILABLE = False
 
-import datetime
 
 #Try to import pyautogui safely for headless environments
 #Skip if in headless environment or if display is not available
 if not IS_HEADLESS:
     try:
-        import pyautogui  #type: ignore
         _PYAUTOGUI_AVAILABLE = True
     except Exception as e:
         _PYAUTOGUI_AVAILABLE = False
@@ -172,9 +165,9 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
         img = Image.new('RGB', (800, 600), color='lightgray')
         #Add some text to indicate this is a dummy
         try:
-            from PIL import ImageDraw, ImageFont
+            from PIL import ImageDraw
             draw = ImageDraw.Draw(img)
-            draw.text((50, 250), f"Screenshot not available", fill='black')
+            draw.text((50, 250), "Screenshot not available", fill='black')
             draw.text((50, 300), f"(Error: {last_error})", fill='red')
             draw.text((50, 350), f"Platform: {'macOS' if IS_MACOS else 'Linux' if IS_LINUX else 'Unknown'}", fill='blue')
         except Exception:

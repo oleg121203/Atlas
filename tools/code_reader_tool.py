@@ -8,15 +8,12 @@ import json
 import time
 import hashlib
 import logging
-import fnmatch
-from typing import List, Dict, Any, Optional, Set, Tuple
+from typing import List, Dict, Optional
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from collections import defaultdict
-import re
 
 
-import re
 
 
 @dataclass
@@ -550,7 +547,7 @@ class CodeReaderTool:
             elements = [e for e in elements if e.parent_class and class_name.lower() in e.parent_class.lower()]
         
         if not elements:
-            return f"🔍 No functions found" + (f" for query '{query}'" if query else "") + (f" in class '{class_name}'" if class_name else "")
+            return "🔍 No functions found" + (f" for query '{query}'" if query else "") + (f" in class '{class_name}'" if class_name else "")
         
         #Group by file
         by_file = defaultdict(list)
@@ -588,7 +585,7 @@ class CodeReaderTool:
                 elements.extend([e for e in file_analysis.elements if e.type == 'class'])
         
         if not elements:
-            return f"🔍 No classes found" + (f" for query '{query}'" if query else "")
+            return "🔍 No classes found" + (f" for query '{query}'" if query else "")
         
         #Group by file
         by_file = defaultdict(list)
@@ -645,13 +642,13 @@ class CodeReaderTool:
                 else:
                     return f"❌ Could not analyze file: {file_path}"
             else:
-                return f"❌ File analysis only available for Python files"
+                return "❌ File analysis only available for Python files"
         
         analysis = self.index.files[relative_path]
         
         result = []
         result.append(f"📊 **Structural Analysis: {relative_path}**\n")
-        result.append(f"**📈 Statistics:**")
+        result.append("**📈 Statistics:**")
         result.append(f"  • Size: {analysis.size} bytes")
         result.append(f"  • Lines: {analysis.lines}")
         result.append(f"  • Complexity: {analysis.complexity}")
@@ -729,7 +726,6 @@ class CodeReaderTool:
         self._ensure_index_updated()
         
         results = []
-        total_matches = 0
         
         #Search in indexed elements
         elements = self.index.search_elements(symbol)
@@ -745,7 +741,7 @@ class CodeReaderTool:
         #Search for usage in file contents
         usage_results = self.search_in_files(symbol, "**/*.py", max_results=15)
         if "No results found" not in usage_results:
-            results.append(f"🔍 **Usage Patterns:**\n")
+            results.append("🔍 **Usage Patterns:**\n")
             results.append(usage_results)
         
         if not results:

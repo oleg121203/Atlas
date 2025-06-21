@@ -7,7 +7,6 @@
 """
 
 import sys
-import os
 
 #Додаємо шлях до Atlas
 sys.path.append('/Users/developer/Documents/Atlas')
@@ -20,7 +19,6 @@ def test_creator_system_integration():
     try:
         #Імпортуємо компоненти
         from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
-        from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
         
         print("\n✅ 1. Імпорт компонентів успішний")
         
@@ -29,8 +27,8 @@ def test_creator_system_integration():
         auth = CreatorAuthentication()
         
         protocols = auth.encrypted_protocols
-        print(f"   ✅ Система аутентифікації створена")
-        print(f"   ✅ Зашифровані протоколи підключені")
+        print("   ✅ Система аутентифікації створена")
+        print("   ✅ Зашифровані протоколи підключені")
         
         #Тест 2: Verification протоколів
         print("\n📋 3. Перевірка зашифрованих протоколів...")
@@ -74,7 +72,7 @@ def test_creator_system_integration():
                 print(f"   {context}: {response}")
             
             #Тест 6: Privileges creator
-            print(f"\n🔧 7. Тест привілеїв творця...")
+            print("\n🔧 7. Тест привілеїв творця...")
             privileges = auth.get_creator_privileges()
             for privilege, status in privileges.items():
                 status_icon = "✅" if status else "❌"
@@ -85,7 +83,7 @@ def test_creator_system_integration():
             print(f"\n⚡ 8. Безумовне виконання: {'✅ Активне' if unconditional else '❌ Неактивне'}")
             
             #Тест 8: Модифікація протоколів
-            print(f"\n📝 9. Тест модифікації протоколів...")
+            print("\n📝 9. Тест модифікації протоколів...")
             test_protocol = {
                 "test_field": "test_value",
                 "modified_by_creator": True
@@ -95,7 +93,7 @@ def test_creator_system_integration():
             print(f"   Модифікація протоколу: {'✅ Успішно' if modify_result else '❌ Помилка'}")
             
             #Тест 9: Лог доступу
-            print(f"\n📊 10. Лог доступу до протоколів:")
+            print("\n📊 10. Лог доступу до протоколів:")
             access_log = auth.get_protocol_access_log()
             for entry in access_log[-3:]:  #Останні 3 записи
                 timestamp = entry['timestamp'][:19]
@@ -104,7 +102,7 @@ def test_creator_system_integration():
                 print(f"    {timestamp} - {action} на {protocol}")
         
         #Тест 10: Завершення сесії
-        print(f"\n🏁 11. Завершення сесії творця...")
+        print("\n🏁 11. Завершення сесії творця...")
         auth.end_creator_session()
         
         final_status = auth.get_authentication_status()

@@ -4,20 +4,14 @@ Performance Profiler Tool for Atlas
 Analyzes code performance, bottlenecks, and optimization opportunities
 """
 
-import os
 import ast
-import time
 import psutil
 import logging
-import cProfile
-import pstats
-import io
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Any
 from pathlib import Path
 from dataclasses import dataclass
 from collections import defaultdict
 import re
-import subprocess
 import tracemalloc
 
 logger = logging.getLogger(__name__)

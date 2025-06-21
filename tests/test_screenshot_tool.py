@@ -1,13 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import os
-import sys
 from pathlib import Path
-import datetime
-
-#Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
 
 from tools.screenshot_tool import capture_screen
 from PIL import Image

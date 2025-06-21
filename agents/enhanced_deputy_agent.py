@@ -10,7 +10,7 @@ import time
 import queue
 import json
 import os
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 import logging
 

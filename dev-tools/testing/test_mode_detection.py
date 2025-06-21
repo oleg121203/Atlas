@@ -3,8 +3,8 @@
 Test script for chat mode detection
 """
 
-from agents.chat_context_manager import ChatContextManager, ChatMode
-from agents.llm_manager import LLMManager
+from agents.chat_context_manager import ChatContextManager
+from utils.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager
 from agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager

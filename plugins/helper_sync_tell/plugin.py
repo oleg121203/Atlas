@@ -15,7 +15,7 @@ Features:
 import logging
 import time
 import uuid
-from typing import List, Dict, Any, Optional, Callable, Union
+from typing import List, Dict, Any, Callable
 import sys
 import json
 
@@ -107,7 +107,7 @@ class EnhancedHelperSyncTellTool:
             "memory_operations": 0
         }
         
-        self.logger.info(f"Enhanced HelperSyncTell tool initialized")
+        self.logger.info("Enhanced HelperSyncTell tool initialized")
         self.logger.info(f"Platform: {self.platform_info.get('system', 'Unknown')}")
         self.logger.info(f"Capabilities: {list(self.capabilities.keys())}")
 
@@ -848,7 +848,7 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         if atlas_app:
             integration_success = tool.integrate_with_atlas_help_mode(atlas_app)
         
-        logging.info(f"Enhanced Helper Sync Tell tool registered successfully")
+        logging.info("Enhanced Helper Sync Tell tool registered successfully")
         logging.info(f"Tool capabilities: {list(tool.capabilities.keys())}")
         
         if integration_success:

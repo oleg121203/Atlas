@@ -10,7 +10,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
 

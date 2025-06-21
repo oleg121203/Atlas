@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from agents.agent_manager import AgentManager, ToolNotFoundError, InvalidToolArgumentsError
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.master_agent import MasterAgent
 from agents.memory_manager import MemoryManager
 

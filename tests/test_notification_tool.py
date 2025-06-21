@@ -1,11 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import os
-import sys
 
-#Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
 
 from tools.notification_tool import NotificationManager
 

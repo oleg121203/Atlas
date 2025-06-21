@@ -7,7 +7,6 @@
 
 import sys
 import os
-import tkinter as tk
 
 #Додаємо шлях до батьківської директорії
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

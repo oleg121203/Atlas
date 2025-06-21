@@ -6,17 +6,13 @@ Migration script to transition from current memory structure to enhanced organiz
 import logging
 import time
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, Any
 
-try:
-    import chromadb
-except ImportError:
-    print("ChromaDB not available. This script requires ChromaDB to be installed.")
-    exit(1)
+
 
 from agents.memory_manager import MemoryManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
-from agents.llm_manager import LLMManager
+from agents.enhanced_memory_manager import EnhancedMemoryManager
+from utils.llm_manager import LLMManager
 from utils.config_manager import ConfigManager
 
 
@@ -242,7 +238,7 @@ def main():
     
     #Analyze current structure
     analysis = migrator.analyze_current_structure()
-    print(f"Current memory structure:")
+    print("Current memory structure:")
     print(f"  Total collections: {analysis['total_collections']}")
     print(f"  Total memories: {analysis['total_memories']}")
     print(f"  Unorganized memories: {analysis['unorganized_memories']}")
@@ -271,7 +267,7 @@ def main():
     if 'backup_path' in results:
         print(f"  Backup location: {results['backup_path']}")
     
-    print(f"  Collections migrated:")
+    print("  Collections migrated:")
     for old_name, info in results['collections_migrated'].items():
         auto_note = " (auto-categorized)" if info.get('auto_categorized') else ""
         print(f"    {old_name} → {info['new_name']}: {info['migrated_count']} memories{auto_note}")

@@ -3,13 +3,11 @@ from unittest.mock import patch, MagicMock
 import os
 import sys
 import subprocess
-from pathlib import Path
+from tools.terminal_tool import execute_command, execute_script, kill_process, TerminalResult  # noqa: E402
 
 #Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, project_root)
-
-from tools.terminal_tool import execute_command, execute_script, kill_process, TerminalResult
 
 class TestTerminalTool(unittest.TestCase):
     """Unit tests for the terminal tool."""

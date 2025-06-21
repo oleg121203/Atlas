@@ -7,12 +7,11 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from utils.config_manager import ConfigManager  # noqa: E402
 
 #Додаємо шлях до проекту
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
-
-from utils.config_manager import ConfigManager
 
 def test_unified_config():
     """Тестуємо уніфікований ConfigManager."""

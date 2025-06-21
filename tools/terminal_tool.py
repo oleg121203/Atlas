@@ -10,7 +10,7 @@ import time
 import os
 import signal
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 from pathlib import Path
 
 from utils.logger import get_logger

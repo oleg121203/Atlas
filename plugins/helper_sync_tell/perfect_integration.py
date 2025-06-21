@@ -9,8 +9,7 @@ structured thinking capabilities.
 
 import logging
 import sys
-import os
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any
 
 #Setup logging
 logger = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ def integrate_plugin_with_atlas(atlas_app) -> bool:
         logger.info("🔧 Starting perfect integration of Helper Sync Tell plugin")
         
         #Import the plugin
-        from plugin import EnhancedHelperSyncTellTool, register
+        from plugin import register
         
         #Get managers from Atlas app
         llm_manager = getattr(atlas_app, 'master_agent', None)

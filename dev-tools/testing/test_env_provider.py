@@ -46,13 +46,13 @@ def test_env_loading():
     #5. Тест LLMManager ініціалізації
     print("\n🤖 LLMManager ініціалізація:")
     try:
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         from agents.token_tracker import TokenTracker
         
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker=token_tracker, config_manager=config)
         
-        print(f"   LLM Manager створено успішно")
+        print("   LLM Manager створено успішно")
         print(f"   Поточний провайдер буде: {provider_config}")
         
     except Exception as e:

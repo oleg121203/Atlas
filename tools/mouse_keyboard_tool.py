@@ -25,15 +25,11 @@ try:
     from Quartz import (
         CGEventCreateMouseEvent,
         CGEventPost,
-        CGEventCreateKeyboardEvent,
-        CGEventSetFlags,
         kCGEventLeftMouseDown,
         kCGEventLeftMouseUp,
         kCGEventRightMouseDown,
         kCGEventRightMouseUp,
         kCGEventMouseMoved,
-        kCGEventKeyDown,
-        kCGEventKeyUp,
         kCGHIDEventTap,
     )
     _QUARTZ_AVAILABLE = True

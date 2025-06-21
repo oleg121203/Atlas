@@ -14,9 +14,7 @@ def test_task_manager():
         print("🧪 Тестую архітектуру Atlas TaskManager...")
         
         #Імпорт компонентів
-        from agents.task_manager import TaskManager, TaskStatus, TaskPriority
-        from agents.task_aware_master_agent import TaskAwareMasterAgent
-        from agents.master_agent import MasterAgent
+        from agents.task_manager import TaskManager, TaskPriority
         
         print("✅ Всі компоненти імпортовано успішно!")
         
@@ -33,7 +31,7 @@ def test_task_manager():
         
         #Verification статистики
         stats = tm.get_task_statistics()
-        print(f"📊 Статистика:")
+        print("📊 Статистика:")
         print(f"   - Всього завдань: {stats['total_tasks']}")
         print(f"   - Очікують: {stats['pending']}")
         print(f"   - Макс. паралельних: {stats['max_concurrent']}")

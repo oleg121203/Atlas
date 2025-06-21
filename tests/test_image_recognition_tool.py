@@ -1,12 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import os
-import sys
 import numpy as np
-
-#Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
 
 from tools.image_recognition_tool import find_template_in_image, find_object_in_image
 

@@ -3,7 +3,6 @@
 Simple test for chat context patterns without dependencies
 """
 
-import re
 from enum import Enum
 
 class ChatMode(Enum):

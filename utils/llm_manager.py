@@ -8,16 +8,13 @@ TokenTracker to monitor and log token usage for all API calls.
 
 import logging
 import requests
-import json
 from typing import List, Dict, Any, Optional
 
-from openai import OpenAI, APIError
+from openai import OpenAI
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 from agents.token_tracker import TokenTracker, TokenUsage
 from utils.config_manager import config_manager as utils_config_manager
-from typing import Optional
 
 
 class LLMManager:
@@ -205,7 +202,7 @@ class LLMManager:
                 provider = "ollama"
                 model = "llama3.1"
             else:
-                raise ValueError(f"No LLM providers are available. Please configure at least one API key.")
+                raise ValueError("No LLM providers are available. Please configure at least one API key.")
         
         #Validate model for the selected provider
         if provider in available_providers:

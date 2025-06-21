@@ -4,11 +4,9 @@ Demonstration script for the enhanced memory organization in Atlas
 """
 
 import logging
-import time
-from typing import Dict, Any
 
 from utils.config_manager import ConfigManager
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 
 

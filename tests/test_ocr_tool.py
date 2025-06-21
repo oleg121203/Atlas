@@ -1,13 +1,6 @@
 import unittest
 from unittest.mock import patch
-import os
-import sys
 from pathlib import Path
-
-#Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
-
 from tools.ocr_tool import ocr_image, ocr_file
 from PIL import Image
 

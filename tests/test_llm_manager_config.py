@@ -7,20 +7,18 @@ including provider/model validation and OpenAI key handling.
 """
 
 import sys
-import os
-sys.path.append(os.path.dirname(__file__))
 
-from agents.llm_manager import LLMManager
+
+from utils.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
-from utils.logger import Logger
+
 
 def test_llm_manager():
     """Test LLM manager functionality"""
     print("🤖 Testing LLM Manager Configuration...")
     
     #Initialize components
-    logger = Logger("test_llm_manager")
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     

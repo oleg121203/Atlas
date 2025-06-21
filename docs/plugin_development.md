@@ -35,7 +35,7 @@ from .tools import my_tool
 from .agent import MyAwesomeAgent
 
 if TYPE_CHECKING:
-    from agents.llm_manager import LLMManager
+    from utils.llm_manager import LLMManager
 
 def register(llm_manager: "LLMManager"):
     """Registers the plugin's components."""
@@ -78,7 +78,7 @@ You can also create specialized agents that inherit from `DeputyAgent`. These ag
 ```python
 import logging
 from agents.deputy_agent import DeputyAgent
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 
 class MyAwesomeAgent(DeputyAgent):
     """An agent that does awesome things."""

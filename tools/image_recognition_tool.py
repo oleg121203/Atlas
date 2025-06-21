@@ -7,7 +7,6 @@ and object detection on screenshots, using OpenCV.
 #Try to import cv2 safely for headless environments or missing dependencies
 try:
     import cv2
-    import numpy as np
     _CV2_AVAILABLE = True
 except ImportError:
     _CV2_AVAILABLE = False

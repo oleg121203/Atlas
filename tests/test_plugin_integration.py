@@ -4,7 +4,6 @@
 """
 
 import sys
-import os
 from pathlib import Path
 
 #Додаємо шляхи
@@ -114,7 +113,7 @@ def test_plugin_integration():
         
         simple_keywords = ['read file', 'list directory', 'tree', 'search for', 'info about', 'search functions']
         
-        print(f"📊 Поточна система детекції:")
+        print("📊 Поточна система детекції:")
         print(f"   • Складні ключові слова: {len(current_keywords)}")
         print(f"   • Прості ключові слова: {len(simple_keywords)}")
         
@@ -125,7 +124,7 @@ def test_plugin_integration():
             "how does memory manager work?",  #складний аналіз
         ]
         
-        print(f"\n⚠️  Потенційні конфлікти:")
+        print("\n⚠️  Потенційні конфлікти:")
         for query in conflicting_queries:
             has_simple = any(kw in query.lower() for kw in simple_keywords)
             has_complex = any(kw in query.lower() for kw in current_keywords)
@@ -161,7 +160,6 @@ def analyze_current_detection_system():
     
     #Читаємо поточну реалізацію
     try:
-        from advanced_thinking import AdvancedAIThinkingTool
         
         #Тест системи детекції з файлу
         advanced_thinking_file = base_dir / "plugins" / "helper_sync_tell" / "advanced_thinking.py"

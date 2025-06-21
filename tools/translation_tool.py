@@ -8,7 +8,7 @@ translating responses back to the user's language.
 
 import re
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Tuple
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ class TranslationTool:
         if total_score == 0:
             return 'en', 0.5  #Default to English with low confidence
         
-        detected_lang = max(scores, key=scores.get)
+        detected_lang = max(scores, key=lambda k: scores[k])
         confidence = scores[detected_lang] / total_score
         
         #Boost confidence for clear indicators

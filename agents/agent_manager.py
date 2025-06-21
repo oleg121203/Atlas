@@ -5,14 +5,14 @@ import inspect
 from typing import Dict, Any, List, Callable
 
 from utils.logger import get_logger
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.tool_creator_agent import ToolCreatorAgent
 from monitoring.metrics_manager import metrics_manager
 
-from typing import Optional, Callable, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from agents.memory_manager import MemoryManager
+    from agents.memory_manager import MemoryManager  # noqa: E402
 
 class ToolNotFoundError(Exception):
     """Raised when a specified tool cannot be found."""
@@ -278,6 +278,10 @@ class AgentManager:
             self.add_tool("send_telegram", notif_manager.send_telegram, "Send a Telegram notification")
             self.add_tool("send_sms", notif_manager.send_sms, "Send an SMS notification")
             
+            #Web Browser tool
+            from tools.web_browser_tool import open_url
+            self.add_tool("open_url", open_url, "Open a URL in the default web browser")
+            
             #Translation tool (for internal use, not exposed to user directly)
             from tools.translation_tool import create_translation_tool
             translation_tool = create_translation_tool(self.llm_manager)
@@ -290,7 +294,8 @@ class AgentManager:
                 "set_clipboard_image", "clear_clipboard", "click_at", "move_mouse", "type_text", 
                 "press_key", "ocr_image", "ocr_file", "find_template_in_image", "find_object_in_image",
                 "execute_command", "execute_script", "get_environment", "change_directory", 
-                "kill_process", "send_email", "send_telegram", "send_sms", "translate_text", "detect_language"
+                "kill_process", "send_email", "send_telegram", "send_sms", "translate_text", "detect_language",
+                "open_url"
             ]])
             
             self.logger.info(f"Successfully loaded {builtin_tool_count} built-in tools")
@@ -340,7 +345,8 @@ class AgentManager:
             "send_telegram": "Notification Tool",
             "send_sms": "Notification Tool",
             "translate_text": "Translation Tool",
-            "detect_language": "Translation Tool"
+            "detect_language": "Translation Tool",
+            "open_url": "Web Browser Tool"
         }
         
         for tool_name, tool_category in builtin_tools.items():

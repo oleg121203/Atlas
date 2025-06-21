@@ -78,7 +78,7 @@ def test_english_only_processing():
                 non_english_found = True
         
         if not non_english_found:
-            print(f"   ✅ All keywords are English")
+            print("   ✅ All keywords are English")
         print()
     
     print("3. Testing pattern matching on English text:")

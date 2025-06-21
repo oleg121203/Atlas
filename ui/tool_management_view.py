@@ -2,7 +2,7 @@ import customtkinter as ctk
 import subprocess
 import sys
 import os
-from typing import TYPE_CHECKING, List, Dict, Any
+from typing import TYPE_CHECKING, Dict, Any
 
 from monitoring.metrics_manager import metrics_manager
 

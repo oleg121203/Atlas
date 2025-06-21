@@ -6,10 +6,7 @@
 3. Verification, що ключі збережені та завантажені правильно
 """
 
-import os
 import sys
-import tempfile
-import shutil
 
 def test_main_config_manager():
     """Тест основного ConfigManager"""
@@ -119,7 +116,7 @@ def test_llm_manager_integration():
     print("\n🤖 Тестування інтеграції з LLMManager...")
     
     try:
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         from config_manager import ConfigManager
         
         config = ConfigManager()

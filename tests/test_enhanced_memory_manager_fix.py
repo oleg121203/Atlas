@@ -6,37 +6,29 @@ This test should pass now that the ChatContextManager properly handles dependenc
 
 import unittest
 import sys
-import os
+
 import unittest.mock
 
-#Add the project root to the path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Mock GUI modules to prevent import errors during testing.
+# This must be done BEFORE importing the application modules.
+sys.modules['pyautogui'] = unittest.mock.MagicMock()
+sys.modules['mouseinfo'] = unittest.mock.MagicMock()
+sys.modules['Xlib'] = unittest.mock.MagicMock()
+sys.modules['Xlib.display'] = unittest.mock.MagicMock()
 
-def mock_gui_modules():
-    """Mock GUI modules to prevent import errors during testing."""
-    #Mock PyAutoGUI and related modules
-    sys.modules['pyautogui'] = unittest.mock.MagicMock()
-    sys.modules['mouseinfo'] = unittest.mock.MagicMock()
-    sys.modules['Xlib'] = unittest.mock.MagicMock()
-    sys.modules['Xlib.display'] = unittest.mock.MagicMock()
-    
-    #Mock screenshot tool
-    mock_capture_screen = unittest.mock.MagicMock()
-    mock_capture_screen.return_value = b'fake_screenshot_data'
-    
-    #Create a mock module for screenshot_tool
-    mock_screenshot_module = unittest.mock.MagicMock()
-    mock_screenshot_module.capture_screen = mock_capture_screen
-    sys.modules['tools.screenshot_tool'] = mock_screenshot_module
+# Mock screenshot tool
+mock_capture_screen = unittest.mock.MagicMock()
+mock_capture_screen.return_value = b'fake_screenshot_data'
+mock_screenshot_module = unittest.mock.MagicMock()
+mock_screenshot_module.capture_screen = mock_capture_screen
+sys.modules['tools.screenshot_tool'] = mock_screenshot_module
 
-#Set up mocks before importing any real modules
-mock_gui_modules()
-
-#Now import the modules we want to test
-from utils.config_manager import ConfigManager
-from agents.llm_manager import LLMManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.chat_context_manager import ChatContextManager
+# Now that mocks are in place, we can import our modules.
+from agents.token_tracker import TokenTracker  # noqa: E402
+from utils.config_manager import ConfigManager  # noqa: E402
+from utils.llm_manager import LLMManager  # noqa: E402
+from agents.enhanced_memory_manager import EnhancedMemoryManager  # noqa: E402
+from agents.chat_context_manager import ChatContextManager  # noqa: E402
 
 
 class TestEnhancedMemoryManagerFix(unittest.TestCase):
@@ -45,7 +37,8 @@ class TestEnhancedMemoryManagerFix(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.config_manager = ConfigManager()
-        self.llm_manager = LLMManager(self.config_manager)
+        self.token_tracker = TokenTracker()
+        self.llm_manager = LLMManager(self.token_tracker, self.config_manager)
     
     def test_enhanced_memory_manager_creation(self):
         """Test that EnhancedMemoryManager can be created with required arguments."""
@@ -85,7 +78,8 @@ class TestEnhancedMemoryManagerFix(unittest.TestCase):
         """Test simulating the AtlasApp initialization sequence."""
         #This simulates the exact sequence that happens in AtlasApp.__init__
         config_manager = ConfigManager()
-        llm_manager = LLMManager(config_manager)
+        token_tracker = TokenTracker()
+        llm_manager = LLMManager(token_tracker, config_manager)
         memory_manager = EnhancedMemoryManager(
             llm_manager=llm_manager, 
             config_manager=config_manager

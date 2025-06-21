@@ -3,6 +3,7 @@
 import platform
 import os
 import sys
+import importlib.util
 from typing import Dict, Any
 
 #Platform detection
@@ -64,19 +65,13 @@ def get_screenshot_method():
     methods = []
     
     if IS_MACOS:
-        try:
-            from Quartz import CGWindowListCreateImage
+        if importlib.util.find_spec("Quartz"):
             methods.append('quartz')
-        except ImportError:
-            pass
-    
-    #Check for PyAutoGUI availability
+
+    # Check for PyAutoGUI availability
     if not IS_HEADLESS:
-        try:
-            import pyautogui
+        if importlib.util.find_spec("pyautogui"):
             methods.append('pyautogui')
-        except ImportError:
-            pass
     
     if not methods:
         methods.append('dummy')

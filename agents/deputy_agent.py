@@ -5,7 +5,7 @@ import time
 from typing import Any, Dict
 
 from agents.base_agent import BaseAgent
-from utils.logger import get_logger, LOG_FILE_PATH
+from utils.logger import LOG_FILE_PATH
 
 
 class DeputyAgent(BaseAgent):

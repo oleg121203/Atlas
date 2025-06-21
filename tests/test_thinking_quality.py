@@ -5,15 +5,13 @@
 """
 
 import sys
-import os
 from pathlib import Path
+from advanced_thinking import AdvancedAIThinkingTool, ThinkingStrategy  # noqa: E402
 
 #Додаємо шляхи
 base_dir = Path("/Users/developer/Documents/Atlas")
 sys.path.insert(0, str(base_dir))
 sys.path.insert(0, str(base_dir / "plugins" / "helper_sync_tell"))
-
-from advanced_thinking import AdvancedAIThinkingTool, ThinkingStrategy
 
 def test_thinking_quality():
     """Тестування якості мислення"""
@@ -254,7 +252,7 @@ if __name__ == "__main__":
     else:
         print("⚠️  МОДУЛЬ ДУМАННЯ ПОТРЕБУЄ ПОКРАЩЕННЯ!")
     
-    print(f"\n📋 Детальна оцінка:")
+    print("\n📋 Детальна оцінка:")
     print(f"   • Якість алгоритму: {'✅' if quality_ok else '❌'}")
     print(f"   • Мета-когнітивність: {'✅' if meta_ok else '❌'}")
     print(f"   • Продуктивність: {'✅' if perf_ok else '❌'}")

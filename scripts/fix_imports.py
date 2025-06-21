@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Fix all imports from logger to utils.logger and config_manager to utils.config_manager"""
 
-import os
 import re
 from pathlib import Path
 

@@ -4,16 +4,13 @@ Dependency Analyzer Tool for Atlas
 Analyzes project dependencies, imports, and architectural relationships
 """
 
-import os
 import ast
-import json
 import logging
 from typing import Dict, List, Set, Tuple, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from collections import defaultdict, deque
+from collections import defaultdict
 import networkx as nx
-import re
 
 logger = logging.getLogger(__name__)
 

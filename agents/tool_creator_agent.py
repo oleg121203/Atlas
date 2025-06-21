@@ -5,10 +5,9 @@ Defines the ToolCreatorAgent for dynamically generating new tools.
 import os
 import re
 import ast
-import logging
 from typing import Optional, Dict, Any, TYPE_CHECKING, List
 
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from utils.logger import get_logger
 
 if TYPE_CHECKING:

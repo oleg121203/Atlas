@@ -9,7 +9,7 @@ from typing import Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from agents.agent_manager import AgentManager
-    from agents.llm_manager import LLMManager
+    from utils.llm_manager import LLMManager
 
 from utils.logger import get_logger
 

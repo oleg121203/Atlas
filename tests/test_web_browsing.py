@@ -5,9 +5,7 @@ Tests all fallback methods for AutoRia car search
 """
 
 import sys
-import os
 import time
-import json
 from pathlib import Path
 
 #Add plugin to path
@@ -101,14 +99,14 @@ def test_fallback_methods():
                     success = browser._navigate_selenium(test_url)
                     print(f"  Selenium: {'✅ Success' if success else '❌ Failed'}")
                 else:
-                    print(f"  Selenium: ❌ Init failed")
+                    print("  Selenium: ❌ Init failed")
             
             elif method == "playwright":
                 if browser._init_playwright():
                     success = browser._navigate_playwright(test_url)
                     print(f"  Playwright: {'✅ Success' if success else '❌ Failed'}")
                 else:
-                    print(f"  Playwright: ❌ Init failed")
+                    print("  Playwright: ❌ Init failed")
             
             elif method == "system_events":
                 success = browser._navigate_system_events(test_url)
@@ -120,8 +118,8 @@ def test_fallback_methods():
                     response = requests.get(test_url, timeout=10)
                     success = response.status_code == 200
                     print(f"  HTTP Requests: {'✅ Success' if success else '❌ Failed'}")
-                except:
-                    print(f"  HTTP Requests: ❌ Failed")
+                except requests.exceptions.RequestException:
+                    print("  HTTP Requests: ❌ Failed")
         
         return True
         

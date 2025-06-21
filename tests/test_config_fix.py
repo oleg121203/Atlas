@@ -63,13 +63,13 @@ def test_llm_manager():
     try:
         #Import necessary modules
         from agents.token_tracker import TokenTracker
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         
         #Create instances
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker)
         
-        print(f"✅ LLM Manager initialized")
+        print("✅ LLM Manager initialized")
         print(f"✅ Current provider: {llm_manager.current_provider}")
         
         #Test basic chat with a simple message

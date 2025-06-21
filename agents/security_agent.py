@@ -3,7 +3,7 @@
 import multiprocessing
 import re
 import time
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple
 
 from utils.logger import get_logger
 from tools.notification_tool import NotificationManager
@@ -32,8 +32,8 @@ class SecurityAgent(multiprocessing.Process):
         #Initialize memory manager in process context
         if self.config_manager:
             try:
-                from agents.llm_manager import LLMManager
-                from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
+                from utils.llm_manager import LLMManager
+                from agents.enhanced_memory_manager import EnhancedMemoryManager
                 
                 llm_manager = LLMManager(self.config_manager)
                 self.memory_manager = EnhancedMemoryManager(llm_manager, self.config_manager)
@@ -82,7 +82,7 @@ class SecurityAgent(multiprocessing.Process):
             return
 
         elif event_type == "GOAL_EXECUTION_REQUEST":
-            self.logger.info(f"Evaluating goal execution request...")
+            self.logger.info("Evaluating goal execution request...")
             is_allowed, reason = self._check_rules(event)
 
             if is_allowed:

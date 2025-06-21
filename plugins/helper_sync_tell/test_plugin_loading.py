@@ -5,7 +5,6 @@ Run this from the Atlas root directory to test the plugin.
 """
 
 import sys
-import os
 from pathlib import Path
 
 #Add Atlas root to path
@@ -38,7 +37,7 @@ def test_plugin_loading():
         #Test basic functionality
         test_query = "How does memory work in Atlas?"
         response = tool(test_query, {})
-        print(f"✓ Basic functionality test completed")
+        print("✓ Basic functionality test completed")
         print(f"  Query: {test_query}")
         print(f"  Response length: {len(response)} characters")
         

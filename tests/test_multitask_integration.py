@@ -11,7 +11,6 @@ This test demonstrates:
 
 import time
 import threading
-from typing import Dict, Any
 
 #Mock implementations for testing without full dependencies
 class MockLLMManager:
@@ -145,7 +144,7 @@ class MultitaskIntegrationTest:
             
             #Test memory retrieval isolation
             for task_id, task_data in task_memories.items():
-                task_memories_count = len(task_data["memories"])
+
                 
                 #Simulate retrieving only task-specific memories
                 retrieved = [m for m in task_data["memories"] 
@@ -304,20 +303,20 @@ class MultitaskIntegrationTest:
             
             #Test pause
             pause_result = task.pause()
-            assert pause_result == True, "Pause should succeed"
+            assert pause_result, "Pause should succeed"
             assert task.status == "paused", "Task should be paused"
             assert task.paused_at is not None, "Paused timestamp should be set"
             print("   ✅ Task paused successfully")
             
             #Test resume
             resume_result = task.resume()
-            assert resume_result == True, "Resume should succeed"
+            assert resume_result, "Resume should succeed"
             assert task.status == "running", "Task should be running after resume"
             print("   ✅ Task resumed successfully")
             
             #Test completion
             complete_result = task.complete()
-            assert complete_result == True, "Complete should succeed"
+            assert complete_result, "Complete should succeed"
             assert task.status == "completed", "Task should be completed"
             assert task.completed_at is not None, "Completed timestamp should be set"
             print("   ✅ Task completed successfully")
@@ -326,7 +325,7 @@ class MultitaskIntegrationTest:
             cancel_task = MockTask("cancel_test", "Task to be cancelled")
             cancel_task.start()
             cancel_result = cancel_task.cancel()
-            assert cancel_result == True, "Cancel should succeed"
+            assert cancel_result, "Cancel should succeed"
             assert cancel_task.status == "cancelled", "Task should be cancelled"
             print("   ✅ Task cancelled successfully")
             
@@ -381,7 +380,7 @@ class MultitaskIntegrationTest:
             #Test normal operation
             for i in range(3):
                 success = api_manager.register_request("openai")
-                assert success == True, f"Request {i+1} should succeed"
+                assert success, f"Request {i+1} should succeed"
                 print(f"   ✅ Request {i+1} to OpenAI successful")
             
             #Test rate limiting
@@ -390,12 +389,12 @@ class MultitaskIntegrationTest:
             
             #This should fail due to rate limit
             exceeded = api_manager.register_request("openai")
-            assert exceeded == False, "Request should fail due to rate limit"
+            assert not exceeded, "Request should fail due to rate limit"
             print("   ✅ Rate limiting working correctly")
             
             #Test different providers
             ollama_success = api_manager.register_request("ollama")
-            assert ollama_success == True, "Ollama request should succeed (different limit)"
+            assert ollama_success, "Ollama request should succeed (different limit)"
             print("   ✅ Different providers have independent limits")
             
             #Test statistics
@@ -451,7 +450,7 @@ class MultitaskIntegrationTest:
             
             for scenario in error_scenarios:
                 error_name = scenario["name"]
-                error_type = scenario["error_type"]
+
                 recovery = scenario["recovery"]
                 
                 print(f"   🔥 Simulating {error_name}...")
@@ -501,7 +500,7 @@ class MultitaskIntegrationTest:
     
     def _print_summary(self):
         """Print test execution summary."""
-        print(f"\n📋 TEST EXECUTION SUMMARY")
+        print("\n📋 TEST EXECUTION SUMMARY")
         print("=" * 60)
         
         total_tests = len(self.results)
@@ -518,11 +517,11 @@ class MultitaskIntegrationTest:
         print(f"💥 Errors: {error_tests}")
         
         if passed_tests == total_tests:
-            print(f"\n🎉 ALL TESTS PASSED! Multi-task system is ready for production.")
+            print("\n🎉 ALL TESTS PASSED! Multi-task system is ready for production.")
         else:
-            print(f"\n⚠️  Some tests failed. Review and fix issues before production use.")
+            print("\n⚠️  Some tests failed. Review and fix issues before production use.")
         
-        print(f"\n📝 Detailed Results:")
+        print("\n📝 Detailed Results:")
         for test_name, result in self.results.items():
             status_icon = {"PASSED": "✅", "FAILED": "❌", "ERROR": "💥"}[result["status"]]
             duration = result.get("duration", 0)

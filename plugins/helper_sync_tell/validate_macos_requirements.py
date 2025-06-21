@@ -3,7 +3,6 @@
 Валідація requirements-macos.txt для Atlas та Helper Sync Tell плагіна.
 """
 
-import subprocess
 import sys
 from pathlib import Path
 

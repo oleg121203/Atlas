@@ -3,7 +3,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 def setup_macos_environment():
     """Set up macOS-specific environment variables and configurations."""
@@ -86,7 +85,6 @@ def check_macos_permissions():
 def setup_macos_dock_icon():
     """Set up dock icon for the application."""
     try:
-        import tkinter as tk
         from pathlib import Path
         
         #Look for icon file

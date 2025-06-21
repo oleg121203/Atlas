@@ -5,9 +5,7 @@ Test enhanced chat memory system with mode isolation
 
 import sys
 import os
-import asyncio
 import tempfile
-import shutil
 from pathlib import Path
 
 #Add parent directory to Python path
@@ -139,7 +137,7 @@ def test_plugin_memory_isolation():
         
         #Test plugin stats
         stats = plugin_manager.get_plugin_stats()
-        print(f"\n📈 Plugin System Stats:")
+        print("\n📈 Plugin System Stats:")
         for key, value in stats.items():
             print(f"   {key}: {value}")
         
@@ -217,7 +215,7 @@ def test_memory_cleanup_and_ttl():
         
         #Test memory stats
         memory_stats = memory_manager.get_memory_stats()
-        print(f"\n📊 Memory Statistics:")
+        print("\n📊 Memory Statistics:")
         for scope, types in memory_stats.items():
             print(f"   {scope}: {len(types)} types")
             for mem_type, stats in types.items():

@@ -2,7 +2,6 @@
 """Simple integration test for Ultimate AI Assistant"""
 
 import sys
-import os
 from pathlib import Path
 
 #Add plugin to path
@@ -12,7 +11,7 @@ sys.path.insert(0, str(plugin_dir))
 def main():
     try:
         #Test import
-        from ultimate_ai_assistant import UltimateAIAssistant, register
+        from ultimate_ai_assistant import register
         print("✅ Import successful")
         
         #Test registration

@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 import chromadb
 from chromadb import EmbeddingFunction
 
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from utils.config_manager import ConfigManager
 from monitoring.metrics_manager import metrics_manager
 

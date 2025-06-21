@@ -5,12 +5,10 @@ UI component for displaying chat-style history messages.
 import customtkinter as ctk
 from typing import Dict, List
 import re
-from typing import List, Dict, Any, Optional
 import tkinter as tk
 
 from pygments import lex
 from pygments.lexers import get_lexer_by_name, guess_lexer
-from pygments.token import Token
 
 
 class ChatHistoryView(ctk.CTkFrame):
@@ -184,6 +182,10 @@ class ChatHistoryView(ctk.CTkFrame):
     def get_history(self) -> List[Dict[str, str]]:
         """Returns the entire chat history as a list of dictionaries."""
         return self.history
+
+    def _apply_markdown_formatting(self, text: str, default_tag: str):
+        """Placeholder for markdown formatting. Inserts text with the default tag."""
+        self.textbox.insert("end", text, (default_tag,))
 
     def _apply_syntax_highlighting(self, text: str, default_tag: str):
         """Enhanced syntax highlighting for code blocks, inline code, and markdown formatting."""

@@ -4,25 +4,16 @@
 """
 
 import sys
-import os
-import time
-
-#Додаємо Atlas до шляху
-atlas_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, atlas_dir)
+from utils.llm_manager import LLMManager
+from agents.token_tracker import TokenTracker
+from config_manager import ConfigManager
 
 def test_chat():
     """Тест чату без помилок"""
     print("🧪 Тестування чату Atlas...")
     
     try:
-        from agents.llm_manager import LLMManager
-        from agents.token_tracker import TokenTracker
-        from config_manager import ConfigManager
-        from logger import Logger
-        
         #Initialization компонентів
-        logger = Logger("test_chat")
         config_manager = ConfigManager()
         token_tracker = TokenTracker()
         

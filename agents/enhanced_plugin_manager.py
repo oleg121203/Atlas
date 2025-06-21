@@ -2,7 +2,6 @@
 Enhanced Plugin Manager with memory isolation and better organization
 """
 
-import logging
 import importlib.util
 import inspect
 import json
@@ -12,7 +11,7 @@ from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from agents.agent_manager import AgentManager
-    from agents.llm_manager import LLMManager
+    from utils.llm_manager import LLMManager
 
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from utils.config_manager import ConfigManager

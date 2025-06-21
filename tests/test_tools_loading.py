@@ -18,7 +18,7 @@ def test_tools_loading():
     try:
         from config_manager import ConfigManager
         from agents.agent_manager import AgentManager
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         from agents.memory_manager import EnhancedMemoryManager
         from agents.token_tracker import TokenTracker
         
@@ -66,7 +66,7 @@ def test_tools_loading():
                 missing_tools.append(tool_name)
                 print(f"  ❌ {tool_name}: відсутній")
         
-        print(f"\n📊 Статистика:")
+        print("\n📊 Статистика:")
         print(f"  ✅ Знайдено: {len(found_tools)}")
         print(f"  ❌ Відсутніх: {len(missing_tools)}")
         
@@ -88,7 +88,7 @@ def test_tools_loading():
             
         #Фінальна оцінка
         success_rate = len(found_tools) / len(expected_tools) * 100
-        print(f"\n🎯 Результат тесту:")
+        print("\n🎯 Результат тесту:")
         print(f"  📈 Успішність завантаження: {success_rate:.1f}%")
         
         if success_rate >= 80:

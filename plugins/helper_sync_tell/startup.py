@@ -6,7 +6,6 @@ plugin is properly loaded and integrated with the helper mode.
 """
 
 import logging
-import importlib
 import sys
 from pathlib import Path
 

@@ -1,14 +1,9 @@
 import unittest
-import sys
-import os
 from unittest.mock import MagicMock, patch
 import json
 
-#Add the project root to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from agents.master_agent import MasterAgent
-from agents.llm_manager import LLMManager, LLMResult
+from utils.llm_manager import LLMManager, LLMResult
 
 
 class TestGoalClarification(unittest.TestCase):
@@ -101,10 +96,10 @@ class TestGoalClarification(unittest.TestCase):
 
         #Mock decomposition to check if it's called with the new goal
         with patch.object(self.master_agent, '_decompose_goal', return_value=[clarified_goal]) as mock_decompose:
-            #The execution continues inside run_once after the pause loop
-            #To simulate this, we can't call run_once again. We need to check the state.
-            #This part is tricky to test without threading. Let's check the goal was updated.
-            self.assertEqual(self.master_agent.goals[-1], clarified_goal)
+            # With the goal clarified, run the agent again to process the new goal.
+            self.master_agent.run_once(self.master_agent.goals[-1])
+            # Verify that the agent attempts to decompose the now-clarified goal.
+            mock_decompose.assert_called_once_with(clarified_goal)
 
 
 if __name__ == '__main__':

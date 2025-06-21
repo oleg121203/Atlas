@@ -54,7 +54,7 @@ def test_tool_loading():
     print("🛠️ Testing tool loading at startup...")
     
     try:
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         from agents.enhanced_memory_manager import EnhancedMemoryManager
         from agents.agent_manager import AgentManager
         from agents.token_tracker import TokenTracker
@@ -82,7 +82,7 @@ def test_tool_loading():
         if missing_tools:
             print(f"   ⚠️ Missing critical tools: {missing_tools}")
         else:
-            print(f"   ✅ All critical tools present")
+            print("   ✅ All critical tools present")
             
         return len(tool_names) > 0
     except Exception as e:
@@ -95,7 +95,7 @@ def test_chat_mode_detection():
     print("🗣️ Testing chat mode detection...")
     
     try:
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         from agents.enhanced_memory_manager import EnhancedMemoryManager
         from agents.chat_context_manager import ChatContextManager, ChatMode
         from agents.token_tracker import TokenTracker
@@ -142,7 +142,6 @@ def test_headless_robustness():
     
     try:
         #Test that tools with GUI dependencies handle gracefully
-        import sys
         old_display = os.environ.get('DISPLAY')
         
         #Simulate headless environment
@@ -181,7 +180,7 @@ def test_headless_robustness():
                 img.save(tmp.name)
                 result = ocr_file(tmp.name)
                 os.unlink(tmp.name)  #Clean up
-            print(f"   ✅ OCR tool works with available dependencies")
+            print("   ✅ OCR tool works with available dependencies")
         except (RuntimeError, ImportError) as e:
             if "not available" in str(e):
                 print(f"   ✅ OCR tool handles missing dependencies: {type(e).__name__}")

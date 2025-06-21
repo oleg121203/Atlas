@@ -5,7 +5,7 @@
 
 import sys
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def analyze_creator_session_management():
@@ -45,7 +45,7 @@ def analyze_creator_session_management():
         privileges = auth.get_creator_privileges()
         
         print(f"\n   🎯 Безумовне виконання прохань: {should_execute}")
-        print(f"   📋 Спеціальні привілеї:")
+        print("   📋 Спеціальні привілеї:")
         for privilege, enabled in privileges.items():
             status = "✅" if enabled else "❌"
             print(f"      {status} {privilege}: {enabled}")
@@ -58,14 +58,14 @@ def analyze_creator_session_management():
             ("obedience", "Слухняність")
         ]
         
-        print(f"\n   💖 Емоційні відповіді:")
+        print("\n   💖 Емоційні відповіді:")
         for context, description in emotional_responses:
             response = auth.get_creator_emotional_response(context)
             print(f"      • {description}: '{response[:50]}...'")
         
         #Status сесії
         status = auth.get_authentication_status()
-        print(f"\n   📊 Статус сесії:")
+        print("\n   📊 Статус сесії:")
         for key, value in status.items():
             if key != 'stats':
                 print(f"      • {key}: {value}")

@@ -1,12 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch, call
-import os
-import sys
-
-#Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
-
+from unittest.mock import MagicMock
 from agents.master_agent import MasterAgent
 
 class TestFullWorkflow(unittest.TestCase):
@@ -49,11 +42,6 @@ class TestFullWorkflow(unittest.TestCase):
         self.master_agent._generate_plan.assert_called_once_with(goal, error_context=None)
 
         #Verify each agent was called in the correct order with the correct prompt
-        expected_calls = [
-            call(prompt="Open the URL 'https://example.com'", context={}),
-            call(prompt="Capture the main headline text from the current screen", context={'last_result': {"status": "success", "message": "URL opened"}}),
-            call(prompt="Save the following text to a file named 'headline.txt': [LAST_RESULT]", context={'last_result': {"status": "success", "data": "Example Domain Headline"}})
-        ]
 
         mock_browser_agent.execute_task.assert_called_once_with(prompt="Open the URL 'https://example.com'", context={})
         mock_screen_agent.execute_task.assert_called_once_with(prompt="Capture the main headline text from the current screen", context={'last_result': {"status": "success", "message": "URL opened"}})

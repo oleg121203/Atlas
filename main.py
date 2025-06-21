@@ -7,7 +7,6 @@ loads configuration.
 """
 
 import sys
-import os
 import platform
 
 #Load environment variables first
@@ -26,20 +25,17 @@ from utils.platform_utils import (
 #Configure for current platform
 configure_for_platform()
 
-import sys
 import tkinter as tk
 import customtkinter as ctk
-from PIL import Image
 from customtkinter import CTkImage
 import argparse
 import json
 import logging
 import multiprocessing
 import inspect
-import io
 import threading
 from datetime import datetime
-from typing import List, Callable, Dict, Any
+from typing import Dict, Any
 
 from tools.screenshot_tool import capture_screen
 from tools.code_reader_tool import CodeReaderTool
@@ -53,13 +49,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from agents.master_agent import MasterAgent
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from monitoring.metrics_manager import metrics_manager
-from agents.deputy_agent import DeputyAgent
-from agents.security_agent import SecurityAgent
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
+from intelligence.context_awareness_engine import ContextAwarenessEngine
 from ui.chat_history_view import ChatHistoryView
 from ui.plan_view import PlanView
-from ui.fallback_chain_editor import FallbackChainEditor
 from ui.tool_management_view import ToolManagementView
 from ui.status_panel import StatusPanel
 from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
@@ -80,8 +74,7 @@ if IS_MACOS:
     from utils.macos_utils import (
         configure_macos_gui, 
         check_macos_permissions,
-        setup_macos_dock_icon,
-        get_macos_app_support_dir
+        setup_macos_dock_icon
     )
 
 
@@ -152,12 +145,16 @@ class AtlasApp(ctk.CTk):
         #Initialize Master Agent
         self.last_goal = None
         self.current_plan = None
+        project_root = os.path.dirname(os.path.abspath(__file__))
+        self.context_awareness_engine = ContextAwarenessEngine(project_root=project_root)
+
         self.master_agent = MasterAgent(
-            llm_manager=self.llm_manager,
             agent_manager=self.agent_manager,
+            llm_manager=self.llm_manager,
             memory_manager=self.memory_manager,
+            context_awareness_engine=self.context_awareness_engine,
             status_callback=self._handle_agent_status,
-            creator_auth=self.creator_auth,
+            creator_auth=self.creator_auth
         )
 
         #Set the LLM manager for translation after master_agent is created
@@ -245,13 +242,13 @@ class AtlasApp(ctk.CTk):
             elif msg_type == "step_end":
                 self.plan_view.update_step_status(data['index'], "end", data)
             elif msg_type == "request_clarification":
-                self.chat_history_view.add_structured_message(message)
+                self.chat_history_view.add_message(message['role'], message['content'])
                 self._prompt_for_clarification(content)
             elif msg_type == "request_feedback":
-                self.chat_history_view.add_structured_message(message)
+                self.chat_history_view.add_message(message['role'], message['content'])
                 self._prompt_for_feedback(content)
             elif msg_type == "success":
-                self.chat_history_view.add_structured_message(message)
+                self.chat_history_view.add_message(message['role'], message['content'])
                 #Add to goal history
                 if self.last_goal:
                     self.goal_history_manager.add_goal(
@@ -272,9 +269,9 @@ class AtlasApp(ctk.CTk):
                         steps_completed=data.get('steps_completed'),
                         total_steps=data.get('total_steps')
                     )
-                self.chat_history_view.add_structured_message(message)
+                self.chat_history_view.add_message(message['role'], message['content'])
             else:
-                self.chat_history_view.add_structured_message(message)
+                self.chat_history_view.add_message(message['role'], message['content'])
         
         self.after(0, _update_ui)
 
@@ -361,7 +358,7 @@ class AtlasApp(ctk.CTk):
             #Протоколи успішно перевірені
             return True
             
-        except Exception as e:
+        except Exception:
             #Якщо сталася помилка при перевірці
             import tkinter as tk
             from tkinter import messagebox
@@ -725,7 +722,7 @@ class AtlasApp(ctk.CTk):
                     TaskStatus.PAUSED: "yellow"
                 }.get(task.status, "gray")
                 
-                status_label = ctk.CTkLabel(task_frame, text=f"●", text_color=status_color, font=("Arial", 20))
+                status_label = ctk.CTkLabel(task_frame, text="●", text_color=status_color, font=("Arial", 20))
                 status_label.grid(row=0, column=0, padx=5, pady=5)
                 
                 #Task info
@@ -1308,7 +1305,7 @@ class AtlasApp(ctk.CTk):
             self.chat_history_view.add_message("system", "All settings saved and applied successfully.")
         except Exception as e:
             self.logger.error(f"Failed to save settings: {e}", exc_info=True)
-            self.chat_history_view.add_message("system", f"Error: Failed to save settings. Check logs.")
+            self.chat_history_view.add_message("system", "Error: Failed to save settings. Check logs.")
 
     def _load_settings(self):
         """Load settings from the config file into memory."""
@@ -1754,6 +1751,16 @@ class AtlasApp(ctk.CTk):
             self.chat_history_view.load_history(state.get("chat_history", []))
             self.logger.info("Application state loaded.")
 
+    def _copy_input_text(self):
+        """Copies the selected text from the chat input to the clipboard."""
+        try:
+            selected_text = self.chat_input.get("sel.first", "sel.last")
+            self.clipboard_clear()
+            self.clipboard_append(selected_text)
+        except tk.TclError:
+            # No text selected, do nothing
+            pass
+
     def _create_chat_tab(self, tab):
         """Creates the interactive chat interface for user-Atlas communication."""
         tab.grid_columnconfigure(0, weight=1)
@@ -2021,7 +2028,7 @@ The current mode will be shown above. How can I help you today?"""
                     
                     #Show authentication status (less detailed)
                     auth_status = self.creator_auth.get_authentication_status()
-                    status_msg = f"🔐 Привілейований доступ активовано"
+                    status_msg = "🔐 Привілейований доступ активовано"
                     translated_status = self.chat_translation_manager.process_outgoing_response(status_msg)
                     self.after(0, lambda: self.chat_view.add_message("assistant", translated_status))
                     
@@ -2204,7 +2211,7 @@ The current mode will be shown above. How can I help you today?"""
                     #Run goal execution in a separate thread
                     threading.Thread(target=execute_goal, daemon=True).start()
                     
-                except Exception as e:
+                except Exception:
                     self.after(0, lambda: self.chat_view.add_message("assistant", f"❌ Error setting up goal execution: {str(e)}"))
             
             else:
@@ -2878,6 +2885,8 @@ def main():
     parser.add_argument("--cli", action="store_true", help="Run in CLI mode (no GUI)")
     parser.add_argument("--headless", action="store_true", help="Run in headless mode")
     parser.add_argument("--platform-info", action="store_true", help="Show platform information and exit")
+    parser.add_argument("--platform", help="Target platform (e.g., macos)")
+    parser.add_argument("--gui-mode", help="GUI mode (e.g., native)")
     args = parser.parse_args()
     
     #Show platform info if requested
@@ -2909,28 +2918,21 @@ def main():
             #Platform-specific setup
             if IS_MACOS:
                 check_macos_permissions()
-            
+
             #Create and run the GUI application
             print(f"Starting Atlas GUI on {platform.system()}...")
             app = AtlasApp()
             app.mainloop()
-            
+
     except KeyboardInterrupt:
-        print("\nAtlas shutdown requested by user")
+        print("\nAtlas shutdown requested by user.")
         sys.exit(0)
     except Exception as e:
-        print(f"Error starting Atlas: {e}")
+        print(f"Fatal error starting Atlas: {e}")
         if args.debug:
             import traceback
             traceback.print_exc()
         sys.exit(1)
-        app.mainloop()
-    except KeyboardInterrupt:
-        print("\nAtlas shutdown requested by user.")
-    except Exception as e:
-        print(f"Fatal error starting Atlas: {e}")
-        import traceback
-        traceback.print_exc()
 
 
 if __name__ == "__main__":

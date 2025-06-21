@@ -5,7 +5,7 @@
 
 import re
 import logging
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple, Optional
 from enum import Enum
 from dataclasses import dataclass
 
@@ -467,7 +467,7 @@ def test_mode_detector():
     
     #Статистика
     stats = detector.get_detection_stats()
-    print(f"\n📈 Статистика детекції:")
+    print("\n📈 Статистика детекції:")
     for mode, count in stats["mode_counts"].items():
         print(f"   • {mode}: {count}")
     

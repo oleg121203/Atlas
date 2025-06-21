@@ -16,7 +16,7 @@ except Exception as e:
     print(f"❌ TokenTracker: {e}")
 
 try:
-    from agents.llm_manager import LLMManager
+    from utils.llm_manager import LLMManager
     print("✅ LLMManager")
 except Exception as e:
     print(f"❌ LLMManager: {e}")
@@ -43,7 +43,7 @@ print("\n2. Тестую створення компонентів...")
 
 try:
     from agents.token_tracker import TokenTracker
-    from agents.llm_manager import LLMManager
+    from utils.llm_manager import LLMManager
     
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker)

@@ -7,13 +7,12 @@ Manages different conversation modes and provides context-aware responses.
 
 import re
 import logging
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
-from datetime import datetime
 import time
 
-from .enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
+from .enhanced_memory_manager import EnhancedMemoryManager
 
 logger = logging.getLogger(__name__)
 

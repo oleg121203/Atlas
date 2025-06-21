@@ -8,10 +8,9 @@ plugin management, and system configuration.
 
 import customtkinter as ctk
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import messagebox, filedialog
 import json
-import os
-from typing import Dict, Any, Callable, Optional
+from typing import Callable, Optional
 
 
 class EnhancedSettingsView(ctk.CTkFrame):
@@ -409,7 +408,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         
         #Import here to avoid circular imports
         try:
-            from agents.llm_manager import LLMManager
+            from utils.llm_manager import LLMManager
             from agents.token_tracker import TokenTracker
             
             #Create temporary LLM manager for testing
@@ -462,7 +461,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         
         def check_models():
             try:
-                from agents.llm_manager import LLMManager
+                from utils.llm_manager import LLMManager
                 from agents.token_tracker import TokenTracker
                 
                 token_tracker = TokenTracker()
@@ -477,7 +476,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                             text="Ollama: Not running", text_color="red"
                         ))
                         return
-                except:
+                except requests.exceptions.RequestException:
                     self.after(0, lambda: self.ollama_status_label.configure(
                         text="Ollama: Not running", text_color="red"
                     ))
@@ -506,7 +505,8 @@ class EnhancedSettingsView(ctk.CTkFrame):
                     ))
                     
             except Exception as e:
-                self.after(0, lambda: self.ollama_status_label.configure(
+                # Capture e in the lambda
+                self.after(0, lambda e=e: self.ollama_status_label.configure(
                     text=f"Ollama: Error - {str(e)[:30]}...", text_color="red"
                 ))
             finally:

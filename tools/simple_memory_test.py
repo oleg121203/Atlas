@@ -5,11 +5,9 @@ Simple test of chat memory isolation features
 
 import sys
 import os
-import tempfile
-from pathlib import Path
 from enum import Enum
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 #Add parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

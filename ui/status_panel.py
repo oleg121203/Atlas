@@ -7,9 +7,6 @@ Real-time status display showing agent activity, progress, and logs.
 
 import customtkinter as ctk
 import tkinter as tk
-from tkinter import ttk
-import threading
-import time
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -169,8 +166,8 @@ class StatusPanel(ctk.CTkFrame):
         self.log_text.insert(tk.END, log_entry)
         
         #Apply color coding based on level
-        start_idx = self.log_text.index(f"end-2l linestart")
-        end_idx = self.log_text.index(f"end-1l lineend")
+        start_idx = self.log_text.index("end-2l linestart")
+        end_idx = self.log_text.index("end-1l lineend")
         
         if level in ["ERROR", "WARNING", "SUCCESS", "INFO"]:
             self.log_text.tag_add(level, start_idx, end_idx)

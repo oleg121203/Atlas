@@ -7,7 +7,7 @@ import sys
 sys.path.append('/workspaces/Atlas')
 
 try:
-    from agents.chat_context_manager import ChatContextManager, ChatMode
+    from agents.chat_context_manager import ChatContextManager
     
     #Initialize the context manager
     manager = ChatContextManager()
@@ -71,9 +71,9 @@ try:
         print(f"   🔧 Advanced features: {len(advanced_features)} detected")
         
         if len(tools_mentioned) >= 2 and len(advanced_features) >= 3:
-            print(f"   ✅ ENHANCED: Professional-grade analysis capabilities active")
+            print("   ✅ ENHANCED: Professional-grade analysis capabilities active")
         else:
-            print(f"   ⚠️  BASIC: Standard analysis (may need enhancement)")
+            print("   ⚠️  BASIC: Standard analysis (may need enhancement)")
     
     print("\n🎯 System Help mode enhancements:")
     print("   • Dependency analysis integration ✅")

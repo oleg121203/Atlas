@@ -4,7 +4,6 @@ Comprehensive validation script for Helper Sync Tell plugin.
 Tests all aspects including import, registration, execution, and integration.
 """
 
-import os
 import sys
 import json
 import traceback
@@ -75,7 +74,7 @@ def test_plugin_execution(plugin):
         query = "How can I create a secure web application with user authentication?"
         result = plugin(query)  #Use __call__ method
         
-        print(f"✅ Plugin execution successful")
+        print("✅ Plugin execution successful")
         print(f"   Query: {query}")
         print(f"   Result type: {type(result)}")
         print(f"   Result length: {len(str(result)) if result else 0} chars")
@@ -98,14 +97,12 @@ def test_atlas_integration():
     
     try:
         #Test config manager import
-        from config_manager import ConfigManager
         print("✅ ConfigManager import successful")
     except Exception as e:
         print(f"⚠️  ConfigManager import failed: {e}")
     
     try:
         #Test logger import
-        from logger import Logger
         print("✅ Logger import successful")
     except Exception as e:
         print(f"⚠️  Logger import failed: {e}")

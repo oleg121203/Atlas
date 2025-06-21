@@ -4,7 +4,6 @@ Uses Vision framework on macOS when available, falling back to pytesseract.
 """
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -33,7 +32,6 @@ __all__ = ["ocr_image", "ocr_file"]
 
 def _vision_ocr(img: Image.Image) -> str:
     """Perform OCR using macOS Vision framework."""
-    import objc  #type: ignore
 
     cg_img = img.convert("RGB").toqpixmap().toImage()
     handler = Vision.VNImageRequestHandler.alloc().initWithCGImage_options_(cg_img, None)

@@ -2,7 +2,7 @@
 Specialized agent for screen analysis and interaction.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from agents.base_agent import BaseAgent
 from agents.enhanced_memory_manager import MemoryScope, MemoryType

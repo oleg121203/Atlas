@@ -3,17 +3,13 @@
 Фінальний тест всієї системи конфігурації Atlas
 """
 
-import os
+
 import sys
 import tempfile
 from pathlib import Path
 
-#Додаємо шлях до проекту
-project_root = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)
-
 from utils.config_manager import ConfigManager
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 
 def test_complete_system():
     """Тестуємо повну систему конфігурації."""

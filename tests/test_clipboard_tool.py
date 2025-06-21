@@ -1,13 +1,5 @@
 import unittest
 from unittest.mock import patch
-import os
-import sys
-
-#Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
-
-#Import the functions to be tested
 from tools.clipboard_tool import set_clipboard_text, get_clipboard_text
 
 class TestClipboardToolFunctions(unittest.TestCase):

@@ -21,9 +21,9 @@ try:
         def chat(self, messages):
             content = messages[0]["content"]
             if "Analysis:" in content:
-                return type('Response', (), {'content': f"Mock analysis for the question in the prompt"})
+                return type('Response', (), {'content': "Mock analysis for the question in the prompt"})
             elif "Comprehensive response:" in content:
-                return type('Response', (), {'content': f"Mock comprehensive response based on analyses"})
+                return type('Response', (), {'content': "Mock comprehensive response based on analyses"})
             else:
                 return type('Response', (), {'content': f"Mock response to: {content[:50]}..."})
     

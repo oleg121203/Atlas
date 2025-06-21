@@ -7,6 +7,7 @@ from pathlib import Path
 from PIL import Image
 import tempfile
 import subprocess
+import importlib.util
 
 def test_imports():
     """Test if required modules can be imported."""
@@ -31,16 +32,11 @@ def test_imports():
     
     #Test macOS specific imports
     print("\nmacOS-specific imports:")
-    try:
-        from Quartz import (
-            CGWindowListCreateImage, CGRectInfinite, kCGWindowListOptionOnScreenOnly,
-            CGMainDisplayID, kCGWindowImageDefault, CGImageGetWidth, CGImageGetHeight,
-            CGImageGetBytesPerRow, CGImageGetDataProvider, CGDataProviderCopyData
-        )
-        print("✅ Quartz: All functions available")
+    if importlib.util.find_spec("Quartz"):
+        print("✅ Quartz: Available")
         return True
-    except ImportError as e:
-        print(f"❌ Quartz: {e}")
+    else:
+        print("❌ Quartz: Not available. This is expected if not on macOS or if PyObjC is not installed.")
         return False
 
 def test_native_screencapture():
@@ -173,7 +169,7 @@ def test_applescript_capture():
             tmp_path = tmp_file.name
         
         #Simple AppleScript that just calls screencapture
-        applescript = f'do shell script "screencapture -x \\"{tmp_path}\\""'
+        applescript = f'do shell script "screencapture -x \"{tmp_path}\""'
         
         result = subprocess.run([
             'osascript', '-e', applescript
@@ -229,9 +225,10 @@ def test_integrated_screenshot():
     print("TESTING INTEGRATED SCREENSHOT TOOL")
     print("=" * 60)
     
+    project_root = str(Path(__file__).parent.parent)
     try:
-        #Add current directory to path to import our module
-        sys.path.insert(0, str(Path(__file__).parent))
+        #Add project root to path to import our module
+        sys.path.insert(0, project_root)
         from tools.screenshot_tool import capture_screen
         
         print("✅ Screenshot tool imported")
@@ -253,6 +250,10 @@ def test_integrated_screenshot():
         print(f"❌ Integrated screenshot error: {e}")
         traceback.print_exc()
         return False
+    finally:
+        # Clean up sys.path
+        if project_root in sys.path:
+            sys.path.remove(project_root)
 
 def main():
     """Run all tests."""

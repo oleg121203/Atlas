@@ -17,7 +17,7 @@ except ImportError:
     _PYPERCLIP_AVAILABLE = False
 
 try:
-    from AppKit import NSPasteboard, NSStringPboardType, NSImage  #type: ignore
+    from AppKit import NSPasteboard, NSStringPboardType  #type: ignore
     _APPKIT_AVAILABLE = True
 except ImportError:
     _APPKIT_AVAILABLE = False

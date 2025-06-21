@@ -15,11 +15,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from queue import Queue, Empty
 from typing import Dict, List, Optional, Any, Callable
-from pathlib import Path
 
-from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
+from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryType
 from agents.master_agent import MasterAgent
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.agent_manager import AgentManager
 from utils.config_manager import ConfigManager
 from utils.logger import get_logger
@@ -587,7 +586,7 @@ def demo_task_manager():
         print(f"✅ Created Task 3: {task3_id}")
         
         #Monitor task execution
-        print(f"\n📊 Monitoring task execution...")
+        print("\n📊 Monitoring task execution...")
         
         for i in range(20):  #Monitor for 20 seconds
             stats = task_manager.get_task_statistics()
@@ -607,13 +606,13 @@ def demo_task_manager():
             time.sleep(1)
         
         #Final statistics
-        print(f"\n📈 Final Statistics:")
+        print("\n📈 Final Statistics:")
         final_stats = task_manager.get_task_statistics()
         for key, value in final_stats.items():
             if key != 'api_stats':
                 print(f"   {key}: {value}")
         
-        print(f"\n🔍 Task Details:")
+        print("\n🔍 Task Details:")
         for task_id in tasks:
             task = task_manager.get_task(task_id)
             if task:
@@ -629,14 +628,14 @@ def demo_task_manager():
                     print(f"      Error: {task.error}")
         
         #API Usage Statistics
-        print(f"\n🌐 API Usage Statistics:")
+        print("\n🌐 API Usage Statistics:")
         api_stats = final_stats['api_stats']
         for provider, stats in api_stats.items():
             print(f"   {provider}: {stats['current_usage']}/{stats['limit']} ({stats['utilization']:.1f}%)")
         
     finally:
         task_manager.stop()
-        print(f"\n🎉 TaskManager demo completed!")
+        print("\n🎉 TaskManager demo completed!")
 
 
 if __name__ == "__main__":

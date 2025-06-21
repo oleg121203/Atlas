@@ -10,17 +10,17 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
-from utils.logger import Logger
+
 
 def test_openai_fallback():
     """Test OpenAI fallback functionality"""
     print("🔄 Testing OpenAI → Gemini Fallback...")
     
     #Initialize components
-    logger = Logger("test_openai_fallback")
+
     config_manager = ConfigManager()
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker, config_manager)

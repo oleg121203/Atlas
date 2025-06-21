@@ -6,7 +6,6 @@
 відповідно до інструкцій платформи.
 """
 
-import os
 import sys
 from pathlib import Path
 

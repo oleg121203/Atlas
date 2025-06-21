@@ -6,7 +6,6 @@ Installs required dependencies and browser drivers
 
 import subprocess
 import sys
-import os
 import platform
 from pathlib import Path
 

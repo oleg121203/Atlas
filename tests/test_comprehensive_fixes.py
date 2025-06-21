@@ -92,7 +92,7 @@ def test_llm_manager():
             def add_usage(self, usage):
                 pass
         
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         
         token_tracker = MockTokenTracker()
         llm_mgr = LLMManager(token_tracker)

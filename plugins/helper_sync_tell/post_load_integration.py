@@ -8,7 +8,6 @@ the plugin loading phase.
 
 import logging
 import sys
-from typing import Optional
 
 logger = logging.getLogger("HelperSyncTellIntegration")
 

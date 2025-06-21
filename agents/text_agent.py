@@ -5,7 +5,7 @@ Specialized agent for text processing and generation.
 from typing import Any, Dict
 
 from agents.base_agent import BaseAgent
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 
 
 class TextAgent(BaseAgent):

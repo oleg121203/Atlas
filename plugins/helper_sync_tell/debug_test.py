@@ -16,10 +16,6 @@ print(f"Python path: {sys.path[:3]}...")
 
 print("\n1. Testing basic imports...")
 try:
-    import logging
-    import time
-    import uuid
-    import json
     print("✅ Standard library imports successful")
 except Exception as e:
     print(f"❌ Standard library import error: {e}")

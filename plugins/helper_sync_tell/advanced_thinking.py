@@ -16,7 +16,7 @@ Key improvements based on AI assistant experience:
 import logging
 import time
 import uuid
-from typing import List, Dict, Any, Optional, Callable, Union, Tuple
+from typing import List, Dict, Any, Callable, Tuple
 import sys
 import json
 import re
@@ -148,7 +148,7 @@ class AdvancedAIThinkingTool:
             "uncertainty_resolutions": 0
         }
         
-        self.logger.info(f"Advanced AI Thinking Tool initialized")
+        self.logger.info("Advanced AI Thinking Tool initialized")
         self.logger.info(f"Available strategies: {[s.value for s in ThinkingStrategy]}")
 
     def _assess_capabilities(self) -> Dict[str, bool]:
@@ -1114,7 +1114,7 @@ class AdvancedAIThinkingTool:
                     
                     #Check for advanced keywords
                     if any(keyword in message_lower for keyword in advanced_keywords):
-                        self.logger.info(f"Using Advanced AI Thinking (fallback detection)")
+                        self.logger.info("Using Advanced AI Thinking (fallback detection)")
                         
                         #Prepare enhanced tools
                         available_tools = {}
@@ -1182,7 +1182,7 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
         if atlas_app:
             integration_success = tool.integrate_with_atlas_help_mode(atlas_app)
         
-        logging.info(f"Advanced AI Thinking Tool registered successfully")
+        logging.info("Advanced AI Thinking Tool registered successfully")
         logging.info(f"Available strategies: {[s.value for s in ThinkingStrategy]}")
         
         if integration_success:

@@ -18,6 +18,7 @@ from .terminal_tool import (
     execute_command, execute_script, get_environment, 
     change_directory, kill_process, TerminalResult
 )
+from .web_browser_tool import open_url
 
 __all__ = [
     #Screenshot
@@ -34,4 +35,6 @@ __all__ = [
     #Terminal
     "execute_command", "execute_script", "get_environment", 
     "change_directory", "kill_process", "TerminalResult",
+    # Web Browser
+    "open_url",
 ]

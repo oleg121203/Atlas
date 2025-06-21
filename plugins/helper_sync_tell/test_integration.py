@@ -20,7 +20,7 @@ try:
     
     #Test basic registration
     result = plugin.register()
-    print(f"✅ Basic registration successful")
+    print("✅ Basic registration successful")
     print(f"   Tools: {len(result.get('tools', []))}")
     print(f"   Metadata version: {result.get('metadata', {}).get('version', 'unknown')}")
     
@@ -42,7 +42,7 @@ try:
     
     #Test registration with mock app
     result_with_app = plugin.register(atlas_app=mock_app)
-    print(f"✅ Registration with mock app successful")
+    print("✅ Registration with mock app successful")
     
     integration_status = result_with_app.get('metadata', {}).get('integration_status', False)
     print(f"   Integration status: {integration_status}")
@@ -61,7 +61,7 @@ try:
         try:
             #Test without tools
             response = tool(test_query)
-            print(f"✅ Enhanced thinking test successful")
+            print("✅ Enhanced thinking test successful")
             print(f"   Response length: {len(response)} characters")
             print(f"   Response preview: {response[:100]}...")
             
@@ -72,7 +72,7 @@ try:
     if result.get('tools'):
         tool = result['tools'][0]
         platform_info = tool.platform_info
-        print(f"✅ Platform detection working")
+        print("✅ Platform detection working")
         print(f"   System: {platform_info.get('system', 'unknown')}")
         print(f"   Python version: {platform_info.get('python_version', 'unknown')}")
         print(f"   Is macOS: {platform_info.get('is_macos', False)}")

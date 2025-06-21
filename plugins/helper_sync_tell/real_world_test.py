@@ -5,7 +5,6 @@ This simulates how Atlas would actually use the plugin in helper mode.
 """
 
 import sys
-import os
 from pathlib import Path
 
 #Add Atlas to path
@@ -102,7 +101,7 @@ def test_end_to_end_scenario():
         print("📝 Processing complex query...")
         result = plugin(complex_query.strip())
         
-        print(f"✅ Query processed successfully")
+        print("✅ Query processed successfully")
         print(f"   Response length: {len(result)} characters")
         
         #Check for structured thinking elements
@@ -128,7 +127,7 @@ def test_end_to_end_scenario():
         print(f"   Technical details included: {'✅' if has_technical_details else '❌'}")
         
         #Print a sample of the response
-        print(f"\n📄 Response Sample (first 300 chars):")
+        print("\n📄 Response Sample (first 300 chars):")
         print("-" * 50)
         print(result[:300] + "..." if len(result) > 300 else result)
         print("-" * 50)

@@ -170,7 +170,7 @@ def test_functionality():
     try:
         # Тест LLMManager
         from agents.token_tracker import TokenTracker
-        from agents.llm_manager import LLMManager
+        from utils.llm_manager import LLMManager
         
         token_tracker = TokenTracker()
         llm_mgr = LLMManager(token_tracker)
@@ -181,7 +181,6 @@ def test_functionality():
     
     try:
         # Тест Gemini API
-        import google.generativeai
         functionality["Google Generative AI"] = True
     except Exception:
         functionality["Google Generative AI"] = False

@@ -4,7 +4,7 @@ import shutil
 from unittest.mock import MagicMock
 
 from agents.agent_manager import AgentManager
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 
 class TestAgentManagerReloading(unittest.TestCase):
 

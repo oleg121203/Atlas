@@ -6,9 +6,7 @@ Checks if critical protocol files and security mechanisms are in place.
 """
 
 import os
-import sys
 import importlib.util
-import inspect
 
 def check_file_exists(path, description):
     """Check if a file exists and print its status."""

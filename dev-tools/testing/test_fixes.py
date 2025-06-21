@@ -8,7 +8,7 @@ sys.path.append('/Users/dev/Documents/autoclicker')
 
 from utils.config_manager import ConfigManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 
 def test_api_keys_saving():
     """Тест storage та loading API ключів."""

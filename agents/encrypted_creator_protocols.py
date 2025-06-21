@@ -8,7 +8,6 @@ Encrypted Creator Protocols for Atlas
 
 import json
 import base64
-import hashlib
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -466,7 +465,7 @@ def test_encrypted_protocols():
     print("\n🔍 Тест читання протоколу без аутентифікації:")
     identity_protocol = protocols.read_protocol("identity")
     if identity_protocol:
-        print(f"   ✅ Протокол ідентифікації прочитано (це нормально для Атласа)")
+        print("   ✅ Протокол ідентифікації прочитано (це нормально для Атласа)")
         print(f"   Версія: {identity_protocol.get('version')}")
     
     print("\n💖 Тест емоційних відповідей:")

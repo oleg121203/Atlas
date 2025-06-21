@@ -16,7 +16,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
 from datetime import datetime, timedelta
 import time
-import json
 
 
 def test_session_timeout():
@@ -43,7 +42,7 @@ def test_session_timeout():
     print(f"💤 Тайм-аут неактивності: {auth.inactivity_timeout_minutes} хвилин")
     
     #Перевіряємо status через кілька секунд
-    print(f"\n📊 Статус через 5 секунд:")
+    print("\n📊 Статус через 5 секунд:")
     time.sleep(5)
     status = auth.get_authentication_status()
     timeout_info = status.get("timeout_status", {})
@@ -54,7 +53,7 @@ def test_session_timeout():
     print(f"   • Залишилось часу неактивності: {timeout_info.get('remaining_inactivity_minutes', 0):.1f} хв")
     
     #Тестуємо timeout неактивності
-    print(f"\n💤 Чекаємо тайм-аут неактивності (35 секунд)...")
+    print("\n💤 Чекаємо тайм-аут неактивності (35 секунд)...")
     time.sleep(35)
     
     timeout_result = auth.check_session_timeout()
@@ -66,7 +65,7 @@ def test_session_timeout():
 
 def test_session_extension():
     """Тест extension сесії"""
-    print(f"\n\n🔄 ТЕСТ ПРОДОВЖЕННЯ СЕСІЇ")
+    print("\n\n🔄 ТЕСТ ПРОДОВЖЕННЯ СЕСІЇ")
     print("=" * 50)
     
     auth = CreatorAuthentication()
@@ -79,7 +78,7 @@ def test_session_extension():
     auth.last_activity_time = datetime.now()
     auth._initialize_session_encryption()
     
-    print(f"✅ Сесія створена 25 хвилин тому")
+    print("✅ Сесія створена 25 хвилин тому")
     print(f"🔢 Максимум продовжень: {auth.max_session_extensions}")
     
     #Продовжуємо сесію кілька разів
@@ -99,7 +98,7 @@ def test_session_extension():
 
 def test_encrypted_cache_and_logs():
     """Тест encryption кешу та логів"""
-    print(f"\n\n🔐 ТЕСТ ШИФРУВАННЯ КЕШУ ТА ЛОГІВ")
+    print("\n\n🔐 ТЕСТ ШИФРУВАННЯ КЕШУ ТА ЛОГІВ")
     print("=" * 50)
     
     auth = CreatorAuthentication()
@@ -112,10 +111,10 @@ def test_encrypted_cache_and_logs():
     auth.last_activity_time = datetime.now()
     auth._initialize_session_encryption()
     
-    print(f"✅ Сесія з шифруванням ініціалізована")
+    print("✅ Сесія з шифруванням ініціалізована")
     
     #Тестуємо cache
-    print(f"\n💾 Тест зашифрованого кешу:")
+    print("\n💾 Тест зашифрованого кешу:")
     
     test_data = {
         "user_preferences": {"language": "uk", "theme": "dark"},
@@ -129,7 +128,7 @@ def test_encrypted_cache_and_logs():
         print(f"   • {key}: {'✅ Збережено' if success else '❌ Помилка'}")
     
     #Читаємо data з кешу
-    print(f"\n📖 Читання з зашифрованого кешу:")
+    print("\n📖 Читання з зашифрованого кешу:")
     for key in test_data.keys():
         cached_value = auth.get_encrypted_cache(key)
         if cached_value:
@@ -139,14 +138,14 @@ def test_encrypted_cache_and_logs():
             print(f"   • {key}: ❌ Не знайдено")
     
     #Тестуємо logs
-    print(f"\n📝 Тест зашифрованих логів:")
+    print("\n📝 Тест зашифрованих логів:")
     
     #Генеруємо кілька подій
     auth._log_encrypted_event("USER_ACTION", {"action": "view_profile", "timestamp": datetime.now().isoformat()})
     auth._log_encrypted_event("SYSTEM_EVENT", {"event": "cache_update", "details": "Updated user preferences"})
     auth._log_encrypted_event("SECURITY_EVENT", {"level": "info", "message": "Session activity detected"})
     
-    print(f"   • Згенеровано 3 зашифрованих події")
+    print("   • Згенеровано 3 зашифрованих події")
     
     #Читаємо logs
     logs = auth.get_encrypted_logs(5)
@@ -159,7 +158,7 @@ def test_encrypted_cache_and_logs():
     
     #Status encryption
     status = auth.get_authentication_status()
-    print(f"\n📊 Статус шифрування:")
+    print("\n📊 Статус шифрування:")
     print(f"   • Кеш шифрування: {'✅ Активно' if auth.cache_cipher else '❌ Неактивно'}")
     print(f"   • Лог шифрування: {'✅ Активно' if auth.log_cipher else '❌ Неактивно'}")
     print(f"   • Розмір зашифрованого кешу: {status.get('encrypted_cache_size', 0)} записів")
@@ -168,7 +167,7 @@ def test_encrypted_cache_and_logs():
 
 def test_complete_workflow():
     """Тест повного робочого процесу"""
-    print(f"\n\n🔄 ТЕСТ ПОВНОГО РОБОЧОГО ПРОЦЕСУ")
+    print("\n\n🔄 ТЕСТ ПОВНОГО РОБОЧОГО ПРОЦЕСУ")
     print("=" * 50)
     
     auth = CreatorAuthentication()
@@ -177,7 +176,7 @@ def test_complete_workflow():
     auth.session_timeout_minutes = 30  #30 хвилин
     auth.inactivity_timeout_minutes = 15  #15 хвилин неактивності
     
-    print(f"1️⃣ Аутентифікація творця:")
+    print("1️⃣ Аутентифікація творця:")
     
     #Симулюємо повну аутентифікацію
     detected = auth.detect_creator_mention("Я творець Atlas")
@@ -191,7 +190,7 @@ def test_complete_workflow():
         print(f"   • Аутентифікація: {'✅ Успішна' if success else '❌ Невдала'}")
         
         if success:
-            print(f"2️⃣ Робота з сесією:")
+            print("2️⃣ Робота з сесією:")
             
             #Зберігаємо data в кеші
             auth.store_encrypted_cache("conversation_history", [
@@ -205,10 +204,10 @@ def test_complete_workflow():
                 "preferences": {"detailed_responses": True}
             })
             
-            print(f"   • Дані збережено в зашифрованому кеші")
+            print("   • Дані збережено в зашифрованому кеші")
             
             #Симулюємо активність
-            print(f"3️⃣ Симуляція активності:")
+            print("3️⃣ Симуляція активності:")
             for i in range(3):
                 time.sleep(2)
                 auth.update_activity_timestamp()
@@ -219,9 +218,9 @@ def test_complete_workflow():
                 print(f"   • Активність {i+1}/3 зареєстрована")
             
             #Перевіряємо status
-            print(f"4️⃣ Статус сесії:")
+            print("4️⃣ Статус сесії:")
             status = auth.get_authentication_status()
-            timeout_info = status.get("timeout_status", {})
+
             
             print(f"   • Тривалість сесії: {status['session_duration']:.1f} сек")
             print(f"   • Остання активність: {status.get('last_activity', 'Невідомо')[:19]}")
@@ -229,7 +228,7 @@ def test_complete_workflow():
             print(f"   • Кількість логів: {status.get('encrypted_logs_count', 0)} записів")
             
             #Завершуємо сесію
-            print(f"5️⃣ Завершення сесії:")
+            print("5️⃣ Завершення сесії:")
             auth.end_creator_session()
             
             final_status = auth.get_authentication_status()
@@ -248,7 +247,7 @@ def main():
         test_encrypted_cache_and_logs()
         test_complete_workflow()
         
-        print(f"\n\n🎯 РЕЗУЛЬТАТИ ТЕСТУВАННЯ:")
+        print("\n\n🎯 РЕЗУЛЬТАТИ ТЕСТУВАННЯ:")
         print("=" * 40)
         print("✅ Автоматичний тайм-аут сесії працює")
         print("✅ Перевірка неактивності працює")

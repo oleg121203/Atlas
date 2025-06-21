@@ -9,7 +9,7 @@ focusing on headless operation and CI/CD compatibility.
 import os
 import sys
 import subprocess
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 def is_headless() -> bool:
     """Check if running in headless environment"""

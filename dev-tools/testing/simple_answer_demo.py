@@ -108,12 +108,12 @@ class MockTaskManager:
             else:
                 print(f"   ⏳ {task_id}: {calls_needed} API calls - QUEUED (rate limit)")
         
-        print(f"\n📈 API Usage Summary:")
+        print("\n📈 API Usage Summary:")
         print(f"   🔥 Total usage: {api_usage['current_usage']}/60 requests")
         print(f"   ✅ Tasks served: {len(api_usage['tasks_served'])}")
         print(f"   📊 Efficiency: {(api_usage['current_usage']/60)*100:.1f}% utilization")
         
-        print(f"\n✅ Single API can serve multiple isolated tasks!")
+        print("\n✅ Single API can serve multiple isolated tasks!")
 
 def answer_user_question():
     """Answer the specific user question about parallel goals."""
@@ -148,7 +148,7 @@ def answer_user_question():
     #Demonstrate API sharing
     task_manager.demonstrate_api_sharing()
     
-    print(f"\n🎯 ПІДСУМОК ВІДПОВІДІ:")
+    print("\n🎯 ПІДСУМОК ВІДПОВІДІ:")
     print("-" * 30)
     print("1️⃣ ПАМ'ЯТЬ: ✅ ТАК - кожне завдання має ПОВНІСТЮ ізольовану пам'ять")
     print("   • Окремий memory_scope для кожного завдання")

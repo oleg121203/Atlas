@@ -8,11 +8,10 @@ print("🧪 Тестування виправлених режимів")
 #Імпорт основних класів
 try:
     import sys
-    import os
     sys.path.append('.')
     
     print("📥 Імпорт модулів...")
-    from agents.chat_context_manager import ChatMode, ChatContext, ModeControl
+    from agents.chat_context_manager import ChatMode
     print("✅ Основні класи імпортовано")
     
     #Verification enum

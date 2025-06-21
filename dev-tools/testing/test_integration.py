@@ -18,7 +18,7 @@ def test_creator_authentication():
     """Тестування системи аутентифікації творця"""
     print("🔐 Тестування CreatorAuthentication...")
     
-    from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
+    from agents.creator_authentication import CreatorAuthentication
     
     auth = CreatorAuthentication()
     
@@ -138,7 +138,7 @@ def main():
             failed += 1
     
     print("\n" + "=" * 50)
-    print(f"📊 РЕЗУЛЬТАТИ ТЕСТУВАННЯ:")
+    print("📊 РЕЗУЛЬТАТИ ТЕСТУВАННЯ:")
     print(f"   ✅ Пройдено: {passed}")
     print(f"   ❌ Не пройдено: {failed}")
     print(f"   📈 Загальний результат: {passed}/{passed + failed}")

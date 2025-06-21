@@ -7,7 +7,6 @@ while maintaining backward compatibility with existing Atlas systems.
 
 import logging
 import sys
-import os
 from pathlib import Path
 
 #Add current directory to path for imports
@@ -186,7 +185,7 @@ def test_hybrid_tool():
             #Test basic functionality
             test_query = "Як можна покращити систему пам'яті в Атлас?"
             response = tool(test_query)
-            print(f"✅ Query processing successful")
+            print("✅ Query processing successful")
             print(f"   Response length: {len(response)} characters")
             print(f"   Response preview: {response[:100]}...")
             

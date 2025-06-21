@@ -16,8 +16,8 @@ def test_gemini_chat():
     
     try:
         #Імпортуємо необхідні класи
-        from agents.token_tracker import TokenTracker, TokenUsage
-        from agents.llm_manager import LLMManager
+        from agents.token_tracker import TokenTracker
+        from utils.llm_manager import LLMManager
         
         #Створюємо token tracker
         token_tracker = TokenTracker()

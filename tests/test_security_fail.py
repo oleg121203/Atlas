@@ -7,8 +7,6 @@
 
 import sys
 import os
-import tempfile
-import shutil
 
 #Додаємо шлях до батьківської директорії
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

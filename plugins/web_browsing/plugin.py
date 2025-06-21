@@ -10,15 +10,11 @@ Supports multiple automation methods with cascading fallbacks:
 import time
 import logging
 import json
-import re
-from typing import Dict, Any, Optional, List, Tuple
-from urllib.parse import urljoin, urlparse
-import subprocess
-import sys
+from typing import Dict, Any, List, Tuple
 import os
 
 #Cross-platform imports
-from utils.platform_utils import IS_MACOS, IS_LINUX, IS_HEADLESS
+from utils.platform_utils import IS_MACOS, IS_HEADLESS
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +70,6 @@ class AdvancedWebBrowser:
         try:
             from selenium import webdriver
             from selenium.webdriver.chrome.options import Options
-            from selenium.webdriver.common.by import By
-            from selenium.webdriver.support.ui import WebDriverWait
-            from selenium.webdriver.support import expected_conditions as EC
             
             options = Options()
             if IS_HEADLESS:

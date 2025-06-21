@@ -5,15 +5,14 @@ Enhanced Memory Manager with better organization for different processes
 import logging
 import time
 import uuid
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Optional
 from enum import Enum
 from dataclasses import dataclass
-from pathlib import Path
 
 import chromadb
 from chromadb import EmbeddingFunction
 
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from utils.config_manager import ConfigManager
 from monitoring.metrics_manager import metrics_manager
 

@@ -14,14 +14,12 @@ import os
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, Any
 
 #Add parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.chat_context_manager import ChatContextManager, ChatMode, ChatContext, ModeControl
 from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.enhanced_plugin_manager import EnhancedPluginManager
 
 
 class ChatMemoryDemo:

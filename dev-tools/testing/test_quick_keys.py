@@ -27,11 +27,11 @@ def main():
     print(f"   Mistral: {'✓' if config.get_mistral_api_key() else '✗'}")
     print(f"   Groq: {'✓' if config.get_groq_api_key() else '✗'}")
     
-    print(f"\n⚙️ Налаштування:")
+    print("\n⚙️ Налаштування:")
     print(f"   Провайдер: {config.get_current_provider()}")
     print(f"   Модель: {config.get_current_model()}")
     
-    print(f"\n🔍 .env файл:")
+    print("\n🔍 .env файл:")
     env_vars = ['OPENAI_API_KEY', 'GEMINI_API_KEY', 'MISTRAL_API_KEY', 'GROQ_API_KEY', 'DEFAULT_LLM_PROVIDER', 'DEFAULT_LLM_MODEL']
     for var in env_vars:
         value = os.getenv(var, '')

@@ -6,10 +6,8 @@
 """
 
 import sys
-import os
 
-#Додаємо шлях до проекту
-sys.path.insert(0, '/workspaces/autoclicker')
+
 
 def test_gui_settings():
     """Тест GUI налаштувань"""
@@ -68,7 +66,7 @@ def test_gui_settings():
         #Тестуємо creation GUI (без фактичного відображення)
         try:
             #Це просто перевірить, що клас можна імпортувати та створити
-            settings_view = EnhancedSettingsView.__new__(EnhancedSettingsView)
+            EnhancedSettingsView.__new__(EnhancedSettingsView)
             print("    ✅ EnhancedSettingsView може бути створено")
         except Exception as e:
             print(f"    ❌ Помилка створення GUI: {e}")
@@ -103,7 +101,7 @@ def test_config_consistency():
         
         #Перевіряємо через utils ConfigManager
         utils_openai = utils_config.get_openai_api_key()
-        utils_gemini = utils_config.get_gemini_api_key()
+
         
         if utils_openai == test_key:
             print("  ✅ OpenAI ключ консистентний між ConfigManager'ами")

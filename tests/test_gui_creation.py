@@ -3,14 +3,11 @@
 Тест GUI з основним ConfigManager
 """
 
-import os
 import sys
-
-#Додаємо шлях до проекту
-project_root = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)
+import tkinter as tk
 
 from utils.config_manager import ConfigManager
+from ui.enhanced_settings import EnhancedSettingsView
 
 def test_gui_creation():
     """Тестуємо creation GUI компонента."""
@@ -54,9 +51,6 @@ def test_gui_creation():
     #Тестуємо creation GUI компонента
     print("\n🖥️ Створення GUI компонента...")
     try:
-        from ui.enhanced_settings import EnhancedSettingsView
-        import tkinter as tk
-        
         #Створюємо головне вікно
         root = tk.Tk()
         root.withdraw()  #Ховаємо головне вікно

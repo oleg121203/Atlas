@@ -6,9 +6,8 @@ functionality and should load without import issues.
 """
 
 import logging
-import time
 import uuid
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Callable
 import sys
 import json
 
@@ -131,7 +130,7 @@ class SimpleHelperSyncTellTool:
         """Synthesize a comprehensive response from analyses."""
         if not self.llm_manager:
             #Simple fallback
-            return f"Analysis of your question:\n\n" + "\n\n".join(analyses)
+            return "Analysis of your question:\n\n" + "\n\n".join(analyses)
         
         try:
             synthesis_prompt = f"""
@@ -150,7 +149,7 @@ class SimpleHelperSyncTellTool:
             
         except Exception as e:
             self.logger.error(f"Error synthesizing response: {e}")
-            return f"Analysis of your question:\n\n" + "\n\n".join(analyses)
+            return "Analysis of your question:\n\n" + "\n\n".join(analyses)
     
     def __call__(self, query: str, available_tools: Dict[str, Callable] = None) -> str:
         """Process a query through structured thinking."""

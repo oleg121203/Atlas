@@ -4,7 +4,6 @@
 """
 
 import sys
-import os
 from pathlib import Path
 
 #Додаємо шляхи
@@ -23,7 +22,7 @@ def test_final_integration():
     print("\n1. Тест інтелектуального детектора...")
     
     try:
-        from intelligent_mode_detector import IntelligentModeDetector, ChatMode
+        from intelligent_mode_detector import IntelligentModeDetector
         detector = IntelligentModeDetector()
         
         #Критичні тести
@@ -240,8 +239,8 @@ if __name__ == "__main__":
     demonstrate_intelligent_detection()
     
     if success:
-        print(f"\n🎉 СИСТЕМА ПОВНІСТЮ ГОТОВА!")
+        print("\n🎉 СИСТЕМА ПОВНІСТЮ ГОТОВА!")
         print("✨ Інтелектуальний детектор режимів працює ідеально!")
         print("🚀 Advanced thinking плагін успішно інтегровано з Atlas!")
     else:
-        print(f"\n⚠️  Система потребує додаткової роботи")
+        print("\n⚠️  Система потребує додаткової роботи")

@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from unittest.mock import MagicMock, create_autospec
 
 from agents.agent_manager import AgentManager
-from agents.llm_manager import LLMManager
+from utils.llm_manager import LLMManager
 from agents.master_agent import MasterAgent
 from agents.memory_manager import MemoryManager
 

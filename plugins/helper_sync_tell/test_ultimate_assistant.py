@@ -7,7 +7,6 @@ awareness and sophisticated contextual analysis.
 """
 
 import sys
-import os
 import logging
 import traceback
 from pathlib import Path
@@ -125,7 +124,7 @@ This response demonstrates meta-cognitive awareness, contextual understanding, a
         #Test capabilities
         print("\n📊 Testing Capabilities...")
         capabilities = assistant.get_capabilities()
-        print(f"✅ Advanced Components Available:")
+        print("✅ Advanced Components Available:")
         for component, available in capabilities["advanced_components"].items():
             status = "✅" if available else "❌"
             print(f"   {status} {component}")
@@ -284,7 +283,7 @@ def main():
     success = test_ultimate_ai_assistant()
     
     if success:
-        print(f"\n🎉 SUCCESS: Ultimate AI Assistant is ready for production!")
+        print("\n🎉 SUCCESS: Ultimate AI Assistant is ready for production!")
         print("🔥 This represents the pinnacle of AI assistant capabilities")
         print("🧠 Meta-cognitive awareness: ✅")
         print("🎯 Contextual analysis: ✅") 
@@ -293,9 +292,9 @@ def main():
         print("🛠️  Tool integration: ✅")
         print("📈 Performance optimization: ✅")
     else:
-        print(f"\n⚠️  Some issues detected, but basic functionality available")
+        print("\n⚠️  Some issues detected, but basic functionality available")
     
-    print(f"\n🎯 Recommendation: Integrate with Atlas for maximum impact!")
+    print("\n🎯 Recommendation: Integrate with Atlas for maximum impact!")
 
 if __name__ == "__main__":
     main()

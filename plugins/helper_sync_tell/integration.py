@@ -7,7 +7,7 @@ with Atlas's main application flow.
 """
 
 import logging
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Callable
 
 #Import the tool
 try:
