@@ -26,6 +26,10 @@ pydocstyle>=6.3.0     # Docstring style checker
 sphinx>=7.3.3         # Documentation generator
 sphinx-rtd-theme>=2.0.0  # Read the Docs theme for Sphinx
 
+# IDE Integration
+jedi>=0.19.1          # Python autocompletion library
+jedi-language-server>=0.41.0  # Language server for Python IDE integration
+
 # Security Tools
 safety>=2.3.5         # Dependency security checker
 bandit>=1.7.8         # Security linter for Python

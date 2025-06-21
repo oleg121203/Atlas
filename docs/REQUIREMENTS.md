@@ -10,6 +10,7 @@ Atlas is developed using a dual-environment approach with specific requirements 
 - **Purpose**: Core development, testing, CI/CD
 - **Environment**: Headless-compatible for cloud development
 - **Requirements**: `requirements-linux.txt`
+- **Virtual Environment**: `venv-linux`
 
 ### Target Platform (macOS)
 - **Platform**: macOS (Primary target deployment)
@@ -17,6 +18,7 @@ Atlas is developed using a dual-environment approach with specific requirements 
 - **Purpose**: Native macOS application deployment
 - **Environment**: Full GUI with native macOS integration
 - **Requirements**: `requirements-macos.txt`
+- **Virtual Environment**: `venv-macos`
 
 ## Requirements Structure
 
@@ -27,6 +29,31 @@ Atlas maintains multiple requirements files to support the dual-development appr
 3. **requirements-macos.txt**: macOS-specific dependencies (Python 3.13)
 4. **requirements-dev.txt**: Development tools and utilities
 5. **requirements-current.txt**: Snapshot of the current environment
+
+## Environment Setup
+
+To properly set up your development environment:
+
+1. **Create a platform-specific virtual environment**:
+   ```bash
+   ./scripts/install_requirements.sh
+   ```
+
+2. **Activate the appropriate environment**:
+   ```bash
+   # For macOS
+   source scripts/use_macos.sh
+   
+   # For Linux
+   source scripts/use_linux.sh
+   ```
+
+3. **Verify your environment**:
+   ```bash
+   ./scripts/sync_requirements.sh
+   ```
+
+See [VENV.md](VENV.md) for detailed information about virtual environment management.
 
 ## Platform-Specific Dependencies
 

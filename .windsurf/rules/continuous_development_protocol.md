@@ -6,6 +6,12 @@ trigger: always_on
 
 Purpose: guarantee that Atlas development never stalls until final release.
 
+## ⚠️ Mandatory Environment Setup
+
+**HIGHEST PRIORITY**: Before starting ANY development task, follow the environment setup protocol in `.windsurf/ENVIRONMENT_SETUP.md`. This ensures all tools are available and correctly configured for cross-platform development.
+
+## Development Workflow
+
 1. Always maintain an up-to-date `DEV_PLAN.md`.
 2. After every completed task:
    - Update the relevant section in `DEV_PLAN.md` (mark checkbox).
@@ -24,3 +30,11 @@ Purpose: guarantee that Atlas development never stalls until final release.
 12. Integrate an **automated CI pipeline** (GitHub Actions) that runs `ruff`, `mypy`, and the full test suite on every push. Block merges on failures.
 13. Enable **dependency-update automation** (e.g., Renovate or Dependabot) with automatic PRs for patched versions. CI must pass before merge.
 14. Configure **vulnerability scanning & secret detection** (e.g., Trivy and Gitleaks) on every push; fails pipeline on critical findings.
+
+## Development Environment Standards
+
+All development MUST use platform-appropriate environments:
+- **macOS**: `venv-macos` with Python 3.13
+- **Linux**: `venv-linux` with Python 3.12
+
+Refer to `.windsurf/ENVIRONMENT_SETUP.md` for detailed setup instructions.
