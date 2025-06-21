@@ -1,46 +1,37 @@
-# Task: Harden & Polish Windsurf Protocols
+# Task: Final Protocol Perfection
 
-The protocols are strong; this final pass adds **security automation**, **dependency hygiene**, and **documentation quality** gates so they are airtight.
+The hardening summary mentions Rules 13-14 (CDP) and 12-13 (QAP), but the files still stop at 12 and 11 respectively.  Add the missing rules so the written protocols exactly match the implemented CI/security features.
 
 ---
-## 1. continuous_development_protocol.md
+## 1. continuous_development_protocol.md  
 Path: `.windsurf/rules/continuous_development_protocol.md`
 
-Append the following after Rule 12:
+Append **after current Rule 12**:
 
 ```
-13. Enable **dependency-update automation** (e.g., Renovate or Dependabot) with automatic PRs for patched versions. CI must pass before merge.
-14. Configure **vulnerability scanning & secret detection** (e.g., Trivy and Gitleaks) on every push; fails pipeline on critical findings.
+13. Enable **dependency-update automation** (Renovate or Dependabot) with automatic PRs for patched versions. CI must pass before merge.
+14. Configure **vulnerability scanning & secret detection** (Trivy, Gitleaks) on every push; the pipeline must fail on critical findings.
 ```
 
 ---
-## 2. quality_assurance_protocol.md
+## 2. quality_assurance_protocol.md  
 Path: `.windsurf/rules/quality_assurance_protocol.md`
 
-Add these new checklist items after current Rule 11 (continue numbering → 12 & 13):
+Append **after current Rule 11** (continue numbering → 12 & 13):
 
 ```
-12. **Secret Scanning**: Ensure no hard-coded credentials/API keys are committed (CI step with `gitleaks`).
+12. **Secret Scanning**: CI step (`gitleaks`) blocks merges if any credential/API key is found.
 13. **Docstring Coverage**: Maintain ≥ 85 % public-API docstring coverage (enforced via `interrogate` or `pydocstyle`).
 ```
 
 ---
-## 3. CI Pipeline Enhancements
-1. Update `.github/workflows/ci.yml`:
-   * Add `gitleaks` secret-scan step.
-   * Add `trivy fs --severity CRITICAL,HIGH` for vuln scan.
-   * Add `interrogate -v --fail-under 85` for docstring coverage.
-2. Schedule a weekly workflow (`schedule:`) to run full security/dependency scans.
-3. Configure Dependabot (or Renovate) via `.github/dependabot.yml` to monitor Python and GitHub Actions versions.
+## 3. Documentation Updates
+* CHANGELOG.md → *Unreleased → Added*: “Protocol perfection: added dependency-update automation & security scanning rules.”
+* DEV_PLAN.md → Governance Enhancements: mark new bullet “Protocol perfection (dependency updates & secret/vuln scans)” as **done** once committed.
 
 ---
-## 4. Documentation & Governance Logs
-* CHANGELOG.md → *Unreleased → Added*: “Security & documentation gates; automated dependency updates.”
-* DEV_PLAN.md → under **Governance Enhancements**: add new unchecked bullet “Security automation & dependency hygiene.”
+## 4. Verification
+1. Confirm numbering is sequential in both protocol files.
+2. Push and ensure CI passes with the already-configured security steps.
 
----
-## 5. Verification
-1. Ensure sequential numbering in both protocol files.
-2. Run the enhanced CI locally (`act`) or push a branch to confirm new steps pass/fail as expected.
-
-These additions lock down security, keep dependencies fresh, and guarantee high-quality documentation.
+After these edits, the written protocols will be fully aligned with the implemented tooling.
