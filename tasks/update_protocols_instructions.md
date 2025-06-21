@@ -1,42 +1,46 @@
-# Task: Further Refine Windsurf Protocols
+# Task: Harden & Polish Windsurf Protocols
 
-The core English-only and never-stop rules are in place. Let’s elevate governance and QA to **best-in-class** by adding automation, coverage, and review cadence.
+The protocols are strong; this final pass adds **security automation**, **dependency hygiene**, and **documentation quality** gates so they are airtight.
 
 ---
 ## 1. continuous_development_protocol.md
 Path: `.windsurf/rules/continuous_development_protocol.md`
 
-Append these items after the current last rule (10):
+Append the following after Rule 12:
 
 ```
-11. Establish a **weekly protocol retrospective** every Friday. Summarise learnings, adjust rules, and append concise guidance phrases that set coding tempo for the next week.
-12. Integrate an **automated CI pipeline** (GitHub Actions) that runs `ruff`, `mypy`, and the full test suite on every push. Block merges on failures.
+13. Enable **dependency-update automation** (e.g., Renovate or Dependabot) with automatic PRs for patched versions. CI must pass before merge.
+14. Configure **vulnerability scanning & secret detection** (e.g., Trivy and Gitleaks) on every push; fails pipeline on critical findings.
 ```
 
 ---
 ## 2. quality_assurance_protocol.md
 Path: `.windsurf/rules/quality_assurance_protocol.md`
 
-Add the following new checklist items (continue numbering; will become 10 and 11):
+Add these new checklist items after current Rule 11 (continue numbering → 12 & 13):
 
 ```
-10. **Code Coverage**: Maintain ≥ 90 % statement coverage across tests. Failing the threshold blocks CI.
-11. **Performance Regression**: Add automated benchmarks; flag any tool or function whose latency regresses by >10 % versus the latest main branch.
+12. **Secret Scanning**: Ensure no hard-coded credentials/API keys are committed (CI step with `gitleaks`).
+13. **Docstring Coverage**: Maintain ≥ 85 % public-API docstring coverage (enforced via `interrogate` or `pydocstyle`).
 ```
 
 ---
-## 3. Repository Automation
-1. Create `.github/workflows/ci.yml` that installs dependencies, runs `ruff`, `mypy`, `pytest --cov`, and uploads coverage report.
-2. Configure `ruff` and `mypy` in `pyproject.toml` (or dedicated config files) if not present.
+## 3. CI Pipeline Enhancements
+1. Update `.github/workflows/ci.yml`:
+   * Add `gitleaks` secret-scan step.
+   * Add `trivy fs --severity CRITICAL,HIGH` for vuln scan.
+   * Add `interrogate -v --fail-under 85` for docstring coverage.
+2. Schedule a weekly workflow (`schedule:`) to run full security/dependency scans.
+3. Configure Dependabot (or Renovate) via `.github/dependabot.yml` to monitor Python and GitHub Actions versions.
 
 ---
-## 4. Documentation Updates
-* CHANGELOG.md → *Unreleased → Added*: “Enhanced governance: added weekly retrospectives, CI enforcement, coverage & performance gates.”
-* DEV_PLAN.md → under **Governance Enhancements**: add a new unchecked bullet “Automated CI & coverage/performance enforcement.”
+## 4. Documentation & Governance Logs
+* CHANGELOG.md → *Unreleased → Added*: “Security & documentation gates; automated dependency updates.”
+* DEV_PLAN.md → under **Governance Enhancements**: add new unchecked bullet “Security automation & dependency hygiene.”
 
 ---
 ## 5. Verification
-1. Validate that numbering in each protocol remains sequential.
-2. Push and ensure the new CI workflow runs successfully.
+1. Ensure sequential numbering in both protocol files.
+2. Run the enhanced CI locally (`act`) or push a branch to confirm new steps pass/fail as expected.
 
-Completing these steps makes the protocols self-enforcing and future-proof.
+These additions lock down security, keep dependencies fresh, and guarantee high-quality documentation.

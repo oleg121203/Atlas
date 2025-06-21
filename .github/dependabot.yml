@@ -1,0 +1,50 @@
+version: 2
+updates:
+  # Enable version updates for Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "atlas-development-team"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+    labels:
+      - "dependencies"
+      - "automated"
+    
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "atlas-development-team"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "github-actions"
+      - "automated"
+    
+  # Enable version updates for dev tools
+  - package-ecosystem: "pip"
+    directory: "/dev-tools"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "atlas-development-team"
+    commit-message:
+      prefix: "dev-tools"
+    labels:
+      - "dev-dependencies"
+      - "automated"

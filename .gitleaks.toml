@@ -1,0 +1,74 @@
+# Gitleaks configuration for Atlas
+# This file defines rules for detecting secrets in the codebase
+
+title = "Atlas Gitleaks Configuration"
+
+[extend]
+# Use the default gitleaks configuration as base
+useDefault = true
+
+[[rules]]
+description = "Atlas API Keys"
+id = "atlas-api-key"
+regex = '''(?i)(atlas_api_key|atlas_secret|atlas_token)['"\s]*[=:]['"\s]*[0-9a-zA-Z\-_]{20,}'''
+keywords = [
+    "atlas_api_key",
+    "atlas_secret", 
+    "atlas_token"
+]
+
+[[rules]]
+description = "OpenAI API Keys"
+id = "openai-api-key"
+regex = '''sk-[a-zA-Z0-9]{48}'''
+keywords = [
+    "openai",
+    "sk-"
+]
+
+[[rules]]
+description = "Anthropic API Keys"
+id = "anthropic-api-key"
+regex = '''sk-ant-[a-zA-Z0-9\-_]{95}'''
+keywords = [
+    "anthropic",
+    "claude"
+]
+
+[[rules]]
+description = "Groq API Keys"
+id = "groq-api-key"
+regex = '''gsk_[a-zA-Z0-9]{52}'''
+keywords = [
+    "groq"
+]
+
+[[rules]]
+description = "Private Keys"
+id = "private-key"
+regex = '''-----BEGIN (RSA |OPENSSH |DSA |EC |PGP )?PRIVATE KEY-----'''
+keywords = [
+    "private key"
+]
+
+[allowlist]
+description = "Allow test files and examples"
+files = [
+    '''tests/fixtures/.*''',
+    '''examples/.*\.example''',
+    '''\.env\.example'''
+]
+
+paths = [
+    '''.*test.*''',
+    '''.*example.*''',
+    '''.*mock.*''',
+    '''.*fixture.*'''
+]
+
+regexes = [
+    '''(password|secret|key).*=.*\$\{.*\}''',  # Environment variable references
+    '''(password|secret|key).*=.*dummy.*''',   # Dummy values
+    '''(password|secret|key).*=.*test.*''',    # Test values
+    '''(password|secret|key).*=.*placeholder.*'''  # Placeholder values
+]

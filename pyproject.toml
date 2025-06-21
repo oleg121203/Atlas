@@ -151,3 +151,23 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = "htmlcov"
+
+# Docstring coverage configuration
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = false
+ignore-nested-functions = false
+ignore-nested-classes = true
+ignore-setters = false
+fail-under = 85
+exclude = ["setup.py", "docs", "build", "tests", "venv", "venv-macos", "unused", "dev-tools", "scripts", "monitoring", "tools", "ui", "data", "config", "assets", "requirements", "rules", "plugins", "test_generated_tools", "test_temp_generated_tools"]
+ignore-regex = ["^get$", "^mock_.*", "^dummy_.*", "^_.*"]
+verbose = 0
+quiet = false
+whitelist-regex = []
+color = true

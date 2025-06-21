@@ -17,3 +17,5 @@ Ensures code quality and adherence to project architecture.
 9. **Language Consistency**: Ensure all comments, docstrings, and documentation are written in English.
 10. **Code Coverage**: Maintain ≥ 90% statement coverage across tests. Failing the threshold blocks CI.
 11. **Performance Regression**: Add automated benchmarks; flag any tool or function whose latency regresses by >10% versus the latest main branch.
+12. **Secret Scanning**: Ensure no hard-coded credentials/API keys are committed (CI step with `gitleaks`).
+13. **Docstring Coverage**: Maintain ≥ 85% public-API docstring coverage (enforced via `interrogate` or `pydocstyle`).

@@ -22,3 +22,5 @@ Purpose: guarantee that Atlas development never stalls until final release.
 10. Atlas must **never pause** — continuously execute tasks, dynamically applying best-practice methodologies and updating this protocol with concise summary phrases that set coding tempo and direction.
 11. Establish a **weekly protocol retrospective** every Friday. Summarise learnings, adjust rules, and append concise guidance phrases that set coding tempo for the next week.
 12. Integrate an **automated CI pipeline** (GitHub Actions) that runs `ruff`, `mypy`, and the full test suite on every push. Block merges on failures.
+13. Enable **dependency-update automation** (e.g., Renovate or Dependabot) with automatic PRs for patched versions. CI must pass before merge.
+14. Configure **vulnerability scanning & secret detection** (e.g., Trivy and Gitleaks) on every push; fails pipeline on critical findings.
