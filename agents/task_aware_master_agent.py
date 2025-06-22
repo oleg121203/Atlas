@@ -30,7 +30,9 @@ class TaskAwareMasterAgent(BaseMasterAgent):
                  task_id: Optional[str] = None,
                  memory_scope: Optional[str] = None,
                  api_resource_manager=None,
-                 status_callback: Optional[Callable[[Dict[str, Any]], None]] = None):
+                 status_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+                 context_awareness_engine=None,
+                 creator_auth=None):
         """
         Initialize TaskAwareMasterAgent with isolation support.
         
@@ -42,12 +44,16 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             memory_scope: Memory scope for isolation
             api_resource_manager: API resource manager for rate limiting
             status_callback: Callback for status updates
+            context_awareness_engine: Context awareness engine
+            creator_auth: Creator authentication system
         """
         super().__init__(
             llm_manager=llm_manager, 
             agent_manager=agent_manager, 
             memory_manager=memory_manager, 
-            on_status_update=status_callback
+            context_awareness_engine=context_awareness_engine,
+            on_status_update=status_callback,
+            creator_auth=creator_auth
         )
 
         #Task isolation properties
@@ -66,6 +72,27 @@ class TaskAwareMasterAgent(BaseMasterAgent):
 
         #Cancellation support
         self.cancellation_requested = threading.Event()
+
+        #Initialize required collections in memory manager
+        if memory_manager:
+            try:
+                # Use the safer collection initialization
+                required_collections = [
+                    f"{self.memory_scope}_success",
+                    f"{self.memory_scope}_interaction", 
+                    "global_success",
+                    "global_interaction"
+                ]
+                
+                for collection_name in required_collections:
+                    collection = memory_manager.get_collection_safe(collection_name)
+                    if collection:
+                        self.logger.debug(f"Initialized collection: {collection_name}")
+                    else:
+                        self.logger.warning(f"Failed to initialize collection: {collection_name}")
+                        
+            except Exception as e:
+                self.logger.warning(f"Failed to create collections: {str(e)}")
 
         self.logger.info(f"TaskAwareMasterAgent initialized with task_id={self.task_id}, scope={self.memory_scope}")
 
@@ -151,12 +178,14 @@ class TaskAwareMasterAgent(BaseMasterAgent):
 
             #Store using task-specific scope
             if isinstance(self.memory_manager, EnhancedMemoryManager):
-                self.memory_manager.store_memory(
-                    agent_name=self.memory_scope,
-                    memory_type=MemoryType.INTERACTION,
-                    content=json.dumps(interaction_data),
+                success = self.memory_manager.store_memory_safe(
+                    self.memory_scope,
+                    MemoryType.INTERACTION,
+                    json.dumps(interaction_data),
                     metadata=self.task_metadata,
                 )
+                if not success:
+                    self.logger.warning(f"Failed to store task interaction for {self.task_id}")
 
         except Exception as e:
             self.logger.warning(f"Failed to store task interaction: {e}")
@@ -173,12 +202,14 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             }
 
             if isinstance(self.memory_manager, EnhancedMemoryManager):
-                self.memory_manager.store_memory(
-                    agent_name=self.memory_scope,
-                    memory_type=MemoryType.SUCCESS,
-                    content=json.dumps(progress_data),
+                success = self.memory_manager.store_memory_safe(
+                    self.memory_scope,
+                    MemoryType.SUCCESS,
+                    json.dumps(progress_data),
                     metadata=self.task_metadata,
                 )
+                if not success:
+                    self.logger.warning(f"Failed to store task progress for {self.task_id}")
 
         except Exception as e:
             self.logger.warning(f"Failed to store task progress: {e}")
@@ -362,20 +393,169 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             #Store sub-goal start
             self._store_task_progress("sub_goal_start", "running", {"sub_goal": sub_goal})
 
-            #Here you would implement the actual sub-goal execution
-            #For now, we'll simulate it
-            time.sleep(0.1)  #Simulate work
+            #Real goal execution logic
+            result = self._execute_real_goal(sub_goal)
 
             if self.is_cancellation_requested():
                 return False
 
             #Store sub-goal completion
-            self._store_task_progress("sub_goal_complete", "completed", {"sub_goal": sub_goal})
+            status = "completed" if result else "failed"
+            self._store_task_progress("sub_goal_complete", status, {"sub_goal": sub_goal, "result": result})
 
-            return True
+            return result
 
         except Exception as e:
             self.logger.error(f"Sub-goal execution failed for task {self.task_id}: {e}")
+            return False
+            
+    def _execute_real_goal(self, goal: str) -> bool:
+        """Execute a real goal using available agents and tools."""
+        try:
+            goal_lower = goal.lower()
+            
+            # Browser-related tasks
+            if any(keyword in goal_lower for keyword in [
+                "browser", "browse", "safari", "chrome", "firefox", "edge", 
+                "url", "website", "github", "google", "page", "site", "open",
+                "navigate", "visit"
+            ]):
+                return self._handle_browser_goal(goal)
+                
+            # Screen-related tasks  
+            elif any(keyword in goal_lower for keyword in ["screenshot", "screen", "capture", "image"]):
+                return self._handle_screen_goal(goal)
+                
+            # System interaction tasks
+            elif any(keyword in goal_lower for keyword in ["system", "file", "folder", "directory"]):
+                return self._handle_system_goal(goal)
+                
+            # Text processing tasks
+            elif any(keyword in goal_lower for keyword in ["text", "write", "type", "input"]):
+                return self._handle_text_goal(goal)
+                
+            # Fallback: try to use appropriate agent
+            else:
+                return self._handle_generic_goal(goal)
+                
+        except Exception as e:
+            self.logger.error(f"Error executing real goal '{goal}': {e}")
+            return False
+            
+    def _handle_browser_goal(self, goal: str) -> bool:
+        """Handle browser-related goals."""
+        try:
+            if not self.agent_manager:
+                self.logger.error("Agent manager not available")
+                return False
+                
+            # Get browser agent
+            browser_agent = None
+            if hasattr(self.agent_manager, 'get_agent'):
+                browser_agent = self.agent_manager.get_agent("browser_agent")
+            elif hasattr(self.agent_manager, 'agents') and hasattr(self.agent_manager.agents, 'get'):
+                browser_agent = self.agent_manager.agents.get("browser_agent")
+                
+            if not browser_agent:
+                # Try to import browser agent directly
+                from agents.browser_agent import BrowserAgent
+                browser_agent = BrowserAgent()
+                
+            # Execute browser task
+            result = browser_agent.execute_task(goal, {})
+            self.logger.info(f"Browser agent result: {result}")
+            
+            # Consider successful if no error occurred
+            return result and not ("error" in result.lower() or "failed" in result.lower())
+            
+        except Exception as e:
+            self.logger.error(f"Error handling browser goal: {e}")
+            return False
+            
+    def _handle_screen_goal(self, goal: str) -> bool:
+        """Handle screen-related goals."""
+        try:
+            if not self.agent_manager:
+                return False
+                
+            screen_agent = None
+            if hasattr(self.agent_manager, 'get_agent'):
+                screen_agent = self.agent_manager.get_agent("screen_agent")
+            elif hasattr(self.agent_manager, 'agents') and hasattr(self.agent_manager.agents, 'get'):
+                screen_agent = self.agent_manager.agents.get("screen_agent")
+                
+            if not screen_agent:
+                from agents.screen_agent import ScreenAgent
+                screen_agent = ScreenAgent()
+                
+            result = screen_agent.execute_task(goal, {})
+            self.logger.info(f"Screen agent result: {result}")
+            return result and not ("error" in result.lower() or "failed" in result.lower())
+            
+        except Exception as e:
+            self.logger.error(f"Error handling screen goal: {e}")
+            return False
+            
+    def _handle_system_goal(self, goal: str) -> bool:
+        """Handle system interaction goals."""
+        try:
+            if not self.agent_manager:
+                return False
+                
+            system_agent = None
+            if hasattr(self.agent_manager, 'get_agent'):
+                system_agent = self.agent_manager.get_agent("system_interaction_agent")
+            elif hasattr(self.agent_manager, 'agents') and hasattr(self.agent_manager.agents, 'get'):
+                system_agent = self.agent_manager.agents.get("system_interaction_agent")
+                
+            if not system_agent:
+                from agents.system_interaction_agent import SystemInteractionAgent
+                system_agent = SystemInteractionAgent()
+                
+            result = system_agent.execute_task(goal, {})
+            self.logger.info(f"System agent result: {result}")
+            return result and not ("error" in result.lower() or "failed" in result.lower())
+            
+        except Exception as e:
+            self.logger.error(f"Error handling system goal: {e}")
+            return False
+            
+    def _handle_text_goal(self, goal: str) -> bool:
+        """Handle text processing goals."""
+        try:
+            if not self.agent_manager:
+                return False
+                
+            text_agent = None
+            if hasattr(self.agent_manager, 'get_agent'):
+                text_agent = self.agent_manager.get_agent("text_agent")
+            elif hasattr(self.agent_manager, 'agents') and hasattr(self.agent_manager.agents, 'get'):
+                text_agent = self.agent_manager.agents.get("text_agent")
+                
+            if not text_agent:
+                from agents.text_agent import TextAgent
+                text_agent = TextAgent()
+                
+            result = text_agent.execute_task(goal, {})
+            self.logger.info(f"Text agent result: {result}")
+            return result and not ("error" in result.lower() or "failed" in result.lower())
+            
+        except Exception as e:
+            self.logger.error(f"Error handling text goal: {e}")
+            return False
+            
+    def _handle_generic_goal(self, goal: str) -> bool:
+        """Handle generic goals by choosing the most appropriate agent."""
+        try:
+            # For goals like "open browser and close it" - try browser agent first
+            if "browser" in goal.lower():
+                return self._handle_browser_goal(goal)
+            else:
+                self.logger.warning(f"No specific handler for goal: {goal}")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"Error handling generic goal: {e}")
             return False
 
     def get_task_summary(self) -> Dict[str, Any]:
@@ -401,6 +581,159 @@ class TaskAwareMasterAgent(BaseMasterAgent):
 
         return summary
 
+    def _extract_json_from_response(self, response_text: str) -> Dict[str, Any]:
+        """
+        Extract JSON data from an LLM response text.
+        
+        Args:
+            response_text: The raw response text from LLM
+            
+        Returns:
+            Extracted JSON data as dictionary
+        """
+        try:
+            # Clean and normalize the response text
+            cleaned_text = response_text.strip()
+            
+            # Try to find JSON content using balanced brace matching
+            import re
+            
+            def find_balanced_json(text):
+                stack = []
+                start = -1
+                results = []
+                
+                for i, char in enumerate(text):
+                    if char == '{':
+                        if not stack:
+                            start = i
+                        stack.append(char)
+                    elif char == '}':
+                        if stack:
+                            if stack[-1] == '{':
+                                stack.pop()
+                                if not stack:  # Found a complete JSON object
+                                    results.append(text[start:i+1])
+                            else:
+                                stack.pop()
+                return results
+            
+            # Find all potential JSON objects
+            json_candidates = find_balanced_json(cleaned_text)
+            
+            # Try each candidate
+            for json_text in json_candidates:
+                try:
+                    return json.loads(json_text)
+                except json.JSONDecodeError:
+                    continue
+            
+            # If no valid JSON found in candidates, try the whole response
+            return json.loads(cleaned_text)
+            
+        except (json.JSONDecodeError, AttributeError) as e:
+            self.logger.error(f"Failed to extract JSON from response: {str(e)}")
+            return {}
+
+    def _handle_task_error(self, error: Exception, context: Dict[str, Any] = None) -> None:
+        """
+        Handle errors that occur during task execution
+        
+        Args:
+            error: The exception that occurred
+            context: Optional context about the error
+        """
+        error_info = {
+            "task_id": self.task_id,
+            "error": str(error),
+            "error_type": error.__class__.__name__,
+            "timestamp": time.time(),
+            "context": context or {},
+        }
+        
+        try:
+            if self.memory_manager:
+                # Store error in task-specific collection
+                success1 = self.memory_manager.store_memory_safe(
+                    self.memory_scope,
+                    MemoryType.ERROR,
+                    error_info,
+                    metadata={"severity": "error"}
+                )
+                
+                # Update task status
+                success2 = self.memory_manager.store_memory_safe(
+                    "global_success",
+                    MemoryType.ERROR,  # Use ERROR instead of non-existent TASK_STATUS
+                    {
+                        "task_id": self.task_id,
+                        "status": "failed",
+                        "error": str(error)
+                    }
+                )
+                
+                if not (success1 and success2):
+                    self.logger.warning(f"Partial failure storing error for task {self.task_id}")
+        except Exception as e:
+            self.logger.error(f"Failed to store task error: {str(e)}")
+            
+        self.logger.error(f"Task {self.task_id} failed: {str(error)}")
+        
+    def execute_task(self, goal: str) -> bool:
+        """
+        Execute a task with proper error handling
+        
+        Args:
+            goal: The goal to achieve
+            
+        Returns:
+            True if task completed successfully, False otherwise
+        """
+        try:
+            # Store task start in global interaction log
+            if self.memory_manager:
+                try:
+                    success = self.memory_manager.store_memory_safe(
+                        "global_interaction",
+                        MemoryType.INTERACTION,  # Use INTERACTION instead of non-existent TASK_EVENT
+                        {
+                            "task_id": self.task_id,
+                            "event": "start",
+                            "goal": goal,
+                            "timestamp": time.time()
+                        }
+                    )
+                    if not success:
+                        self.logger.warning(f"Failed to log task start for {self.task_id}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to log task start: {str(e)}")
+            
+            # Execute the task
+            result = super().execute_task(goal)
+            
+            # Store success result
+            if self.memory_manager:
+                try:
+                    success = self.memory_manager.store_memory_safe(
+                        "global_success",
+                        MemoryType.SUCCESS,  # Use SUCCESS instead of non-existent TASK_STATUS
+                        {
+                            "task_id": self.task_id,
+                            "status": "completed",
+                            "result": result
+                        }
+                    )
+                    if not success:
+                        self.logger.warning(f"Failed to store task success for {self.task_id}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to store task success: {str(e)}")
+                    
+            return result
+            
+        except Exception as e:
+            self._handle_task_error(e, {"goal": goal})
+            return False
+
 
 #Example usage
 def demo_task_aware_agent():
@@ -419,10 +752,12 @@ def demo_task_aware_agent():
         #Initialize components
         from agents.token_tracker import TokenTracker
         from utils.config_manager import config_manager
+        from utils.logger import get_logger
         
         token_tracker = TokenTracker()
         llm_manager = LLMManager(token_tracker=token_tracker)
-        memory_manager = EnhancedMemoryManager(llm_manager=llm_manager, config_manager=config_manager)
+        logger = get_logger()
+        memory_manager = EnhancedMemoryManager(llm_manager=llm_manager, config_manager=config_manager, logger=logger)
         agent_manager = AgentManager(llm_manager=llm_manager, memory_manager=memory_manager)
 
         #Create two isolated agents for different tasks

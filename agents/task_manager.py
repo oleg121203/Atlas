@@ -208,9 +208,11 @@ class TaskManager:
             self.llm_manager = llm_manager
 
         self.config_manager = ConfigManager()
+        self.logger = get_logger()
         self.memory_manager = EnhancedMemoryManager(
             llm_manager=self.llm_manager,
             config_manager=self.config_manager,
+            logger=self.logger,
         )
 
         self.agent_manager = agent_manager or AgentManager(
@@ -227,7 +229,9 @@ class TaskManager:
         self.scheduler_thread = threading.Thread(target=self._task_scheduler, daemon=True)
         self.scheduler_running = True
 
-        self.logger = get_logger()
+        # Initialize required collections in memory manager
+        self._initialize_collections()
+
         self.logger.info(f"TaskManager initialized with max {max_concurrent_tasks} concurrent tasks")
 
     def start(self):
@@ -548,6 +552,139 @@ class TaskManager:
             )
         except Exception as e:
             self.logger.warning(f"Failed to store task event: {e}")
+
+    def _initialize_collections(self):
+        """Initialize required database collections."""
+        required_collections = [
+            "global_success",      # For task success tracking
+            "global_interaction",  # For task interactions
+            "global_memory",      # For shared memory
+            "task_registry",      # For task metadata
+        ]
+        
+        if self.memory_manager:
+            for collection in required_collections:
+                try:
+                    if not self.memory_manager.collection_exists(collection):
+                        self.memory_manager.create_collection(collection)
+                        self.logger.info(f"Created collection: {collection}")
+                except Exception as e:
+                    self.logger.error(f"Failed to create collection {collection}: {str(e)}")
+                    
+    def _ensure_task_collections(self, task_id: str):
+        """Ensure task-specific collections exist."""
+        task_collections = [
+            f"task_{task_id}_success",
+            f"task_{task_id}_interaction",
+            f"task_{task_id}_memory"
+        ]
+        
+        if self.memory_manager:
+            for collection in task_collections:
+                try:
+                    if not self.memory_manager.collection_exists(collection):
+                        self.memory_manager.create_collection(collection)
+                except Exception as e:
+                    self.logger.error(f"Failed to create task collection {collection}: {str(e)}")
+
+    def handle_browser_goal(self, task: TaskInstance) -> bool:
+        """
+        Handle browser-related goals.
+        
+        Args:
+            task: The task instance to handle
+            
+        Returns:
+            True if handled successfully, False otherwise
+        """
+        try:
+            # Extract browser name and URL from goal
+            import re
+            goal_lower = task.goal.lower()
+            
+            # Check if this is a browser task
+            browser_keywords = ["browser", "браузер", "safari", "chrome", "firefox", "edge"]
+            if not any(keyword in goal_lower for keyword in browser_keywords):
+                return False
+                
+            # Get browser agent
+            browser_agent = self.agent_manager.get_agent("browser")
+            if not browser_agent:
+                self.logger.error("Browser agent not available")
+                return False
+                
+            # Execute the browser task
+            result = browser_agent.execute_task(task.goal, task.execution_context)
+            
+            # Store the result
+            self._store_task_result(task.task_id, result)
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Browser task execution failed: {str(e)}")
+            self._store_task_error(task.task_id, str(e))
+            return False
+            
+    def _store_task_result(self, task_id: str, result: Any):
+        """Store task execution result."""
+        try:
+            if self.memory_manager:
+                # Store in global collection
+                success1 = self.memory_manager.store_memory_safe(
+                    "global_success",
+                    MemoryType.SUCCESS,
+                    {
+                        "task_id": task_id,
+                        "result": str(result),
+                        "timestamp": time.time()
+                    }
+                )
+                
+                # Also store in task-specific collection
+                success2 = self.memory_manager.store_memory_safe(
+                    f"task_{task_id}_success",
+                    MemoryType.SUCCESS,
+                    {
+                        "result": str(result),
+                        "timestamp": time.time()
+                    }
+                )
+                
+                if not (success1 and success2):
+                    self.logger.warning(f"Partial failure storing task result for {task_id}")
+        except Exception as e:
+            self.logger.error(f"Failed to store task result: {str(e)}")
+            
+    def _store_task_error(self, task_id: str, error: str):
+        """Store task execution error."""
+        try:
+            if self.memory_manager:
+                # Store in global collection
+                success1 = self.memory_manager.store_memory_safe(
+                    "global_success",
+                    MemoryType.ERROR,
+                    {
+                        "task_id": task_id,
+                        "error": error,
+                        "timestamp": time.time()
+                    }
+                )
+                
+                # Also store in task-specific collection
+                success2 = self.memory_manager.store_memory_safe(
+                    f"task_{task_id}_success",
+                    MemoryType.ERROR,
+                    {
+                        "error": error,
+                        "timestamp": time.time()
+                    }
+                )
+                
+                if not (success1 and success2):
+                    self.logger.warning(f"Partial failure storing task error for {task_id}")
+        except Exception as e:
+            self.logger.error(f"Failed to store task error: {str(e)}")
 
 
 #Example usage and demo

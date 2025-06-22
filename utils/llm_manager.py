@@ -10,9 +10,9 @@ import logging
 import json
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Iterable, Union, Mapping, Literal
-from typing_extensions import Stream, Timeout, NotGiven
 
 # Imports for LLM providers are deferred to improve startup performance.
+# OpenAI-specific types will be imported when needed
 
 from agents.token_tracker import TokenTracker, TokenUsage
 from utils.config_manager import config_manager as utils_config_manager
@@ -169,7 +169,22 @@ class LLMManager:
     def _chat_gemini(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gemini-1.5-flash") -> TokenUsage:
         """Handle Gemini chat requests."""
         import google.generativeai as genai
-        from google.generativeai.types import HarmCategory, HarmBlockThreshold, SafetySetting
+        try:
+            from google.generativeai.types import HarmCategory, HarmBlockThreshold
+            # SafetySetting might not be available in newer versions, try to import it
+            try:
+                from google.generativeai.types import SafetySetting
+                use_safety_settings = True
+            except ImportError:
+                SafetySetting = None
+                use_safety_settings = False
+        except ImportError:
+            # Fallback if types module is not available
+            HarmCategory = None
+            HarmBlockThreshold = None
+            SafetySetting = None
+            use_safety_settings = False
+            
         if not self.gemini_client:
             self.logger.error("Gemini client not initialized.")
             raise ValueError("Gemini client not initialized. Please set your API key.")
@@ -183,23 +198,44 @@ class LLMManager:
             gemini_messages = []
             for msg in messages:
                 role, content = msg.get("role"), msg.get("content")
+                if not content:  # Skip empty messages
+                    continue
+                    
                 if role == "system":
                     system_instruction = content
                     continue
-                if content:
-                    gemini_role = "model" if role == "assistant" else "user"
-                    gemini_messages.append({"role": gemini_role, "parts": [content]})
+                    
+                gemini_role = "model" if role == "assistant" else "user"
+                # Ensure content is a non-empty string
+                if isinstance(content, str) and content.strip():
+                    gemini_messages.append({"role": gemini_role, "parts": [{"text": content.strip()}]})
+            
+            # Ensure we have at least one valid message
+            if not gemini_messages:
+                raise ValueError("No valid messages to send to Gemini")
 
-            model_instance = genai.GenerativeModel(model_name=model, system_instruction=system_instruction, tools=tools)
+            model_instance = genai.GenerativeModel(model_name=model)
+            # Set system instruction if available
+            if system_instruction:
+                model_instance = genai.GenerativeModel(
+                    model_name=model,
+                    generation_config={"system_instructions": system_instruction},
+                    tools=tools
+                )
             
-            safety_settings = [
-                SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_NONE),
-                SafetySetting(category=HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=HarmBlockThreshold.BLOCK_NONE),
-                SafetySetting(category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
-                SafetySetting(category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE)
-            ]
-            
-            response = model_instance.generate_content(gemini_messages, safety_settings=safety_settings)  # type: ignore[arg-type, return-value]
+            # Only use safety settings if they're available
+            if use_safety_settings and HarmCategory and HarmBlockThreshold and SafetySetting:
+                safety_settings = [
+                    SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                    SafetySetting(category=HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=HarmBlockThreshold.BLOCK_NONE),
+                    SafetySetting(category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                    SafetySetting(category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE)
+                ]
+                response = model_instance.generate_content(gemini_messages, safety_settings=safety_settings)  # type: ignore[arg-type, return-value]
+            else:
+                # Use default safety settings if SafetySetting is not available
+                response = model_instance.generate_content(gemini_messages)  # type: ignore[arg-type, return-value]
+                
             response_text, tool_calls = "", None
             if response.candidates and response.candidates[0].content.parts:
                 for part in response.candidates[0].content.parts:
@@ -211,9 +247,10 @@ class LLMManager:
 
             if not response_text and not tool_calls:
                 self.logger.warning(f"Gemini response was empty. Raw response: {response}")
+                response_text = "No valid response received from Gemini."
 
-            prompt_tokens = model_instance.count_tokens(gemini_messages).total_tokens  
-            completion_tokens = model_instance.count_tokens(response.candidates[0].content).total_tokens  
+            prompt_tokens = model_instance.count_tokens(gemini_messages).total_tokens if gemini_messages else 0
+            completion_tokens = model_instance.count_tokens(response.candidates[0].content).total_tokens if response.candidates else 0
             
             token_usage = TokenUsage(
                 response_text=response_text,
@@ -244,3 +281,39 @@ class LLMManager:
         except Exception as e:
             self.logger.error(f"Failed to generate embedding: {e}", exc_info=True)
             return []
+
+    def update_settings(self):
+        """Update LLM manager settings from config."""
+        try:
+            # Update current model and provider based on configuration
+            new_model = self.config_manager.get_current_model()
+            new_provider = self.config_manager.get_current_provider()
+            
+            if new_model != self.current_model:
+                self.current_model = new_model
+                self.logger.info(f"Updated current model to: {new_model}")
+            
+            if new_provider != self.current_provider:
+                self.current_provider = new_provider
+                self.logger.info(f"Updated current provider to: {new_provider}")
+                
+            self.logger.debug("LLM settings updated successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to update LLM settings: {e}", exc_info=True)
+
+    def is_provider_available(self, provider: str) -> bool:
+        """Check if a specific LLM provider is available."""
+        try:
+            if provider == "openai":
+                api_key = self.config_manager.get_openai_api_key()
+                return api_key and api_key.strip() and "placeholder" not in api_key.lower()
+            elif provider == "gemini":
+                return self.gemini_client is not None
+            elif provider == "anthropic":
+                api_key = self.config_manager.get_setting("anthropic_api_key", "")
+                return api_key and api_key.strip() and "placeholder" not in api_key.lower()
+            else:
+                return False
+        except Exception as e:
+            self.logger.error(f"Error checking provider availability for {provider}: {e}")
+            return False

@@ -36,7 +36,7 @@ class SecurityAgent(multiprocessing.Process):
                 from utils.llm_manager import LLMManager
 
                 llm_manager = LLMManager(self.config_manager)
-                self.memory_manager = EnhancedMemoryManager(llm_manager, self.config_manager)
+                self.memory_manager = EnhancedMemoryManager(llm_manager, self.config_manager, self.logger)
                 self.logger.info("Security Agent memory manager initialized")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize memory manager: {e}")

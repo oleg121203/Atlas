@@ -44,13 +44,17 @@ class ChatContext:
 class ChatContextManager:
     """Manages chat context and determines appropriate response modes."""
 
-    def __init__(self, memory_manager: Optional[EnhancedMemoryManager] = None):
+    def __init__(self, memory_manager: Optional[EnhancedMemoryManager] = None, llm_manager=None):
         self.conversation_history: List[Dict] = []
         self.current_session_context = {}
 
         #Enhanced memory integration
         self.memory_manager = memory_manager
         #Note: If no memory_manager is provided, some features will be disabled
+
+        #LLM integration for intelligent mode detection
+        self.llm_manager = llm_manager
+        self.llm_mode_detection_enabled = llm_manager is not None
 
         #Mode control settings
         self.auto_mode_enabled = True
@@ -286,7 +290,24 @@ class ChatContextManager:
         }
 
     def analyze_message(self, message: str, user_context: Dict = None) -> ChatContext:
-        """Analyze a message and determine its context."""
+        """Analyze a message and determine its context using intelligent LLM classification."""
+        # First check if user wants to manually switch modes
+        if self.set_mode_by_intent(message):
+            # Return context with the manually set mode
+            return ChatContext(
+                mode=self.manual_override_mode,
+                confidence=1.0,
+                suggested_response_type=self._get_response_type(self.manual_override_mode),
+                context_keywords=[],
+                requires_system_integration=self.manual_override_mode in [
+                    ChatMode.GOAL_SETTING,
+                    ChatMode.STATUS_CHECK,
+                    ChatMode.TOOL_INQUIRY,
+                    ChatMode.DEVELOPMENT,
+                ],
+                control_type=ModeControl.MANUAL,
+            )
+        
         #If in manual mode, use the override mode
         if not self.auto_mode_enabled and self.manual_override_mode:
             return ChatContext(
@@ -302,6 +323,40 @@ class ChatContextManager:
                 ],
                 control_type=ModeControl.MANUAL,
             )
+
+        # Primary method: Try LLM-based intelligent classification first
+        if self.llm_mode_detection_enabled:
+            llm_mode, llm_confidence = self._classify_message_with_llm(message)
+            if llm_mode and llm_confidence > 0.4:  # Use LLM result if confident enough
+                self.last_auto_detected_mode = llm_mode
+                
+                # Extract context keywords using traditional method for the detected mode
+                message_lower = message.lower()
+                context_keywords = []
+                if llm_mode in self.mode_patterns:
+                    patterns = self.mode_patterns[llm_mode]
+                    context_keywords = [kw for kw in patterns["keywords"]
+                                      if kw.lower() in message_lower]
+                
+                requires_integration = llm_mode in [
+                    ChatMode.GOAL_SETTING,
+                    ChatMode.STATUS_CHECK,
+                    ChatMode.TOOL_INQUIRY,
+                ]
+                
+                return ChatContext(
+                    mode=llm_mode,
+                    confidence=llm_confidence,
+                    suggested_response_type=self._get_response_type(llm_mode),
+                    context_keywords=context_keywords,
+                    requires_system_integration=requires_integration,
+                    control_type=ModeControl.AUTO,
+                )
+
+        # Fallback: Use traditional keyword/pattern-based detection
+        return self._analyze_message_traditional(message, user_context)
+        
+    def _analyze_message_traditional(self, message: str, user_context: Dict = None) -> ChatContext:
 
         #Auto mode - translate to English for analysis if needed
         message_for_analysis = self._simple_translate_to_english(message)
@@ -864,7 +919,6 @@ Acknowledge the development command and proceed with execution.
             "чому не працює": "why not working",
             "не працює": "not working",
             "баг": "bug error",
-            "фікс": "fix solution",
         }
 
         message_lower = message.lower()
@@ -983,3 +1037,132 @@ Acknowledge the development command and proceed with execution.
             Text formatted as a markdown link
         """
         return f"[{text}]({url})"
+
+    def _classify_message_with_llm(self, message: str) -> tuple[ChatMode, float]:
+        """Use LLM to intelligently classify message intent and determine chat mode."""
+        if not self.llm_manager:
+            return None, 0.0
+            
+        try:
+            classification_prompt = f'''
+Analyze the following user message and determine its intent for classifying the conversation mode with AI assistant Atlas.
+
+Message: "{message}"
+
+Available modes:
+1. CASUAL_CHAT - general conversation, greetings, small talk, mood questions
+2. SYSTEM_HELP - requests about Atlas capabilities, help, instructions, "how does it work" questions
+3. GOAL_SETTING - tasks to execute, commands, requests to do something specific
+4. TOOL_INQUIRY - questions about tools, plugins, functions
+5. STATUS_CHECK - status verification, monitoring, diagnostics
+6. CONFIGURATION - settings, configuration, parameter changes
+
+Analyze the context and motive of the message. Special attention:
+- Requests to switch modes (help mode requests, assistant queries, etc.) = SYSTEM_HELP
+- Tasks to execute actions (open, do, execute, perform actions) = GOAL_SETTING
+- General conversations, emotions, greetings = CASUAL_CHAT
+
+Respond with only the following JSON structure:
+{
+    "mode": "GOAL_SETTING",
+    "confidence": 0.95,
+    "reasoning": "This is a task request to perform a specific action"
+}'''
+
+            messages = [{"role": "user", "content": classification_prompt}]
+            result = self.llm_manager.chat(messages)
+            
+            if result and result.response_text:
+                import json
+                import re
+                
+                try:
+                    # Clean and normalize the response text
+                    response_text = result.response_text.strip()
+                    
+                    # Extract JSON using a more precise regex
+                    json_pattern = r'\{(?:[^{}]|(?R))*\}'
+                    json_matches = re.finditer(json_pattern, response_text, re.DOTALL)
+                    
+                    # Try different JSON candidates
+                    for match in json_matches:
+                        try:
+                            json_text = match.group(0)
+                            classification = json.loads(json_text)
+                            
+                            # Validate required fields
+                            if all(key in classification for key in ['mode', 'confidence']):
+                                mode_name = classification['mode'].strip().upper()
+                                confidence = float(classification['confidence'])
+                                
+                                # Map mode name to ChatMode enum
+                                mode_mappings = {
+                                    'CASUAL_CHAT': ChatMode.CASUAL_CHAT,
+                                    'SYSTEM_HELP': ChatMode.SYSTEM_HELP,
+                                    'GOAL_SETTING': ChatMode.GOAL_SETTING,
+                                    'TOOL_INQUIRY': ChatMode.TOOL_INQUIRY,
+                                    'STATUS_CHECK': ChatMode.STATUS_CHECK,
+                                    'CONFIGURATION': ChatMode.CONFIGURATION,
+                                }
+                                
+                                # Try direct mapping first
+                                if mode_name in mode_mappings:
+                                    return mode_mappings[mode_name], confidence
+                                    
+                                # Try partial matching
+                                for key, mode in mode_mappings.items():
+                                    if key.replace('_', '') in mode_name.replace('_', ''):
+                                        return mode, confidence
+                                        
+                        except (json.JSONDecodeError, ValueError):
+                            continue
+                            
+                    logger.warning(f"Could not parse valid classification from LLM response")
+                    return None, 0.0
+                    
+                except Exception as e:
+                    logger.error(f"Error parsing LLM classification: {str(e)}")
+                    return None, 0.0
+            
+        except Exception as e:
+            logger.error(f"Error in LLM message classification: {str(e)}")
+            
+        return None, 0.0
+
+    def set_mode_by_intent(self, message: str) -> bool:
+        """Detect intent to switch modes and set appropriate mode manually."""
+        message_lower = message.lower()
+        
+        # Intent patterns for mode switching
+        mode_switch_patterns = {
+            ChatMode.SYSTEM_HELP: [
+                r"\b(режим\s+хелп|режим\s+help|хелпер|helper|помощник|допомога)\b",
+                r"\b(system\s+help|системная\s+помощь|системна\s+допомога)\b",
+                r"\b(перейди\s+в\s+режим\s+помощи|switch\s+to\s+help)\b",
+            ],
+            ChatMode.GOAL_SETTING: [
+                r"\b(режим\s+задач|режим\s+целей|task\s+mode|goal\s+mode)\b",
+                r"\b(перейди\s+в\s+режим\s+задач|switch\s+to\s+task\s+mode)\b",
+            ],
+            ChatMode.TOOL_INQUIRY: [
+                r"\b(режим\s+инструментов|режим\s+інструментів|tool\s+mode)\b",
+                r"\b(покажи\s+инструменты|покажи\s+інструменти|show\s+tools)\b",
+            ],
+            ChatMode.DEVELOPMENT: [
+                r"\b(режим\s+разработки|режим\s+розробки|dev\s+mode|development\s+mode)\b",
+                r"\b(перейди\s+в\s+dev|switch\s+to\s+dev)\b",
+            ],
+            ChatMode.CASUAL_CHAT: [
+                r"\b(режим\s+чата|режим\s+розмови|chat\s+mode|casual\s+mode)\b",
+                r"\b(обычный\s+режим|звичайний\s+режим|normal\s+mode)\b",
+            ],
+        }
+        
+        for mode, patterns in mode_switch_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, message_lower, re.IGNORECASE):
+                    self.set_manual_mode(mode)
+                    logger.info(f"Mode switched to {mode.value} based on user intent")
+                    return True
+                    
+        return False

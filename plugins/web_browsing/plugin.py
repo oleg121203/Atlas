@@ -773,6 +773,8 @@ def register():
     """Register all web browsing tools"""
     return {
         "tools": [
+            open_browser,
+            close_browser,
             navigate_to_url,
             click_element,
             fill_form_field,
@@ -793,3 +795,29 @@ def cleanup():
     if _browser:
         _browser.close()
         _browser = None
+
+def open_browser() -> str:
+    """Open a browser instance"""
+    try:
+        browser = get_browser()
+        # Navigate to blank page to initialize browser
+        result = browser.navigate_to_url("about:blank")
+        if result.get("success", False):
+            return json.dumps({"success": True, "message": "Browser opened successfully"}, indent=2)
+        else:
+            return json.dumps({"success": False, "error": "Failed to open browser"}, indent=2)
+    except Exception as e:
+        return json.dumps({"success": False, "error": f"Failed to open browser: {e}"}, indent=2)
+
+def close_browser() -> str:
+    """Close the browser instance"""
+    try:
+        global _browser
+        if _browser:
+            _browser.close()
+            _browser = None
+            return json.dumps({"success": True, "message": "Browser closed successfully"}, indent=2)
+        else:
+            return json.dumps({"success": True, "message": "No browser was open"}, indent=2)
+    except Exception as e:
+        return json.dumps({"success": False, "error": f"Failed to close browser: {e}"}, indent=2)

@@ -107,11 +107,28 @@ class EnhancedMemoryManager:
 
     def get_collection(self, collection_name: str) -> Any:
         try:
-            collection = self.client.get_collection(name=collection_name)
-        except ValueError:  # Collection not found
-            collection = self.client.create_collection(name=collection_name, embedding_function=self._get_embedding_function())
-        self._maybe_cleanup_collection(collection_name)
-        return collection
+            if not self.client:
+                self.logger.error("ChromaDB client not initialized")
+                return None
+                
+            try:
+                collection = self.client.get_collection(name=collection_name)
+            except ValueError:  # Collection not found
+                try:
+                    collection = self.client.create_collection(
+                        name=collection_name, 
+                        embedding_function=self._get_embedding_function()
+                    )
+                    self.logger.info(f"Created new collection: {collection_name}")
+                except Exception as e:
+                    self.logger.error(f"Failed to create collection {collection_name}: {str(e)}")
+                    return None
+            
+            self._maybe_cleanup_collection(collection_name)
+            return collection
+        except Exception as e:
+            self.logger.error(f"Error getting collection {collection_name}: {str(e)}")
+            return None
 
     def add_memory_for_agent(
         self,
@@ -145,13 +162,21 @@ class EnhancedMemoryManager:
     def add_memory(self, content: str, collection_name: str, metadata: Optional[Dict[str, Any]] = None):
         """Adds a memory to the specified collection with enhanced metadata."""
         collection = self.get_collection(collection_name)
+        if collection is None:
+            self.logger.error(f"Failed to get/create collection {collection_name}")
+            return
+            
         doc_id = f"{collection_name}_{int(time.time())}_{hash(content) % 10000}"
         final_metadata = metadata or {}
         config = self.memory_configs.get(collection_name)
         if config and config.ttl_hours:
             final_metadata["expires_at"] = time.time() + config.ttl_hours * 3600
-        collection.add(documents=[content], metadatas=[final_metadata], ids=[doc_id])
-        self.logger.info(f"Added memory to '{collection_name}' with ID: {doc_id}")
+        
+        try:
+            collection.add(documents=[content], metadatas=[final_metadata], ids=[doc_id])
+            self.logger.info(f"Added memory to '{collection_name}' with ID: {doc_id}")
+        except Exception as e:
+            self.logger.error(f"Failed to add memory to {collection_name}: {str(e)}")
 
     def retrieve_memories(
         self,
@@ -188,19 +213,32 @@ class EnhancedMemoryManager:
     ) -> List[Dict[str, Any]]:
         """Enhanced search with better organization and filtering."""
         if collection_names is None:
-            collection_names = [coll.name for coll in self.client.list_collections()]
+            try:
+                collection_names = [coll.name for coll in self.client.list_collections()]
+            except Exception as e:
+                self.logger.error(f"Failed to list collections: {str(e)}")
+                return []
+                
         results = []
         for name in collection_names:
             collection = self.get_collection(name)
-            query_result = collection.query(query_texts=[query], n_results=n_results)
-            if query_result and query_result.get("documents") and query_result["documents"][0]:
-                for i, doc in enumerate(query_result["documents"][0]):
-                    results.append({
-                        "collection": name,
-                        "content": doc,
-                        "metadata": query_result["metadatas"][0][i],
-                        "distance": query_result["distances"][0][i],
-                    })
+            if collection is None:
+                self.logger.warning(f"Skipping unavailable collection: {name}")
+                continue
+                
+            try:
+                query_result = collection.query(query_texts=[query], n_results=n_results)
+                if query_result and query_result.get("documents") and query_result["documents"][0]:
+                    for i, doc in enumerate(query_result["documents"][0]):
+                        results.append({
+                            "collection": name,
+                            "content": doc,
+                            "metadata": query_result["metadatas"][0][i],
+                            "distance": query_result["distances"][0][i],
+                        })
+            except Exception as e:
+                self.logger.error(f"Failed to query collection {name}: {str(e)}")
+                continue
         results.sort(key=lambda x: x.get("distance", float("inf")))
         return results
 
@@ -352,3 +390,172 @@ class EnhancedMemoryManager:
         """
         self.add_memory(content, collection_name=MemoryScope.USER_DATA.value, metadata=metadata)
         self._maybe_cleanup_collection(MemoryScope.USER_DATA.value)
+
+    def collection_exists(self, collection_name: str) -> bool:
+        """
+        Check if a collection exists.
+        
+        Args:
+            collection_name: Name of the collection to check
+            
+        Returns:
+            True if the collection exists, False otherwise
+        """
+        try:
+            if self.client:
+                collections = self.client.list_collections()
+                return any(c.name == collection_name for c in collections)
+            return False
+        except Exception as e:
+            self.logger.error(f"Error checking collection existence: {str(e)}")
+            return False
+            
+    def create_collection(self, collection_name: str) -> bool:
+        """
+        Create a new collection if it doesn't exist.
+        
+        Args:
+            collection_name: Name of the collection to create
+            
+        Returns:
+            True if the collection was created or already existed, False on error
+        """
+        try:
+            if not self.collection_exists(collection_name):
+                if self.client:
+                    self.client.create_collection(
+                        name=collection_name,
+                        embedding_function=self._get_embedding_function()
+                    )
+                    self.logger.info(f"Created collection: {collection_name}")
+                    return True
+                else:
+                    self.logger.warning("ChromaDB client not available")
+                    return False
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to create collection {collection_name}: {str(e)}")
+            return False
+            
+    def store_memory(
+        self, agent_name: str, memory_type: MemoryType, content: Any, metadata: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Store a memory in the specified collection.
+        
+        Args:
+            agent_name: Name of the agent/scope to store memory for
+            memory_type: Type of memory (GOAL, TASK_RESULT, etc)
+            content: The content to store
+            metadata: Optional metadata to store with the content
+            
+        Returns:
+            True if stored successfully, False otherwise
+        """
+        try:
+            # Ensure collection exists
+            if not self.create_collection(agent_name):
+                self.logger.error(f"Failed to create/verify collection {agent_name}")
+                return False
+                
+            # Prepare memory document
+            memory_doc = {
+                "type": memory_type.value,
+                "content": content,
+                "metadata": metadata or {},
+                "timestamp": time.time()
+            }
+            
+            # Store in database
+            if self.db and hasattr(self.db, 'insert_one'):
+                self.db[agent_name].insert_one(memory_doc)
+                return True
+            
+            self.logger.warning("Database doesn't support memory storage")
+            return False
+            
+        except Exception as e:
+            self.logger.error(f"Failed to store memory: {str(e)}")
+            return False
+        
+    def get_collection_safe(self, collection_name: str) -> Optional[Any]:
+        """
+        Safely get or create a collection without throwing exceptions.
+        
+        Args:
+            collection_name: Name of the collection
+            
+        Returns:
+            Collection object or None if failed
+        """
+        try:
+            if not self.client:
+                self.logger.error("ChromaDB client not initialized")
+                return None
+                
+            try:
+                # Try to get existing collection
+                collection = self.client.get_collection(name=collection_name)
+                return collection
+            except ValueError:
+                # Collection doesn't exist, create it
+                try:
+                    collection = self.client.create_collection(
+                        name=collection_name,
+                        embedding_function=self._get_embedding_function()
+                    )
+                    self.logger.info(f"Created new collection: {collection_name}")
+                    return collection
+                except Exception as e:
+                    self.logger.error(f"Failed to create collection {collection_name}: {str(e)}")
+                    return None
+                    
+        except Exception as e:
+            self.logger.error(f"Error getting collection {collection_name}: {str(e)}")
+            return None
+
+    def store_memory_safe(self, agent_name: str, memory_type: MemoryType, content: Any, metadata: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Safely store a memory with comprehensive error handling.
+        
+        Args:
+            agent_name: Name of the agent/scope to store memory for
+            memory_type: Type of memory (GOAL, TASK_RESULT, etc)
+            content: The content to store
+            metadata: Optional metadata to store with the content
+            
+        Returns:
+            True if stored successfully, False otherwise
+        """
+        try:
+            # Get or create collection
+            collection = self.get_collection_safe(agent_name)
+            if not collection:
+                self.logger.error(f"Failed to get/create collection {agent_name}")
+                return False
+                
+            # Prepare memory document
+            memory_id = f"{agent_name}_{memory_type.value}_{int(time.time() * 1000)}"
+            memory_metadata = metadata or {}
+            memory_metadata.update({
+                "type": memory_type.value,
+                "timestamp": time.time(),
+                "agent": agent_name
+            })
+            
+            # Convert content to string if it's not already
+            content_str = str(content) if not isinstance(content, str) else content
+            
+            # Store in collection
+            collection.add(
+                ids=[memory_id],
+                documents=[content_str],
+                metadatas=[memory_metadata]
+            )
+            
+            self.logger.debug(f"Stored memory in {agent_name}: {memory_type.value}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to store memory safely: {str(e)}")
+            return False

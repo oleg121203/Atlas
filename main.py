@@ -57,7 +57,7 @@ from agents.enhanced_memory_manager import (
     MemoryType,
 )
 from agents.enhanced_security_agent import EnhancedSecurityAgent
-from agents.master_agent import MasterAgent
+from agents.task_aware_master_agent import TaskAwareMasterAgent as MasterAgent
 from agents.task_manager import TaskManager, TaskPriority, TaskStatus
 from agents.token_tracker import TokenTracker
 from intelligence.context_awareness_engine import ContextAwarenessEngine
@@ -118,13 +118,13 @@ class AtlasApp(ctk.CTk):
         self.config_manager = ConfigManager()
         self.token_tracker = TokenTracker()
         self.llm_manager = LLMManager(token_tracker=self.token_tracker, config_manager=self.config_manager)
-        self.memory_manager = EnhancedMemoryManager(llm_manager=self.llm_manager, config_manager=self.config_manager)
+        self.memory_manager = EnhancedMemoryManager(llm_manager=self.llm_manager, config_manager=self.config_manager, logger=self.logger)
         self.agent_manager = AgentManager(llm_manager=self.llm_manager, memory_manager=self.memory_manager)
         self.plugin_manager = PluginManager(self.agent_manager)
         #Set plugin manager reference to avoid circular dependency
 
         #Initialize the chat context manager
-        self.chat_context_manager = ChatContextManager(memory_manager=self.memory_manager)
+        self.chat_context_manager = ChatContextManager(memory_manager=self.memory_manager, llm_manager=self.llm_manager)
 
         #Initialize the chat translation manager (without LLM manager initially)
         self.chat_translation_manager = ChatTranslationManager()
@@ -1085,11 +1085,17 @@ class AtlasApp(ctk.CTk):
                 goals = [g.strip() for g in goal_input.split("\n") if g.strip()]
                 # Convert goals list to a single string since run expects a string
                 goal_string = "\n".join(goals)
-                context = {"prompt": prompt, "options": options}
-                self.master_agent.run(goal_string, context)
+                self.master_agent.run_with_isolation(
+                    goal=goal_string,
+                    master_prompt=prompt,
+                    options=options
+                )
             else:
-                context = {"prompt": prompt, "options": options}
-                self.master_agent.run(goal_input, context)
+                self.master_agent.run_with_isolation(
+                    goal=goal_input,
+                    master_prompt=prompt,
+                    options=options
+                )
 
             self._check_agent_status()
         else:
@@ -2145,25 +2151,22 @@ The current mode will be shown above. How can I help you today?"""
                     def execute_goal():
                         #Use the correct method to run goals
                         try:
-                            #Set up the goal execution
-                            context = {
-                                "master_prompt": "Chat goal execution",
-                                "options": {"cyclic": False}
-                            }
-                            self.master_agent.run(
+                            #Set up the goal execution using TaskAwareMasterAgent's method
+                            master_prompt = "Chat goal execution"
+                            options = {"cyclic": False}
+                            
+                            result = self.master_agent.run_with_isolation(
                                 goal=processed_message,
-                                context=context
+                                master_prompt=master_prompt,
+                                options=options
                             )
 
-                            #Wait for completion
-                            if self.master_agent.thread:
-                                self.master_agent.thread.join(timeout=30)  #30 second timeout
-
                             #Check if goal was completed successfully
-                            if self.master_agent.last_plan:
+                            if result and result.get("success", False):
                                 response = f"✅ Goal completed! I successfully executed: {processed_message}"
                             else:
-                                response = "❌ Goal execution failed or returned no result."
+                                error_msg = result.get("error", "Unknown error") if result else "No result returned"
+                                response = f"❌ Goal execution failed: {error_msg}"
 
                         except Exception as e:
                             response = f"❌ Error during goal execution: {e!s}"
@@ -2219,7 +2222,7 @@ The current mode will be shown above. How can I help you today?"""
 
     def _clear_chat_context(self):
         """Clear the chat context and reset conversation history."""
-        self.chat_context_manager = ChatContextManager(memory_manager=self.memory_manager)
+        self.chat_context_manager = ChatContextManager(memory_manager=self.memory_manager, llm_manager=self.llm_manager)
         self.chat_translation_manager.clear_session()
 
         #Stop any active animations

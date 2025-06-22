@@ -42,19 +42,63 @@ class BrowserAgent(BaseAgent):
     def execute_task(self, prompt: str, context: Dict[str, Any]) -> str:
         """Execute browser task with enhanced capabilities"""
         self.logger.info(f"Executing enhanced browser task: '{prompt}'")
+        prompt_lower = prompt.lower()
 
-        #If advanced plugin is available, use it for complex tasks
-        if self.web_plugin_available:
-            return self._execute_with_plugin(prompt, context)
-        return self._execute_basic(prompt, context)
+        try:
+            # Extract browser name and URL if present
+            browser_name = self._extract_browser_name(prompt)
+            url = self._extract_url(prompt)
+            
+            # Handle browser tasks
+            if any(keyword in prompt_lower for keyword in ["open browser", "відкрий браузер", "открой браузер"]):
+                # Set browser if specified
+                if browser_name:
+                    try:
+                        browser = webbrowser.get(browser_name)
+                    except webbrowser.Error:
+                        browser = webbrowser.get()
+                else:
+                    browser = webbrowser.get()
+                    
+                # Open URL if specified, otherwise just open browser
+                if url:
+                    browser.open(url)
+                    return f"Opened {url} in {browser_name or 'default'} browser"
+                else:
+                    browser.open("")
+                    return f"Opened {browser_name or 'default'} browser"
+                    
+            elif "close browser" in prompt_lower:
+                return self._handle_close_browser()
+                
+            # Handle other browser tasks with plugin
+            elif self.web_plugin_available:
+                return self._execute_with_plugin(prompt, context)
+                
+            return "Browser task not recognized. Available capabilities: navigate, search, click, fill, screenshot, scrape, scroll, wait."
+            
+        except Exception as e:
+            self.logger.error(f"Browser task execution failed: {e}")
+            return f"Failed to execute browser task: {str(e)}"
 
     def _execute_with_plugin(self, prompt: str, context: Dict[str, Any]) -> str:
         """Execute task using the Advanced Web Browsing Plugin"""
         prompt_lower = prompt.lower()
 
         try:
+            # Handle browser open/close tasks
+            if any(keyword in prompt_lower for keyword in ["open browser", "відкрий браузер", "открой браузер"]):
+                # If it's a combined task like "open browser and close it"
+                if any(keyword in prompt_lower for keyword in ["close", "закрий", "закрой"]):
+                    return self._handle_open_and_close_browser()
+                else:
+                    return self._handle_open_browser()
+                    
+            elif any(keyword in prompt_lower for keyword in ["close browser", "закрий браузер", "закрой браузер"]):
+                return self._handle_close_browser()
+                
             #Navigation tasks
-            if any(keyword in prompt_lower for keyword in ["navigate", "go to", "open", "visit"]):
+            elif any(keyword in prompt_lower for keyword in ["navigate", "go to", "open", "visit"]):
                 url = self._extract_url(prompt)
                 if url:
                     result = self.web_plugin.navigate_to_url(url)
@@ -313,3 +357,45 @@ class BrowserAgent(BaseAgent):
             timeout = int(match.group(1))
 
         return selector, timeout
+
+    def _extract_browser_name(self, prompt: str) -> Optional[str]:
+        """Extract browser name from prompt"""
+        prompt_lower = prompt.lower()
+        browser_keywords = {
+            "safari": ["safari", "сафарі", "сафари"],
+            "chrome": ["chrome", "google chrome", "хром", "гугл хром"],
+            "firefox": ["firefox", "mozilla", "фаєрфокс", "файрфокс"],
+            "edge": ["edge", "microsoft edge", "едж"]
+        }
+        
+        for browser, keywords in browser_keywords.items():
+            if any(keyword in prompt_lower for keyword in keywords):
+                return browser
+        return None
+        
+    def _handle_open_browser(self) -> str:
+        """Handle browser open requests"""
+        try:
+            # Default browser
+            webbrowser.open("")  # Empty string opens the default browser
+            return "Successfully opened the default browser"
+        except Exception as e:
+            self.logger.error(f"Failed to open browser: {e}")
+            return f"Failed to open browser: {str(e)}"
+            
+    def _handle_close_browser(self) -> str:
+        """Handle browser close requests"""
+        try:
+            if self.web_plugin_available:
+                self.web_plugin.close_browser()
+                return "Browser closed successfully"
+            return "Unable to close browser - plugin not available"
+        except Exception as e:
+            self.logger.error(f"Failed to close browser: {e}")
+            return f"Failed to close browser: {str(e)}"
+            
+    def _handle_open_and_close_browser(self) -> str:
+        """Handle combined open and close browser requests"""
+        open_result = self._handle_open_browser()
+        close_result = self._handle_close_browser()
+        return f"{open_result}. {close_result}"
