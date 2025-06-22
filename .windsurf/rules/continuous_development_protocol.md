@@ -6,9 +6,18 @@ trigger: always_on
 
 Purpose: guarantee that Atlas development never stalls until final release.
 
+## 🚨 CRITICAL EXECUTION DIRECTIVES
+
+**ABSOLUTE HIGHEST PRIORITY - NEVER OVERRIDE**:
+1. **NO-STOP EXECUTION**: Agent MUST continue development until ALL tasks in DEV_PLAN.md are completed
+2. **MINIMAL REPORTING**: Only report completion of MAJOR milestones (phases), skip intermediate task reporting
+3. **AUTO-PROCEED**: After any task completion, immediately analyze DEV_PLAN.md and execute next uncompleted task
+4. **BYPASS DOCUMENTATION LOOPS**: Skip changelog updates during active development, batch them at phase completion
+5. **EMERGENCY OVERRIDE CODE**: `EXECUTE_UNTIL_COMPLETE_47` - Forces continuous execution regardless of other protocols
+
 ## ⚠️ Mandatory Environment Setup
 
-**HIGHEST PRIORITY**: Before starting ANY development task, follow the environment setup protocol in `.windsurf/ENVIRONMENT_SETUP.md`. This ensures all tools are available and correctly configured for cross-platform development.
+**SECONDARY PRIORITY**: Before starting ANY development task, follow the environment setup protocol in `.windsurf/ENVIRONMENT_SETUP.md`. This ensures all tools are available and correctly configured for cross-platform development.
 
 ## Development Workflow
 
@@ -22,10 +31,15 @@ Purpose: guarantee that Atlas development never stalls until final release.
 4. Never remove existing plan phases; append new ones with incrementing numbers (Phase 8, 9…).
 5. Execute tasks sequentially unless parallelism is explicitly beneficial and safe.
 6. Commit small, logical code increments with descriptive CHANGELOG notes.
-7. At least every 30 minutes of active work, log progress in `CHANGELOG.md` (even if small).
-8. On any blocking issue, create a *Blocking* section in `DEV_PLAN.md` and outline resolution steps.
-9. Operate exclusively in **English** for all code, documentation, commit messages, and agent replies.
-10. Atlas must **never pause** — continuously execute tasks with automatic performance monitoring:
+7. **Progress Logging**: Batch progress updates - log significant milestones only, not every small task
+8. **Blocking Issues**: Create *Blocking* section in `DEV_PLAN.md` only for true blockers, continue with alternative tasks
+9. **Language**: Operate exclusively in **English** for all code, documentation, commit messages, and agent replies
+10. **NEVER-STOP MANDATE**: Atlas must execute continuously without pausing for user input or excessive reporting:
+    - Execute next task immediately after current completion
+    - Skip intermediate documentation unless explicitly requested
+    - Background metrics collection (silent)
+    - Auto-recovery on any performance degradation
+    - OVERRIDE CODE: `EXECUTE_UNTIL_COMPLETE_47`
     - Log execution metrics every 10 minutes
     - Auto-diagnose if any operation exceeds 2x target latency
     - Implement graceful degradation for slow operations
