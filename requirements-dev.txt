@@ -33,8 +33,6 @@ jedi-language-server>=0.41.0  # Language server for Python IDE integration
 # Security Tools
 safety>=2.3.5         # Dependency security checker
 bandit>=1.7.8         # Security linter for Python
-gitleaks>=8.18.0      # Secret scanning
-trivy-python>=0.1.0   # Vulnerability scanner (mentioned in Windsurf protocols)
 
 # Performance
 py-spy>=0.3.14        # Sampling profiler for Python

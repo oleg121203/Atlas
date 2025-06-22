@@ -145,21 +145,19 @@ class LLMManager:
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
-
-            response = openai_client.chat.completions.create(**kwargs)
-            message = response.choices[0].message
-            usage = response.usage
-            
+            response = openai_client.chat.completions.create(**kwargs)  
+            message = response.choices[0].message  
+            usage = response.usage  
             tool_calls = None
             if message.tool_calls:
-                tool_calls = [{"id": tc.id, "function": {"name": tc.function.name, "arguments": tc.function.arguments}} for tc in message.tool_calls]
+                tool_calls = [{"id": tc.id, "function": {"name": tc.function.name, "arguments": tc.function.arguments}} for tc in message.tool_calls]  
 
             token_usage = TokenUsage(
-                response_text=message.content,
+                response_text=message.content,  
                 tool_calls=tool_calls,
-                prompt_tokens=usage.prompt_tokens,
-                completion_tokens=usage.completion_tokens,
-                total_tokens=usage.total_tokens,
+                prompt_tokens=usage.prompt_tokens,  
+                completion_tokens=usage.completion_tokens,  
+                total_tokens=usage.total_tokens,  
             )
             self.token_tracker.add_usage(token_usage)
             return token_usage
@@ -171,8 +169,7 @@ class LLMManager:
     def _chat_gemini(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gemini-1.5-flash") -> TokenUsage:
         """Handle Gemini chat requests."""
         import google.generativeai as genai
-        from google.generativeai.types import HarmCategory, HarmBlockThreshold
-
+        from google.generativeai.types import HarmCategory, HarmBlockThreshold, SafetySetting
         if not self.gemini_client:
             self.logger.error("Gemini client not initialized.")
             raise ValueError("Gemini client not initialized. Please set your API key.")
@@ -196,28 +193,27 @@ class LLMManager:
             model_instance = genai.GenerativeModel(model_name=model, system_instruction=system_instruction, tools=tools)
             
             safety_settings = [
-                {'category': HarmCategory.HARM_CATEGORY_HARASSMENT, 'threshold': HarmBlockThreshold.BLOCK_NONE},
-                {'category': HarmCategory.HARM_CATEGORY_HATE_SPEECH, 'threshold': HarmBlockThreshold.BLOCK_NONE},
-                {'category': HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, 'threshold': HarmBlockThreshold.BLOCK_NONE},
-                {'category': HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, 'threshold': HarmBlockThreshold.BLOCK_NONE}
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=HarmBlockThreshold.BLOCK_NONE),
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                SafetySetting(category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE)
             ]
             
-            response = model_instance.generate_content(gemini_messages, safety_settings=safety_settings)  # type: ignore[arg-type]
-
+            response = model_instance.generate_content(gemini_messages, safety_settings=safety_settings)  # type: ignore[arg-type, return-value]
             response_text, tool_calls = "", None
             if response.candidates and response.candidates[0].content.parts:
                 for part in response.candidates[0].content.parts:
                     if hasattr(part, 'text') and part.text:
                         response_text += part.text
                     if hasattr(part, 'function_call'):
-                        fc = part.function_call
+                        fc = part.function_call  
                         tool_calls = [{"id": f"call_{fc.name}", "function": {"name": fc.name, "arguments": json.dumps(dict(fc.args or {}))}}]
 
             if not response_text and not tool_calls:
                 self.logger.warning(f"Gemini response was empty. Raw response: {response}")
 
-            prompt_tokens = model_instance.count_tokens(gemini_messages).total_tokens
-            completion_tokens = model_instance.count_tokens(response.candidates[0].content).total_tokens
+            prompt_tokens = model_instance.count_tokens(gemini_messages).total_tokens  
+            completion_tokens = model_instance.count_tokens(response.candidates[0].content).total_tokens  
             
             token_usage = TokenUsage(
                 response_text=response_text,
@@ -236,7 +232,6 @@ class LLMManager:
         """Generates an embedding for the given text."""
         import google.generativeai as genai
         try:
-            # Ensure client is configured
             if self.gemini_client is None and self.config_manager.get_gemini_api_key():
                 self._initialize_gemini()
 
@@ -244,8 +239,8 @@ class LLMManager:
                 self.logger.error("Cannot generate embedding, Gemini client not available.")
                 return []
 
-            result = genai.embed_content(model=model, content=text)
-            return result['embedding']
+            result = genai.embed_content(model=model, content=text)  # type: ignore[return-value]
+            return result['embedding']  # type: ignore[index]
         except Exception as e:
             self.logger.error(f"Failed to generate embedding: {e}", exc_info=True)
             return []

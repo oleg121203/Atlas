@@ -185,9 +185,7 @@ class AgentManager:
             )
         except Exception as e:
             self.logger.error(f"Error executing tool {tool_name}: {e}", exc_info=True)
-            #Re-raise as a generic exception to be caught by the master agent
             raise
-            return f"Error: {e}"
 
     def get_all_agents(self) -> Dict[str, Any]:
         """Returns a dictionary of all registered agents."""
@@ -434,22 +432,16 @@ class AgentManager:
                         #Now tools should be functions with __name__ attribute
                         if hasattr(tool_func, "__name__"):
                             tool_name = tool_func.__name__
-                            if tool_name in self._tools and tool_name not in [t["name"] for t in details]:
+                            if tool_name not in self._tools or tool_name not in [t["name"] for t in details if t["type"] != "essential"]:
                                 details.append({
                                     "name": tool_name,
                                     "doc": getattr(tool_func, "__doc__", f"Plugin tool from {plugin_name}"),
                                     "file_path": f"plugins/{plugin_name}",
                                     "type": "plugin",
-                                    "source": f"Plugin: {plugin_name}",
+                                    "source": "Plugin Manager",
                                 })
             except Exception as e:
                 self.logger.warning(f"Error processing plugin tools for UI display: {e}")
-
-        #Debug: Print tool counts for troubleshooting
-        generated_count = len([d for d in details if d["type"] == "generated"])
-        builtin_count = len([d for d in details if d["type"] == "built-in"])
-        essential_count = len([d for d in details if d["type"] == "essential"])
-        plugin_count = len([d for d in details if d["type"] == "plugin"])
 
         #Debug: Print tool counts for troubleshooting
         generated_count = len([d for d in details if d["type"] == "generated"])

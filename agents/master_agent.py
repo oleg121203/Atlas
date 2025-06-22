@@ -12,31 +12,18 @@ try:
 except ImportError:
     AgentManager = object  # type: ignore[misc, assignment]
 try:
-    from agents.tool_execution import InvalidToolArgumentsError  # type: ignore[import-untyped]
+    from agents.tool_execution import InvalidToolArgumentsError  # type: ignore[import-not-found]
 except ImportError:
     InvalidToolArgumentsError = Exception  
 try:
     from agents.tool_execution import ToolNotFoundError  
 except ImportError:
     ToolNotFoundError = Exception  
-try:
-    from agents.models import CreatorAuthentication  # type: ignore[import-untyped]
-except ImportError:
-    CreatorAuthentication = Any
-
 from agents.creator_authentication import CreatorAuthentication
 
 from intelligence.context_awareness_engine import ContextAwarenessEngine
 
-try:
-    from agents.models import Plan, TokenUsage
-except ImportError:
-    class _FallbackTokenUsage:
-        def __init__(self, prompt_tokens: int = 0, completion_tokens: int = 0, total_tokens: int = 0) -> None:
-            self.prompt_tokens = prompt_tokens
-            self.completion_tokens = completion_tokens
-            self.total_tokens = total_tokens
-    TokenUsage = _FallbackTokenUsage
+from agents.token_tracker import TokenUsage
 
 from agents.planning.operational_planner import OperationalPlanner
 from agents.planning.strategic_planner import StrategicPlanner
@@ -172,7 +159,7 @@ class MasterAgent:
         if self._strategic_planner is None:
             start_time = time.time()
             try:
-                from agents.strategic_planning_agent import StrategicPlanningAgent  # type: ignore[import-untyped]
+                from agents.strategic_planning_agent import StrategicPlanningAgent  # type: ignore[import-not-found]
                 self._strategic_planner = StrategicPlanningAgent(
                     llm_manager=self.llm_manager,  
                     agent_manager=self.agent_manager,  
@@ -187,7 +174,7 @@ class MasterAgent:
         if self._tactical_planner is None:
             start_time = time.time()
             try:
-                from agents.tactical_planning_agent import TacticalPlanningAgent  # type: ignore[import-untyped]
+                from agents.tactical_planning_agent import TacticalPlanningAgent  # type: ignore[import-not-found]
                 self._tactical_planner = TacticalPlanningAgent(
                     llm_manager=self.llm_manager,  
                     agent_manager=self.agent_manager,  
@@ -202,7 +189,7 @@ class MasterAgent:
         if self._operational_planner is None:
             start_time = time.time()
             try:
-                from agents.operational_planning_agent import OperationalPlanningAgent  # type: ignore[import-untyped]
+                from agents.operational_planning_agent import OperationalPlanningAgent  # type: ignore[import-not-found]
                 self._operational_planner = OperationalPlanningAgent(
                     llm_manager=self.llm_manager,  
                     agent_manager=self.agent_manager,  
@@ -272,11 +259,10 @@ class MasterAgent:
             self.is_running = True
 
     def _generate_strategic_plan(self, goal: str) -> Dict[str, Any]:
-        if self.execution_context is None:
-            return {}
-        # Ensure strategic planner is available
         planner = self.strategic_planner
-        assert planner is not None, "Strategic planner should be initialized"
+        if planner is None:
+            self.logger.error('Strategic planner is not initialized')
+            return {}
         plan = planner.generate_strategic_plan(
             context=self.execution_context,
             goals=self._get_available_goals(),
@@ -285,18 +271,13 @@ class MasterAgent:
         return plan if isinstance(plan, dict) else {}
 
     def _get_available_goals(self) -> List[str]:
-        if self.execution_context is None:
-            return []
-        goals = self.execution_context.get("goals", [])
-        if not isinstance(goals, list):
-            return []
-        return [str(goal) for goal in goals]
+        if self.execution_context is None or not isinstance(self.execution_context.get("goals", []), list):
+            return []  # type: ignore[unreachable]
+        return [str(goal) for goal in self.execution_context["goals"]]
 
     def continue_with_feedback(self, feedback: str) -> None:
-        """Continue execution with user feedback."""
         self.logger.info(f"Received feedback: {feedback}")
         # Implementation would handle feedback and continue execution
-        pass
 
     def provide_clarification(self, clarification: str) -> None:
         """Provide clarification for the current task."""
@@ -304,7 +285,6 @@ class MasterAgent:
         self.is_waiting_for_clarification = False
         self.last_clarification_request = None
         # Implementation would handle clarification and continue execution
-        pass
 
     def pause(self) -> None:
         """Pause execution."""
@@ -312,7 +292,6 @@ class MasterAgent:
             if self.is_running:
                 self.logger.info("Pausing agent execution")
                 # Implementation would pause execution
-                pass
 
     def stop(self) -> None:
         """Stop execution."""

@@ -6,12 +6,21 @@ set -e
 
 echo "📦 Installing Atlas requirements for the current platform..."
 
-# Detect platform
+# Detect platform and set variables
 if [[ "$OSTYPE" == "darwin"* ]]; then
     PLATFORM="macOS"
     PLATFORM_FILE="requirements-macos.txt"
     PYTHON_VERSION="3.13"
     VENV_DIR="venv-macos"
+    
+    # Handle gitleaks installation for macOS
+    echo "Checking for gitleaks installation..."
+    if ! command -v gitleaks &> /dev/null; then
+        echo "Installing gitleaks via homebrew..."
+        brew install gitleaks
+    else
+        echo "gitleaks is already installed."
+    fi
 else
     PLATFORM="Linux"
     PLATFORM_FILE="requirements-linux.txt"
