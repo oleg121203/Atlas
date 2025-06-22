@@ -13,7 +13,8 @@ from .clipboard_tool import (
     set_clipboard_text,
     wait_for_clipboard_change,
 )
-from .email import *
+from .email.analytics import EmailAnalytics
+from .email.automation import EmailAutomation
 from .browser import BrowserTool
 from .image_recognition_tool import find_object_in_image, find_template_in_image
 from .mouse_keyboard_tool import (
@@ -49,6 +50,6 @@ __all__ = [
     #Terminal
     "execute_command", "execute_script", "get_environment",
     "change_directory", "kill_process", "TerminalResult",
-    # Web Browser
-    "open_url",
+    #Email
+    "EmailAnalytics", "EmailAutomation",
 ]

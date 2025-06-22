@@ -38,7 +38,7 @@ class WeatherPlugin:
                 }
             
             # Get coordinates for location
-            geocode_url = f"http://api.openweathermap.org/geo/1.0/direct"
+            geocode_url = "http://api.openweathermap.org/geo/1.0/direct"
             params = {
                 "q": location,
                 "limit": 1,
@@ -112,7 +112,7 @@ class WeatherPlugin:
                 }
             
             # Get coordinates for location
-            geocode_url = f"http://api.openweathermap.org/geo/1.0/direct"
+            geocode_url = "http://api.openweathermap.org/geo/1.0/direct"
             params = {
                 "q": location,
                 "limit": 1,

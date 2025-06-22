@@ -156,4 +156,36 @@ class VoiceAssistantPlugin:
                 "error": str(e)
             }
     
-    def voice_command(self, command: str) 
+    def voice_command(self, command: str) -> Dict[str, Any]:
+        """Execute a voice command."""
+        try:
+            # Process the voice command
+            command = command.lower().strip()
+            
+            if "speak" in command or "say" in command:
+                # Extract text to speak
+                text = command.replace("speak", "").replace("say", "").strip()
+                return self.speak_text(text)
+            
+            elif "listen" in command or "hear" in command:
+                # Listen for speech
+                timeout = 5
+                if "timeout" in command:
+                    try:
+                        timeout = int(command.split("timeout")[1].split()[0])
+                    except:
+                        pass
+                return self.listen_for_speech(timeout)
+            
+            else:
+                return {
+                    "success": False,
+                    "error": f"Unknown voice command: {command}"
+                }
+                
+        except Exception as e:
+            logger.error(f"Voice command failed: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            } 

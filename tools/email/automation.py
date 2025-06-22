@@ -158,7 +158,7 @@ class EmailAutomation:
                     
             # Validate actions
             for action in actions:
-                if not 'type' in action:
+                if 'type' not in action:
                     return False
                     
                 if action['type'] == 'auto_reply':
@@ -168,7 +168,7 @@ class EmailAutomation:
                     if not all(key in action for key in ['to', 'email_id']):
                         return False
                 elif action['type'] == 'label':
-                    if not 'label_name' in action:
+                    if 'label_name' not in action:
                         return False
                     
             return True
