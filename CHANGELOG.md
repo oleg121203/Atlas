@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **Hierarchical Planning & Execution Loop:** Implemented a robust, multi-layered planning and execution loop in `MasterAgent` to enable decomposition of complex goals and persistent, resilient task execution.
+
+### Fixed
+- **ChromaDB Stability**: Refactored `EnhancedMemoryManager` to be thread-safe by adding a lock for client initialization and using atomic `get_or_create_collection` operations. This resolves persistent race conditions and collection creation failures.
+- **Debugging**: Added detailed logging in `MasterAgent` for all planner inputs (`goal` and `context`) to provide visibility into the data being sent to the Gemini API, aiding in diagnosing API errors.
+- **BrowserAgent Error Logging**: Updated error logging format in `BrowserAgent` to match test expectations, ensuring consistency in error messages.
+- **MasterAgent Type Errors**: Corrected attribute references, type issues, and import redefinitions in `MasterAgent` to resolve mypy errors.
+- **ChromaDB Collection Errors:** Refactored `get_collection` in `EnhancedMemoryManager` to ensure reliable client initialization and robust collection creation, resolving persistent "Collection does not exist" errors.
+- **BrowserAgent Type Fixes**: Fixed type annotations for `browser_process` and added return statements to methods to satisfy mypy requirements.
+- **Additional Type Fixes in MasterAgent**: Resolved additional type errors in `MasterAgent` by addressing attribute access, method calls, and import issues, further enhancing type safety.
+
 ## [Unreleased]
 
 ### Added
@@ -85,6 +99,38 @@
 
 ## [Unreleased]
 
+### Added
+- **Advanced Application Interactions (Task 8.1)**: Developed `AdvancedApplicationAgent` for complex automation tasks including window management, script execution, UI automation, and complex workflows across applications. All related tests have passed successfully.
+- **Browser Control Enhancements**: Updated `BrowserAgent` to ensure full functionality across browsers on macOS, with a focus on Safari. Added capabilities for opening browsers, navigating to URLs, searching, clicking elements, inputting text, and closing browsers using AppleScript for macOS compatibility.
+- **Enhanced Memory Management**: Updated `EnhancedMemoryManager` to improve context retention using a vector database approach for storing, recalling, and forgetting memories based on similarity matching.
+- **Task Recognition Improvement**: Updated `MasterAgent` to improve task recognition for browser-related tasks, ensuring correct delegation to `BrowserAgent`, and added recognition for advanced application tasks and memory-related queries.
+
+### Changed
+- Updated `DEV_PLAN.md` to mark Task 8.1 as completed and set Task 8.2 as in progress for cross-platform enhancements.
+
+## [Unreleased]
+
+### Added
+- **Phase 7: Browser and Application Control Implementation**
+  - Enhanced browser control with user-specified browser selection (e.g., Safari) through `BrowserAgent` and Advanced Web Browsing plugin.
+  - Developed `ApplicationAgent` for general application control, including terminal command execution, mouse/keyboard control, clipboard management, and application launching.
+  - Updated `MasterAgent` to delegate browser and application control tasks to specialized agents.
+  - Added comprehensive unit tests for `ApplicationAgent` functionality.
+  - Created documentation for browser and application control features in `docs/browser_application_control.md`.
+
+### Changed
+- Fixed type safety issues in `browser_agent.py` and `plugin.py` with appropriate type ignore comments.
+- Improved code organization and error handling in browser and application control modules.
+
+### Fixed
+- Resolved mypy errors related to imports and type annotations in browser control modules.
+- Fixed linting errors in `master_agent.py` for try statement structure and lambda expression.
+- Corrected type mismatch for return value in `master_agent.py`.
+- Fixed tuple subscripting error in `application_agent.py`.
+- Updated unit tests in `test_application_agent.py` to correctly mock imported functions, resolving test failures.
+
+## [Unreleased]
+
 ### Changed
 - Updated import statements and initialization in `master_agent.py` to resolve `mypy` type errors related to imports and agent manager attributes.
 - Removed duplicate method definition and fixed missing arguments in `PlanExecutionError` calls in `master_agent.py` to further address `mypy` type errors.
@@ -163,6 +209,20 @@
 - Fixed unreachable code error in `master_agent.py` by refactoring the `_get_available_goals` method and adding a type ignore comment, improving type safety.
 - Completed environment setup by installing all missing dependencies (line-profiler, pre-commit), ensuring full compliance with development protocols.
 - Resolved the missing gitleaks dependency issue by confirming installation via homebrew, ensuring security scanning functionality is enabled in the CI pipeline as per Quality Assurance and Security Protocols.
+
+## [Unreleased]
+
+### Added
+- **BrowserAgent Enhancements for macOS**: Developed comprehensive browser control capabilities for macOS with a focus on Safari. Implemented key functions including Open, Search, Click, Input, and Close using AppleScript for seamless compatibility. Thoroughly tested for reliability and edge cases.
+- **Comprehensive Testing for BrowserAgent**: Created a detailed test suite for `BrowserAgent` to ensure functionality across various browser tasks on macOS.
+- **Task Recognition Improvements**: Updated `MasterAgent` to enhance task delegation, ensuring browser-related tasks are routed to `BrowserAgent`, advanced application tasks to `AdvancedApplicationAgent`, and memory queries to `EnhancedMemoryManager`.
+- **Task Decomposition and Hierarchy in MasterAgent**: Implemented task decomposition into subtasks, progress tracking, and a conceptual framework for visual feedback in chat for hierarchical task management.
+- **Documentation Improvements**: Added comprehensive docstrings to methods in `BrowserAgent` and `MasterAgent` to improve code documentation coverage.
+
+### Fixed
+- **BrowserAgent Constructor Mismatch**: Corrected the constructor of `BrowserAgent` to accept an optional logger parameter, resolving test initialization errors.
+- **Test Suite Adjustments**: Updated `test_browser_agent.py` to align with the `BrowserAgent` constructor signature, fixing test failures.
+- **Missing Attributes and Methods in BrowserAgent**: Added necessary attributes like `browser_process` and methods such as `initialize`, `shutdown`, and various browser control handlers to `BrowserAgent` to meet test suite expectations.
 
 ## [Phase 2: Enhanced Type Safety] - 2025-06-21
 

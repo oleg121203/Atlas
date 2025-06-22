@@ -5,6 +5,7 @@ Enhanced Memory Manager with better organization for different processes
 """
 
 import logging
+import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -80,19 +81,27 @@ class EnhancedMemoryManager:
         self.llm_manager = llm_manager
         self.config_manager = config_manager
         self.db_path = self.config_manager.get_app_data_path("memory")
-        self._client: Optional[Any] = None
+        self._client: Optional[Client] = None
+        self._client_lock = threading.Lock()
         self._init_memory_configs()
         self.logger = logger
         self.logger.info(f"EnhancedMemoryManager initialized. DB path configured for lazy loading: {self.db_path}")
+        self.memory_database = []
 
     @property
-    def client(self) -> Any:
+    def client(self) -> Client:
         if self._client is None:
-            try:
-                self._client = chromadb.PersistentClient(path=str(self.db_path))
-                self.logger.info("ChromaDB client initialized successfully.")
-            except Exception as e:
-                self.logger.error(f"Failed to initialize ChromaDB client: {e}", exc_info=True)
+            with self._client_lock:
+                if self._client is None:  # Double-check locking
+                    try:
+                        self.logger.info(f"Initializing ChromaDB client at path: {self.db_path}")
+                        self._client = chromadb.PersistentClient(path=str(self.db_path))
+                        self.logger.info("ChromaDB client initialized successfully.")
+                    except Exception as e:
+                        self.logger.error(f"Failed to initialize ChromaDB client: {e}", exc_info=True)
+                        raise
+        if self._client is None:
+            raise ConnectionError("Failed to get a valid ChromaDB client instance.")
         return self._client
 
     def _get_embedding_function(self) -> Any:
@@ -105,33 +114,19 @@ class EnhancedMemoryManager:
             embeddings_list.append(embedding if isinstance(embedding, list) else [0.0] * 1536)
         return embeddings_list
 
-    # Modified get_collection method for better reliability
     def get_collection(self, collection_name: str) -> Optional[Collection]:
-        if self._client is None:
-            try:
-                self._client = chromadb.PersistentClient(path=str(self.db_path))
-                self.logger.info("ChromaDB client initialized successfully.")
-            except Exception as e:
-                self.logger.error(f"Failed to initialize ChromaDB client: {str(e)}")
-                return None
-
+        """Gets or creates a collection atomically, ensuring thread safety."""
         try:
-            collection = self._client.get_collection(name=collection_name)
+            # Use the atomic get_or_create_collection method
+            collection = self.client.get_or_create_collection(
+                name=collection_name,
+                embedding_function=self._get_embedding_function()
+            )
+            self.logger.debug(f"Successfully retrieved or created collection: {collection_name}")
+            self._maybe_cleanup_collection(collection_name)
             return collection
-        except ValueError:  # Collection not found
-            try:
-                collection = self._client.create_collection(
-                    name=collection_name, 
-                    embedding_function=self._get_embedding_function()
-                )
-                self.logger.info(f"Created new collection: {collection_name}")
-                self._maybe_cleanup_collection(collection_name)
-                return collection
-            except Exception as e:
-                self.logger.error(f"Failed to create collection {collection_name}: {str(e)}")
-                return None
         except Exception as e:
-            self.logger.error(f"Error getting collection {collection_name}: {str(e)}")
+            self.logger.error(f"Failed to get or create collection '{collection_name}': {e}", exc_info=True)
             return None
 
     def add_memory_for_agent(
@@ -570,3 +565,117 @@ class EnhancedMemoryManager:
         except Exception as e:
             self.logger.error(f"Failed to store memory safely: {str(e)}")
             return False
+
+    def execute_task(self, prompt: str, context: Dict[str, Any]) -> str:
+        """Execute a memory-related task."""
+        self.logger.info(f"Executing memory task: {prompt}")
+        try:
+            if any(term in prompt.lower() for term in ["store", "save", "remember", "add", "log"]):
+                return self._store_memory(prompt, context)
+            elif any(term in prompt.lower() for term in ["recall", "retrieve", "find", "search", "history", "past", "previous", "context"]):
+                return self._recall_memory(prompt, context)
+            elif any(term in prompt.lower() for term in ["forget", "delete", "remove", "clear"]):
+                return self._forget_memory(prompt, context)
+            else:
+                self.logger.warning(f"No specific handler for memory task: {prompt}")
+                return self._default_task_handler(prompt, context)
+        except Exception as e:
+            self.logger.error(f"Error executing memory task: {str(e)}")
+            return f"Failed to execute memory task: {str(e)}"
+
+    def _store_memory(self, prompt: str, context: Dict[str, Any]) -> str:
+        """Store a memory entry in the vector database."""
+        self.logger.info(f"Storing memory: {prompt}")
+        memory_content = self._extract_memory_content(prompt)
+        if memory_content:
+            vector = self._generate_vector(memory_content)
+            self.memory_database.append({
+                'content': memory_content,
+                'vector': vector,
+                'context': context,
+                'timestamp': time.time()
+            })
+            return f"Memory stored: {memory_content}"
+        return "No memory content to store."
+
+    def _recall_memory(self, prompt: str, context: Dict[str, Any]) -> str:
+        """Recall a memory entry from the vector database."""
+        self.logger.info(f"Recalling memory: {prompt}")
+        query = self._extract_memory_query(prompt)
+        if query:
+            query_vector = self._generate_vector(query)
+            best_match = None
+            best_score = -1
+            for entry in self.memory_database:
+                score = self._cosine_similarity(query_vector, entry['vector'])
+                if score > best_score:
+                    best_score = score
+                    best_match = entry
+            if best_match and best_score > 0.5:  # Threshold for relevance
+                return f"Recalled memory: {best_match['content']}"
+            return "No relevant memory found."
+        return "No memory query specified."
+
+    def _forget_memory(self, prompt: str, context: Dict[str, Any]) -> str:
+        """Forget a memory entry from the vector database."""
+        self.logger.info(f"Forgetting memory: {prompt}")
+        query = self._extract_memory_query(prompt)
+        if query:
+            query_vector = self._generate_vector(query)
+            best_match_index = -1
+            best_score = -1
+            for i, entry in enumerate(self.memory_database):
+                score = self._cosine_similarity(query_vector, entry['vector'])
+                if score > best_score:
+                    best_score = score
+                    best_match_index = i
+            if best_match_index >= 0 and best_score > 0.5:  # Threshold for relevance
+                forgotten = self.memory_database.pop(best_match_index)
+                return f"Forgotten memory: {forgotten['content']}"
+            return "No relevant memory found to forget."
+        return "No memory query specified to forget."
+
+    def _default_task_handler(self, prompt: str, context: Dict[str, Any]) -> str:
+        """Handle memory tasks that don't match specific categories."""
+        self.logger.info(f"Handling default memory task: {prompt}")
+        return f"Memory task executed with default handler: {prompt}"
+
+    def _extract_memory_content(self, prompt: str) -> str:
+        """Extract content to store as memory from the prompt."""
+        words = prompt.split()
+        content_start = False
+        content = []
+        for i, word in enumerate(words):
+            if word.lower() in ["store", "save", "remember", "add", "log"] and i + 1 < len(words):
+                content_start = True
+            elif content_start:
+                content.append(word)
+        return " ".join(content)
+
+    def _extract_memory_query(self, prompt: str) -> str:
+        """Extract query to recall or forget memory from the prompt."""
+        words = prompt.split()
+        query_start = False
+        query = []
+        for i, word in enumerate(words):
+            if word.lower() in ["recall", "retrieve", "find", "search", "history", "past", "previous", "context", "forget", "delete", "remove", "clear"] and i + 1 < len(words):
+                query_start = True
+            elif query_start:
+                query.append(word)
+        return " ".join(query)
+
+    def _generate_vector(self, text: str) -> list:
+        """Generate a simple vector representation of text for similarity comparison."""
+        # This is a placeholder for a real vectorization method (e.g., using embeddings)
+        return [ord(c) for c in text[:10]] if text else [0] * 10
+
+    def _cosine_similarity(self, vec1: list, vec2: list) -> float:
+        """Calculate cosine similarity between two vectors."""
+        if len(vec1) != len(vec2):
+            return 0.0
+        dot_product = sum(a * b for a, b in zip(vec1, vec2))
+        magnitude1 = sum(a * a for a in vec1) ** 0.5
+        magnitude2 = sum(b * b for b in vec2) ** 0.5
+        if magnitude1 == 0 or magnitude2 == 0:
+            return 0.0
+        return dot_product / (magnitude1 * magnitude2)

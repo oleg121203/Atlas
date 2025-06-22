@@ -1066,11 +1066,11 @@ Analyze the context and motive of the message. Special attention:
 Key words for GOAL_SETTING: open, find, search, navigate, go to, show, display, get, fetch, download, upload, create, delete, run, execute
 
 Respond with only the following JSON structure:
-{
+{{
     "mode": "GOAL_SETTING",
     "confidence": 0.95,
     "reasoning": "This is a task request to perform a specific action"
-}'''
+}}'''
 
             messages = [{"role": "user", "content": classification_prompt}]
             result = self.llm_manager.chat(messages)
@@ -1121,7 +1121,7 @@ Respond with only the following JSON structure:
                         except (json.JSONDecodeError, ValueError):
                             continue
                             
-                    logger.warning(f"Could not parse valid classification from LLM response")
+                    logger.warning("Could not parse valid classification from LLM response")
                     return None, 0.0
                     
                 except Exception as e:

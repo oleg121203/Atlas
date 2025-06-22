@@ -1,5 +1,5 @@
 {
-    "goal_input": "Hi, can you open GitHub in Safari?",
+    "goal_input": "Open a Google page for me and find photos of flowers that grow in Transcarpathia.",
     "prompt_input": "",
     "chat_history": [
         {
@@ -13,6 +13,42 @@
         {
             "role": "system",
             "text": "Settings loaded successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
+        },
+        {
+            "role": "system",
+            "text": "All settings saved and applied successfully."
         }
     ]
 }

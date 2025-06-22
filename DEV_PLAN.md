@@ -8,6 +8,10 @@ This document outlines the development milestones for the Atlas AI agent.
 - [X] **Tool Use & Management:** Develop a robust system for using and managing a dynamic set of tools.
 
 ## Phase 2: Advanced Features & Robustness (In Progress)
+- [x] **Core Task Execution & Planning:**
+    - [x] **Investigate & Fix Core Task Execution Loop:**
+        - [x] Implemented a full hierarchical planning loop (Decomposition -> Strategic -> Tactical -> Operational).
+        - [x] Ensured the execution loop persists with retries until task completion, finding alternative paths on failure.
 - [X] **Enhance Error Recovery:**
     - [X] Implement dynamic tool creation for `ToolNotFoundError`.
     - [X] Implement environmental adaptation logic to handle context changes.
@@ -208,6 +212,39 @@ This document outlines the development milestones for the Atlas AI agent.
 - [ ] **Implement Tool Synthesis and Discovery:**
     - Give Atlas the ability to find new software libraries and APIs, read their documentation, and dynamically generate new tools for itself to solve novel problems.
 
+## Phase 7: Browser and Application Control Implementation
+
+**Objective:** Implement comprehensive browser control and extend to general application control as per user requirements.
+
+- [x] **Task 7.1: Review Existing Browser Capabilities**
+  - Confirm existing browser control tools and agents are functional (Completed by analyzing codebase)
+- [x] **Task 7.2: Enhance Browser Navigation Features**
+  - Implement control over any browser tabs (Completed with browser selection functionality)
+  - Add ability to open specific browser profiles (Completed with browser selection, particularly Safari support)
+- [x] **Task 7.3: Extend to General Application Control**
+  - Develop tools to launch and control terminal applications (Completed with ApplicationAgent)
+  - Implement keyboard and mouse control for any application (Completed with ApplicationAgent)
+- [x] **Task 7.4: Documentation and Testing**
+  - Document browser and application control features (Completed with browser_application_control.md)
+  - Add comprehensive tests for browser and application control (Completed with test_application_agent.py)
+
+## Phase 8: Advanced Automation and Cross-Platform Support
+
+- [x] **Task 8.1: Advanced Application Interactions** (Completed)
+  - Develop deeper integration with specific applications for complex automation tasks (Completed with AdvancedApplicationAgent enhancements for window management, script execution, UI automation, and complex workflows)
+- [ ] **Task 8.2: Cross-Platform Enhancements** (In Progress)
+  - [x] **Browser Control for macOS**: Develop and test full browser control functionality in `BrowserAgent`, focusing on Safari for macOS using AppleScript.
+  - [ ] Extend browser control to Windows browsers (Chrome, Edge, Firefox) with PowerShell.
+  - [ ] Implement cross-platform testing for browser control to ensure compatibility.
+  - [ ] Enhance `MasterAgent` for better task recognition and delegation across platforms.
+- [ ] **Task 8.3: UI for Control Preferences**
+  - Add graphical elements or CLI commands for users to specify control preferences explicitly.
+- [ ] **Task 8.4: Performance Optimization**
+  - Optimize latency for browser and application control actions.
+- [ ] **Task 8.5: Documentation and Testing for Phase 8**
+  - Update documentation with new features and cross-platform support details.
+  - Add tests for advanced automation and cross-platform compatibility.
+
 ## Environment Setup Complete
 
 - [x] **Environment Setup Complete:** All dependencies installed and verified, resolving any missing tools like line-profiler and pre-commit.
@@ -215,3 +252,31 @@ This document outlines the development milestones for the Atlas AI agent.
 ## Next Steps
 
 - Focus on resolving type errors across the codebase and begin performance optimization to meet latency targets.
+
+## Phase 8: Advanced Automation and Cross-Platform Support
+
+- [x] **Task 8.1: Advanced Application Interactions** (Completed)
+  - Develop deeper integration with specific applications for complex automation tasks (Completed with AdvancedApplicationAgent enhancements for window management, script execution, UI automation, and complex workflows)
+- [ ] **Task 8.2: Cross-Platform Browser Control**
+  - [ ] Extend browser control to Windows (Edge/Chrome) and Linux (Chromium).
+  - [ ] Implement platform-specific handlers.
+  - [ ] Test for cross-platform compatibility.
+  - **Status:** In Progress
+
+- [ ] **Task 8.3: Performance Optimization for BrowserAgent**
+  - [ ] Optimize BrowserAgent to reduce task execution latency below 100ms.
+  - [ ] Implement lazy loading or caching if applicable.
+  - [ ] Benchmark performance after optimizations.
+  - **Status:** Not Started
+
+- [x] **Task 8.4: Task Hierarchy and Validation Interface**
+  - [x] Develop a system to break down tasks into clear, hierarchical commands.
+  - [ ] Implement progress tracking with visual feedback in chat (greyed-out style).
+  - [ ] Create an interface for task hierarchy with validation upon completion.
+  - **Status:** In Progress
+
+- [x] **Task 8.5: Bug Fixes and Type Corrections**
+  - [x] Resolve failing tests for BrowserAgent error handling.
+  - [x] Fix mypy type errors in BrowserAgent and MasterAgent.
+  - [x] Improve docstring coverage to meet quality standards.
+  - **Status:** Completed

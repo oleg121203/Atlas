@@ -451,16 +451,26 @@ class TaskManager:
             #Get the isolated master agent
             master_agent = isolated_agents["master_agent"]
 
-            #Set up status callback that updates task progress
-            def task_status_callback(status_info):
+            #Set up status callback that updates task progress and push through to UI
+            def task_status_callback(status_info: Dict[str, Any]):
+                # Forward to any external consumer (e.g. UI)
                 if task.status_callback:
-                    task.status_callback(status_info)
+                    try:
+                        task.status_callback(status_info)
+                    except Exception:
+                        self.logger.exception("Task status_callback raised")
 
-                #Update task progress if available
-                if "progress" in status_info:
-                    task.progress = status_info["progress"]
+                # Update internal TaskInstance progress if provided in payload
+                if isinstance(status_info, dict) and "progress" in status_info:
+                    task.progress = float(status_info["progress"])
                     if task.progress_callback:
-                        task.progress_callback(task.progress)
+                        try:
+                            task.progress_callback(task.task_id, task.progress, status_info.get("message", ""))
+                        except Exception:
+                            self.logger.exception("Task progress_callback raised")
+
+            # Inject callback into master agent before execution
+            master_agent.status_callback = task_status_callback
 
             #Execute the goal using isolated master agent
             master_agent.run(
