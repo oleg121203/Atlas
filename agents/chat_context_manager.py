@@ -1059,8 +1059,11 @@ Available modes:
 
 Analyze the context and motive of the message. Special attention:
 - Requests to switch modes (help mode requests, assistant queries, etc.) = SYSTEM_HELP
-- Tasks to execute actions (open, do, execute, perform actions) = GOAL_SETTING
+- Tasks to execute actions (open, do, execute, perform actions, find, search, navigate) = GOAL_SETTING
+- Questions about finding, searching, or navigating to something = GOAL_SETTING
 - General conversations, emotions, greetings = CASUAL_CHAT
+
+Key words for GOAL_SETTING: open, find, search, navigate, go to, show, display, get, fetch, download, upload, create, delete, run, execute
 
 Respond with only the following JSON structure:
 {
@@ -1079,9 +1082,10 @@ Respond with only the following JSON structure:
                 try:
                     # Clean and normalize the response text
                     response_text = result.response_text.strip()
+                    logger.debug(f"LLM response: {response_text[:200]}...")
                     
-                    # Extract JSON using a more precise regex
-                    json_pattern = r'\{(?:[^{}]|(?R))*\}'
+                    # Extract JSON using a simpler but effective regex
+                    json_pattern = r'\{[^{}]*\}'
                     json_matches = re.finditer(json_pattern, response_text, re.DOTALL)
                     
                     # Try different JSON candidates

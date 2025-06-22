@@ -49,6 +49,10 @@ class BrowserAgent(BaseAgent):
             browser_name = self._extract_browser_name(prompt)
             url = self._extract_url(prompt)
             
+            # Special handling for specific site requests
+            if not url and any(site in prompt_lower for site in ["github", "google", "facebook", "youtube", "twitter"]):
+                url = self._infer_url_from_site_name(prompt)
+            
             # Handle browser tasks
             if any(keyword in prompt_lower for keyword in ["open browser", "відкрий браузер", "открой браузер"]):
                 # Set browser if specified
@@ -67,6 +71,24 @@ class BrowserAgent(BaseAgent):
                 else:
                     browser.open("")
                     return f"Opened {browser_name or 'default'} browser"
+                    
+            # Handle navigation tasks (including specific browser requests)
+            elif any(keyword in prompt_lower for keyword in ["open", "navigate", "go to", "visit"]) and (url or browser_name):
+                # Set browser if specified
+                if browser_name:
+                    try:
+                        browser = webbrowser.get(browser_name)
+                    except webbrowser.Error:
+                        browser = webbrowser.get()
+                else:
+                    browser = webbrowser.get()
+                    
+                # Use inferred URL if none was explicitly found
+                if not url:
+                    url = "https://github.com"  # Default for GitHub requests
+                    
+                browser.open(url)
+                return f"Opened {url} in {browser_name or 'default'} browser"
                     
             elif "close browser" in prompt_lower:
                 return self._handle_close_browser()
@@ -104,12 +126,17 @@ class BrowserAgent(BaseAgent):
                     result = self.web_plugin.navigate_to_url(url)
                     return f"Navigation result: {result}"
 
-            #Search tasks
-            elif any(keyword in prompt_lower for keyword in ["search for", "find", "look for"]):
+            #Search tasks - both in-page search and site navigation
+            elif any(keyword in prompt_lower for keyword in ["search for", "find", "look for", "знайди", "пошук", "settings", "настройки"]):
                 search_term = self._extract_search_term(prompt)
                 if search_term:
                     result = self.web_plugin.search_on_site(search_term)
                     return f"Search result: {result}"
+                # If no search term found, try to navigate to common sections
+                elif any(keyword in prompt_lower for keyword in ["settings", "настройки"]):
+                    # Try to navigate to settings page
+                    result = self.web_plugin.navigate_to_url("https://github.com/settings")
+                    return f"Navigated to GitHub settings: {result}"
 
             #Click tasks
             elif any(keyword in prompt_lower for keyword in ["click", "press", "tap"]):
@@ -197,6 +224,29 @@ class BrowserAgent(BaseAgent):
                 return f"Error performing web search for '{query}': {e}"
 
         return f"Basic browser task not recognized: '{prompt}'. Try 'navigate to <URL>' or 'search for <query>'."
+
+    def _infer_url_from_site_name(self, prompt: str) -> Optional[str]:
+        """Infer URL from site name mentioned in prompt"""
+        prompt_lower = prompt.lower()
+        
+        site_mappings = {
+            "github": "https://github.com",
+            "google": "https://google.com", 
+            "facebook": "https://facebook.com",
+            "youtube": "https://youtube.com",
+            "twitter": "https://twitter.com",
+            "instagram": "https://instagram.com",
+            "linkedin": "https://linkedin.com",
+            "amazon": "https://amazon.com",
+            "netflix": "https://netflix.com",
+            "spotify": "https://spotify.com"
+        }
+        
+        for site_name, url in site_mappings.items():
+            if site_name in prompt_lower:
+                return url
+                
+        return None
 
     def _extract_url(self, prompt: str) -> Optional[str]:
         """Extract URL from prompt"""

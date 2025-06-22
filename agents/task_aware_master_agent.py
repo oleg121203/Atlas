@@ -418,7 +418,8 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             if any(keyword in goal_lower for keyword in [
                 "browser", "browse", "safari", "chrome", "firefox", "edge", 
                 "url", "website", "github", "google", "page", "site", "open",
-                "navigate", "visit"
+                "navigate", "visit", "find", "search", "look for", "settings",
+                "гітхаб", "гітаб", "настройки", "знайди", "пошук"
             ]):
                 return self._handle_browser_goal(goal)
                 
@@ -595,6 +596,17 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             # Clean and normalize the response text
             cleaned_text = response_text.strip()
             
+            # If empty response, return empty dict
+            if not cleaned_text:
+                self.logger.warning("Empty response from LLM")
+                return {}
+            
+            # Try to parse directly first
+            try:
+                return json.loads(cleaned_text)
+            except json.JSONDecodeError:
+                pass
+            
             # Try to find JSON content using balanced brace matching
             import re
             
@@ -628,8 +640,16 @@ class TaskAwareMasterAgent(BaseMasterAgent):
                 except json.JSONDecodeError:
                     continue
             
-            # If no valid JSON found in candidates, try the whole response
-            return json.loads(cleaned_text)
+            # Try regex fallback for simple arrays
+            array_match = re.search(r'\[.*\]', cleaned_text, re.DOTALL)
+            if array_match:
+                try:
+                    return json.loads(array_match.group(0))
+                except json.JSONDecodeError:
+                    pass
+            
+            self.logger.warning(f"No valid JSON found in response: {cleaned_text[:100]}...")
+            return {}
             
         except (json.JSONDecodeError, AttributeError) as e:
             self.logger.error(f"Failed to extract JSON from response: {str(e)}")
@@ -708,8 +728,8 @@ class TaskAwareMasterAgent(BaseMasterAgent):
                 except Exception as e:
                     self.logger.warning(f"Failed to log task start: {str(e)}")
             
-            # Execute the task
-            result = super().execute_task(goal)
+            # Execute the task using our own method
+            result = self._execute_real_goal(goal)
             
             # Store success result
             if self.memory_manager:

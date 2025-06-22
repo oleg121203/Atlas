@@ -219,7 +219,7 @@ class LLMManager:
             if system_instruction:
                 model_instance = genai.GenerativeModel(
                     model_name=model,
-                    generation_config={"system_instructions": system_instruction},
+                    system_instruction=system_instruction,
                     tools=tools
                 )
             
