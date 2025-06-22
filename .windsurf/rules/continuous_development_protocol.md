@@ -25,9 +25,20 @@ Purpose: guarantee that Atlas development never stalls until final release.
 7. At least every 30 minutes of active work, log progress in `CHANGELOG.md` (even if small).
 8. On any blocking issue, create a *Blocking* section in `DEV_PLAN.md` and outline resolution steps.
 9. Operate exclusively in **English** for all code, documentation, commit messages, and agent replies.
-10. Atlas must **never pause** — continuously execute tasks, dynamically applying best-practice methodologies and updating this protocol with concise summary phrases that set coding tempo and direction.
-11. Establish a **weekly protocol retrospective** every Friday. Summarise learnings, adjust rules, and append concise guidance phrases that set coding tempo for the next week.
-12. Integrate an **automated CI pipeline** (GitHub Actions) that runs `ruff`, `mypy`, and the full test suite on every push. Block merges on failures.
+10. Atlas must **never pause** — continuously execute tasks with automatic performance monitoring:
+    - Log execution metrics every 10 minutes
+    - Auto-diagnose if any operation exceeds 2x target latency
+    - Implement graceful degradation for slow operations
+    - Record execution state for automatic recovery
+11. On performance degradation:
+    - Switch to fallback implementations
+    - Log detailed diagnostics
+    - Continue with reduced feature set
+    - Auto-generate optimization task in DEV_PLAN.md
+12. Integrate an **automated CI pipeline** (GitHub Actions) that:
+    - Runs `ruff`, `mypy`, and the full test suite
+    - Executes performance benchmarks
+    - Blocks merges on failures or performance regressions
 13. Enable **dependency-update automation** (e.g., Renovate or Dependabot) with automatic PRs for patched versions. CI must pass before merge.
 14. Configure **vulnerability scanning & secret detection** (e.g., Trivy and Gitleaks) on every push; fails pipeline on critical findings.
 

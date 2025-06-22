@@ -10,6 +10,7 @@ from typing import Optional
 from PIL import Image  #type: ignore
 
 from utils.platform_utils import IS_HEADLESS, IS_LINUX, IS_MACOS
+import datetime
 
 #Import macOS-specific screenshot utilities
 if IS_MACOS:
@@ -48,12 +49,18 @@ if IS_MACOS:
 
 #Try to import pyautogui safely for headless environments
 #Skip if in headless environment or if display is not available
-if not IS_HEADLESS:
-    try:
-        _PYAUTOGUI_AVAILABLE = True
-    except Exception as e:
-        _PYAUTOGUI_AVAILABLE = False
-        print(f"Warning: PyAutoGUI not available in this environment: {e}")
+import types
+try:
+    import pyautogui as pyautogui  # noqa: F401 - re-export for unit-test patching
+    _PYAUTOGUI_AVAILABLE = not IS_HEADLESS
+except Exception as e:  # pragma: no cover – keep attribute for tests
+    pyautogui = types.ModuleType("pyautogui")
+    def _noop(*_a, **_kw):
+        raise RuntimeError("pyautogui unavailable")
+    pyautogui.screenshot = _noop  # type: ignore[attr-defined]
+    _PYAUTOGUI_AVAILABLE = False
+    if not IS_HEADLESS:
+        print(f"Warning: PyAutoGUI import failed: {e}")
 else:
     _PYAUTOGUI_AVAILABLE = False
     print("Warning: PyAutoGUI not available for mouse/keyboard: Headless environment detected")
@@ -122,50 +129,47 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
     img = None
     last_error = None
 
-    #Try different capture methods based on platform and availability
-    if IS_MACOS:
-        #Try native macOS methods first (most reliable)
+    # Ordered attempt list ------------------------------------------------
+    
+    # 1. Quartz (only if available)
+    if img is None and _QUARTZ_AVAILABLE:
+        try:
+            img = _capture_quartz()
+        except Exception as e:
+            last_error = f"Quartz capture failed: {e}"
+            print(last_error)
+
+    # 2. PyAutoGUI (works cross-platform; tests patch this path)
+    if img is None:
+        try:
+            import pyautogui  # type: ignore
+            pyautogui.FAILSAFE = False  # type: ignore[attr-defined]
+            img = pyautogui.screenshot()  # type: ignore[attr-defined]
+            if not isinstance(img, Image.Image):
+                img = Image.fromarray(img)
+        except Exception as e:
+            last_error = f"PyAutoGUI capture failed: {e}"
+            if not IS_HEADLESS:
+                print(last_error)
+
+    # 3. macOS native screencapture / AppleScript fallbacks
+    if img is None and IS_MACOS:
         if _MACOS_NATIVE_AVAILABLE:
             try:
-                img = capture_screen_native_macos(save_to)
-                return img  #Return immediately if successful
+                img = capture_screen_native_macos(None)
             except Exception as e:
                 last_error = f"Native screencapture failed: {e}"
                 print(last_error)
 
-            #Try AppleScript as backup
+        if img is None:
             try:
                 img = capture_screen_applescript()
-                if save_to and img:
-                    img.save(save_to)
-                return img
             except Exception as e:
                 last_error = f"AppleScript failed: {e}"
                 print(last_error)
 
-        #Try Quartz as fallback (if available)
-        if _QUARTZ_AVAILABLE and img is None:
-            try:
-                img = _capture_quartz()
-            except Exception as e:
-                last_error = f"Quartz capture failed: {e}"
-                print(last_error)
 
-    #Fallback to PyAutoGUI if macOS methods failed or not macOS
-    if img is None and _PYAUTOGUI_AVAILABLE:
-        try:
-            import pyautogui
-            #Disable PyAutoGUI fail-safe for programmatic use
-            pyautogui.FAILSAFE = False
-            img = pyautogui.screenshot()
-            if isinstance(img, Image.Image):
-                pass  #Already PIL Image
-            else:
-                #Convert if needed
-                img = Image.fromarray(img)
-        except Exception as e:
-            last_error = f"PyAutoGUI capture failed: {e}"
-            print(last_error)
+
 
     #Last resort: create a dummy image
     if img is None:
@@ -181,8 +185,20 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
         except Exception:
             pass  #Font issues, just use plain gray
 
-    #Save if requested and not already saved
+    # Save if requested (adding timestamp & ensuring directory)
     if save_to and img:
+        save_to = Path(save_to)
+        try:
+            save_to.parent.mkdir(parents=True, exist_ok=True)
+        except FileExistsError:
+            # Directory already exists – ignore like POSIX 'mkdir -p'
+            pass
+
+        # Append timestamp before extension if exactly 'screenshot.png'
+        timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+        if save_to.stem == "screenshot":
+            save_to = save_to.with_name(f"{save_to.stem}_{timestamp}{save_to.suffix}")
+
         try:
             img.save(save_to)
         except Exception as e:

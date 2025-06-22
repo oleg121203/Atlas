@@ -17,9 +17,23 @@ Ensures code quality and adherence to project architecture.
 3. **Documentation**: public functions must have docstrings following Google style.
 4. **Security Review**: verify actions against security rules before merging.
 5. **GUI UX Check**: manual test new widgets on macOS Sequoia for visual consistency.
-6. **Performance**: for tools manipulating screen or input, measure latency; keep <100 ms.
-7. **Dependency Audit**: ensure `requirements.txt` remains minimal and pinned.
-8. **Review Cycle**: self-review code diff, update `CHANGELOG.md`, then proceed.
+6. **Performance Requirements**:
+   - Screen/input tools: <100ms latency
+   - Planning operations: <500ms latency
+   - Memory operations: <200ms latency
+   - Monitor and log all operation times
+   - Implement fallbacks for slow operations
+   - Auto-generate performance reports every 30 minutes
+7. **Dependency and Resource Management**:
+   - Keep dependencies minimal and pinned
+   - Implement lazy loading for heavy modules
+   - Monitor memory usage and implement auto-cleanup
+   - Cache frequently used results with TTL
+8. **Continuous Quality Control**:
+   - Self-review code diff
+   - Run performance benchmarks
+   - Update CHANGELOG.md
+   - Verify graceful degradation paths
 9. **Language Consistency**: Ensure all comments, docstrings, and documentation are written in English.
 10. **Code Coverage**: Maintain ≥ 90% statement coverage across tests. Failing the threshold blocks CI.
 11. **Performance Regression**: Add automated benchmarks; flag any tool or function whose latency regresses by >10% versus the latest main branch.

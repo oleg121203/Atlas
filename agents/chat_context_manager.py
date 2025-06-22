@@ -81,6 +81,24 @@ class ChatContextManager:
         self._initialize_patterns()
         self._initialize_templates()
 
+    # ------------------------------------------------------------------
+    # Manual / auto mode helpers (legacy API expected by tests)
+    # ------------------------------------------------------------------
+
+    def set_manual_mode(self, mode: ChatMode) -> None:
+        """Disable auto detection and force *mode* until toggled.
+
+        Mirrors the behaviour expected by older unit-tests.
+        """
+        self.auto_mode_enabled = False
+        self.manual_override_mode = mode
+
+    def toggle_auto_mode(self) -> None:
+        """Toggle auto-mode on/off (re-enabling clears manual override)."""
+        self.auto_mode_enabled = not self.auto_mode_enabled
+        if self.auto_mode_enabled:
+            self.manual_override_mode = None
+
     @property
     def is_auto_mode(self) -> bool:
         """Check if auto mode is enabled."""
