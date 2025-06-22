@@ -105,27 +105,31 @@ class EnhancedMemoryManager:
             embeddings_list.append(embedding if isinstance(embedding, list) else [0.0] * 1536)
         return embeddings_list
 
-    def get_collection(self, collection_name: str) -> Any:
-        try:
-            if not self.client:
-                self.logger.error("ChromaDB client not initialized")
-                return None
-                
+    # Modified get_collection method for better reliability
+    def get_collection(self, collection_name: str) -> Optional[Collection]:
+        if self._client is None:
             try:
-                collection = self.client.get_collection(name=collection_name)
-            except ValueError:  # Collection not found
-                try:
-                    collection = self.client.create_collection(
-                        name=collection_name, 
-                        embedding_function=self._get_embedding_function()
-                    )
-                    self.logger.info(f"Created new collection: {collection_name}")
-                except Exception as e:
-                    self.logger.error(f"Failed to create collection {collection_name}: {str(e)}")
-                    return None
-            
-            self._maybe_cleanup_collection(collection_name)
+                self._client = chromadb.PersistentClient(path=str(self.db_path))
+                self.logger.info("ChromaDB client initialized successfully.")
+            except Exception as e:
+                self.logger.error(f"Failed to initialize ChromaDB client: {str(e)}")
+                return None
+
+        try:
+            collection = self._client.get_collection(name=collection_name)
             return collection
+        except ValueError:  # Collection not found
+            try:
+                collection = self._client.create_collection(
+                    name=collection_name, 
+                    embedding_function=self._get_embedding_function()
+                )
+                self.logger.info(f"Created new collection: {collection_name}")
+                self._maybe_cleanup_collection(collection_name)
+                return collection
+            except Exception as e:
+                self.logger.error(f"Failed to create collection {collection_name}: {str(e)}")
+                return None
         except Exception as e:
             self.logger.error(f"Error getting collection {collection_name}: {str(e)}")
             return None
@@ -269,6 +273,9 @@ class EnhancedMemoryManager:
             return
 
         collection = self.get_collection(collection_name)
+        if collection is None:
+            self.logger.warning(f"Cannot clean up collection {collection_name} - does not exist")
+            return
         if config.ttl_hours:
             self._cleanup_expired_memories(collection)
         if config.max_entries:
@@ -338,6 +345,8 @@ class EnhancedMemoryManager:
 
         for coll in collections:
             collection = self.get_collection(coll.name)
+            if collection is None:
+                continue
             count = collection.count()
 
             stats["total_memories"] += count
@@ -371,6 +380,8 @@ class EnhancedMemoryManager:
 
         for coll in collections:
             collection = self.get_collection(coll.name)
+            if collection is None:
+                continue
             cleaned_count = self._cleanup_expired_memories(collection)
             total_cleaned += cleaned_count
 

@@ -127,13 +127,13 @@ class BrowserAgent(BaseAgent):
                     return f"Navigation result: {result}"
 
             #Search tasks - both in-page search and site navigation
-            elif any(keyword in prompt_lower for keyword in ["search for", "find", "look for", "знайди", "пошук", "settings", "настройки"]):
+            elif any(keyword in prompt_lower for keyword in ["search for", "find", "look for", "settings"]):
                 search_term = self._extract_search_term(prompt)
                 if search_term:
                     result = self.web_plugin.search_on_site(search_term)
                     return f"Search result: {result}"
                 # If no search term found, try to navigate to common sections
-                elif any(keyword in prompt_lower for keyword in ["settings", "настройки"]):
+                elif any(keyword in prompt_lower for keyword in ["settings"]):
                     # Try to navigate to settings page
                     result = self.web_plugin.navigate_to_url("https://github.com/settings")
                     return f"Navigated to GitHub settings: {result}"

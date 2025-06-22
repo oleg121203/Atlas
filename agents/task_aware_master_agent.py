@@ -419,7 +419,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
                 "browser", "browse", "safari", "chrome", "firefox", "edge", 
                 "url", "website", "github", "google", "page", "site", "open",
                 "navigate", "visit", "find", "search", "look for", "settings",
-                "гітхаб", "гітаб", "настройки", "знайди", "пошук"
+                # Removed Ukrainian keywords per user instruction
             ]):
                 return self._handle_browser_goal(goal)
                 

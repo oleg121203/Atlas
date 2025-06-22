@@ -898,7 +898,7 @@ Acknowledge the development command and proceed with execution.
             "виправити": "fix solve",
             "дослідити": "investigate analyze",
             "перевірити": "check review",
-            "знайди": "find analyze search investigate",
+
             "проблеми": "problems issues",
             "рішення": "solutions fixes",
             "перевір": "check analyze review investigate",

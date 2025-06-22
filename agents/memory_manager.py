@@ -42,19 +42,37 @@ class MemoryManager:
 
         return LLMManagerEmbeddingFunction(self.llm_manager)
 
+    def get_collection_safe(self, name: str) -> Optional[chromadb.Collection]:
+        """Safely get or create a collection, handling errors gracefully."""
+        try:
+            # Try to get existing collection
+            try:
+                return self.client.get_collection(name=name, embedding_function=self._get_embedding_function())
+            except Exception:
+                # If not found or error, try to create
+                try:
+                    return self.client.create_collection(name=name, embedding_function=self._get_embedding_function())
+                except Exception as e:
+                    self.logger.error(f"Failed to create collection '{name}': {e}")
+                    return None
+        except Exception as e:
+            self.logger.error(f"Error accessing collection '{name}': {e}")
+            return None
+
     def get_collection(self, name: str) -> chromadb.Collection:
-        """Gets or creates a collection."""
-        return self.client.get_or_create_collection(
-            name=name,
-            embedding_function=self._get_embedding_function(),
-        )
+        """DEPRECATED: Use get_collection_safe instead for robust error handling."""
+        self.logger.warning("get_collection is deprecated. Use get_collection_safe instead.")
+        return self.get_collection_safe(name)
 
     def add_memory(self, content: str, collection_name: str, metadata: Optional[Dict[str, Any]] = None) -> str:
         """Adds a memory to the specified collection, automatically adding a timestamp."""
         if not content:
             raise ValueError("Content cannot be empty.")
 
-        collection = self.get_collection(collection_name)
+        collection = self.get_collection_safe(collection_name)
+        if not collection:
+            self.logger.error(f"Could not get or create collection '{collection_name}'")
+            return ""
 
         doc_id = str(uuid.uuid4())
         final_metadata = metadata or {}
@@ -82,12 +100,15 @@ class MemoryManager:
 
             collections_to_search = []
             if collection_name:
-                collection = self.client.get_collection(name=collection_name, embedding_function=self._get_embedding_function())
-                collections_to_search.append(collection)
+                collection = self.get_collection_safe(collection_name)
+                if collection:
+                    collections_to_search.append(collection)
             else:
                 db_collections = self.client.list_collections()
                 for coll in db_collections:
-                    collections_to_search.append(self.client.get_collection(name=coll.name, embedding_function=self._get_embedding_function()))
+                    collection = self.get_collection_safe(coll.name)
+                    if collection:
+                        collections_to_search.append(collection)
 
             all_results = []
             for collection in collections_to_search:
@@ -120,7 +141,7 @@ class MemoryManager:
             return sorted_results[:n_results]
 
         except Exception as e:
-            self.logger.error(f"Failed to search memories: {e}", exc_info=True)
+            self.logger.error(f"Error searching memories: {e}")
             return []
         finally:
             end_time = time.perf_counter()
