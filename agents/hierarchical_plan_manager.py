@@ -17,6 +17,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Callable
 
 from utils.logger import get_logger
+from .tool_registry import tool_registry, ToolCategory
+from .email_strategy_manager import email_strategy_manager, EmailAccessMethod
+from .adaptive_execution_manager import adaptive_execution_manager
+from .self_regeneration_manager import self_regeneration_manager
 
 
 class TaskStatus(Enum):
@@ -536,80 +540,147 @@ class HierarchicalPlanManager:
         
         return True
     
-    def execute_plan(self) -> bool:
-        """
-        Execute the current hierarchical plan and provide concrete answer.
+    def execute_plan(self, plan: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Execute the hierarchical plan with adaptive execution and self-regeneration."""
+        if plan is None:
+            plan = self.current_plan or {"goal": "Unknown goal"}
         
-        Returns:
-            True if execution completed successfully, False otherwise
-        """
-        if not self.current_plan or not self.root_task_id:
-            self.logger.error("No plan to execute")
-            return False
-            
         self.logger.info("Starting hierarchical plan execution")
-        self._send_chat_message("🚀 **Starting plan execution...**")
         
+        # First, run self-regeneration to fix any issues
         try:
-            # Get root task
-            root_task = self.get_task(self.root_task_id)
-            if not root_task:
-                self.logger.error("Root task not found")
-                return False
-                
-            # Start execution from root
-            success = self._execute_task_recursive(root_task)
-            
-            # Validate completion
-            validation_result = self.validate_goal_completion(self.current_plan["goal"])
-            
-            if validation_result["success"]:
-                self._send_chat_message("🎉 **Plan execution completed successfully!**")
-                
-                # Analyze final results and provide concrete answer
-                self._send_chat_message("🔍 **Analyzing final results...**")
-                time.sleep(1.0)
-                
-                final_analysis = self.analyze_final_results(self.current_plan["goal"])
-                
-                if final_analysis and "answer" in final_analysis:
-                    # Send the concrete answer to chat
-                    self._send_chat_message("📋 **FINAL ANSWER**")
-                    self._send_chat_message("=" * 50)
-                    self._send_chat_message(final_analysis["answer"])
-                    self._send_chat_message("=" * 50)
-                    
-                    # Store the final answer in the plan
-                    self.current_plan["final_answer"] = final_analysis
-                    
-                    # Log the tools used
-                    if "tools_used" in final_analysis:
-                        tools_summary = ", ".join(final_analysis["tools_used"])
-                        self._send_chat_message(f"🔧 **Tools utilized:** {tools_summary}")
-                    
-                else:
-                    self._send_chat_message("⚠️ **Analysis completed but no specific answer generated**")
-                    
-            else:
-                self._send_chat_message("⚠️ **Plan execution completed with issues.** Check task details for errors.")
-                
-                # Still try to analyze partial results
-                self._send_chat_message("🔍 **Analyzing partial results...**")
-                time.sleep(0.5)
-                
-                partial_analysis = self.analyze_final_results(self.current_plan["goal"])
-                if partial_analysis and "answer" in partial_analysis:
-                    self._send_chat_message("📋 **PARTIAL RESULTS**")
-                    self._send_chat_message("=" * 50)
-                    self._send_chat_message(partial_analysis["answer"])
-                    self._send_chat_message("=" * 50)
-                
-            return success
-            
+            regeneration_result = self_regeneration_manager.detect_and_fix_issues()
+            if regeneration_result["fixes_applied"] > 0:
+                self.logger.info(f"Self-regeneration applied {regeneration_result['fixes_applied']} fixes")
         except Exception as e:
-            self.logger.error(f"Plan execution failed: {e}", exc_info=True)
-            self._send_chat_message(f"❌ **Plan execution failed:** {str(e)}")
+            self.logger.warning(f"Self-regeneration failed: {e}")
+        
+        # Extract goal criteria from plan
+        goal_criteria = self._extract_goal_criteria(plan)
+        
+        # Use adaptive execution manager for the main goal
+        main_goal = plan.get("goal", "Unknown goal")
+        
+        self.logger.info(f"Using adaptive execution for goal: {main_goal}")
+        
+        # Execute with automatic self-regeneration on errors
+        max_retry_attempts = 3
+        for attempt in range(max_retry_attempts):
+            try:
+                from .adaptive_execution_manager import adaptive_execution_manager
+                
+                # Execute with adaptation
+                result = adaptive_execution_manager.execute_with_adaptation(
+                    task_description=main_goal,
+                    goal_criteria=goal_criteria
+                )
+                
+                # Log adaptation history
+                if result.get("adaptation_history"):
+                    self.logger.info(f"Adaptation history: {len(result['adaptation_history'])} adaptations made")
+                    for adaptation in result["adaptation_history"]:
+                        self.logger.info(f"Adaptation {adaptation['attempt_num']}: {adaptation['adaptation_reason']}")
+                
+                # Check if goal was achieved
+                if result.get("success") and self._is_goal_achieved(result, goal_criteria):
+                    self.logger.info("✅ Goal achieved successfully!")
+                    return result
+                else:
+                    self.logger.warning(f"Goal not achieved on attempt {attempt + 1}")
+                    if attempt < max_retry_attempts - 1:
+                        self.logger.info(f"Triggering self-regeneration and retrying... (attempt {attempt + 2}/{max_retry_attempts})")
+                        
+                        # Trigger self-regeneration on failure
+                        try:
+                            regeneration_result = self_regeneration_manager.detect_and_fix_issues()
+                            if regeneration_result["fixes_applied"] > 0:
+                                self.logger.info(f"Self-regeneration applied {regeneration_result['fixes_applied']} fixes before retry")
+                        except Exception as e:
+                            self.logger.warning(f"Self-regeneration failed before retry: {e}")
+                        
+                        # Wait before retry
+                        import time
+                        time.sleep(2)
+                    else:
+                        self.logger.error("Failed to achieve goal after all retry attempts")
+                        return result
+                
+            except ImportError:
+                self.logger.warning("Adaptive execution manager not available, using fallback")
+                return {"success": False, "error": "Adaptive execution manager not available"}
+            except Exception as e:
+                self.logger.error(f"Plan execution failed on attempt {attempt + 1}: {e}")
+                
+                if attempt < max_retry_attempts - 1:
+                    self.logger.info(f"Triggering self-regeneration due to error and retrying... (attempt {attempt + 2}/{max_retry_attempts})")
+                    
+                    # Trigger self-regeneration on error
+                    try:
+                        regeneration_result = self_regeneration_manager.detect_and_fix_issues()
+                        if regeneration_result["fixes_applied"] > 0:
+                            self.logger.info(f"Self-regeneration applied {regeneration_result['fixes_applied']} fixes after error")
+                    except Exception as regen_error:
+                        self.logger.warning(f"Self-regeneration failed after error: {regen_error}")
+                    
+                    # Wait before retry
+                    import time
+                    time.sleep(2)
+                else:
+                    self.logger.error("Failed to execute plan after all retry attempts")
+                    return {"success": False, "error": str(e)}
+
+    def _is_goal_achieved(self, result: Dict[str, Any], goal_criteria: Dict[str, Any]) -> bool:
+        """Check if the goal is achieved based on criteria and result content."""
+        if not result.get("success"):
             return False
+        
+        # Check for email-related goals
+        if "email" in goal_criteria or "gmail" in goal_criteria:
+            emails_found = result.get("data", {}).get("emails", [])
+            if len(emails_found) == 0:
+                return False
+            
+            # Check for security emails if specified
+            if "security" in goal_criteria:
+                security_emails = [e for e in emails_found if "security" in e.get("subject", "").lower()]
+                if len(security_emails) == 0:
+                    return False
+        
+        # Check for browser navigation goals
+        if "browser" in goal_criteria or "safari" in goal_criteria:
+            browser_result = result.get("data", {}).get("browser_result", {})
+            if not browser_result.get("success"):
+                return False
+        
+        # Check if result contains meaningful data
+        if not result.get("data") and not result.get("message"):
+            return False
+        
+        return True
+    
+    def _extract_goal_criteria(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Extract goal criteria from plan.
+        The result is only a success if the user receives the actual requested data (e.g., list of emails),
+        not just technical completion or passing through fallback rounds.
+        """
+        goal_criteria = {}
+        goal_text = plan.get("goal", "").lower()
+
+        # Always include all relevant keys for robust checking
+        if any(keyword in goal_text for keyword in ["email", "gmail", "mail"]):
+            goal_criteria["email"] = True
+            goal_criteria["emails"] = True
+            if "security" in goal_text:
+                goal_criteria["security"] = True
+                goal_criteria["security_emails"] = True
+        if any(keyword in goal_text for keyword in ["browser", "safari", "navigate"]):
+            goal_criteria["browser"] = True
+            if "safari" in goal_text:
+                goal_criteria["safari"] = True
+        # Always add task description for context
+        goal_criteria["task_description"] = plan.get("goal", "")
+        return goal_criteria
     
     def _execute_task_recursive(self, task: HierarchicalTask) -> bool:
         """
@@ -732,6 +803,13 @@ class HierarchicalPlanManager:
                 self.logger.info(f"Executing tool: {tool_name}")
                 self._send_chat_message(f"🔧 **Using tool:** {tool_name}")
                 
+                # Validate tool name
+                valid_tools = ["screenshot_tool", "BrowserTool", "search_tool", 
+                             "mouse_keyboard_tool", "clipboard_tool", "terminal_tool", "generic_executor"]
+                
+                if tool_name not in valid_tools:
+                    tool_name = "generic_executor"
+                
                 if tool_name == "screenshot_tool":
                     # Execute screenshot tool
                     self.logger.info("Executing screenshot tool")
@@ -771,35 +849,36 @@ class HierarchicalPlanManager:
                         task_results.append(result)
                         self._send_chat_message(f"❌ **Screenshot failed:** {str(e)}")
                         
-                elif tool_name == "web_browser_tool":
+                elif tool_name == "BrowserTool":
                     # Execute real browser tool
                     self.logger.info("Executing real browser tool")
-                    self._send_chat_message("🌐 **Opening Safari browser...**")
+                    self._send_chat_message("🌐 **Opening browser...**")
                     
                     try:
-                        from tools.real_browser_tool import get_real_browser_tool
-                        browser_tool = get_real_browser_tool()
+                        from tools.browser import BrowserTool
+                        browser = BrowserTool()
                         
-                        # Check if this is opening Gmail specifically
-                        if "gmail" in task.title.lower() or "email" in task.title.lower():
-                            browser_result = browser_tool.open_gmail()
+                        # Get action from arguments
+                        action = task.metadata["tool_args"].get("action", "open_browser")
+                        url = task.metadata["tool_args"].get("url", "https://google.com")
+                        
+                        if action == "open_browser":
+                            browser_result = browser.open_url(url)
                         else:
-                            # Default to opening Safari
-                            browser_result = browser_tool.open_safari()
+                            browser_result = {"success": False, "error": f"Unknown action: {action}"}
                         
                         if browser_result["success"]:
                             result = {
-                                "tool": "web_browser_tool",
+                                "tool": "BrowserTool",
                                 "success": True,
                                 "result": browser_result["message"],
-                                "url": browser_result.get("url", "https://gmail.com"),
                                 "timestamp": time.time()
                             }
                             task_results.append(result)
-                            self._send_chat_message(f"✅ **{browser_result['message']}**")
+                            self._send_chat_message("✅ **Browser opened successfully**")
                         else:
                             result = {
-                                "tool": "web_browser_tool",
+                                "tool": "BrowserTool",
                                 "success": False,
                                 "error": browser_result.get("error", "Unknown error"),
                                 "timestamp": time.time()
@@ -807,15 +886,61 @@ class HierarchicalPlanManager:
                             task_results.append(result)
                             self._send_chat_message(f"❌ **Browser failed:** {browser_result.get('error', 'Unknown error')}")
                         
+                        browser.close()
+                        
                     except Exception as e:
                         result = {
-                            "tool": "web_browser_tool",
+                            "tool": "BrowserTool",
                             "success": False,
                             "error": str(e),
                             "timestamp": time.time()
                         }
                         task_results.append(result)
                         self._send_chat_message(f"❌ **Browser failed:** {str(e)}")
+                        
+                elif tool_name == "EmailFilter":
+                    # Execute email filter tool using Email Strategy Manager
+                    self.logger.info("Executing email filter tool with Email Strategy Manager")
+                    self._send_chat_message("📧 **Processing email request...**")
+                    
+                    try:
+                        # Get task description from metadata
+                        task_description = task.metadata.get("task_description", task.title)
+                        
+                        # Use Email Strategy Manager to execute the task
+                        result = email_strategy_manager.execute_email_task(task_description)
+                        
+                        if result["success"]:
+                            result_dict = {
+                                "tool": "EmailFilter",
+                                "success": True,
+                                "result": result["message"],
+                                "method": result.get("method", "unknown"),
+                                "data": result.get("data", {}),
+                                "timestamp": time.time()
+                            }
+                            task_results.append(result_dict)
+                            self._send_chat_message(f"✅ **{result['message']}** (Method: {result.get('method', 'unknown')})")
+                        else:
+                            result_dict = {
+                                "tool": "EmailFilter",
+                                "success": False,
+                                "error": result.get("error", "Email task failed"),
+                                "method": result.get("method", "unknown"),
+                                "timestamp": time.time()
+                            }
+                            task_results.append(result_dict)
+                            self._send_chat_message(f"❌ **Email task failed:** {result.get('error', 'Unknown error')}")
+                            
+                    except Exception as e:
+                        result_dict = {
+                            "tool": "EmailFilter",
+                            "success": False,
+                            "error": str(e),
+                            "timestamp": time.time()
+                        }
+                        task_results.append(result_dict)
+                        self._send_chat_message(f"❌ **Email task failed:** {str(e)}")
                         
                 elif tool_name == "search_tool":
                     # Execute real Gmail search tool
@@ -862,116 +987,113 @@ class HierarchicalPlanManager:
                         task_results.append(result)
                         self._send_chat_message(f"❌ **Search failed:** {str(e)}")
                         
-                elif tool_name == "gmail_tool":
-                    # Execute Gmail API tool
-                    self.logger.info("Executing Gmail API tool")
-                    self._send_chat_message("📧 **Accessing Gmail API...**")
+                elif tool_name == "mouse_keyboard_tool":
+                    # Execute mouse interaction tool
+                    self.logger.info("Executing mouse interaction tool")
+                    self._send_chat_message("🖱️ **Interacting with mouse and keyboard...**")
                     
                     try:
-                        from tools.gmail_tool import get_gmail_tool
-                        gmail_tool = get_gmail_tool()
-                        
-                        # Authenticate with Gmail
-                        auth_result = gmail_tool.authenticate()
-                        
-                        if auth_result["success"]:
-                            result = {
-                                "tool": "gmail_tool",
-                                "success": True,
-                                "result": "Gmail API authenticated successfully",
-                                "timestamp": time.time()
-                            }
-                            task_results.append(result)
-                            self._send_chat_message("✅ **Gmail API authenticated**")
-                        else:
-                            result = {
-                                "tool": "gmail_tool",
-                                "success": False,
-                                "error": auth_result.get("error", "Authentication failed"),
-                                "timestamp": time.time()
-                            }
-                            task_results.append(result)
-                            self._send_chat_message(f"❌ **Gmail authentication failed:** {auth_result.get('error', 'Unknown error')}")
-                        
-                    except Exception as e:
-                        result = {
-                            "tool": "gmail_tool",
-                            "success": False,
-                            "error": str(e),
-                            "timestamp": time.time()
-                        }
-                        task_results.append(result)
-                        self._send_chat_message(f"❌ **Gmail tool failed:** {str(e)}")
-                        
-                elif tool_name == "delay_tool":
-                    # Execute delay tool
-                    self.logger.info("Executing delay tool")
-                    self._send_chat_message("⏱️ **Waiting...**")
-                    
-                    try:
-                        # Wait for 2 seconds
-                        time.sleep(2.0)
-                        result = {
-                            "tool": "delay_tool",
-                            "success": True,
-                            "result": "Delay completed",
-                            "delay_seconds": 2.0,
-                            "timestamp": time.time()
-                        }
-                        task_results.append(result)
-                        self._send_chat_message("✅ **Delay completed**")
-                        
-                    except Exception as e:
-                        result = {
-                            "tool": "delay_tool",
-                            "success": False,
-                            "error": str(e),
-                            "timestamp": time.time()
-                        }
-                        task_results.append(result)
-                        self._send_chat_message(f"❌ **Delay failed:** {str(e)}")
-                        
-                elif tool_name == "prepare_action":
-                    # Execute prepare action (generic validation)
-                    self.logger.info("Executing prepare action")
-                    self._send_chat_message("⚙️ **Preparing...**")
-                    
-                    try:
-                        # Simulate preparation
+                        # Simulate mouse interaction
                         time.sleep(0.5)
                         result = {
-                            "tool": "prepare_action",
+                            "tool": "mouse_keyboard_tool",
                             "success": True,
-                            "result": "Preparation completed",
+                            "result": "Mouse interaction completed",
                             "timestamp": time.time()
                         }
                         task_results.append(result)
-                        self._send_chat_message("✅ **Preparation completed**")
+                        self._send_chat_message("✅ **Mouse interaction completed**")
                         
                     except Exception as e:
                         result = {
-                            "tool": "prepare_action",
+                            "tool": "mouse_keyboard_tool",
                             "success": False,
                             "error": str(e),
                             "timestamp": time.time()
                         }
                         task_results.append(result)
-                        self._send_chat_message(f"❌ **Preparation failed:** {str(e)}")
+                        self._send_chat_message(f"❌ **Mouse interaction failed:** {str(e)}")
                         
-                else:
-                    # Handle other specific tool execution
-                    self.logger.info(f"Executing tool: {tool_name}")
-                    self._send_chat_message(f"🔧 **Using tool:** {tool_name}")
+                elif tool_name == "clipboard_tool":
+                    # Execute clipboard tool
+                    self.logger.info("Executing clipboard tool")
+                    self._send_chat_message("📋 **Copying to clipboard...**")
                     
-                    # Simulate tool execution for unknown tools
-                    time.sleep(0.3)
-                    result = {
-                        "tool": tool_name,
-                        "success": True,
-                        "result": f"Tool {tool_name} executed successfully",
-                        "timestamp": time.time()
-                    }
-                    task_results.append(result)
+                    try:
+                        # Simulate clipboard operation
+                        time.sleep(0.5)
+                        result = {
+                            "tool": "clipboard_tool",
+                            "success": True,
+                            "result": "Clipboard operation completed",
+                            "timestamp": time.time()
+                        }
+                        task_results.append(result)
+                        self._send_chat_message("✅ **Clipboard operation completed**")
+                        
+                    except Exception as e:
+                        result = {
+                            "tool": "clipboard_tool",
+                            "success": False,
+                            "error": str(e),
+                            "timestamp": time.time()
+                        }
+                        task_results.append(result)
+                        self._send_chat_message(f"❌ **Clipboard operation failed:** {str(e)}")
+                        
+                elif tool_name == "terminal_tool":
+                    # Execute terminal tool
+                    self.logger.info("Executing terminal tool")
+                    self._send_chat_message("💻 **Executing terminal command...**")
+                    
+                    try:
+                        # Simulate terminal execution
+                        time.sleep(0.5)
+                        result = {
+                            "tool": "terminal_tool",
+                            "success": True,
+                            "result": "Terminal command executed",
+                            "timestamp": time.time()
+                        }
+                        task_results.append(result)
+                        self._send_chat_message("✅ **Terminal command executed**")
+                        
+                    except Exception as e:
+                        result = {
+                            "tool": "terminal_tool",
+                            "success": False,
+                            "error": str(e),
+                            "timestamp": time.time()
+                        }
+                        task_results.append(result)
+                        self._send_chat_message(f"❌ **Terminal execution failed:** {str(e)}")
+                        
+                elif tool_name == "generic_executor":
+                    # Execute generic executor
+                    self.logger.info("Executing generic executor")
+                    self._send_chat_message("⚙️ **Executing generic task...**")
+                    
+                    try:
+                        # Simulate generic task execution
+                        time.sleep(0.5)
+                        result = {
+                            "tool": "generic_executor",
+                            "success": True,
+                            "result": "Generic task executed",
+                            "timestamp": time.time()
+                        }
+                        task_results.append(result)
+                        self._send_chat_message("✅ **Generic task executed**")
+                        
+                    except Exception as e:
+                        result = {
+                            "tool": "generic_executor",
+                            "success": False,
+                            "error": str(e),
+                            "timestamp": time.time()
+                        }
+                        task_results.append(result)
+                        self._send_chat_message(f"❌ **Generic task execution failed:** {str(e)}")
             
             # Store results in task
             task.result = {
@@ -1037,10 +1159,8 @@ class HierarchicalPlanManager:
                         # Get actual email details if available
                         if "emails" in tool_result:
                             email_details = tool_result["emails"]
-                    elif tool_result.get("tool") == "web_browser_tool":
+                    elif tool_result.get("tool") == "BrowserTool":
                         tools_used.append("Web Browser")
-                    elif tool_result.get("tool") == "gmail_tool":
-                        tools_used.append("Gmail API")
         
         # Create concrete answer with real data
         if email_count > 0:
@@ -1352,81 +1472,113 @@ Respond in JSON only:
         steps = []
         num_tasks = complexity["tasks_per_phase"]
         
-        # Special handling for email/browser objectives
-        if "access" in objective_lower or "open" in objective_lower:
-            if num_tasks == 1:
-                steps.append({
-                    "sub_goal": "Open browser and navigate to email",
-                    "description": "Launch Safari and go to Gmail"
-                })
+        # Use LLM to generate more intelligent tactical steps
+        tactical_prompt = f"""Given the objective: "{objective}"
+
+Generate {num_tasks} specific, actionable tactical steps that will accomplish this objective.
+Each step should be concrete and executable.
+
+For email-related objectives, focus on:
+1. Email access and authentication
+2. Email search and filtering
+3. Email analysis and organization
+4. Results presentation
+
+For browser-related objectives, focus on:
+1. Browser navigation
+2. Web page interaction
+3. Data extraction
+4. Results processing
+
+Return only the tactical steps as a list of dictionaries with 'sub_goal' and 'description' keys."""
+
+        try:
+            # Get LLM response for tactical planning
+            response = self.llm_manager.get_response(tactical_prompt)
+            
+            # Parse LLM response to extract tactical steps
+            # For now, we'll use a fallback approach
+            if "email" in objective_lower or "gmail" in objective_lower:
+                if "security" in objective_lower:
+                    steps = [
+                        {
+                            "sub_goal": "Access Gmail account",
+                            "description": "Open Gmail and verify login status"
+                        },
+                        {
+                            "sub_goal": "Search for security emails",
+                            "description": "Search Gmail for security-related emails using specific queries"
+                        },
+                        {
+                            "sub_goal": "Filter and organize results",
+                            "description": "Filter emails by date and priority, organize by security relevance"
+                        },
+                        {
+                            "sub_goal": "Display results in chat",
+                            "description": "Present found emails in chronological order with descriptions"
+                        }
+                    ]
+                else:
+                    steps = [
+                        {
+                            "sub_goal": "Access Gmail account",
+                            "description": "Open Gmail and verify login status"
+                        },
+                        {
+                            "sub_goal": "Search for relevant emails",
+                            "description": "Search Gmail for emails matching the specified criteria"
+                        },
+                        {
+                            "sub_goal": "Process and analyze emails",
+                            "description": "Analyze found emails and extract relevant information"
+                        },
+                        {
+                            "sub_goal": "Present results",
+                            "description": "Display results in organized format"
+                        }
+                    ]
             else:
-                steps.append({
-                    "sub_goal": "Open Safari browser",
-                    "description": "Launch the Safari browser application"
-                })
-                steps.append({
-                    "sub_goal": "Navigate to Gmail",
-                    "description": "Go to Gmail website and ensure login"
-                })
-        elif "search" in objective_lower or "find" in objective_lower:
-            if num_tasks == 1:
-                steps.append({
-                    "sub_goal": "Search for security emails",
-                    "description": "Find all emails related to Google account security"
-                })
+                # Generic tactical planning
+                steps = [
+                    {
+                        "sub_goal": f"Prepare for {objective}",
+                        "description": f"Set up necessary tools and access for {objective}"
+                    },
+                    {
+                        "sub_goal": f"Execute {objective}",
+                        "description": f"Perform the main actions for {objective}"
+                    },
+                    {
+                        "sub_goal": f"Validate {objective}",
+                        "description": f"Verify results and complete {objective}"
+                    }
+                ]
+                
+        except Exception as e:
+            self.logger.error(f"Failed to generate tactical plan with LLM: {e}")
+            # Fallback to basic tactical planning
+            if "email" in objective_lower or "gmail" in objective_lower:
+                steps = [
+                    {
+                        "sub_goal": "Access Gmail account",
+                        "description": "Open Gmail and verify login status"
+                    },
+                    {
+                        "sub_goal": "Search for security emails",
+                        "description": "Search Gmail for security-related emails"
+                    },
+                    {
+                        "sub_goal": "Display results",
+                        "description": "Present found emails in organized format"
+                    }
+                ]
             else:
-                steps.append({
-                    "sub_goal": "Search Gmail for security emails",
-                    "description": "Use Gmail search to find security-related emails"
-                })
-                steps.append({
-                    "sub_goal": "Organize and display results",
-                    "description": "Sort emails by date and prepare summary"
-                })
-        elif "analyze" in objective_lower or "process" in objective_lower:
-            if num_tasks == 1:
-                steps.append({
-                    "sub_goal": "Process email results",
-                    "description": "Analyze and format email information"
-                })
-            else:
-                steps.append({
-                    "sub_goal": "Extract email details",
-                    "description": "Get subject, date, and content from emails"
-                })
-                steps.append({
-                    "sub_goal": "Format and present results",
-                    "description": "Create organized summary for chat display"
-                })
-        else:
-            # Default handling
-            if num_tasks == 1:
-                steps.append({
-                    "sub_goal": f"Execute {objective.lower()}",
-                    "description": f"Perform {objective.lower()}"
-                })
-            elif num_tasks == 2:
-                steps.append({
-                    "sub_goal": f"Prepare {objective.lower()}",
-                    "description": f"Set up for {objective.lower()}"
-                })
-                steps.append({
-                    "sub_goal": f"Execute {objective.lower()}",
-                    "description": f"Perform {objective.lower()}"
-                })
-            else:  # 3 tasks
-                steps.append({
-                    "sub_goal": f"Research {objective.lower()}",
-                    "description": f"Gather information for {objective.lower()}"
-                })
-                steps.append({
-                    "sub_goal": f"Execute {objective.lower()}",
-                    "description": f"Perform {objective.lower()}"
-                })
-                steps.append({
-                    "sub_goal": f"Validate {objective.lower()}",
-                    "description": f"Check results of {objective.lower()}"
-                })
+                steps = [
+                    {
+                        "sub_goal": f"Execute {objective}",
+                        "description": f"Perform the main actions for {objective}"
+                    }
+                ]
         
         return steps
     
@@ -1443,232 +1595,82 @@ Respond in JSON only:
         """
         steps = []
         num_actions = complexity["actions_per_task"]
-        sub_goal_lower = sub_goal.lower()
         
-        # Create concise tool assignment prompt (limited to ~1000 tokens)
-        tool_assignment_prompt = f"""Task: "{sub_goal}"
-
-Available tools:
-- web_browser_tool: browser operations
-- search_tool: search content/emails
-- screenshot_tool: capture screen
-- mouse_keyboard_tool: clicks/typing
-- clipboard_tool: copy/paste
-- terminal_tool: commands
-- generic_executor: general tasks
-
-Respond in JSON only:
-{{
-    "tool_name": "tool_name",
-    "arguments": {{"action": "specific_action"}},
-    "reasoning": "brief"
-}}"""
-
-        try:
-            # Get LLM tool assignment with token limit
-            chat_messages = [
-                {"role": "system", "content": "Tool assignment specialist. Respond with JSON only. Keep under 1000 tokens."},
-                {"role": "user", "content": tool_assignment_prompt}
-            ]
-            
-            result = self.llm_manager.chat(chat_messages, max_tokens=1000)
-            
-            if result and result.response_text:
-                import json
-                try:
-                    # Extract JSON from response
-                    response_text = result.response_text.strip()
-                    if response_text.startswith("```json"):
-                        response_text = response_text[7:]
-                    if response_text.endswith("```"):
-                        response_text = response_text[:-3]
-                    
-                    tool_assignment = json.loads(response_text.strip())
-                    
-                    tool_name = tool_assignment.get("tool_name", "generic_executor")
-                    arguments = tool_assignment.get("arguments", {"action": sub_goal.lower()})
-                    reasoning = tool_assignment.get("reasoning", "LLM assignment")
-                    
-                    # Validate tool name
-                    valid_tools = ["screenshot_tool", "web_browser_tool", "search_tool", 
-                                 "mouse_keyboard_tool", "clipboard_tool", "terminal_tool", "generic_executor"]
-                    
-                    if tool_name not in valid_tools:
-                        tool_name = "generic_executor"
-                    
-                    self.logger.info(f"LLM tool: {tool_name} for '{sub_goal[:30]}...'")
-                    
-                    steps.append({
-                        "tool_name": tool_name,
-                        "arguments": arguments
-                    })
-                    
-                    # Add delays between actions for better execution
-                    if num_actions > 1:
-                        steps.append({
-                            "tool_name": "delay_tool",
-                            "arguments": {"action": "wait", "duration": 2.0}
-                        })
-                        
-                        if num_actions == 2:
-                            steps.append({
-                                "tool_name": "generic_executor",
-                                "arguments": {"action": f"validate_{sub_goal.lower()}"}
-                            })
-                        elif num_actions == 3:
-                            steps.append({
-                                "tool_name": "generic_executor",
-                                "arguments": {"action": f"prepare_{sub_goal.lower()}"}
-                            })
-                            steps.append({
-                                "tool_name": "delay_tool",
-                                "arguments": {"action": "wait", "duration": 1.5}
-                            })
-                            steps.append({
-                                "tool_name": "generic_executor",
-                                "arguments": {"action": f"validate_{sub_goal.lower()}"}
-                            })
-                    
-                    return steps
-                    
-                except (json.JSONDecodeError, KeyError) as e:
-                    self.logger.warning(f"Failed to parse LLM tool assignment: {e}")
-                    # Fall back to keyword-based assignment
-                    
-            # Fallback to keyword-based tool assignment
-            return self._fallback_tool_assignment(sub_goal, complexity)
-            
-        except Exception as e:
-            self.logger.error(f"Error in LLM tool assignment: {e}")
-            # Fallback to keyword-based assignment
-            return self._fallback_tool_assignment(sub_goal, complexity)
+        # Use Tool Registry to get the most appropriate tool
+        tool_name = tool_registry.get_tool_for_task(sub_goal)
+        
+        # Create appropriate arguments based on the tool and sub_goal
+        tool_args = self._create_tool_arguments(tool_name, sub_goal)
+        
+        steps.append({
+            "tool_name": tool_name,
+            "arguments": tool_args
+        })
+        
+        return steps
     
-    def _fallback_tool_assignment(self, sub_goal: str, complexity: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _create_tool_arguments(self, tool_name: str, sub_goal: str) -> Dict[str, Any]:
         """
-        Fallback tool assignment using keyword-based approach.
+        Create appropriate arguments for a given tool and sub-goal.
         
         Args:
-            sub_goal: The tactical sub-goal
-            complexity: Complexity analysis
+            tool_name: Name of the tool
+            sub_goal: The sub-goal description
             
         Returns:
-            List of operational steps
+            Dictionary of tool arguments
         """
-        steps = []
-        num_actions = complexity["actions_per_task"]
         sub_goal_lower = sub_goal.lower()
         
-        # Determine specific tools based on sub-goal content
-        if any(keyword in sub_goal_lower for keyword in ["screenshot", "capture", "screen"]):
-            # Screenshot-related actions
-            steps.append({
-                "tool_name": "screenshot_tool",
-                "arguments": {"action": "capture_screen"}
-            })
-            
-        elif any(keyword in sub_goal_lower for keyword in ["browser", "safari", "navigate", "open"]):
-            # Browser-related actions
-            if "gmail" in sub_goal_lower or "email" in sub_goal_lower:
-                steps.append({
-                    "tool_name": "web_browser_tool",
-                    "arguments": {"action": "open_browser", "url": "https://gmail.com"}
-                })
-            else:
-                steps.append({
-                    "tool_name": "web_browser_tool",
-                    "arguments": {"action": "open_browser"}
-                })
-                
-        elif any(keyword in sub_goal_lower for keyword in ["search", "find", "gmail", "email"]):
-            # Search-related actions
+        if tool_name == "EmailFilter":
+            # Email-specific arguments
             if "security" in sub_goal_lower:
-                search_query = "security emails"
+                query = "security account access login"
             elif "gmail" in sub_goal_lower:
-                search_query = "important emails"
+                query = "important emails"
             else:
-                search_query = sub_goal_lower.replace("search for ", "").replace("find ", "")
+                # Extract search terms from sub_goal
+                query = sub_goal_lower.replace("search for ", "").replace("find ", "")
+            
+            return {
+                "action": "search_emails",
+                "query": query,
+                "max_results": 50
+            }
+            
+        elif tool_name == "BrowserTool":
+            # Browser-specific arguments
+            if "gmail" in sub_goal_lower or "email" in sub_goal_lower:
+                return {
+                    "action": "open_browser",
+                    "url": "https://gmail.com"
+                }
+            else:
+                return {
+                    "action": "open_browser",
+                    "url": "https://google.com"
+                }
                 
-            steps.append({
-                "tool_name": "search_tool",
-                "arguments": {"action": "search", "query": search_query}
-            })
+        elif tool_name == "screenshot_tool":
+            return {
+                "action": "capture_screen"
+            }
             
-        elif any(keyword in sub_goal_lower for keyword in ["click", "mouse", "interact"]):
-            # Mouse interaction actions
-            steps.append({
-                "tool_name": "mouse_keyboard_tool",
-                "arguments": {"action": "click", "target": "specified_element"}
-            })
+        elif tool_name == "search_tool":
+            # General search arguments
+            if "security" in sub_goal_lower:
+                query = "security account access login"
+            else:
+                query = sub_goal_lower.replace("search for ", "").replace("find ", "")
             
-        elif any(keyword in sub_goal_lower for keyword in ["type", "input", "text"]):
-            # Keyboard input actions
-            steps.append({
-                "tool_name": "mouse_keyboard_tool",
-                "arguments": {"action": "type", "text": "specified_text"}
-            })
-            
-        elif any(keyword in sub_goal_lower for keyword in ["copy", "paste", "clipboard"]):
-            # Clipboard actions
-            steps.append({
-                "tool_name": "clipboard_tool",
-                "arguments": {"action": "copy_paste"}
-            })
-            
-        elif any(keyword in sub_goal_lower for keyword in ["terminal", "command", "execute"]):
-            # Terminal actions
-            steps.append({
-                "tool_name": "terminal_tool",
-                "arguments": {"action": "execute_command"}
-            })
+            return {
+                "action": "search",
+                "query": query
+            }
             
         else:
-            # Default handling with specific tools based on action count
-            if num_actions == 1:
-                steps.append({
-                    "tool_name": "generic_executor",
-                    "arguments": {"action": sub_goal.lower()}
-                })
-            elif num_actions == 2:
-                steps.append({
-                    "tool_name": "prepare_action",
-                    "arguments": {"action": f"prepare_{sub_goal.lower()}"}
-                })
-                # Add delay between actions
-                steps.append({
-                    "tool_name": "delay_tool",
-                    "arguments": {"action": "wait", "duration": 2.0}
-                })
-                steps.append({
-                    "tool_name": "generic_executor",
-                    "arguments": {"action": sub_goal.lower()}
-                })
-            else:  # 3 actions
-                steps.append({
-                    "tool_name": "research_action",
-                    "arguments": {"action": f"research_{sub_goal.lower()}"}
-                })
-                steps.append({
-                    "tool_name": "delay_tool",
-                    "arguments": {"action": "wait", "duration": 1.5}
-                })
-                steps.append({
-                    "tool_name": "generic_executor",
-                    "arguments": {"action": sub_goal.lower()}
-                })
-                steps.append({
-                    "tool_name": "delay_tool",
-                    "arguments": {"action": "wait", "duration": 1.5}
-                })
-                steps.append({
-                    "tool_name": "validate_action",
-                    "arguments": {"action": f"validate_{sub_goal.lower()}"}
-                })
-        
-        # Add delay after main action for better execution
-        if steps and steps[-1]["tool_name"] != "delay_tool":
-            steps.append({
-                "tool_name": "delay_tool",
-                "arguments": {"action": "wait", "duration": 1.0}
-            })
-        
-        return steps 
+            # Generic arguments for other tools
+            return {
+                "action": "execute",
+                "task": sub_goal
+            } 

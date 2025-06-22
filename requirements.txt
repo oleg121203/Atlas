@@ -127,3 +127,5 @@ PyYAML>=6.0
 
 # Cryptography for Creator Authentication
 cryptography>=41.0.0
+
+selenium

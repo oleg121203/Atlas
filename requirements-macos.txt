@@ -80,3 +80,5 @@ pygments>=2.16.0
 
 # NOTE: For development tools (ruff, mypy, pytest, etc.), 
 # see requirements-dev.txt instead
+
+selenium
