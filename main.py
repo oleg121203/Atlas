@@ -34,10 +34,11 @@ import inspect
 import json
 import logging
 import multiprocessing
+import os
 import threading
 import tkinter as tk
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import customtkinter as ctk
 from customtkinter import CTkImage
@@ -426,57 +427,6 @@ class AtlasApp(ctk.CTk):
         tool_management_view = ToolManagementView(tab, self.agent_manager)
         tool_management_view.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-    def _handle_feedback(self, is_good: bool):
-        """Handles user feedback by saving it to the memory manager."""
-        if not self.last_goal or not self.current_plan:
-            self.logger.warning("Cannot save feedback: no goal or plan is available.")
-            return
-
-        reason = ""
-        if not is_good:
-            dialog = ctk.CTkInputDialog(
-                text="What went wrong? Please provide a brief reason.",
-                title="Bad Plan Feedback",
-            )
-            reason = dialog.get_input()
-            if reason is None:  #User cancelled
-                self.chat_history_view.add_message("system", "Feedback process cancelled.")
-                self.feedback_frame.grid_remove()
-                self.last_goal = None
-                self.current_plan = None
-                return
-            if not reason:
-                reason = "No reason provided."
-
-        feedback_data = {
-            "goal": self.last_goal,
-            "plan": self.current_plan,
-            "feedback": "good" if is_good else "bad",
-            "reason": reason,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-
-        try:
-            memory_content = json.dumps(feedback_data, indent=2)
-            self.memory_manager.add_memory_for_agent(
-                agent_type=MemoryScope.USER_DATA,
-                memory_type=MemoryType.FEEDBACK,
-                content=memory_content,
-                metadata={"goal": self.last_goal, "rating": "good" if is_good else "bad", "has_reason": bool(reason and reason != "No reason provided.")},
-            )
-            self.logger.info(f"Saved {'good' if is_good else 'bad'} feedback for goal: '{self.last_goal}'")
-            self.chat_history_view.add_message("system", f"Feedback ('{'Good' if is_good else 'Bad'}') has been recorded. Thank you!")
-        except Exception as e:
-            self.logger.error(f"Failed to save feedback to memory: {e}", exc_info=True)
-            self.chat_history_view.add_message("system", "Could not save your feedback due to an error.")
-        finally:
-            self.feedback_frame.grid_remove()
-            self.last_goal = None
-            self.current_plan = None
-
-        #Start UI update loops
-        self._update_token_stats()
-
     def _clear_goal_text(self):
         """Clears the content of the goal input textbox."""
         self.goal_text.delete("1.0", ctk.END)
@@ -673,7 +623,7 @@ class AtlasApp(ctk.CTk):
         except Exception as e:
             self.logger.error(f"Failed to stop TaskManager: {e}")
 
-    def _task_status_callback(self, task_id: str, status: str, details: dict = None):
+    def _task_status_callback(self, task_id: str, status: str, details: Optional[Dict[Any, Any]] = None) -> None:
         """Callback for task status updates."""
         self.logger.info(f"Task {task_id} status: {status}")
         if details:
@@ -815,7 +765,11 @@ class AtlasApp(ctk.CTk):
                 self.logger.warning(f"Task {task_id} not found")
                 return
 
-            memories = self.task_manager.memory_manager.get_agent_memories(task.memory_scope)
+            memories = self.task_manager.memory_manager.search_memories(
+                query="",
+                collection_names=[task.memory_scope] if hasattr(task, 'memory_scope') else None,
+                n_results=100
+            )
             memory_count = len(memories) if memories else 0
 
             #Show simple dialog with memory info
@@ -854,9 +808,12 @@ class AtlasApp(ctk.CTk):
         self.collection_var = ctk.StringVar(value="All")
 
         try:
-            db_collections = self.memory_manager.client.list_collections()
-            collection_names = [c.name for c in db_collections]
-            collections = ["All"] + collection_names
+            if hasattr(self.memory_manager, 'client') and self.memory_manager.client is not None:
+                db_collections = self.memory_manager.client.list_collections()
+                collection_names = [c.name for c in db_collections]
+                collections = ["All"] + collection_names
+            else:
+                collections = ["All"]
         except Exception as e:
             self.logger.error(f"Could not load memory collections: {e}")
             collections = ["All"]
@@ -879,11 +836,14 @@ class AtlasApp(ctk.CTk):
     def _refresh_memory_collections(self):
         """Reloads the list of memory collections from the database."""
         try:
-            db_collections = self.memory_manager.client.list_collections()
-            collection_names = [c.name for c in db_collections]
-            collections = ["All"] + collection_names
-            self.collection_menu.configure(values=collections)
-            self.logger.info("Refreshed memory collection list.")
+            if hasattr(self.memory_manager, 'client') and self.memory_manager.client is not None:
+                db_collections = self.memory_manager.client.list_collections()
+                collection_names = [c.name for c in db_collections]
+                collections = ["All"] + collection_names
+                self.collection_menu.configure(values=collections)
+                self.logger.info("Refreshed memory collection list.")
+            else:
+                self.logger.warning("Memory manager client not available")
         except Exception as e:
             self.logger.error(f"Failed to refresh memory collections: {e}", exc_info=True)
 
@@ -1123,9 +1083,13 @@ class AtlasApp(ctk.CTk):
 
             if options["goal_list"]:
                 goals = [g.strip() for g in goal_input.split("\n") if g.strip()]
-                self.master_agent.run(goals, prompt, options)
+                # Convert goals list to a single string since run expects a string
+                goal_string = "\n".join(goals)
+                context = {"prompt": prompt, "options": options}
+                self.master_agent.run(goal_string, context)
             else:
-                self.master_agent.run(goal_input, prompt, options)
+                context = {"prompt": prompt, "options": options}
+                self.master_agent.run(goal_input, context)
 
             self._check_agent_status()
         else:
@@ -1160,7 +1124,7 @@ class AtlasApp(ctk.CTk):
 
     def _check_agent_status(self):
         """Periodically check if the agent thread is alive and update UI."""
-        if self.master_agent.is_running():
+        if self.master_agent.is_running:
             self.after(100, self._check_agent_status)
         else:
             self._on_agent_complete()
@@ -1183,7 +1147,7 @@ class AtlasApp(ctk.CTk):
         """Handles user feedback submission."""
         self.logger.info(f"User feedback received: {'Positive' if positive else 'Negative'}")
         if self.last_goal:
-            self.master_agent.record_feedback(self.last_goal, positive)
+            self.master_agent.record_feedback(f"Goal: {self.last_goal}, Feedback: {'Positive' if positive else 'Negative'}")
             self.chat_history_view.add_message("system", "Feedback recorded. Thank you!")
             self.good_button.configure(state="disabled")
             self.bad_button.configure(state="disabled")
@@ -1212,7 +1176,12 @@ class AtlasApp(ctk.CTk):
                                     description=getattr(tool_function, "__doc__", "No description available."),
                                 )
                 for agent_class in plugin_data.get("agents", []):
-                    self.agent_manager.add_agent(agent_class)
+                    # Create an instance of the agent class if it's a class, not an instance
+                    if isinstance(agent_class, type):
+                        agent_instance = agent_class(llm_manager=self.llm_manager)
+                    else:
+                        agent_instance = agent_class
+                    self.agent_manager.add_agent(agent_class.__name__ if hasattr(agent_class, '__name__') else str(agent_class), agent_instance)
         self.logger.info(f"Updated agent tools based on settings. Active tools: {self.agent_manager.get_tool_names()}")
 
         #Mark that initial settings have been applied
@@ -1227,11 +1196,11 @@ class AtlasApp(ctk.CTk):
         if self.token_tracker:
             stats = self.token_tracker.get_usage()
             if self.prompt_tokens_label:
-                self.prompt_tokens_label.configure(text=str(stats.prompt))
+                self.prompt_tokens_label.configure(text=str(stats.prompt_tokens))
             if self.completion_tokens_label:
-                self.completion_tokens_label.configure(text=str(stats.completion))
+                self.completion_tokens_label.configure(text=str(stats.completion_tokens))
             if self.total_tokens_label:
-                self.total_tokens_label.configure(text=str(stats.total))
+                self.total_tokens_label.configure(text=str(stats.total_tokens))
 
         self.after(1000, self._update_token_stats)
 
@@ -1652,11 +1621,13 @@ class AtlasApp(ctk.CTk):
                 current_model = settings.get("current_model")
 
                 if current_provider and current_model:
-                    self.llm_manager.set_provider_and_model(current_provider, current_model)
-                    self.logger.info(f"LLM provider set to {current_provider} with model {current_model}")
+                    # TODO: Implement set_provider_and_model method in LLMManager
+                    # self.llm_manager.set_provider_and_model(current_provider, current_model)
+                    self.logger.info(f"LLM provider setting request: {current_provider} with model {current_model}")
 
                 #Refresh all LLM clients with new API keys
-                self.llm_manager.update_settings()
+                # TODO: Implement update_settings method in LLMManager
+                # self.llm_manager.update_settings()
 
                 #Update master agent's LLM manager if needed
                 if hasattr(self, "master_agent") and hasattr(self.master_agent, "llm_manager"):
@@ -1740,24 +1711,6 @@ class AtlasApp(ctk.CTk):
             self.logger.info("Application state saved.")
         except Exception as e:
             self.logger.error(f"Failed to save application state: {e}")
-
-    def _load_app_state(self):
-        """Loads the application state from a file."""
-        try:
-            with open("state.json") as f:
-                state = json.load(f)
-        except FileNotFoundError:
-            self.logger.info("No previous state file found. Starting fresh.")
-            return
-        except (json.JSONDecodeError, Exception) as e:
-            self.logger.error(f"Failed to load application state: {e}")
-            return
-
-        if state:
-            self.goal_text.insert("1.0", state.get("goal_input", ""))
-            self.prompt_text.insert("1.0", state.get("prompt_input", ""))
-            self.chat_history_view.load_history(state.get("chat_history", []))
-            self.logger.info("Application state loaded.")
 
     def _copy_input_text(self):
         """Copies the selected text from the chat input to the clipboard."""
@@ -2193,10 +2146,13 @@ The current mode will be shown above. How can I help you today?"""
                         #Use the correct method to run goals
                         try:
                             #Set up the goal execution
+                            context = {
+                                "master_prompt": "Chat goal execution",
+                                "options": {"cyclic": False}
+                            }
                             self.master_agent.run(
                                 goal=processed_message,
-                                master_prompt="Chat goal execution",
-                                options={"cyclic": False},
+                                context=context
                             )
 
                             #Wait for completion
@@ -2219,7 +2175,7 @@ The current mode will be shown above. How can I help you today?"""
                     #Run goal execution in a separate thread
                     threading.Thread(target=execute_goal, daemon=True).start()
 
-                except Exception:
+                except Exception as e:
                     self.after(0, lambda: self.chat_view.add_message("assistant", f"❌ Error setting up goal execution: {e!s}"))
 
             else:
@@ -2381,7 +2337,7 @@ The current mode will be shown above. How can I help you today?"""
             else:
                 query = remaining.strip().strip('"\'')
 
-            return self.code_reader.search_functions(query, class_name)
+            return self.code_reader.search_functions(query, class_name or "")
 
         #Check for class search requests
         elif "search classes" in message_lower or "find classes" in message_lower or "list classes" in message_lower:
@@ -2576,20 +2532,15 @@ Examples:
   "Click on the Save button" """
 
         if "agent" in message_lower:
-            agents = self.agent_manager.get_agent_names()
-            agent_list = "\n".join([f"  • {agent}" for agent in agents])
-            return f"""🤖 Atlas Agents System
+            # AgentManager doesn't have get_agent_names, using get_tool_names instead
+            tools = self.agent_manager.get_tool_names() if self.agent_manager else []
+            tool_list = "\n".join([f"  • {tool}" for tool in tools])
+            return f"""🤖 Atlas Tools System
 
-I coordinate with specialized agents:
-{agent_list}
+Available tools:
+{tool_list}
 
-Agent Responsibilities:
-  • ScreenAgent: Visual analysis and interaction
-  • BrowserAgent: Web automation  
-  • TextAgent: Text processing and analysis
-  • SystemInteractionAgent: System-level operations
-
-These agents work together to accomplish complex goals efficiently!"""
+💡 Tools help Atlas interact with your system and complete tasks."""
 
         if "goal" in message_lower or "how" in message_lower:
             return """🎯 How to Use Atlas

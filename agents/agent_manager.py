@@ -2,7 +2,7 @@ import importlib.util
 import inspect
 import os
 import time
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 from agents.tool_creator_agent import ToolCreatorAgent
 from monitoring.metrics_manager import metrics_manager
@@ -11,6 +11,7 @@ from utils.logger import get_logger
 
 if TYPE_CHECKING:
     from agents.memory_manager import MemoryManager
+    from agents.enhanced_memory_manager import EnhancedMemoryManager
 
 class ToolNotFoundError(Exception):
     """Raised when a specified tool cannot be found."""
@@ -22,7 +23,7 @@ class InvalidToolArgumentsError(Exception):
 class AgentManager:
     """Manages the registration, retrieval, and execution of agents and tools."""
 
-    def __init__(self, llm_manager: LLMManager, memory_manager: "MemoryManager", master_agent_update_callback: Optional[Callable] = None):
+    def __init__(self, llm_manager: LLMManager, memory_manager: Union["MemoryManager", "EnhancedMemoryManager"], master_agent_update_callback: Optional[Callable] = None):
         self._agents: Dict[str, Any] = {}
         self._tools: Dict[str, Callable] = {}
         self.logger = get_logger()

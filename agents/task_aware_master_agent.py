@@ -26,7 +26,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
     def __init__(self,
                  llm_manager,
                  agent_manager: AgentManager,
-                 memory_manager: "MemoryManager",
+                 memory_manager: EnhancedMemoryManager,
                  task_id: Optional[str] = None,
                  memory_scope: Optional[str] = None,
                  api_resource_manager=None,
@@ -43,7 +43,12 @@ class TaskAwareMasterAgent(BaseMasterAgent):
             api_resource_manager: API resource manager for rate limiting
             status_callback: Callback for status updates
         """
-        super().__init__(llm_manager, agent_manager, memory_manager, status_callback)
+        super().__init__(
+            llm_manager=llm_manager, 
+            agent_manager=agent_manager, 
+            memory_manager=memory_manager, 
+            on_status_update=status_callback
+        )
 
         #Task isolation properties
         self.task_id = task_id or f"task_{int(time.time())}"
@@ -149,7 +154,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
                 self.memory_manager.store_memory(
                     agent_name=self.memory_scope,
                     memory_type=MemoryType.INTERACTION,
-                    content=interaction_data,
+                    content=json.dumps(interaction_data),
                     metadata=self.task_metadata,
                 )
 
@@ -171,7 +176,7 @@ class TaskAwareMasterAgent(BaseMasterAgent):
                 self.memory_manager.store_memory(
                     agent_name=self.memory_scope,
                     memory_type=MemoryType.SUCCESS,
-                    content=progress_data,
+                    content=json.dumps(progress_data),
                     metadata=self.task_metadata,
                 )
 
@@ -412,9 +417,13 @@ def demo_task_aware_agent():
         from utils.llm_manager import LLMManager
 
         #Initialize components
-        llm_manager = LLMManager()
-        agent_manager = AgentManager()
-        memory_manager = EnhancedMemoryManager()
+        from agents.token_tracker import TokenTracker
+        from utils.config_manager import config_manager
+        
+        token_tracker = TokenTracker()
+        llm_manager = LLMManager(token_tracker=token_tracker)
+        memory_manager = EnhancedMemoryManager(llm_manager=llm_manager, config_manager=config_manager)
+        agent_manager = AgentManager(llm_manager=llm_manager, memory_manager=memory_manager)
 
         #Create two isolated agents for different tasks
         agent1 = TaskAwareMasterAgent(

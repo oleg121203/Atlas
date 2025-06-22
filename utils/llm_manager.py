@@ -9,7 +9,8 @@ TokenTracker to monitor and log token usage for all API calls.
 import logging
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Iterable, Union, Mapping, Literal
+from typing_extensions import Stream, Timeout, NotGiven
 
 # Imports for LLM providers are deferred to improve startup performance.
 
@@ -130,7 +131,7 @@ class LLMManager:
                 total_tokens=0,
             )
 
-    def _chat_openai(self, messages: list[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gpt-4-turbo") -> TokenUsage:
+    def _chat_openai(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gpt-4-turbo") -> TokenUsage:
         """Handle OpenAI chat requests."""
         from openai import OpenAI
         api_key = self.config_manager.get_openai_api_key()
@@ -167,9 +168,10 @@ class LLMManager:
             self.logger.info("Falling back to Gemini due to OpenAI API error.")
             return self._chat_gemini(messages, tools, self.gemini_model)
 
-    def _chat_gemini(self, messages: list[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gemini-1.5-flash") -> TokenUsage:
+    def _chat_gemini(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gemini-1.5-flash") -> TokenUsage:
         """Handle Gemini chat requests."""
         import google.generativeai as genai
+        from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
         if not self.gemini_client:
             self.logger.error("Gemini client not initialized.")
@@ -193,9 +195,14 @@ class LLMManager:
 
             model_instance = genai.GenerativeModel(model_name=model, system_instruction=system_instruction, tools=tools)
             
-            safety_settings = {'HARM_CATEGORY_HARASSMENT': 'BLOCK_NONE', 'HARM_CATEGORY_HATE_SPEECH': 'BLOCK_NONE', 'HARM_CATEGORY_SEXUALLY_EXPLICIT': 'BLOCK_NONE', 'HARM_CATEGORY_DANGEROUS_CONTENT': 'BLOCK_NONE'}
+            safety_settings = [
+                {'category': HarmCategory.HARM_CATEGORY_HARASSMENT, 'threshold': HarmBlockThreshold.BLOCK_NONE},
+                {'category': HarmCategory.HARM_CATEGORY_HATE_SPEECH, 'threshold': HarmBlockThreshold.BLOCK_NONE},
+                {'category': HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, 'threshold': HarmBlockThreshold.BLOCK_NONE},
+                {'category': HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, 'threshold': HarmBlockThreshold.BLOCK_NONE}
+            ]
             
-            response = model_instance.generate_content(gemini_messages, safety_settings=safety_settings)
+            response = model_instance.generate_content(gemini_messages, safety_settings=safety_settings)  # type: ignore[arg-type]
 
             response_text, tool_calls = "", None
             if response.candidates and response.candidates[0].content.parts:
