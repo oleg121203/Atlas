@@ -20,6 +20,8 @@ class ChatHistoryView(ctk.CTkFrame):
         self.grid_rowconfigure(1, weight=1)
 
         self.history: List[Dict[str, str]] = []
+        self.compact_mode = True  # Default to compact mode
+        self.max_compact_lines = 10  # Maximum lines to show in compact mode
 
         # Add top copy button frame
         self.top_copy_frame = ctk.CTkFrame(self, height=30)
@@ -39,6 +41,20 @@ class ChatHistoryView(ctk.CTkFrame):
             command=self._copy_all_chat,
         )
         self.top_copy_button.grid(row=0, column=0, padx=5, pady=2, sticky="w")
+
+        # Compact mode toggle button
+        self.compact_toggle_button = ctk.CTkButton(
+            self.top_copy_frame,
+            text="▼",
+            width=25,
+            height=25,
+            font=ctk.CTkFont(size=12),
+            fg_color="transparent",
+            text_color="gray50",
+            hover_color="gray30",
+            command=self._toggle_compact_mode,
+        )
+        self.compact_toggle_button.grid(row=0, column=1, padx=5, pady=2, sticky="w")
 
         self.textbox = ctk.CTkTextbox(self, wrap="word", state="disabled", font=("Helvetica", 13))
         self.textbox.grid(row=1, column=0, sticky="nsew")
@@ -75,15 +91,18 @@ class ChatHistoryView(ctk.CTkFrame):
         self.textbox.tag_config("agent", foreground="#FFB84D")  # Lighter orange for agent text
         self.textbox.tag_config("system", foreground="#B666A3")  # Lighter purple for system text
 
-        # System message styling (dimmed)
-        self.textbox.tag_config("system_dim", foreground="#808080", spacing1=2, spacing3=2)  # Gray and less spacing
+        # System message styling (dimmed and compact)
+        self.textbox.tag_config("system_dim", foreground="#808080", spacing1=1, spacing3=1)  # Gray and minimal spacing
         self.textbox.tag_config("processing_dim", foreground="#707070", spacing1=1, spacing3=1)  # Even more dimmed
+        self.textbox.tag_config("thinking_dim", foreground="#606060", spacing1=1, spacing3=1)  # Very dimmed for thinking
 
-        self.textbox.tag_config("user", foreground="#00A0E0")
-        self.textbox.tag_config("agent", foreground="#FFB84D")  # Lighter orange for agent text
-        self.textbox.tag_config("system", foreground="#B666A3")  # Lighter purple for system text
+        # Compact mode styling
+        self.textbox.tag_config("compact", spacing1=1, spacing3=1)
+        self.textbox.tag_config("compact_user", foreground="#00A0E0", spacing1=1, spacing3=1)
+        self.textbox.tag_config("compact_agent", foreground="#FFB84D", spacing1=1, spacing3=1)
+        self.textbox.tag_config("compact_system", foreground="#B666A3", spacing1=1, spacing3=1)
 
-                #self.textbox.tag_config("title", font=("Helvetica", 14, "bold")) # Font attribute is forbidden by customtkinter
+        #self.textbox.tag_config("title", font=("Helvetica", 14, "bold")) # Font attribute is forbidden by customtkinter
         self.textbox.tag_config("plan_step", lmargin1=20, lmargin2=20)
         self.textbox.tag_config("step_start", foreground="#A0A0A0", lmargin1=20, lmargin2=20)
         self.textbox.tag_config("step_end", foreground="#A0A0A0", lmargin1=20, lmargin2=20)
@@ -121,15 +140,55 @@ class ChatHistoryView(ctk.CTkFrame):
         self.textbox.tag_config("markdown_bullet", foreground="#87CEEB")  # Sky blue for bullets
         self.textbox.tag_config("markdown_emoji", foreground="#FFA500")   # Orange for emojis
 
+    def _toggle_compact_mode(self):
+        """Toggle between compact and full view modes."""
+        self.compact_mode = not self.compact_mode
+        
+        if self.compact_mode:
+            self.compact_toggle_button.configure(text="▼")
+            self._apply_compact_view()
+        else:
+            self.compact_toggle_button.configure(text="▲")
+            self._apply_full_view()
+
+    def _apply_compact_view(self):
+        """Apply compact view showing only recent messages."""
+        self.textbox.configure(state="normal")
+        self.textbox.delete("1.0", "end")
+        
+        # Show only the last few messages
+        recent_messages = self.history[-self.max_compact_lines:] if len(self.history) > self.max_compact_lines else self.history
+        
+        for msg in recent_messages:
+            self._add_message_internal(msg["role"], msg["text"], compact=True)
+        
+        self.textbox.configure(state="disabled")
+
+    def _apply_full_view(self):
+        """Apply full view showing all messages."""
+        self.textbox.configure(state="normal")
+        self.textbox.delete("1.0", "end")
+        
+        for msg in self.history:
+            self._add_message_internal(msg["role"], msg["text"], compact=False)
+        
+        self.textbox.configure(state="disabled")
+
     def add_message(self, role: str, text: str):
         """Adds a new message to the textbox and saves it to history with improved formatting."""
         self.history.append({"role": role, "text": text})
 
+        # Add message to display
+        self._add_message_internal(role, text, compact=self.compact_mode)
+
+    def _add_message_internal(self, role: str, text: str, compact: bool = False):
+        """Internal method to add a message with specified compact mode."""
         self.textbox.configure(state="normal")
 
         # Check if this is a system message that should be dimmed
         is_system_dim = self._is_system_message_dim(text)
         is_processing = text.startswith("Processing your request") or "Detected" in text or "Analyzing" in text
+        is_thinking = "thinking" in text.lower() or "analyzing" in text.lower() or "processing" in text.lower()
 
         #Enhanced prefixes with emojis and better styling
         prefixes = {
@@ -142,8 +201,11 @@ class ChatHistoryView(ctk.CTkFrame):
         prefix_text, prefix_tag = prefixes.get(role, ("🤖 Atlas", "agent_prefix"))  #Default to Atlas instead of Unknown
 
         # Use dimmed styling for certain system messages
-        if is_system_dim or is_processing:
-            if is_processing:
+        if is_system_dim or is_processing or is_thinking:
+            if is_thinking:
+                prefix_tag = "thinking_dim"
+                text_tag = "thinking_dim"
+            elif is_processing:
                 prefix_tag = "processing_dim"
                 text_tag = "processing_dim"
             else:
@@ -152,14 +214,19 @@ class ChatHistoryView(ctk.CTkFrame):
         else:
             text_tag = role if role in ["user", "agent", "assistant", "system"] else "agent"
 
+        # Apply compact styling if needed
+        if compact:
+            prefix_tag = f"compact_{prefix_tag.replace('_prefix', '')}"
+            text_tag = f"compact_{text_tag}"
+
         #Add prefix with styling
         self.textbox.insert("end", f"{prefix_text}: ", (prefix_tag,))
 
         #Apply syntax highlighting and use appropriate text color
         self._apply_syntax_highlighting(text, text_tag)
 
-        # Use shorter spacing for dimmed messages
-        if is_system_dim or is_processing:
+        # Use shorter spacing for dimmed messages and compact mode
+        if is_system_dim or is_processing or is_thinking or compact:
             self.textbox.insert("end", "\n")
         else:
             self.textbox.insert("end", "\n\n")
@@ -176,6 +243,12 @@ class ChatHistoryView(ctk.CTkFrame):
             "Analyzing as",
             "confidence:",
             "Processing your request",
+            "🌐 Detected",
+            "🌐 Active:",
+            "🌐 Translation:",
+            "Mode:",
+            "🔧 Manual mode",
+            "🔧 Automatic mode",
         ]
         return any(pattern in text for pattern in dim_patterns)
 
@@ -198,20 +271,16 @@ class ChatHistoryView(ctk.CTkFrame):
 
         #Find all code blocks
         for match in re.finditer(code_block_pattern, text, re.DOTALL):
-            start, end = match.span()
-            processed_ranges.append((start, end, "code_block", match))
+            processed_ranges.append((match.start(), match.end(), "code_block", match))
 
         #Find all inline code
         for match in re.finditer(inline_code_pattern, text):
-            start, end = match.span()
-            #Check if this overlaps with any code block
-            overlaps = any(s <= start < e or s < end <= e for s, e, _, _ in processed_ranges)
-            if not overlaps:
-                processed_ranges.append((start, end, "inline_code", match))
+            processed_ranges.append((match.start(), match.end(), "inline_code", match))
 
         #Sort by start position
         processed_ranges.sort(key=lambda x: x[0])
 
+        #Process text in order
         last_end = 0
         for start, end, code_type, match in processed_ranges:
             #Process text before this code section (apply markdown formatting)
@@ -316,25 +385,19 @@ class ChatHistoryView(ctk.CTkFrame):
         """Select all text in the textbox."""
         try:
             self.textbox.tag_add("sel", "1.0", "end")
+            self.textbox.mark_set("insert", "1.0")
+            self.textbox.see("insert")
         except tk.TclError:
             pass
 
     def clear(self):
-        """Removes all messages from the view and history."""
+        """Clear the chat history."""
         self.history.clear()
         self.textbox.configure(state="normal")
-        self.textbox.delete(1.0, "end")
+        self.textbox.delete("1.0", "end")
         self.textbox.configure(state="disabled")
 
     def load_history(self, history: List[Dict[str, str]]):
-        """Clears the current view and loads a new history."""
-        self.clear()
-        self.textbox.configure(state="normal")
-        for msg in history:
-            self.history.append(msg)
-            prefix = "You" if msg["role"] == "user" else "Agent"
-            self.textbox.insert("end", f"{prefix}: ", (f"{msg['role']}_prefix",))
-            self._apply_syntax_highlighting(msg["text"], msg["role"])
-            self.textbox.insert("end", "\n\n")
-        self.textbox.configure(state="disabled")
-        self.textbox.yview_moveto(1.0)
+        """Load chat history from a list of dictionaries."""
+        self.history = history.copy()
+        self._apply_full_view()

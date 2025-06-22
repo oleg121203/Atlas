@@ -83,25 +83,29 @@ class LLMManager:
         messages: List[Dict[str, Any]],
         tools: Optional[List[Dict[str, Any]]] = None,
         use_model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
     ) -> TokenUsage:
-        """Main method to interact with the LLM."""
-        if not messages:
-            self.logger.error("Chat messages cannot be empty.")
-            raise ValueError("Messages cannot be empty.")
-
-        model_to_use = use_model or self.current_model
+        """
+        Send a chat request to the LLM provider.
         
-        if "gpt" in model_to_use.lower():
-            provider = "openai"
-        elif "gemini" in model_to_use.lower():
-            provider = "gemini"
-        else:
-            provider = self.current_provider
+        Args:
+            messages: List of message dictionaries
+            tools: Optional list of tool definitions
+            use_model: Optional model to use (overrides current model)
+            max_tokens: Optional maximum tokens for response
+            
+        Returns:
+            TokenUsage object with response and token counts
+        """
+        provider = self.current_provider
+        model_to_use = use_model or self.current_model
+
+        if not model_to_use:
             self.logger.warning(f"Unknown model provider for '{model_to_use}'. Using default: {provider}.")
 
         cache_key = None
         try:
-            cache_key_obj = {"messages": messages, "tools": tools, "model": model_to_use, "provider": provider}
+            cache_key_obj = {"messages": messages, "tools": tools, "model": model_to_use, "provider": provider, "max_tokens": max_tokens}
             cache_key = json.dumps(cache_key_obj, sort_keys=True)
             if cache_key in self.cache:
                 self.logger.info("Returning cached LLM response.")
@@ -112,9 +116,13 @@ class LLMManager:
 
         try:
             if provider == "openai":
-                result = self._chat_openai(messages, tools, model_to_use)
+                result = self._chat_openai(messages, tools, model_to_use, max_tokens)
             elif provider == "gemini":
-                result = self._chat_gemini(messages, tools, model_to_use)
+                result = self._chat_gemini(messages, tools, model_to_use, max_tokens)
+            elif provider == "groq":
+                result = self._chat_groq(messages, model_to_use, max_tokens)
+            elif provider == "ollama":
+                result = self._chat_ollama(messages, model_to_use, max_tokens)
             else:
                 raise ValueError(f"Unsupported LLM provider: {provider}")
             
@@ -131,13 +139,13 @@ class LLMManager:
                 total_tokens=0,
             )
 
-    def _chat_openai(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gpt-4-turbo") -> TokenUsage:
+    def _chat_openai(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gpt-4-turbo", max_tokens: Optional[int] = None) -> TokenUsage:
         """Handle OpenAI chat requests."""
         from openai import OpenAI
         api_key = self.config_manager.get_openai_api_key()
         if not api_key or "placeholder" in api_key:
             self.logger.warning("OpenAI API key is invalid or placeholder, falling back to Gemini.")
-            return self._chat_gemini(messages, tools, self.gemini_model)
+            return self._chat_gemini(messages, tools, self.gemini_model, max_tokens)
 
         try:
             openai_client = OpenAI(api_key=api_key)
@@ -145,6 +153,8 @@ class LLMManager:
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
+            if max_tokens:
+                kwargs["max_tokens"] = max_tokens
             response = openai_client.chat.completions.create(**kwargs)  
             message = response.choices[0].message  
             usage = response.usage  
@@ -164,9 +174,9 @@ class LLMManager:
         except Exception as e:
             self.logger.error(f"An error occurred during the OpenAI call: {e}", exc_info=True)
             self.logger.info("Falling back to Gemini due to OpenAI API error.")
-            return self._chat_gemini(messages, tools, self.gemini_model)
+            return self._chat_gemini(messages, tools, self.gemini_model, max_tokens)
 
-    def _chat_gemini(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gemini-1.5-flash") -> TokenUsage:
+    def _chat_gemini(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gemini-1.5-flash", max_tokens: Optional[int] = None) -> TokenUsage:
         """Handle Gemini chat requests."""
         import google.generativeai as genai
         try:
@@ -223,6 +233,11 @@ class LLMManager:
                     tools=tools
                 )
             
+            # Prepare generation config with max_tokens if specified
+            generation_config = {}
+            if max_tokens:
+                generation_config["max_output_tokens"] = max_tokens
+            
             # Only use safety settings if they're available
             if use_safety_settings and HarmCategory and HarmBlockThreshold and SafetySetting:
                 safety_settings = [
@@ -231,10 +246,17 @@ class LLMManager:
                     SafetySetting(category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
                     SafetySetting(category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE)
                 ]
-                response = model_instance.generate_content(gemini_messages, safety_settings=safety_settings)  # type: ignore[arg-type, return-value]
+                response = model_instance.generate_content(
+                    gemini_messages, 
+                    safety_settings=safety_settings,
+                    generation_config=generation_config
+                )  # type: ignore[arg-type, return-value]
             else:
                 # Use default safety settings if SafetySetting is not available
-                response = model_instance.generate_content(gemini_messages)  # type: ignore[arg-type, return-value]
+                response = model_instance.generate_content(
+                    gemini_messages,
+                    generation_config=generation_config
+                )  # type: ignore[arg-type, return-value]
                 
             response_text, tool_calls = "", None
             if response.candidates and response.candidates[0].content.parts:
@@ -265,6 +287,66 @@ class LLMManager:
             self.logger.error(f"An error occurred during the Gemini call: {e}", exc_info=True)
             raise
 
+    def _chat_groq(self, messages: List[Dict[str, Any]], model: str, max_tokens: Optional[int] = None) -> TokenUsage:
+        """Handle Groq chat requests via HTTP API."""
+        import requests
+        api_key = self.config_manager.get_setting("groq_api_key", "")
+        if not api_key or not api_key.startswith("gsk_"):
+            raise ValueError("Groq API key is missing or invalid.")
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": model,
+            "messages": messages,
+        }
+        if max_tokens:
+            payload["max_tokens"] = max_tokens
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code != 200:
+            raise ValueError(f"Groq API error: {response.status_code} {response.text}")
+        data = response.json()
+        message = data["choices"][0]["message"]["content"]
+        usage = data.get("usage", {})
+        token_usage = TokenUsage(
+            response_text=message,
+            tool_calls=None,
+            prompt_tokens=usage.get("prompt_tokens", 0),
+            completion_tokens=usage.get("completion_tokens", 0),
+            total_tokens=usage.get("total_tokens", 0),
+        )
+        self.token_tracker.add_usage(token_usage)
+        return token_usage
+
+    def _chat_ollama(self, messages: List[Dict[str, Any]], model: str, max_tokens: Optional[int] = None) -> TokenUsage:
+        """Handle Ollama chat requests via local HTTP API."""
+        import requests
+        url = "http://localhost:11434/api/chat"
+        # Ollama expects a single prompt, so we concatenate all user/assistant messages
+        prompt = "\n".join([msg["content"] for msg in messages if msg["role"] in ("user", "assistant")])
+        payload = {
+            "model": model,
+            "messages": messages,
+        }
+        if max_tokens:
+            payload["options"] = {"num_predict": max_tokens}
+        response = requests.post(url, json=payload, timeout=30)
+        if response.status_code != 200:
+            raise ValueError(f"Ollama API error: {response.status_code} {response.text}")
+        data = response.json()
+        message = data.get("message", {}).get("content", "")
+        token_usage = TokenUsage(
+            response_text=message,
+            tool_calls=None,
+            prompt_tokens=0,
+            completion_tokens=0,
+            total_tokens=0,
+        )
+        self.token_tracker.add_usage(token_usage)
+        return token_usage
+
     def get_embedding(self, text: str, model: str = "models/embedding-001") -> List[float]:
         """Generates an embedding for the given text."""
         import google.generativeai as genai
@@ -289,17 +371,29 @@ class LLMManager:
             new_model = self.config_manager.get_current_model()
             new_provider = self.config_manager.get_current_provider()
             
+            # Check if settings actually changed
+            settings_changed = False
+            
             if new_model != self.current_model:
                 self.current_model = new_model
                 self.logger.info(f"Updated current model to: {new_model}")
+                settings_changed = True
             
             if new_provider != self.current_provider:
                 self.current_provider = new_provider
                 self.logger.info(f"Updated current provider to: {new_provider}")
+                settings_changed = True
+            
+            # Re-initialize clients if settings changed
+            if settings_changed:
+                self._initialize_clients()
+                self.logger.info("Re-initialized LLM clients with new settings")
                 
             self.logger.debug("LLM settings updated successfully")
+            return True
         except Exception as e:
             self.logger.error(f"Failed to update LLM settings: {e}", exc_info=True)
+            return False
 
     def is_provider_available(self, provider: str) -> bool:
         """Check if a specific LLM provider is available."""
@@ -309,6 +403,16 @@ class LLMManager:
                 return api_key and api_key.strip() and "placeholder" not in api_key.lower()
             elif provider == "gemini":
                 return self.gemini_client is not None
+            elif provider == "groq":
+                api_key = self.config_manager.get_setting("groq_api_key", "")
+                return api_key and api_key.startswith("gsk_")
+            elif provider == "ollama":
+                import requests
+                try:
+                    response = requests.get("http://localhost:11434/api/version", timeout=3)
+                    return response.status_code == 200
+                except Exception:
+                    return False
             elif provider == "anthropic":
                 api_key = self.config_manager.get_setting("anthropic_api_key", "")
                 return api_key and api_key.strip() and "placeholder" not in api_key.lower()

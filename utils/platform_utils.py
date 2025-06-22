@@ -19,6 +19,8 @@ IS_HEADLESS = (
     os.environ.get("CI") == "true"
 ) or (
     "pytest" in sys.modules
+) or (
+    os.environ.get("ATLAS_HEADLESS") == "true"
 )
 
 def get_platform_info() -> Dict[str, Any]:

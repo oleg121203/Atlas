@@ -57,6 +57,7 @@ from agents.enhanced_memory_manager import (
     MemoryType,
 )
 from agents.enhanced_security_agent import EnhancedSecurityAgent
+from agents.hierarchical_plan_manager import HierarchicalPlanManager
 from agents.task_aware_master_agent import TaskAwareMasterAgent as MasterAgent
 from agents.task_manager import TaskManager, TaskPriority, TaskStatus
 from agents.token_tracker import TokenTracker
@@ -66,10 +67,11 @@ from plugin_manager import PluginManager
 from tools.code_reader_tool import CodeReaderTool
 from tools.screenshot_tool import capture_screen
 from ui.chat_history_view import ChatHistoryView
-from ui.context_menu import enable_formatting_context_menu
+from ui.context_menu import enable_formatting_context_menu, enable_context_menu, setup_context_menus_for_container
 from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
 from ui.enhanced_settings import EnhancedSettingsView
 from ui.goal_history import GoalHistoryManager, GoalHistoryWindow
+from ui.hierarchical_task_view import HierarchicalTaskView
 from ui.plan_view import PlanView
 from ui.status_panel import StatusPanel
 from ui.tool_management_view import ToolManagementView
@@ -166,6 +168,15 @@ class AtlasApp(ctk.CTk):
             creator_auth=self.creator_auth,
         )
 
+        # Initialize Hierarchical Plan Manager
+        self.hierarchical_plan_manager = HierarchicalPlanManager(
+            llm_manager=self.llm_manager,
+            strategic_planner=self.master_agent.strategic_planner,
+            tactical_planner=self.master_agent.tactical_planner,
+            operational_planner=self.master_agent.operational_planner,
+            status_callback=self._handle_hierarchical_plan_status
+        )
+
         #Set the LLM manager for translation after master_agent is created
         if hasattr(self, "chat_translation_manager") and self.llm_manager:
             self.chat_translation_manager.set_llm_manager(self.llm_manager)
@@ -221,6 +232,9 @@ class AtlasApp(ctk.CTk):
         #Load the rest of the app state
         self._load_app_state()
 
+        #Setup context menus for all text widgets
+        setup_context_menus_for_container(self)
+
         #Start background agents and processes
         self.deputy_agent.start()
         self.security_agent.start()
@@ -243,19 +257,24 @@ class AtlasApp(ctk.CTk):
                 self.status_panel.handle_agent_message(message)
 
             if msg_type == "plan":
-                self.current_plan = data
-                self.plan_view.display_plan(data)
-                self.chat_history_view.add_message("agent", f"Generated a new plan for goal: {self.last_goal}")
+                if data is not None:
+                    self.current_plan = data
+                    self.plan_view.display_plan(data)
+                    self.chat_history_view.add_message("agent", f"Generated a new plan for goal: {self.last_goal}")
             elif msg_type == "step_start":
-                self.plan_view.update_step_status(data["index"], "start", data)
+                if data is not None and isinstance(data, dict):
+                    self.plan_view.update_step_status(data.get("index", 0), "start", data)
             elif msg_type == "step_end":
-                self.plan_view.update_step_status(data["index"], "end", data)
+                if data is not None and isinstance(data, dict):
+                    self.plan_view.update_step_status(data.get("index", 0), "end", data)
             elif msg_type == "request_clarification":
                 self.chat_history_view.add_message(message["role"], message["content"])
-                self._prompt_for_clarification(content)
+                if content is not None:
+                    self._prompt_for_clarification(content)
             elif msg_type == "request_feedback":
                 self.chat_history_view.add_message(message["role"], message["content"])
-                self._prompt_for_feedback(content)
+                if content is not None:
+                    self._prompt_for_feedback(content)
             elif msg_type == "success":
                 self.chat_history_view.add_message(message["role"], message["content"])
                 #Add to goal history
@@ -263,9 +282,9 @@ class AtlasApp(ctk.CTk):
                     self.goal_history_manager.add_goal(
                         self.last_goal,
                         "Completed",
-                        execution_time=data.get("execution_time"),
-                        steps_completed=data.get("steps_completed"),
-                        total_steps=data.get("total_steps"),
+                        execution_time=data.get("execution_time") if data else None,
+                        steps_completed=data.get("steps_completed") if data else None,
+                        total_steps=data.get("total_steps") if data else None,
                     )
                 self.feedback_frame.grid() #Show feedback buttons
             elif msg_type == "error" or msg_type == "failure":
@@ -275,8 +294,8 @@ class AtlasApp(ctk.CTk):
                         self.last_goal,
                         "Failed",
                         error_message=content,
-                        steps_completed=data.get("steps_completed"),
-                        total_steps=data.get("total_steps"),
+                        steps_completed=data.get("steps_completed") if data else None,
+                        total_steps=data.get("total_steps") if data else None,
                     )
                 self.chat_history_view.add_message(message["role"], message["content"])
             else:
@@ -293,10 +312,17 @@ class AtlasApp(ctk.CTk):
         feedback = dialog.get_input()
 
         if feedback:
-            self.master_agent.continue_with_feedback(feedback)
+            # Use a generic method or implement the specific method
+            if hasattr(self.master_agent, 'continue_with_feedback'):
+                self.master_agent.continue_with_feedback(feedback)
+            else:
+                self.logger.info(f"Feedback received: {feedback}")
         else:
             #If the user closes the dialog or enters nothing, treat it as an abort.
-            self.master_agent.continue_with_feedback("abort")
+            if hasattr(self.master_agent, 'continue_with_feedback'):
+                self.master_agent.continue_with_feedback("abort")
+            else:
+                self.logger.info("User cancelled feedback. Aborting.")
 
     def _prompt_for_clarification(self, question: str):
         """Creates a dialog to get clarification from the user."""
@@ -332,7 +358,10 @@ class AtlasApp(ctk.CTk):
                 self.logger.warning(f"Failed to translate clarification response: {e}")
 
             #Send the clarification back to the agent, which will unpause it
-            self.master_agent.provide_clarification(processed_clarification)
+            if hasattr(self.master_agent, 'provide_clarification'):
+                self.master_agent.provide_clarification(processed_clarification)
+            else:
+                self.logger.info(f"Clarification received: {processed_clarification}")
         else:
             #If the user cancels or provides no input, stop the current run.
             self.logger.warning("User cancelled clarification. Stopping the current goal.")
@@ -400,6 +429,7 @@ class AtlasApp(ctk.CTk):
         self._create_chat_tab(tabview.add("Chat"))  #Interactive chat interface
         self._create_master_agent_tab(tabview.add("Master Agent"))
         self._create_tasks_tab(tabview.add("Tasks"))  #Multi-task management
+        self._create_hierarchical_tasks_tab(tabview.add("Hierarchical Tasks"))  #New hierarchical task view
         self._create_status_tab(tabview.add("Status"))  #New enhanced status tab
         self._create_agents_tab(tabview.add("Agents"))
         self._create_tools_tab(tabview.add("Tools"))
@@ -569,6 +599,40 @@ class AtlasApp(ctk.CTk):
 
         #Start periodic updates
         self._update_task_display()
+
+    def _create_hierarchical_tasks_tab(self, tab):
+        """Create the UI for the Hierarchical Tasks tab."""
+        tab.grid_columnconfigure(0, weight=1)
+        tab.grid_rowconfigure(0, weight=1)
+        
+        # Create hierarchical task view
+        self.hierarchical_task_view = HierarchicalTaskView(
+            tab, 
+            task_callback=self._on_hierarchical_task_action
+        )
+        self.hierarchical_task_view.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        
+    def _on_hierarchical_task_action(self, action: str, task_id: str, data: Dict[str, Any]):
+        """Handle actions from the hierarchical task view."""
+        self.logger.info(f"Hierarchical task action: {action} for task {task_id}")
+        
+        if action == "start":
+            # Start task execution
+            if hasattr(self.hierarchical_plan_manager, 'update_task_status'):
+                from agents.hierarchical_plan_manager import TaskStatus
+                self.hierarchical_plan_manager.update_task_status(task_id, TaskStatus.RUNNING)
+        elif action == "pause":
+            # Pause task
+            if hasattr(self.hierarchical_plan_manager, 'pause_task'):
+                self.hierarchical_plan_manager.pause_task(task_id)
+        elif action == "resume":
+            # Resume task
+            if hasattr(self.hierarchical_plan_manager, 'resume_task'):
+                self.hierarchical_plan_manager.resume_task(task_id)
+        elif action == "cancel":
+            # Cancel task
+            if hasattr(self.hierarchical_plan_manager, 'cancel_task'):
+                self.hierarchical_plan_manager.cancel_task(task_id)
 
     def _create_new_task(self):
         """Create a new task from the input field."""
@@ -1053,7 +1117,7 @@ class AtlasApp(ctk.CTk):
 
         #Update status panel
         if hasattr(self, "status_panel"):
-            self.status_panel.update_status("Starting", "Checking security", 10)
+            self.status_panel.update_status("Starting", "Creating hierarchical plan", 10)
             self.status_panel.add_log_entry(f"Starting goal execution: {goal_input[:50]}...", "INFO", "MasterAgent")
 
         security_event = {
@@ -1071,53 +1135,112 @@ class AtlasApp(ctk.CTk):
 
             #Update status panel
             if hasattr(self, "status_panel"):
-                self.status_panel.update_status("Running", "Executing goal", 20)
+                self.status_panel.update_status("Planning", "Creating hierarchical plan", 20)
                 self.status_panel.add_log_entry("Security approval granted", "SUCCESS", "SecurityAgent")
 
-            self.run_button.configure(text="Running...", state="disabled")
-            self.progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
-            self.progress_bar.start()
+            if self.run_button:
+                self.run_button.configure(text="Planning...", state="disabled")
+            if self.progress_bar:
+                self.progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
+                self.progress_bar.start()
 
             #Add goal to history as "In Progress"
             self.goal_history_manager.add_goal(goal_input, "In Progress")
 
-            if options["goal_list"]:
-                goals = [g.strip() for g in goal_input.split("\n") if g.strip()]
-                # Convert goals list to a single string since run expects a string
-                goal_string = "\n".join(goals)
-                self.master_agent.run_with_isolation(
-                    goal=goal_string,
-                    master_prompt=prompt,
-                    options=options
-                )
-            else:
-                self.master_agent.run_with_isolation(
-                    goal=goal_input,
-                    master_prompt=prompt,
-                    options=options
-                )
-
-            self._check_agent_status()
+            # Create hierarchical plan in a background thread
+            import threading
+            def plan_thread():
+                try:
+                    context = {"prompt": prompt, "options": options}
+                    plan = self.hierarchical_plan_manager.create_hierarchical_plan(goal_input, context)
+                    def update_ui():
+                        # Update status panel
+                        if hasattr(self, "status_panel"):
+                            self.status_panel.update_status("Ready", "Plan created successfully", 50)
+                            if plan:
+                                self.status_panel.add_log_entry(f"Hierarchical plan created with {plan.get('total_tasks', 0)} tasks", "SUCCESS", "PlanManager")
+                            else:
+                                self.status_panel.add_log_entry("Plan creation failed", "ERROR", "PlanManager")
+                        # Update the hierarchical task view with the new plan
+                        if hasattr(self, "hierarchical_task_view") and plan:
+                            all_tasks = []
+                            for task_id, task in self.hierarchical_plan_manager.tasks.items():
+                                task_data = {
+                                    "id": task.id,
+                                    "title": task.title,
+                                    "description": task.description,
+                                    "level": task.level.value,
+                                    "status": task.status.value,
+                                    "progress": task.progress,
+                                    "parent_id": task.parent_id,
+                                    "children": task.children,
+                                    "tools": task.tools,
+                                    "plugins": task.plugins,
+                                    "metadata": task.metadata,
+                                    "created_at": task.created_at,
+                                    "started_at": task.started_at,
+                                    "completed_at": task.completed_at,
+                                    "error_message": task.error_message
+                                }
+                                all_tasks.append(task_data)
+                            plan_data = {
+                                "goal": goal_input,
+                                "root_task_id": plan.get("root_task_id") if plan else None,
+                                "total_tasks": plan.get("total_tasks", 0) if plan else 0,
+                                "tasks": all_tasks
+                            }
+                            self.hierarchical_task_view.update_plan(plan_data)
+                        # Execute the plan
+                        if hasattr(self, "status_panel"):
+                            self.status_panel.update_status("Executing", "Running hierarchical plan", 60)
+                            self.status_panel.add_log_entry("Starting plan execution", "INFO", "PlanManager")
+                        def execute_plan_thread():
+                            try:
+                                success = self.hierarchical_plan_manager.execute_plan()
+                                if success:
+                                    self.after(0, lambda: self.chat_history_view.add_message("system", "✅ Hierarchical plan executed successfully!"))
+                                else:
+                                    self.after(0, lambda: self.chat_history_view.add_message("system", "⚠️ Plan execution completed with some issues."))
+                            except Exception as e:
+                                self.after(0, lambda: self.chat_history_view.add_message("system", f"❌ Plan execution failed: {str(e)}"))
+                            finally:
+                                self.after(0, self._on_agent_complete)
+                        threading.Thread(target=execute_plan_thread, daemon=True).start()
+                        self.logger.info("Plan created successfully. Switch to 'Hierarchical Tasks' tab to manage execution.")
+                    self.after(0, update_ui)
+                except Exception as e:
+                    def fail_ui():
+                        self.logger.error(f"Failed to create hierarchical plan: {e}")
+                        self.chat_history_view.add_message("system", f"Failed to create plan: {str(e)}")
+                        if self.run_button:
+                            self.run_button.configure(text="Run", state="normal")
+                        if self.progress_bar:
+                            self.progress_bar.stop()
+                            self.progress_bar.grid_forget()
+                    self.after(0, fail_ui)
+            threading.Thread(target=plan_thread, daemon=True).start()
         else:
             reason = response.get("reason", "No reason provided.")
             self.logger.warning(f"Execution blocked by Security Agent. Reason: {reason}")
             self.chat_history_view.add_message("system", f"Execution blocked by Security Agent: {reason}")
-
-            #Update status panel
             if hasattr(self, "status_panel"):
                 self.status_panel.update_status("Blocked", "Security denied execution", 0)
                 self.status_panel.add_log_entry(f"Execution blocked: {reason}", "ERROR", "SecurityAgent")
-
-            #Add to goal history as "Cancelled"
             self.goal_history_manager.add_goal(goal_input, "Cancelled", error_message=reason)
 
     def _on_pause(self):
         self.logger.info("Pause clicked")
-        self.master_agent.pause()
+        if hasattr(self.master_agent, 'pause'):
+            self.master_agent.pause()
+        else:
+            self.logger.info("Pause requested but method not available")
 
     def _on_stop(self):
         self.logger.info("Stop clicked")
-        self.master_agent.stop()
+        if hasattr(self.master_agent, 'stop'):
+            self.master_agent.stop()
+        else:
+            self.logger.info("Stop requested but method not available")
 
         #Update status panel
         if hasattr(self, "status_panel"):
@@ -1130,7 +1253,7 @@ class AtlasApp(ctk.CTk):
 
     def _check_agent_status(self):
         """Periodically check if the agent thread is alive and update UI."""
-        if self.master_agent.is_running:
+        if hasattr(self.master_agent, 'is_running') and self.master_agent.is_running:
             self.after(100, self._check_agent_status)
         else:
             self._on_agent_complete()
@@ -1138,9 +1261,11 @@ class AtlasApp(ctk.CTk):
     def _on_agent_complete(self):
         """Reset the UI after the agent has finished its task."""
         self.logger.info("Agent task finished. Resetting UI.")
-        self.run_button.configure(text="Run", state="normal")
-        self.progress_bar.stop()
-        self.progress_bar.grid_forget()
+        if self.run_button:
+            self.run_button.configure(text="Run", state="normal")
+        if self.progress_bar:
+            self.progress_bar.stop()
+            self.progress_bar.grid_forget()
         self.feedback_frame.grid()
         self.good_button.configure(state="normal")
         self.bad_button.configure(state="normal")
@@ -1153,7 +1278,10 @@ class AtlasApp(ctk.CTk):
         """Handles user feedback submission."""
         self.logger.info(f"User feedback received: {'Positive' if positive else 'Negative'}")
         if self.last_goal:
-            self.master_agent.record_feedback(f"Goal: {self.last_goal}, Feedback: {'Positive' if positive else 'Negative'}")
+            if hasattr(self.master_agent, 'record_feedback'):
+                self.master_agent.record_feedback(f"Goal: {self.last_goal}, Feedback: {'Positive' if positive else 'Negative'}")
+            else:
+                self.logger.info(f"Feedback recorded for goal: {self.last_goal}")
             self.chat_history_view.add_message("system", "Feedback recorded. Thank you!")
             self.good_button.configure(state="disabled")
             self.bad_button.configure(state="disabled")
@@ -1246,7 +1374,7 @@ class AtlasApp(ctk.CTk):
                     "fallback_chain": agent_card["fallback_chain"],
                 }
 
-            #API keys
+            #API keys - get from UI variables
             api_keys_config = {
                 "openai": self.openai_api_key_var.get(),
                 "gemini": self.gemini_api_key_var.get(),
@@ -1255,8 +1383,23 @@ class AtlasApp(ctk.CTk):
                 "mistral": self.mistral_api_key_var.get(),
             }
 
+            #Get current provider and model from enhanced settings UI if available, otherwise from LLM manager
+            current_provider = "gemini"
+            current_model = "gemini-1.5-flash"
+            
+            if hasattr(self, "enhanced_settings") and self.enhanced_settings:
+                # Get from enhanced settings UI
+                current_provider = self.enhanced_settings.settings_vars.get("current_provider", tk.StringVar(value="gemini")).get()
+                current_model = self.enhanced_settings.settings_vars.get("current_model", tk.StringVar(value="gemini-1.5-flash")).get()
+            elif hasattr(self.master_agent, 'llm_manager'):
+                # Fallback to LLM manager
+                current_provider = self.master_agent.llm_manager.current_provider
+                current_model = self.master_agent.llm_manager.current_model
+
             #Combine all settings
             all_settings = {
+                "current_provider": current_provider,
+                "current_model": current_model,
                 "api_keys": api_keys_config,
                 "plugins_enabled": enabled_plugins,
                 "security": security_config,
@@ -1268,7 +1411,12 @@ class AtlasApp(ctk.CTk):
 
             #Apply relevant settings immediately
             self._update_plugins_from_settings(enabled_plugins)
-            self.master_agent.llm_manager.update_settings()
+            
+            # Update LLM manager with new settings
+            if hasattr(self.master_agent, 'llm_manager'):
+                self.master_agent.llm_manager.current_provider = current_provider
+                self.master_agent.llm_manager.current_model = current_model
+                self.master_agent.llm_manager.update_settings()
 
             #Update chat translation manager with current LLM manager
             if hasattr(self, "chat_translation_manager"):
@@ -1285,7 +1433,7 @@ class AtlasApp(ctk.CTk):
                 "details": {"channels": notifications},
             })
 
-            self.chat_history_view.add_message("system", "All settings saved and applied successfully.")
+            self.chat_history_view.add_message("system", f"All settings saved and applied successfully. Current provider: {current_provider}, model: {current_model}")
         except Exception as e:
             self.logger.error(f"Failed to save settings: {e}", exc_info=True)
             self.chat_history_view.add_message("system", "Error: Failed to save settings. Check logs.")
@@ -1313,6 +1461,30 @@ class AtlasApp(ctk.CTk):
         self.anthropic_api_key_var.set(settings.get("api_keys", {}).get("anthropic", ""))
         self.groq_api_key_var.set(settings.get("api_keys", {}).get("groq", ""))
         self.mistral_api_key_var.set(settings.get("api_keys", {}).get("mistral", ""))
+
+        #Apply current provider and model settings
+        current_provider = settings.get("current_provider", "gemini")
+        current_model = settings.get("current_model", "gemini-1.5-flash")
+        
+        #Update enhanced settings UI if available
+        if hasattr(self, "enhanced_settings") and self.enhanced_settings:
+            if "current_provider" in self.enhanced_settings.settings_vars:
+                self.enhanced_settings.settings_vars["current_provider"].set(current_provider)
+            if "current_model" in self.enhanced_settings.settings_vars:
+                self.enhanced_settings.settings_vars["current_model"].set(current_model)
+        
+        #Update LLM manager with saved settings
+        if hasattr(self, "master_agent") and hasattr(self.master_agent, "llm_manager"):
+            # Update the LLM manager's current provider and model
+            self.master_agent.llm_manager.current_provider = current_provider
+            self.master_agent.llm_manager.current_model = current_model
+            
+            # Call update_settings to re-initialize clients
+            success = self.master_agent.llm_manager.update_settings()
+            if success:
+                self.logger.info(f"Applied saved LLM settings: provider={current_provider}, model={current_model}")
+            else:
+                self.logger.warning("Failed to update LLM manager settings")
 
         #Apply plugin settings
         enabled_plugins = settings.get("plugins_enabled", {})
@@ -1348,14 +1520,13 @@ class AtlasApp(ctk.CTk):
             self._update_model_menu(agent_card["provider_menu"].get(), agent_card["model_menu"])
             agent_card["model_menu"].set(card_config.get("model", ""))
             agent_card["fallback_chain"] = card_config.get("fallback_chain", [])
-        self.master_agent.llm_manager.update_settings()
-
+        
         #Update chat translation manager with current LLM manager
         if hasattr(self, "chat_translation_manager"):
             self.chat_translation_manager.set_llm_manager(self.master_agent.llm_manager)
 
-        self.logger.info("All settings loaded and applied.")
-        self.chat_history_view.add_message("system", "Settings loaded successfully.")
+        self.logger.info(f"All settings loaded and applied. Current provider: {current_provider}, model: {current_model}")
+        self.chat_history_view.add_message("system", f"Settings loaded successfully. Current provider: {current_provider}, model: {current_model}")
 
 
 
@@ -1392,27 +1563,32 @@ class AtlasApp(ctk.CTk):
         self._save_app_state()
         self._save_settings()
 
-        self.master_agent.stop()
-        self.deputy_agent.stop()
-        self.security_agent.stop()
+        if hasattr(self.master_agent, 'stop'):
+            self.master_agent.stop()
+        if hasattr(self.deputy_agent, 'stop'):
+            self.deputy_agent.stop()
+        if hasattr(self.security_agent, 'stop'):
+            self.security_agent.stop()
 
-        if self.master_agent.thread and self.master_agent.thread.is_alive():
+        # Check if threads exist and are alive before joining
+        if hasattr(self.master_agent, 'thread') and self.master_agent.thread and self.master_agent.thread.is_alive():
             self.master_agent.thread.join(timeout=2)
-        if self.deputy_agent.thread and self.deputy_agent.thread.is_alive():
+        if hasattr(self.deputy_agent, 'thread') and self.deputy_agent.thread and self.deputy_agent.thread.is_alive():
             self.deputy_agent.thread.join(timeout=2)
-        if self.security_agent.monitoring_thread and self.security_agent.monitoring_thread.is_alive():
+        if hasattr(self.security_agent, 'monitoring_thread') and self.security_agent.monitoring_thread and self.security_agent.monitoring_thread.is_alive():
             self.security_agent.monitoring_thread.join(timeout=2)
 
         self.destroy()
 
     def _setup_gui_logging(self):
         """Configure the logger to output to the GUI textbox."""
-        gui_handler = GuiLogger(self.log_textbox)
-        gui_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S"),
-        )
-        add_handler(gui_handler)
-        self.logger.info("GUI logging configured.")
+        if self.log_textbox:
+            gui_handler = GuiLogger(self.log_textbox)
+            gui_handler.setFormatter(
+                logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", "%H:%M:%S"),
+            )
+            add_handler(gui_handler)
+            self.logger.info("GUI logging configured.")
 
     def _create_agent_list(self, tab):
         """Create and populate the list of specialized agents."""
@@ -1481,7 +1657,10 @@ class AtlasApp(ctk.CTk):
         #--- Chart 1: Tool Loading Time ---
         self.ax1.clear()
         if tool_load_times:
-            self.ax1.bar(tool_load_times.keys(), tool_load_times.values(), color="skyblue")
+            # Convert dict_keys and dict_values to lists for matplotlib
+            tool_names = list(tool_load_times.keys())
+            load_times = list(tool_load_times.values())
+            self.ax1.bar(tool_names, load_times, color="skyblue")
         self.ax1.set_title("Tool Loading Time (s)")
         self.ax1.set_ylabel("Seconds")
         self.ax1.tick_params(axis="x", rotation=45)
@@ -1583,7 +1762,6 @@ class AtlasApp(ctk.CTk):
         #Save/Load Buttons
         button_frame = ctk.CTkFrame(bottom_frame)
         button_frame.grid(row=0, column=1, sticky="e")
-        ctk.CTkButton(button_frame, text="Save Settings", command=self._save_settings).pack(side="left", padx=5)
         ctk.CTkButton(button_frame, text="Load Settings", command=self._load_settings).pack(side="left", padx=5)
 
     def _create_status_tab(self, tab):
@@ -1616,34 +1794,47 @@ class AtlasApp(ctk.CTk):
     def _on_enhanced_settings_save(self, settings: Dict[str, Any]):
         """Handle saving of enhanced settings."""
         try:
-            #Apply theme change if needed
+            self.logger.info("Saving enhanced settings...")
+            
+            # Apply theme change if needed
             if "theme" in settings:
                 ctk.set_appearance_mode(settings["theme"])
 
-            #Update LLM manager settings
+            # Update LLM manager settings
             if hasattr(self, "llm_manager"):
-                #Update provider and model if specified
+                # Update provider and model if specified
                 current_provider = settings.get("current_provider")
                 current_model = settings.get("current_model")
 
                 if current_provider and current_model:
-                    # TODO: Implement set_provider_and_model method in LLMManager
-                    # self.llm_manager.set_provider_and_model(current_provider, current_model)
-                    self.logger.info(f"LLM provider setting request: {current_provider} with model {current_model}")
+                    self.llm_manager.current_provider = current_provider
+                    self.llm_manager.current_model = current_model
+                    self.logger.info(f"LLM provider setting updated: {current_provider} with model {current_model}")
 
-                #Refresh all LLM clients with new API keys
-                # TODO: Implement update_settings method in LLMManager
-                # self.llm_manager.update_settings()
+                # Update API keys
+                api_keys = settings.get("api_keys", {})
+                for provider, key in api_keys.items():
+                    if key:  # Only update if key is not empty
+                        if hasattr(self.llm_manager, f"{provider}_api_key"):
+                            setattr(self.llm_manager, f"{provider}_api_key", key)
+                            self.logger.info(f"Updated {provider} API key")
 
-                #Update master agent's LLM manager if needed
+                # Refresh all LLM clients with new settings
+                if hasattr(self.llm_manager, 'update_settings'):
+                    self.llm_manager.update_settings()
+
+                # Update master agent's LLM manager if needed
                 if hasattr(self, "master_agent") and hasattr(self.master_agent, "llm_manager"):
                     self.master_agent.llm_manager = self.llm_manager
+                    # Додаю оновлення LLMManager для чату одразу після збереження
+                    if hasattr(self.master_agent.llm_manager, 'update_settings'):
+                        self.master_agent.llm_manager.update_settings()
 
-                #Update chat translation manager with current LLM manager
+                # Update chat translation manager with current LLM manager
                 if hasattr(self, "chat_translation_manager"):
                     self.chat_translation_manager.set_llm_manager(self.llm_manager)
 
-            #Update security agent settings if needed
+            # Update security agent settings if needed
             security_settings = {
                 "file_access_threshold": settings.get("file_access_threshold"),
                 "system_cmd_threshold": settings.get("system_cmd_threshold"),
@@ -1658,23 +1849,83 @@ class AtlasApp(ctk.CTk):
                 }
                 try:
                     self.security_agent_conn.send(security_message)
+                    self.logger.info("Security agent settings updated")
                 except Exception as e:
                     self.logger.warning(f"Could not update security agent settings: {e}")
 
-            #Update plugin states
-            plugin_states = settings.get("plugin_enabled_states", {})
-            for plugin_id, enabled in plugin_states.items():
+            # Update plugin states
+            plugin_states = settings.get("plugins_enabled", {})
+            if plugin_states:
+                # Update the plugin enabled variables in main app
+                for plugin_id, enabled in plugin_states.items():
+                    if plugin_id in self.plugin_enabled_vars:
+                        self.plugin_enabled_vars[plugin_id].set(enabled)
+                
+                # Update plugins in plugin manager
+                for plugin_id, enabled in plugin_states.items():
+                    try:
+                        if enabled:
+                            self.plugin_manager.enable_plugin(plugin_id)
+                        else:
+                            self.plugin_manager.disable_plugin(plugin_id)
+                        self.logger.info(f"Plugin {plugin_id}: {'enabled' if enabled else 'disabled'}")
+                    except Exception as e:
+                        self.logger.warning(f"Could not update plugin {plugin_id}: {e}")
+
+            # Update performance settings
+            if "max_concurrent_ops" in settings:
+                # Update task manager if available
+                if hasattr(self, "task_manager"):
+                    try:
+                        self.task_manager.max_concurrent_tasks = int(settings["max_concurrent_ops"])
+                        self.logger.info(f"Updated max concurrent operations: {settings['max_concurrent_ops']}")
+                    except Exception as e:
+                        self.logger.warning(f"Could not update task manager: {e}")
+
+            # Update memory settings
+            if "memory_limit" in settings:
+                # Update memory manager if available
+                if hasattr(self, "memory_manager"):
+                    try:
+                        # Convert MB to bytes
+                        memory_limit_bytes = int(settings["memory_limit"]) * 1024 * 1024
+                        if hasattr(self.memory_manager, 'set_memory_limit'):
+                            self.memory_manager.set_memory_limit(memory_limit_bytes)
+                            self.logger.info(f"Updated memory limit: {settings['memory_limit']} MB")
+                    except Exception as e:
+                        self.logger.warning(f"Could not update memory manager: {e}")
+
+            # Update logging settings
+            if "log_level" in settings:
                 try:
-                    if enabled:
-                        self.plugin_manager.enable_plugin(plugin_id)
-                    else:
-                        self.plugin_manager.disable_plugin(plugin_id)
+                    import logging
+                    log_level = getattr(logging, settings["log_level"].upper(), logging.INFO)
+                    logging.getLogger().setLevel(log_level)
+                    self.logger.info(f"Updated log level: {settings['log_level']}")
                 except Exception as e:
-                    self.logger.warning(f"Could not update plugin {plugin_id}: {e}")
+                    self.logger.warning(f"Could not update log level: {e}")
+
+            # Save settings to main config
+            try:
+                # Update the loaded settings
+                self.loaded_settings.update(settings)
+                
+                # Save to config file
+                self.config_manager.save(self.loaded_settings)
+                self.logger.info("Enhanced settings saved to config file")
+                
+                # Update UI elements that depend on these settings
+                self._apply_settings_to_ui()
+                
+            except Exception as e:
+                self.logger.error(f"Could not save settings to config: {e}")
 
             self.logger.info("Enhanced settings applied successfully")
+            self.chat_history_view.add_message("system", "✅ Enhanced settings saved and applied successfully!")
+            
         except Exception as e:
             self.logger.error(f"Error applying enhanced settings: {e}")
+            self.chat_history_view.add_message("system", f"❌ Error applying settings: {e}")
 
     def _open_goal_history(self):
         """Open the goal history window."""
@@ -1696,7 +1947,10 @@ class AtlasApp(ctk.CTk):
             img.thumbnail((400, 250))
             tk_img = CTkImage(light_image=img, dark_image=img, size=img.size)
             self.preview_label.configure(image=tk_img, text="")
-            self.preview_label.image = tk_img  #keep reference
+            # Store reference to prevent garbage collection
+            if hasattr(self.preview_label, '_image_ref'):
+                del self.preview_label._image_ref
+            self.preview_label._image_ref = tk_img
         except Exception as exc:  #pragma: no cover
             self.preview_label.configure(text=f"Preview error: {exc}")
         #schedule next update
@@ -1913,6 +2167,9 @@ The current mode will be shown above. How can I help you today?"""
 
         #Check current provider availability
         llm_manager = self.master_agent.llm_manager
+        # Оновлюємо налаштування LLMManager з config перед перевіркою
+        if hasattr(llm_manager, 'update_settings'):
+            llm_manager.update_settings()
         current_provider = llm_manager.current_provider
         provider_available = llm_manager.is_provider_available(current_provider)
 
@@ -2017,7 +2274,7 @@ The current mode will be shown above. How can I help you today?"""
                     return
 
             #Show translation status if translation occurred
-            if translation_context.requires_response_translation:
+            if translation_context and translation_context.requires_response_translation:
                 lang_name = self.chat_translation_manager.get_supported_languages().get(
                     translation_context.user_language, translation_context.user_language,
                 )
@@ -2136,50 +2393,83 @@ The current mode will be shown above. How can I help you today?"""
                 self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
 
             elif context.mode == ChatMode.GOAL_SETTING and context.requires_system_integration:
-                #Handle as a goal - use full Atlas capabilities
-                goal_message = "🎯 I understand this as a goal. Let me work on it..."
+                #Handle as a goal - use hierarchical planning system
+                goal_message = "🎯 I understand this as a goal. Creating hierarchical execution plan..."
                 translated_goal_msg = self.chat_translation_manager.process_outgoing_response(goal_message)
                 self.after(0, lambda: self.chat_view.add_message("assistant", translated_goal_msg))
 
-                #Process as goal using MasterAgent
+                #Process as goal using Hierarchical Planning System
                 try:
-                    #Set the goal in the text box and execute
+                    #Set the goal in the text box
                     self.after(0, lambda: self.goal_text.delete(1.0, ctk.END))
                     self.after(0, lambda: self.goal_text.insert(1.0, processed_message))
 
-                    #Execute the goal
-                    def execute_goal():
-                        #Use the correct method to run goals
+                    #Create hierarchical plan and execute
+                    def execute_hierarchical_goal():
                         try:
-                            #Set up the goal execution using TaskAwareMasterAgent's method
-                            master_prompt = "Chat goal execution"
-                            options = {"cyclic": False}
+                            #Create hierarchical plan
+                            context = {"prompt": "Chat goal execution", "options": {"cyclic": False}}
+                            plan = self.hierarchical_plan_manager.create_hierarchical_plan(processed_message, context)
                             
-                            result = self.master_agent.run_with_isolation(
-                                goal=processed_message,
-                                master_prompt=master_prompt,
-                                options=options
-                            )
-
-                            #Check if goal was completed successfully
-                            if result and result.get("success", False):
-                                response = f"✅ Goal completed! I successfully executed: {processed_message}"
+                            if not plan:
+                                response = "❌ Failed to create execution plan"
+                                final_response = self.chat_translation_manager.process_outgoing_response(response)
+                                self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
+                                return
+                            
+                            #Update the hierarchical task view with the new plan
+                            if hasattr(self, "hierarchical_task_view"):
+                                # Get all tasks from the plan manager
+                                all_tasks = []
+                                for task_id, task in self.hierarchical_plan_manager.tasks.items():
+                                    task_data = {
+                                        "id": task.id,
+                                        "title": task.title,
+                                        "description": task.description,
+                                        "level": task.level.value,
+                                        "status": task.status.value,
+                                        "progress": task.progress,
+                                        "parent_id": task.parent_id,
+                                        "children": task.children,
+                                        "tools": task.tools,
+                                        "plugins": task.plugins,
+                                        "metadata": task.metadata,
+                                        "created_at": task.created_at,
+                                        "started_at": task.started_at,
+                                        "completed_at": task.completed_at,
+                                        "error_message": task.error_message
+                                    }
+                                    all_tasks.append(task_data)
+                                
+                                # Update the UI with the plan data
+                                plan_data = {
+                                    "goal": processed_message,
+                                    "root_task_id": plan.get("root_task_id"),
+                                    "total_tasks": plan.get("total_tasks", 0),
+                                    "tasks": all_tasks
+                                }
+                                self.hierarchical_task_view.update_plan(plan_data)
+                            
+                            #Execute the plan
+                            success = self.hierarchical_plan_manager.execute_plan()
+                            
+                            if success:
+                                response = "✅ Hierarchical plan executed successfully! Check the 'Hierarchical Tasks' tab for details."
                             else:
-                                error_msg = result.get("error", "Unknown error") if result else "No result returned"
-                                response = f"❌ Goal execution failed: {error_msg}"
+                                response = "⚠️ Plan execution completed with some issues. Check the 'Hierarchical Tasks' tab for details."
 
                         except Exception as e:
-                            response = f"❌ Error during goal execution: {e!s}"
+                            response = f"❌ Error during hierarchical goal execution: {e!s}"
 
                         #Translate response if needed
                         final_response = self.chat_translation_manager.process_outgoing_response(response)
                         self.after(0, lambda: self.chat_view.add_message("assistant", final_response))
 
-                    #Run goal execution in a separate thread
-                    threading.Thread(target=execute_goal, daemon=True).start()
+                    #Run hierarchical goal execution in a separate thread
+                    threading.Thread(target=execute_hierarchical_goal, daemon=True).start()
 
                 except Exception as e:
-                    self.after(0, lambda: self.chat_view.add_message("assistant", f"❌ Error setting up goal execution: {e!s}"))
+                    self.after(0, lambda: self.chat_view.add_message("assistant", f"❌ Error setting up hierarchical goal execution: {e!s}"))
 
             else:
                 #Handle with context-aware conversation
@@ -2826,6 +3116,32 @@ All operations will be logged for safety.""")
         active_button = mode_to_button.get(detected_mode)
         if active_button:
             active_button.configure(fg_color="blue")
+
+    def _update_model_menu(self, provider: str, model_menu):
+        """Update the model menu based on the selected provider."""
+        # This is a placeholder implementation
+        # In a real implementation, this would populate the model menu with available models for the provider
+        self.logger.info(f"Updating model menu for provider: {provider}")
+
+    def _handle_hierarchical_plan_status(self, message: Dict[str, Any]):
+        """Handle status updates from the hierarchical plan manager."""
+        msg_type = message.get("type")
+        
+        if msg_type == "chat_message":
+            # Add message to the main chat view (not chat history view)
+            if hasattr(self, "chat_view"):
+                self.chat_view.add_message(message["role"], message["content"])
+            elif hasattr(self, "chat_history_view"):
+                # Fallback to chat history view if main chat view not available
+                self.chat_history_view.add_message(message["role"], message["content"])
+        elif msg_type == "hierarchical_plan":
+            # Update the hierarchical task view
+            if hasattr(self, "hierarchical_task_view"):
+                self.hierarchical_task_view.update_plan(message["data"])
+        elif msg_type == "task_update":
+            # Update specific task in the view
+            if hasattr(self, "hierarchical_task_view"):
+                self.hierarchical_task_view.update_task(message["data"])
 
 
 def main():

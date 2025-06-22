@@ -37,11 +37,62 @@ class ContextMenu:
             if platform.system() == "Darwin":
                 inner_widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
 
+            # Add keyboard shortcuts
+            self._add_keyboard_shortcuts(inner_widget, widget)
+
         elif isinstance(widget, (tk.Text, tk.Entry)):
             #Direct tkinter widgets
             widget.bind("<Button-3>", lambda e: self._show_menu(e, widget))
             if platform.system() == "Darwin":
                 widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
+
+            # Add keyboard shortcuts
+            self._add_keyboard_shortcuts(widget, widget)
+
+    def _add_keyboard_shortcuts(self, inner_widget, outer_widget):
+        """Add standard keyboard shortcuts for text operations."""
+        # Ctrl+C - Copy
+        inner_widget.bind("<Control-c>", lambda e: self._copy_shortcut(outer_widget))
+        # Ctrl+V - Paste
+        inner_widget.bind("<Control-v>", lambda e: self._paste_shortcut(outer_widget))
+        # Ctrl+X - Cut
+        inner_widget.bind("<Control-x>", lambda e: self._cut_shortcut(outer_widget))
+        # Ctrl+A - Select All
+        inner_widget.bind("<Control-a>", lambda e: self._select_all_shortcut(outer_widget))
+        # Ctrl+Z - Undo (if supported)
+        inner_widget.bind("<Control-z>", lambda e: self._undo_shortcut(outer_widget))
+
+    def _copy_shortcut(self, widget):
+        """Handle Ctrl+C shortcut."""
+        self._copy()
+        return "break"  # Prevent default behavior
+
+    def _paste_shortcut(self, widget):
+        """Handle Ctrl+V shortcut."""
+        self._paste()
+        return "break"  # Prevent default behavior
+
+    def _cut_shortcut(self, widget):
+        """Handle Ctrl+X shortcut."""
+        self._cut()
+        return "break"  # Prevent default behavior
+
+    def _select_all_shortcut(self, widget):
+        """Handle Ctrl+A shortcut."""
+        self._select_all()
+        return "break"  # Prevent default behavior
+
+    def _undo_shortcut(self, widget):
+        """Handle Ctrl+Z shortcut."""
+        try:
+            if isinstance(widget, ctk.CTkTextbox):
+                widget._textbox.edit_undo()
+            elif isinstance(widget, ctk.CTkEntry):
+                # Entry doesn't support undo by default
+                pass
+        except tk.TclError:
+            pass
+        return "break"  # Prevent default behavior
 
     def _show_menu(self, event, widget):
         """Show the context menu."""
@@ -50,11 +101,12 @@ class ContextMenu:
         #Create menu if it doesn't exist
         if self.menu is None:
             self.menu = tk.Menu(widget, tearoff=0)
-            self.menu.add_command(label="Вирізати", command=self._cut)
-            self.menu.add_command(label="Копіювати", command=self._copy)
-            self.menu.add_command(label="Вставити", command=self._paste)
+            self.menu.add_command(label="Вирізати (Ctrl+X)", command=self._cut)
+            self.menu.add_command(label="Копіювати (Ctrl+C)", command=self._copy)
+            self.menu.add_command(label="Вставити (Ctrl+V)", command=self._paste)
             self.menu.add_separator()
-            self.menu.add_command(label="Виділити все", command=self._select_all)
+            self.menu.add_command(label="Виділити все (Ctrl+A)", command=self._select_all)
+            self.menu.add_command(label="Скасувати (Ctrl+Z)", command=self._undo_shortcut)
 
         #Update menu state based on widget content and selection
         self._update_menu_state()
@@ -96,10 +148,11 @@ class ContextMenu:
             self.menu.entryconfig(1, state="normal" if has_selection else "disabled")  #Copy
             self.menu.entryconfig(2, state="normal")  #Paste (always enabled)
             self.menu.entryconfig(4, state="normal" if has_content else "disabled")  #Select All
+            self.menu.entryconfig(5, state="normal")  #Undo (always enabled)
 
         except (AttributeError, tk.TclError):
             #Fallback: enable all items
-            for i in [0, 1, 2, 4]:
+            for i in [0, 1, 2, 4, 5]:
                 self.menu.entryconfig(i, state="normal")
 
     def _cut(self):
@@ -210,6 +263,51 @@ class TextFormattingContextMenu:
             if platform.system() == "Darwin":
                 inner_widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
 
+            # Add keyboard shortcuts
+            self._add_keyboard_shortcuts(inner_widget, widget)
+
+    def _add_keyboard_shortcuts(self, inner_widget, outer_widget):
+        """Add standard keyboard shortcuts for text operations."""
+        # Ctrl+C - Copy
+        inner_widget.bind("<Control-c>", lambda e: self._copy_shortcut(outer_widget))
+        # Ctrl+V - Paste
+        inner_widget.bind("<Control-v>", lambda e: self._paste_shortcut(outer_widget))
+        # Ctrl+X - Cut
+        inner_widget.bind("<Control-x>", lambda e: self._cut_shortcut(outer_widget))
+        # Ctrl+A - Select All
+        inner_widget.bind("<Control-a>", lambda e: self._select_all_shortcut(outer_widget))
+        # Ctrl+Z - Undo
+        inner_widget.bind("<Control-z>", lambda e: self._undo_shortcut(outer_widget))
+
+    def _copy_shortcut(self, widget):
+        """Handle Ctrl+C shortcut."""
+        self._copy()
+        return "break"
+
+    def _paste_shortcut(self, widget):
+        """Handle Ctrl+V shortcut."""
+        self._paste()
+        return "break"
+
+    def _cut_shortcut(self, widget):
+        """Handle Ctrl+X shortcut."""
+        self._cut()
+        return "break"
+
+    def _select_all_shortcut(self, widget):
+        """Handle Ctrl+A shortcut."""
+        self._select_all()
+        return "break"
+
+    def _undo_shortcut(self, widget):
+        """Handle Ctrl+Z shortcut."""
+        try:
+            if isinstance(widget, ctk.CTkTextbox):
+                widget._textbox.edit_undo()
+        except tk.TclError:
+            pass
+        return "break"
+
     def _show_menu(self, event, widget):
         """Show the formatting context menu."""
         self.current_widget = widget
@@ -218,9 +316,9 @@ class TextFormattingContextMenu:
         if self.menu is None:
             self.menu = tk.Menu(widget, tearoff=0)
             #Standard edit actions
-            self.menu.add_command(label="Вирізати", command=self._cut)
-            self.menu.add_command(label="Копіювати", command=self._copy)
-            self.menu.add_command(label="Вставити", command=self._paste)
+            self.menu.add_command(label="Вирізати (Ctrl+X)", command=self._cut)
+            self.menu.add_command(label="Копіювати (Ctrl+C)", command=self._copy)
+            self.menu.add_command(label="Вставити (Ctrl+V)", command=self._paste)
             self.menu.add_separator()
 
             #Text formatting submenu
@@ -236,7 +334,8 @@ class TextFormattingContextMenu:
             format_menu.add_command(label="Посилання", command=self._format_link)
 
             self.menu.add_cascade(label="Форматування", menu=format_menu)
-            self.menu.add_command(label="Виділити все", command=self._select_all)
+            self.menu.add_command(label="Виділити все (Ctrl+A)", command=self._select_all)
+            self.menu.add_command(label="Скасувати (Ctrl+Z)", command=self._undo_shortcut)
 
         #Update menu state based on widget content and selection
         self._update_menu_state()
@@ -274,10 +373,11 @@ class TextFormattingContextMenu:
             self.menu.entryconfig(2, state="normal")  #Paste (always enabled)
             self.menu.entryconfig(4, state="normal" if has_selection else "disabled")  #Format submenu
             self.menu.entryconfig(5, state="normal" if has_content else "disabled")  #Select All
+            self.menu.entryconfig(6, state="normal")  #Undo
 
         except (AttributeError, tk.TclError):
             #Fallback: enable all items
-            for i in [0, 1, 2, 4, 5]:
+            for i in [0, 1, 2, 4, 5, 6]:
                 self.menu.entryconfig(i, state="normal")
 
     def _cut(self):

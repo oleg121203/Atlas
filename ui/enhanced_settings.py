@@ -22,13 +22,16 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.config_manager = config_manager
         self.plugin_manager = plugin_manager
         self.save_callback = save_callback
-
-        #Settings variables
         self.settings_vars = {}
-        self.plugin_vars = {}
-
+        self.plugin_enabled_vars = {}
+        
+        # Store widgets that should be read-only
+        self.readonly_widgets = []
+        self.edit_mode = False  # Track edit mode
+        
         self.setup_ui()
         self.load_settings()
+        self.setup_readonly_fields()
 
     def setup_ui(self):
         """Setup the enhanced settings UI."""
@@ -245,7 +248,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         current_frame.pack(fill="x", padx=10, pady=5)
 
         ctk.CTkLabel(current_frame, text="Current Provider:").pack(side="left", padx=10, pady=5)
-        self.settings_vars["current_provider"] = tk.StringVar(value="openai")
+        self.settings_vars["current_provider"] = tk.StringVar(value="groq")
         provider_combo = ctk.CTkComboBox(
             current_frame,
             variable=self.settings_vars["current_provider"],
@@ -255,11 +258,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
         provider_combo.pack(side="left", padx=10, pady=5)
 
         ctk.CTkLabel(current_frame, text="Model:").pack(side="left", padx=(20, 10), pady=5)
-        self.settings_vars["current_model"] = tk.StringVar(value="gpt-3.5-turbo")
+        self.settings_vars["current_model"] = tk.StringVar(value="llama3-8b-8192")
         self.model_combo = ctk.CTkComboBox(
             current_frame,
             variable=self.settings_vars["current_model"],
-            values=["gpt-3.5-turbo", "gpt-4"],
+            values=["llama3-8b-8192", "llama3-70b-8192", "mixtral-8x7b-32768", "gemma-7b-it"],
         )
         self.model_combo.pack(side="left", padx=10, pady=5)
 
@@ -383,7 +386,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
         self.ollama_status_label.pack(side="left", padx=20, pady=5)
 
         #Update model list based on initial provider
-        self.on_provider_change("openai")
+        self.on_provider_change("groq")
 
     def on_provider_change(self, provider: str):
         """Update available models when provider changes."""
@@ -411,26 +414,82 @@ class EnhancedSettingsView(ctk.CTkFrame):
         try:
             from agents.token_tracker import TokenTracker
             from utils.llm_manager import LLMManager
+            from utils.config_manager import ConfigManager
+            import requests
 
             #Create temporary LLM manager for testing
             token_tracker = TokenTracker()
-            llm_manager = LLMManager(token_tracker)
+            config_manager = ConfigManager()
+            llm_manager = LLMManager(token_tracker, config_manager)
 
-            #Set the provider and model from current settings
+            #Get current settings
             provider = self.settings_vars["current_provider"].get()
             model = self.settings_vars["current_model"].get()
-            llm_manager.set_provider_and_model(provider, model)
+
+            #Ollama: не потрібен API ключ, просто перевіряємо локальний сервер
+            if provider == "ollama":
+                def check_ollama():
+                    try:
+                        response = requests.get("http://localhost:11434/api/version", timeout=5)
+                        if response.status_code == 200:
+                            self.after(0, lambda: self.connection_status_label.configure(
+                                text="Status: ✅ Ollama server is running", text_color="green",
+                            ))
+                        else:
+                            self.after(0, lambda: self.connection_status_label.configure(
+                                text="Status: ❌ Ollama server not responding", text_color="red",
+                            ))
+                    except Exception as e:
+                        self.after(0, lambda: self.connection_status_label.configure(
+                            text=f"Status: ❌ Ollama error: {str(e)[:50]}", text_color="red",
+                        ))
+                    finally:
+                        self.after(0, lambda: self.test_connection_btn.configure(state="normal"))
+                import threading
+                threading.Thread(target=check_ollama, daemon=True).start()
+                return
+
+            #Get API key for the current provider
+            api_key = ""
+            if provider == "groq":
+                api_key = self.settings_vars["groq_api_key"].get()
+            elif provider == "openai":
+                api_key = self.settings_vars["openai_api_key"].get()
+            elif provider == "gemini":
+                api_key = self.settings_vars["gemini_api_key"].get()
+            elif provider == "mistral":
+                api_key = self.settings_vars["mistral_api_key"].get()
+            
+            #Check if API key is provided (тільки для не-ollama)
+            if not api_key:
+                self.connection_status_label.configure(
+                    text=f"Status: ❌ No API key for {provider}", text_color="red"
+                )
+                self.test_connection_btn.configure(state="normal")
+                return
+
+            #Set the provider and model in config manager
+            config_manager.set_llm_provider_and_model(provider, model)
+            
+            #Set API key for the provider in config manager
+            config_manager.set_llm_api_key(provider, api_key)
 
             #Test with a simple message
-            test_messages = [{"role": "user", "content": "Hello, this is a connection test."}]
+            test_messages = [{"role": "user", "content": "Hello, this is a connection test. Please respond with 'OK' if you can see this message."}]
 
             #Run test in a separate thread to avoid blocking UI
             import threading
 
             def run_test():
                 try:
-                    result = llm_manager.chat(test_messages, provider=provider, model=model)
-                    if result and result.response_text:
+                    #Update settings before testing
+                    llm_manager.update_settings()
+                    
+                    #Test the connection
+                    result = llm_manager.chat(test_messages)
+                    
+                    if result and hasattr(result, 'response_text') and result.response_text:
+                        response_preview = result.response_text[:50] + "..." if len(result.response_text) > 50 else result.response_text
                         self.after(0, lambda: self.connection_status_label.configure(
                             text=f"Status: ✅ Connected to {provider} ({model})", text_color="green",
                         ))
@@ -462,12 +521,6 @@ class EnhancedSettingsView(ctk.CTkFrame):
 
         def check_models():
             try:
-                from agents.token_tracker import TokenTracker
-                from utils.llm_manager import LLMManager
-
-                token_tracker = TokenTracker()
-                llm_manager = LLMManager(token_tracker)
-
                 #Check if Ollama is running
                 import requests
                 try:
@@ -483,26 +536,33 @@ class EnhancedSettingsView(ctk.CTkFrame):
                     ))
                     return
 
-                #Check available models
-                models_status = llm_manager.check_ollama_models()
-                if models_status:
-                    installed = [model for model, available in models_status.items() if available]
-                    missing = [model for model, available in models_status.items() if not available]
-
-                    if installed:
-                        status_text = f"Ollama: ✅ {len(installed)} models available"
-                        if missing:
-                            status_text += f", {len(missing)} missing"
-                        self.after(0, lambda: self.ollama_status_label.configure(
-                            text=status_text, text_color="green",
-                        ))
+                #Check available models using Ollama API
+                try:
+                    models_response = requests.get("http://localhost:11434/api/tags", timeout=5)
+                    if models_response.status_code == 200:
+                        models_data = models_response.json()
+                        if "models" in models_data:
+                            installed_models = [model["name"] for model in models_data["models"]]
+                            if installed_models:
+                                status_text = f"Ollama: ✅ {len(installed_models)} models available"
+                                self.after(0, lambda: self.ollama_status_label.configure(
+                                    text=status_text, text_color="green",
+                                ))
+                            else:
+                                self.after(0, lambda: self.ollama_status_label.configure(
+                                    text="Ollama: ❌ No models installed", text_color="orange",
+                                ))
+                        else:
+                            self.after(0, lambda: self.ollama_status_label.configure(
+                                text="Ollama: Running but no models", text_color="orange",
+                            ))
                     else:
                         self.after(0, lambda: self.ollama_status_label.configure(
-                            text="Ollama: ❌ No models installed", text_color="orange",
+                            text="Ollama: API error", text_color="red",
                         ))
-                else:
+                except Exception as e:
                     self.after(0, lambda: self.ollama_status_label.configure(
-                        text="Ollama: Running but no models", text_color="orange",
+                        text=f"Ollama: Error - {str(e)[:30]}...", text_color="red",
                     ))
 
             except Exception as e:
@@ -720,26 +780,88 @@ class EnhancedSettingsView(ctk.CTkFrame):
 
     def setup_control_buttons(self):
         """Setup save/cancel buttons."""
+        #Control buttons frame
         button_frame = ctk.CTkFrame(self)
-        button_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
+        button_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
-        ctk.CTkButton(
+        #Save button (повертаю)
+        save_btn = ctk.CTkButton(
             button_frame,
             text="Save Settings",
-            command=self.save_settings,
-            width=120,
-            height=35,
-            fg_color="green",
-            hover_color="darkgreen",
-        ).pack(side="right", padx=5, pady=5)
+            fg_color="#4CAF50",
+            hover_color="#45a049",
+            command=self._on_save_button
+        )
+        save_btn.pack(side="left", padx=5, pady=5)
 
-        ctk.CTkButton(
+        #Reload button
+        reload_btn = ctk.CTkButton(
             button_frame,
             text="Reload Settings",
             command=self.load_settings,
-            width=120,
-            height=35,
-        ).pack(side="right", padx=5, pady=5)
+            fg_color="#2196F3",
+            hover_color="#1976D2"
+        )
+        reload_btn.pack(side="left", padx=5, pady=5)
+
+        #Reset button
+        reset_btn = ctk.CTkButton(
+            button_frame,
+            text="Reset to Defaults",
+            command=self.reset_to_defaults,
+            fg_color="#FF9800",
+            hover_color="#F57C00"
+        )
+        reset_btn.pack(side="left", padx=5, pady=5)
+
+        #Export/Import buttons
+        export_btn = ctk.CTkButton(
+            button_frame,
+            text="Export Settings",
+            command=self.export_settings,
+        )
+        export_btn.pack(side="right", padx=5, pady=5)
+
+        import_btn = ctk.CTkButton(
+            button_frame,
+            text="Import Settings",
+            command=self.import_settings,
+        )
+        import_btn.pack(side="right", padx=5, pady=5)
+
+    def _on_save_button(self):
+        """Handle Save Settings button click: збирає всі налаштування і викликає save_callback."""
+        if self.save_callback:
+            # Зібрати всі налаштування з self.settings_vars
+            settings = {}
+            api_keys = {}
+            
+            for key, var in self.settings_vars.items():
+                if isinstance(var, tk.BooleanVar):
+                    value = var.get()
+                else:
+                    value = var.get()
+                
+                # Обробляємо API ключі окремо
+                if key in ["openai_api_key", "gemini_api_key", "groq_api_key", "mistral_api_key"]:
+                    # Витягуємо назву провайдера (частину перед "_api_key")
+                    provider = key.replace("_api_key", "")
+                    api_keys[provider] = value
+                else:
+                    settings[key] = value
+            
+            # Додаємо API ключі як вкладений словник
+            if api_keys:
+                settings["api_keys"] = api_keys
+            
+            # Додати плагіни
+            plugin_settings = {}
+            for plugin_id, var in self.plugin_enabled_vars.items():
+                plugin_settings[plugin_id] = var.get()
+            settings["plugins_enabled"] = plugin_settings
+            
+            # Викликати callback
+            self.save_callback(settings)
 
     def load_plugin_controls(self):
         """Load plugin enable/disable controls."""
@@ -768,182 +890,123 @@ class EnhancedSettingsView(ctk.CTkFrame):
                 desc_label.pack(anchor="w", padx=5)
 
                 #Enable/disable checkbox
-                self.plugin_vars[plugin_id] = tk.BooleanVar(value=plugin_info.get("enabled", False))
+                self.plugin_enabled_vars[plugin_id] = tk.BooleanVar(value=plugin_info.get("enabled", False))
                 plugin_check = ctk.CTkCheckBox(
                     plugin_frame,
                     text="Enabled",
-                    variable=self.plugin_vars[plugin_id],
+                    variable=self.plugin_enabled_vars[plugin_id],
                 )
                 plugin_check.pack(side="right", padx=10, pady=5)
 
     def load_settings(self):
         """Load settings from configuration."""
         if self.config_manager:
-            #Use the passed config_manager instance
-            config_manager = self.config_manager
-
-            #Load general settings
-            for key, var in self.settings_vars.items():
-                value = None
-
-                #Special handling for LLM settings
-                if key in ["openai_api_key", "gemini_api_key", "groq_api_key", "mistral_api_key"]:
-                    value = config_manager.get_setting(key)
-                elif key == "current_provider":
-                    value = config_manager.get_current_provider()
-                elif key == "current_model":
-                    value = config_manager.get_model_name()
-                elif key == "ollama_url":
-                    value = config_manager.get_setting("ollama_url", "http://localhost:11434")
+            try:
+                # Load the full configuration
+                if hasattr(self.config_manager, "load"):
+                    config = self.config_manager.load()
                 else:
-                    #Try to get from enhanced config first
-                    value = config_manager.get_setting(key)
-                    if value is None and hasattr(self.config_manager, "load"):
-                        config = self.config_manager.load()
-                        value = config.get(key)
-
-                if value is not None:
-                    if isinstance(var, tk.BooleanVar):
-                        var.set(bool(value))
-                    else:
-                        var.set(str(value))
-
-            #Load restricted directories
-            restricted_dirs = config_manager.get_setting("restricted_directories", [])
-            if hasattr(self, "restricted_dirs_text"):
-                self.restricted_dirs_text.delete(1.0, tk.END)
-                self.restricted_dirs_text.insert(1.0, "\n".join(restricted_dirs))
-
-    def save_settings(self):
-        """Save current settings."""
-        try:
-            if self.config_manager:
-                #Use the passed config_manager instance
-                config_manager = self.config_manager
-
-                #Collect all settings
-                settings = {}
-
+                    config = {}
+                
+                print(f"🔍 Loading settings from config: {list(config.keys())}")
+                
+                # Load general settings
                 for key, var in self.settings_vars.items():
-                    if isinstance(var, tk.BooleanVar):
-                        settings[key] = var.get()
+                    value = None
+                    
+                    # Handle different setting types
+                    if key in ["openai_api_key", "gemini_api_key", "groq_api_key", "mistral_api_key"]:
+                        # Витягуємо назву провайдера (частину перед "_api_key")
+                        provider = key.replace("_api_key", "")
+                        value = config.get("api_keys", {}).get(provider, "")
+                    elif key == "current_provider":
+                        value = config.get("current_provider", "groq")
+                    elif key == "current_model":
+                        value = config.get("current_model", "llama3-8b-8192")
+                    elif key == "temperature":
+                        value = config.get("temperature", 0.7)
+                    elif key == "max_tokens":
+                        value = config.get("max_tokens", 4096)
+                    elif key == "ollama_url":
+                        value = config.get("ollama_url", "http://localhost:11434")
+                    elif key in ["enable_security_agent", "enable_notifications", "desktop_notifications", 
+                               "sound_notifications", "email_notifications", "debug_mode", 
+                               "verbose_logging", "experimental_features", "auto_update"]:
+                        # Boolean settings with defaults
+                        value = config.get(key, False)
+                    elif key == "notification_email":
+                        value = config.get("notification_email", "")
+                    elif key == "theme":
+                        value = config.get("theme", "system")
+                    elif key == "auto_save":
+                        value = config.get("auto_save", True)
+                    elif key == "enable_logging":
+                        value = config.get("enable_logging", True)
+                    elif key == "log_level":
+                        value = config.get("log_level", "INFO")
+                    elif key == "max_concurrent_ops":
+                        value = config.get("max_concurrent_ops", 5)
+                    elif key == "memory_limit":
+                        value = config.get("memory_limit", 1024)
+                    elif key in ["file_access_threshold", "system_cmd_threshold", "network_threshold"]:
+                        # Security thresholds with defaults
+                        value = config.get(key, "Medium")
                     else:
-                        value = var.get()
-                        #Try to convert numeric values
-                        if key in ["max_concurrent_ops", "memory_limit", "max_tokens", "daily_token_limit"]:
-                            try:
-                                settings[key] = int(value)
-                            except ValueError:
-                                settings[key] = value
-                        elif key in ["temperature"]:
-                            try:
-                                settings[key] = float(value)
-                            except ValueError:
-                                settings[key] = value
+                        # Plugin settings
+                        if key.startswith("plugin_"):
+                            plugin_name = key.replace("plugin_", "")
+                            value = config.get("plugins_enabled", {}).get(plugin_name, False)
                         else:
-                            settings[key] = value
-
-                #Special handling for LLM settings with better error handling
-                success = True
-                if "current_provider" in settings and "current_model" in settings:
-                    try:
-                        if hasattr(config_manager, "set_llm_provider_and_model"):
-                            config_manager.set_llm_provider_and_model(
-                                settings["current_provider"],
-                                settings["current_model"],
-                            )
+                            value = config.get(key, "")
+                    
+                    # Set the value
+                    if value is not None:
+                        if isinstance(var, tk.BooleanVar):
+                            var.set(bool(value))
+                        elif isinstance(var, tk.StringVar):
+                            var.set(str(value))
+                        elif isinstance(var, tk.DoubleVar):
+                            var.set(float(value))
+                        elif isinstance(var, tk.IntVar):
+                            var.set(int(value))
+                        print(f"   ✅ Loaded {key}: {value}")
+                    else:
+                        # Set default values for missing settings
+                        if isinstance(var, tk.BooleanVar):
+                            var.set(False)
+                            print(f"   ⚠️ No value found for {key}, using default: False")
+                        elif isinstance(var, tk.StringVar):
+                            var.set("")
+                            print(f"   ⚠️ No value found for {key}, using default: ''")
+                        elif isinstance(var, tk.DoubleVar):
+                            var.set(0.0)
+                            print(f"   ⚠️ No value found for {key}, using default: 0.0")
+                        elif isinstance(var, tk.IntVar):
+                            var.set(0)
+                            print(f"   ⚠️ No value found for {key}, using default: 0")
                         else:
-                            print("⚠️ Method set_llm_provider_and_model not found, using fallback")
-                            success = False
-                    except Exception as e:
-                        print(f"❌ Error setting LLM provider/model: {e}")
-                        success = False
+                            var.set("")
+                            print(f"   ⚠️ No value found for {key}, using default: ''")
 
-                #Save API keys with better error handling
-                for provider in ["openai", "gemini", "groq", "mistral"]:
-                    key_name = f"{provider}_api_key"
-                    if settings.get(key_name):
-                        try:
-                            if hasattr(config_manager, "set_llm_api_key"):
-                                config_manager.set_llm_api_key(provider, settings[key_name])
-                            else:
-                                print(f"⚠️ Method set_llm_api_key not found for {provider}")
-                                success = False
-                        except Exception as e:
-                            print(f"❌ Error setting {provider} API key: {e}")
-                            success = False
-
-                #Save other LLM settings
-                for key in ["ollama_url", "temperature", "max_tokens"]:
-                    if key in settings:
-                        try:
-                            config_manager.set_setting(key, settings[key])
-                        except Exception as e:
-                            print(f"❌ Error setting {key}: {e}")
-
-                #Save restricted directories
+                # Load restricted directories
+                restricted_dirs = config.get("restricted_directories", [])
                 if hasattr(self, "restricted_dirs_text"):
-                    try:
-                        restricted_text = self.restricted_dirs_text.get(1.0, tk.END).strip()
-                        settings["restricted_directories"] = [d.strip() for d in restricted_text.split("\n") if d.strip()]
-                        config_manager.set_setting("restricted_directories", settings["restricted_directories"])
-                    except Exception as e:
-                        print(f"❌ Error saving restricted directories: {e}")
-
-                #Save plugin settings
-                try:
-                    plugin_settings = {}
-                    for plugin_id, var in self.plugin_vars.items():
-                        plugin_settings[plugin_id] = var.get()
-                    settings["plugin_enabled_states"] = plugin_settings
-                    config_manager.set_setting("plugin_enabled_states", plugin_settings)
-                except Exception as e:
-                    print(f"❌ Error saving plugin settings: {e}")
-
-                #Apply settings to legacy config manager if exists
-                try:
-                    if hasattr(self.config_manager, "load"):
-                        current_config = self.config_manager.load()
-                        current_config.update(settings)
-                        self.config_manager.save(current_config)
-                except Exception as e:
-                    print(f"❌ Error updating legacy config: {e}")
-
-                #Call save callback if provided
-                if self.save_callback:
-                    try:
-                        self.save_callback(settings)
-                    except Exception as e:
-                        print(f"❌ Error in save callback: {e}")
-
-                #Show success message
-                if success:
-                    messagebox.showinfo("Успіх", "✅ Налаштування збережено успішно!")
-                    print("✅ Settings saved successfully!")
-                else:
-                    messagebox.showwarning("Попередження", "⚠️ Налаштування збережено з деякими помилками")
-                    print("⚠️ Settings saved with some errors")
-
-        except Exception as e:
-            error_msg = f"❌ Помилка збереження налаштувань: {e!s}"
-            messagebox.showerror("Помилка", error_msg)
-            print(f"❌ Error saving settings: {e}")
-            for plugin_id, var in self.plugin_vars.items():
-                plugin_settings[plugin_id] = var.get()
-            settings["plugin_enabled_states"] = plugin_settings
-            config_manager.set_setting("plugin_enabled_states", plugin_settings)
-
-            #Apply settings to legacy config manager if exists
-            if hasattr(self.config_manager, "load"):
-                current_config = self.config_manager.load()
-                current_config.update(settings)
-                self.config_manager.save(current_config)
-
-            #Call save callback if provided
-            if self.save_callback:
-                self.save_callback(settings)
-
-            messagebox.showinfo("Settings", "Settings saved successfully!")
+                    self.restricted_dirs_text.delete(1.0, tk.END)
+                    self.restricted_dirs_text.insert(1.0, "\n".join(restricted_dirs))
+                
+                # Load plugin settings
+                plugin_states = config.get("plugins_enabled", {})
+                for plugin_id, var in self.plugin_enabled_vars.items():
+                    enabled = plugin_states.get(plugin_id, True)  # Default to enabled
+                    var.set(enabled)
+                    print(f"   ✅ Loaded plugin {plugin_id}: {enabled}")
+                
+                print("✅ Settings loaded successfully!")
+                
+            except Exception as e:
+                print(f"❌ Error loading settings: {e}")
+                import traceback
+                traceback.print_exc()
 
     def open_plugin_manager(self):
         """Open the enhanced plugin manager."""
@@ -1042,3 +1105,63 @@ class EnhancedSettingsView(ctk.CTkFrame):
                         var.set(str(value))
 
             messagebox.showinfo("Reset", "Settings reset to defaults!")
+
+    def setup_readonly_fields(self):
+        """Set up read-only fields for important configuration values."""
+        # Make important configuration fields read-only to prevent accidental editing
+        
+        # Store important widgets that should be read-only by default
+        self.readonly_widgets = []
+        
+        # Make restricted directories text read-only (important security setting)
+        if hasattr(self, 'restricted_dirs_text'):
+            self.restricted_dirs_text.configure(state="disabled")
+            self.readonly_widgets.append(self.restricted_dirs_text)
+            
+            # Add a small label to indicate it's read-only
+            try:
+                readonly_label = ctk.CTkLabel(
+                    self.restricted_dirs_text.master, 
+                    text="🔒 Read-only", 
+                    font=("Arial", 10),
+                    text_color="#888888"
+                )
+                readonly_label.pack(side="right", padx=(5, 0))
+            except:
+                pass
+        
+        # Make API key fields read-only (should be managed through secure methods)
+        # Note: These will be made read-only by default, but can be unlocked via edit mode
+        api_key_fields = ["openai_api_key", "gemini_api_key", "groq_api_key", "mistral_api_key"]
+        
+        # Find and store API key entry widgets
+        def find_api_key_widgets(parent):
+            for child in parent.winfo_children():
+                if hasattr(child, 'winfo_children'):
+                    find_api_key_widgets(child)
+                elif hasattr(child, 'cget'):
+                    try:
+                        textvar = child.cget('textvariable')
+                        if textvar and any(key in textvar for key in api_key_fields):
+                            child.configure(state="disabled")
+                            self.readonly_widgets.append(child)
+                    except:
+                        pass
+        
+        find_api_key_widgets(self)
+        
+        # Update button text based on initial state
+        if hasattr(self, 'edit_mode_btn'):
+            self.edit_mode_btn.configure(text="🔒 Locked (Click to Edit)")
+
+    def toggle_edit_mode(self):
+        """Toggle edit mode."""
+        self.edit_mode = not self.edit_mode
+        if self.edit_mode:
+            self.edit_mode_btn.configure(text="✏️ Unlocked (Click to Lock)")
+            for widget in self.readonly_widgets:
+                widget.configure(state="normal")
+        else:
+            self.edit_mode_btn.configure(text="🔒 Locked (Click to Edit)")
+            for widget in self.readonly_widgets:
+                widget.configure(state="disabled")
