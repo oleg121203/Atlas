@@ -1,0 +1,22 @@
+{
+    "name": "Voice Assistant",
+    "version": "1.0.0",
+    "description": "Voice recognition and text-to-speech capabilities for Atlas",
+    "author": "Atlas Team",
+    "entry_point": "plugin.py",
+    "tools": [
+        "speak_text",
+        "listen_for_speech",
+        "transcribe_audio",
+        "voice_command"
+    ],
+    "agents": [],
+    "dependencies": [
+        "speech_recognition",
+        "pyttsx3",
+        "pyaudio"
+    ],
+    "enabled": true,
+    "category": "voice",
+    "tags": ["voice", "speech", "tts", "stt", "audio"]
+} 

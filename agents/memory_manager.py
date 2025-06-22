@@ -146,7 +146,7 @@ class MemoryManager:
         finally:
             end_time = time.perf_counter()
             duration = end_time - start_time
-            metrics_manager.record_memory_search_latency(duration)
+            metrics_manager_instance.record_memory_search_latency(duration)
             self.logger.info(f"Memory search completed in {duration:.4f} seconds.")
 
     def get_memory(self, collection_name: str, memory_id: str) -> Optional[Dict[str, Any]]:

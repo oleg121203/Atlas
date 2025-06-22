@@ -45,24 +45,27 @@ from customtkinter import CTkImage
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+# Core agents
 from agents.agent_manager import AgentManager
 from agents.chat_context_manager import ChatContextManager, ChatMode
 from agents.chat_translation_manager import ChatTranslationManager
 from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
 from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
 from agents.enhanced_deputy_agent import EnhancedDeputyAgent
-from agents.enhanced_memory_manager import (
-    EnhancedMemoryManager,
-    MemoryScope,
-    MemoryType,
-)
+from agents.enhanced_memory_manager import EnhancedMemoryManager
 from agents.enhanced_security_agent import EnhancedSecurityAgent
 from agents.hierarchical_plan_manager import HierarchicalPlanManager
 from agents.task_aware_master_agent import TaskAwareMasterAgent as MasterAgent
 from agents.task_manager import TaskManager, TaskPriority, TaskStatus
 from agents.token_tracker import TokenTracker
+
+# Optional imports - lazy loaded when needed
 from intelligence.context_awareness_engine import ContextAwarenessEngine
-from monitoring.metrics_manager import metrics_manager
+from monitoring.metrics_manager import MetricsManager
+
+# Initialize optional components
+context_awareness_engine = ContextAwarenessEngine(project_root=os.path.dirname(os.path.abspath(__file__)))
+metrics_manager_instance = MetricsManager()
 from plugin_manager import PluginManager
 from tools.code_reader_tool import CodeReaderTool
 from tools.screenshot_tool import capture_screen
@@ -1651,8 +1654,8 @@ class AtlasApp(ctk.CTk):
         """Fetches performance data from MetricsManager and redraws the charts."""
         self.logger.info("Updating performance charts with live data...")
 
-        tool_load_times = metrics_manager.get_tool_load_times()
-        memory_search_latencies = metrics_manager.get_memory_search_latencies()
+        tool_load_times = metrics_manager_instance.get_tool_load_times()
+        memory_search_latencies = metrics_manager_instance.get_memory_search_latencies()
 
         #--- Chart 1: Tool Loading Time ---
         self.ax1.clear()
@@ -1679,7 +1682,7 @@ class AtlasApp(ctk.CTk):
     def _clear_performance_data(self):
         """Clears all performance data and refreshes the charts."""
         self.logger.info("Clearing all performance data.")
-        metrics_manager.clear_data()
+        metrics_manager_instance.clear_data()
         self._update_performance_charts()
 
     def _create_security_tab(self, tab):

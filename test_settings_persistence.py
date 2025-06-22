@@ -28,7 +28,7 @@ def test_settings_persistence():
             "anthropic": "sk-ant-test-key"
         },
         "plugins_enabled": {
-            "web_browsing": True,
+            "unified_browser": True,
             "weather_tool": False
         },
         "security": {
@@ -94,13 +94,13 @@ def test_settings_persistence():
     
     # Check plugins
     plugins = loaded_settings.get("plugins_enabled", {})
-    web_browsing = plugins.get("web_browsing")
+    unified_browser = plugins.get("unified_browser")
     weather_tool = plugins.get("weather_tool")
     
-    print(f"   Web browsing plugin: {web_browsing} (expected: True)")
+    print(f"   Unified browser plugin: {unified_browser} (expected: True)")
     print(f"   Weather tool plugin: {weather_tool} (expected: False)")
     
-    if not web_browsing or weather_tool:
+    if not unified_browser or weather_tool:
         print("   ❌ Plugin settings not saved correctly")
         return False
     

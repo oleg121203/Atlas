@@ -109,7 +109,7 @@ def test_plugin_memory_isolation():
         print("=" * 50)
 
         #Simulate plugin data storage
-        test_plugins = ["weather_tool", "web_browsing", "custom_tool"]
+        test_plugins = ["weather_tool", "unified_browser", "custom_tool"]
 
         for plugin_name in test_plugins:
             #Store plugin metadata

@@ -16,8 +16,6 @@ import time
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
-from .base_plugin import BasePlugin, PluginMetadata, PluginResult
-
 logger = logging.getLogger(__name__)
 
 class BrowserMethod:
@@ -231,7 +229,7 @@ class AppleScriptMethod(BrowserMethod):
             if result.returncode == 0:
                 return {
                     "success": True,
-                    "message": f"{self.current_browser} closed successfully",
+                    "message": f"Closed {self.current_browser}",
                     "method": self.name
                 }
             else:
@@ -259,12 +257,13 @@ class SeleniumMethod(BrowserMethod):
         """Check if Selenium is available."""
         try:
             from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options
             return True
         except ImportError:
             return False
     
     def initialize(self) -> bool:
-        """Initialize Selenium WebDriver."""
+        """Initialize Selenium method."""
         if not self.check_availability():
             return False
         
@@ -284,7 +283,7 @@ class SeleniumMethod(BrowserMethod):
             return True
             
         except Exception as e:
-            logger.error(f"Selenium initialization failed: {e}")
+            logger.error(f"Failed to initialize Selenium: {e}")
             return False
     
     def navigate_to_url(self, url: str) -> Dict[str, Any]:
@@ -293,13 +292,19 @@ class SeleniumMethod(BrowserMethod):
             return {"success": False, "error": "Selenium not initialized"}
         
         try:
+            # Ensure URL has protocol
+            if not url.startswith(("http://", "https://")):
+                url = "https://" + url
+            
             self.driver.get(url)
+            
             return {
                 "success": True,
                 "message": f"Successfully navigated to {url}",
                 "url": url,
                 "method": self.name
             }
+            
         except Exception as e:
             return {
                 "success": False,
@@ -319,6 +324,27 @@ class SeleniumMethod(BrowserMethod):
                 "title": title,
                 "method": self.name
             }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "method": self.name
+            }
+    
+    def execute_javascript(self, script: str) -> Dict[str, Any]:
+        """Execute JavaScript using Selenium."""
+        if not self.is_initialized or not self.driver:
+            return {"success": False, "error": "Selenium not initialized"}
+        
+        try:
+            result = self.driver.execute_script(script)
+            return {
+                "success": True,
+                "result": result,
+                "method": self.name
+            }
+            
         except Exception as e:
             return {
                 "success": False,
@@ -334,11 +360,14 @@ class SeleniumMethod(BrowserMethod):
         try:
             self.driver.quit()
             self.driver = None
+            self.is_initialized = False
+            
             return {
                 "success": True,
-                "message": "Browser closed successfully",
+                "message": "Browser closed",
                 "method": self.name
             }
+            
         except Exception as e:
             return {
                 "success": False,
@@ -346,11 +375,11 @@ class SeleniumMethod(BrowserMethod):
                 "method": self.name
             }
 
-class UnifiedBrowserPlugin(BasePlugin):
-    """Unified browser automation plugin with multiple methods."""
+class UnifiedBrowserPlugin:
+    """Unified browser automation plugin for Atlas."""
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        super().__init__(config)
+        self.config = config or {}
         self.methods = {}
         self.current_method = None
         self.preferred_method = self.config.get("preferred_method", "applescript")
@@ -358,28 +387,9 @@ class UnifiedBrowserPlugin(BasePlugin):
         # Initialize available methods
         self._initialize_methods()
     
-    def get_metadata(self) -> PluginMetadata:
-        """Return plugin metadata."""
-        return PluginMetadata(
-            name="unified_browser",
-            version="2.0.0",
-            description="Unified browser automation with multiple methods (AppleScript, Selenium, Playwright)",
-            author="Atlas Team",
-            category="automation",
-            tags=["browser", "automation", "web", "selenium", "applescript"],
-            dependencies=["selenium", "playwright"],
-            config_schema={
-                "preferred_method": {"type": "string", "default": "applescript"},
-                "timeout": {"type": "integer", "default": 30},
-                "headless": {"type": "boolean", "default": False}
-            }
-        )
-    
-    def initialize(self, provider: Any) -> bool:
-        """Initialize the plugin with the active provider."""
+    def initialize(self, llm_manager=None, atlas_app=None, agent_manager=None) -> bool:
+        """Initialize the plugin."""
         try:
-            self.active_provider = provider
-            
             # Try to initialize preferred method first
             if self.preferred_method in self.methods:
                 if self.methods[self.preferred_method].initialize():
@@ -401,144 +411,100 @@ class UnifiedBrowserPlugin(BasePlugin):
             logger.error(f"Failed to initialize unified browser plugin: {e}")
             return False
     
-    def execute(self, command: str, **kwargs) -> PluginResult:
-        """Execute a browser plugin command."""
-        if not self.current_method:
-            return PluginResult(
-                success=False,
-                error="No browser method initialized"
-            )
+    def navigate_to_url(self, url: str) -> Dict[str, Any]:
+        """Navigate to URL using current method."""
+        if not self.current_method or self.current_method not in self.methods:
+            return {"success": False, "error": "No browser method available"}
         
-        method = self.methods[self.current_method]
-        
-        try:
-            if command == "navigate_to_url":
-                result = method.navigate_to_url(kwargs.get("url", ""))
-            elif command == "get_page_title":
-                result = method.get_page_title()
-            elif command == "open_browser":
-                result = {"success": True, "message": f"Browser ready with {self.current_method}"}
-            elif command == "close_browser":
-                result = method.close()
-            elif command == "execute_javascript":
-                result = method.execute_javascript(kwargs.get("script", ""))
-            elif command == "open_gmail":
-                result = method.navigate_to_url("https://gmail.com")
-            elif command == "search_gmail":
-                # First navigate to Gmail
-                nav_result = method.navigate_to_url("https://gmail.com")
-                if nav_result["success"]:
-                    time.sleep(3)
-                    # Search using JavaScript
-                    search_script = f"""
-                    document.querySelector('[aria-label="Search mail"]').value = '{kwargs.get("query", "")}';
-                    document.querySelector('[aria-label="Search mail"]').form.submit();
-                    """
-                    result = method.execute_javascript(search_script)
-                else:
-                    result = nav_result
-            else:
-                return PluginResult(
-                    success=False,
-                    error=f"Unknown command: {command}"
-                )
-            
-            return PluginResult(
-                success=result.get("success", False),
-                data=result,
-                error=result.get("error"),
-                metadata={"method": self.current_method}
-            )
-                
-        except Exception as e:
-            logger.error(f"Error executing browser command {command}: {e}")
-            return PluginResult(
-                success=False,
-                error=str(e),
-                metadata={"method": self.current_method}
-            )
+        return self.methods[self.current_method].navigate_to_url(url)
     
-    def get_commands(self) -> List[str]:
-        """Get list of available commands."""
-        return [
-            "navigate_to_url",
-            "get_page_title",
-            "open_browser",
-            "close_browser",
-            "execute_javascript",
-            "open_gmail",
-            "search_gmail"
-        ]
-    
-    def get_help(self) -> str:
-        """Get help information for the plugin."""
-        available_methods = [name for name, method in self.methods.items() if method.check_availability()]
+    def get_page_title(self) -> Dict[str, Any]:
+        """Get page title using current method."""
+        if not self.current_method or self.current_method not in self.methods:
+            return {"success": False, "error": "No browser method available"}
         
-        help_text = f"""
-Unified Browser Plugin Help
-===========================
-
-Description: {self.metadata.description}
-
-Available Commands:
-- navigate_to_url: Navigate to a specific URL
-- get_page_title: Get the title of the current page
-- open_browser: Initialize browser (ready state)
-- close_browser: Close the browser
-- execute_javascript: Execute JavaScript code
-- open_gmail: Open Gmail in the browser
-- search_gmail: Search within Gmail
-
-Usage Examples:
-- navigate_to_url(url="https://gmail.com")
-- open_gmail()
-- search_gmail(query="security")
-- get_page_title()
-- close_browser()
-
-Current Method: {self.current_method or "None"}
-Available Methods: {', '.join(available_methods)}
-Preferred Method: {self.preferred_method}
-        """
-        return help_text.strip()
+        return self.methods[self.current_method].get_page_title()
+    
+    def execute_javascript(self, script: str) -> Dict[str, Any]:
+        """Execute JavaScript using current method."""
+        if not self.current_method or self.current_method not in self.methods:
+            return {"success": False, "error": "No browser method available"}
+        
+        return self.methods[self.current_method].execute_javascript(script)
+    
+    def close_browser(self) -> Dict[str, Any]:
+        """Close browser using current method."""
+        if not self.current_method or self.current_method not in self.methods:
+            return {"success": False, "error": "No browser method available"}
+        
+        return self.methods[self.current_method].close()
+    
+    def switch_method(self, method_name: str) -> Dict[str, Any]:
+        """Switch to a different browser method."""
+        if method_name not in self.methods:
+            return {"success": False, "error": f"Method {method_name} not available"}
+        
+        if not self.methods[method_name].check_availability():
+            return {"success": False, "error": f"Method {method_name} not available on this system"}
+        
+        # Close current method if initialized
+        if self.current_method and self.current_method in self.methods:
+            self.methods[self.current_method].close()
+        
+        # Initialize new method
+        if self.methods[method_name].initialize():
+            self.current_method = method_name
+            return {
+                "success": True,
+                "message": f"Switched to {method_name} method",
+                "method": method_name
+            }
+        else:
+            return {"success": False, "error": f"Failed to initialize {method_name} method"}
+    
+    def get_available_methods(self) -> Dict[str, Any]:
+        """Get list of available methods."""
+        available = {}
+        for name, method in self.methods.items():
+            available[name] = {
+                "available": method.check_availability(),
+                "initialized": method.is_initialized
+            }
+        
+        return {
+            "success": True,
+            "methods": available,
+            "current_method": self.current_method
+        }
     
     def _initialize_methods(self):
         """Initialize available browser methods."""
-        # AppleScript method (macOS)
+        # Add AppleScript method
         self.methods["applescript"] = AppleScriptMethod()
         
-        # Selenium method (cross-platform)
+        # Add Selenium method
         self.methods["selenium"] = SeleniumMethod()
         
-        # TODO: Add Playwright and System Events methods
+        # Add other methods as needed
         # self.methods["playwright"] = PlaywrightMethod()
         # self.methods["system_events"] = SystemEventsMethod()
-    
-    def get_available_methods(self) -> List[str]:
-        """Get list of available methods."""
-        return [name for name, method in self.methods.items() if method.check_availability()]
-    
-    def switch_method(self, method_name: str) -> bool:
-        """Switch to a different browser method."""
-        if method_name not in self.methods:
-            return False
-        
-        method = self.methods[method_name]
-        if method.check_availability() and method.initialize():
-            # Close current method if it exists
-            if self.current_method and self.current_method != method_name:
-                self.methods[self.current_method].close()
-            
-            self.current_method = method_name
-            logger.info(f"Switched to method: {method_name}")
-            return True
-        
-        return False
+        # self.methods["http_requests"] = HttpRequestsMethod()
 
-# Plugin registration function
-def register_unified_browser_plugin(config: Optional[Dict[str, Any]] = None) -> bool:
-    """Register the unified browser plugin."""
-    from .base_plugin import register_plugin
-    
-    plugin = UnifiedBrowserPlugin(config)
-    return register_plugin(plugin) 
+def register(llm_manager=None, atlas_app=None, agent_manager=None):
+    """Register the Unified Browser plugin."""
+    plugin = UnifiedBrowserPlugin()
+    if plugin.initialize(llm_manager, atlas_app, agent_manager):
+        return {
+            "tools": [
+                plugin.navigate_to_url,
+                plugin.get_page_title,
+                plugin.execute_javascript,
+                plugin.close_browser,
+                plugin.switch_method,
+                plugin.get_available_methods
+            ],
+            "agents": []
+        }
+    else:
+        logger.warning("Unified browser plugin initialization failed")
+        return {"tools": [], "agents": []} 

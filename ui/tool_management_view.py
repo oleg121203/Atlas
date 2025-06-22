@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any, Dict
 
 import customtkinter as ctk
 
-from monitoring.metrics_manager import metrics_manager
+from monitoring.metrics_manager import MetricsManager
+metrics_manager_instance = MetricsManager()
 
 if TYPE_CHECKING:
     from agents.agent_manager import AgentManager
@@ -52,7 +53,7 @@ class ToolManagementView(ctk.CTkFrame):
         ctk.CTkFrame(self.scrollable_frame, height=2, fg_color="gray").pack(fill="x", padx=5, pady=(0, 5))
 
         tools = self.agent_manager.get_all_tools_details()
-        usage_stats = metrics_manager.get_tool_usage_stats()
+        usage_stats = metrics_manager_instance.get_tool_usage_stats()
 
         if not tools:
             no_tools_label = ctk.CTkLabel(self.scrollable_frame, text="No tools are available.")

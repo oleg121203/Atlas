@@ -34,7 +34,7 @@ class BrowserAgent(BaseAgent):
     def _check_web_plugin(self) -> None:
         """Check if advanced web browsing plugin is available."""
         try:
-            from plugins.web_browsing_plugin import WebBrowsingPlugin  # type: ignore
+            from plugins.unified_browser.plugin import UnifiedBrowserPlugin  # type: ignore
             self.web_plugin = WebBrowsingPlugin()
             self.web_plugin_available = True
             self.logger.info("Advanced web browsing plugin loaded successfully")

@@ -135,7 +135,7 @@ def test_ui_display():
                 "parent_id": "strategic_1",
                 "children": ["operational_1", "operational_2"],
                 "tools": ["web_browser_tool"],
-                "plugins": ["web_browsing"],
+                "plugins": ["unified_browser"],
                 "created_at": time.time() - 280,
                 "started_at": time.time() - 270,
                 "completed_at": time.time() - 200
@@ -150,7 +150,7 @@ def test_ui_display():
                 "parent_id": "tactical_1",
                 "children": [],
                 "tools": ["web_browser_tool"],
-                "plugins": ["web_browsing"],
+                "plugins": ["unified_browser"],
                 "created_at": time.time() - 270,
                 "started_at": time.time() - 265,
                 "completed_at": time.time() - 260
@@ -165,7 +165,7 @@ def test_ui_display():
                 "parent_id": "tactical_1",
                 "children": [],
                 "tools": ["web_browser_tool", "mouse_keyboard_tool"],
-                "plugins": ["web_browsing"],
+                "plugins": ["unified_browser"],
                 "created_at": time.time() - 260,
                 "started_at": time.time() - 255,
                 "completed_at": time.time() - 200
@@ -180,7 +180,7 @@ def test_ui_display():
                 "parent_id": "strategic_1",
                 "children": ["operational_3", "operational_4"],
                 "tools": ["search_tool", "screenshot_tool"],
-                "plugins": ["web_browsing"],
+                "plugins": ["unified_browser"],
                 "created_at": time.time() - 200,
                 "started_at": time.time() - 190,
                 "completed_at": None

@@ -212,7 +212,7 @@ def test_plugin_memory_concepts():
 
     plugin_configs = {
         "weather_tool": {"memory_scope": "plugin_weather", "ttl_days": 30},
-        "web_browsing": {"memory_scope": "plugin_browser", "ttl_days": 14},
+        "unified_browser": {"memory_scope": "plugin_browser", "ttl_days": 14},
         "custom_automation": {"memory_scope": "plugin_custom", "ttl_days": 60},
     }
 

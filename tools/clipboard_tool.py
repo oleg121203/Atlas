@@ -255,34 +255,76 @@ def clear_clipboard() -> ClipboardResult:
         ClipboardResult with operation status
     """
     start_time = time.time()
-
     try:
-        if _APPKIT_AVAILABLE:
-            #Use native macOS clipboard
-            pasteboard = NSPasteboard.generalPasteboard()
-            pasteboard.clearContents()
+        if _PYPERCLIP_AVAILABLE:
+            pyperclip.copy('')
+            return ClipboardResult(
+                success=True,
+                action="clear",
+                content=None,
+                content_type=None,
+                error=None,
+                execution_time=time.time() - start_time
+            )
         else:
-            #Fallback to setting empty string
-            pyperclip.copy("")
-
-        execution_time = time.time() - start_time
-
-        logger.info(f"Cleared clipboard in {execution_time:.3f}s")
-
-        return ClipboardResult(
-            success=True,
-            action="clear",
-            execution_time=execution_time,
-        )
-
+            return ClipboardResult(
+                success=False,
+                action="clear",
+                content=None,
+                content_type=None,
+                error="pyperclip not available",
+                execution_time=time.time() - start_time
+            )
     except Exception as e:
-        execution_time = time.time() - start_time
-        error_msg = f"Failed to clear clipboard: {e!s}"
-        logger.error(error_msg)
-
         return ClipboardResult(
             success=False,
             action="clear",
-            error=error_msg,
-            execution_time=execution_time,
+            content=None,
+            content_type=None,
+            error=str(e),
+            execution_time=time.time() - start_time
         )
+
+def wait_for_clipboard_change(timeout: float = 5.0) -> ClipboardResult:
+    """Wait for clipboard content to change.
+    
+    Args:
+        timeout: Maximum time to wait in seconds
+        
+    Returns:
+        ClipboardResult with new clipboard content or error
+    """
+    start_time = time.time()
+    initial_content = get_clipboard_text()
+    
+    if not initial_content.success:
+        return ClipboardResult(
+            success=False,
+            action="wait_for_change",
+            content=None,
+            content_type=None,
+            error=initial_content.error,
+            execution_time=time.time() - start_time
+        )
+    
+    while time.time() - start_time < timeout:
+        current_content = get_clipboard_text()
+        if current_content.success and current_content.content != initial_content.content:
+            return ClipboardResult(
+                success=True,
+                action="wait_for_change",
+                content=current_content.content,
+                content_type="text",
+                error=None,
+                execution_time=time.time() - start_time
+            )
+        time.sleep(0.1)
+    
+    return ClipboardResult(
+        success=False,
+        action="wait_for_change",
+        content=None,
+        content_type=None,
+        error="Timeout waiting for clipboard change",
+        execution_time=timeout
+    )

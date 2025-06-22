@@ -34,7 +34,8 @@ from agents.problem_decomposition_agent import ProblemDecompositionAgent
 from agents.screen_agent import ScreenAgent
 from agents.system_interaction_agent import SystemInteractionAgent
 from agents.text_agent import TextAgent
-from monitoring.metrics_manager import metrics_manager
+from monitoring.metrics_manager import MetricsManager
+metrics_manager_instance = MetricsManager()
 from utils.llm_manager import LLMManager
 from utils.logger import get_logger
 
@@ -357,324 +358,56 @@ class MasterAgent:
 
         return {"status": "failure", "error": "Max retries reached."}
 
-    def start(self, execution_context: Optional[Dict[str, Any]] = None) -> None:
-        """Start the Master Agent."""
-        with self.state_lock:
-            if self.is_running:
-                self.logger.warning("Cannot start agent: Agent is already running")
-                return
-            self.is_running = True
-
-    def initialize(self) -> None:
-        """Initialize the Master Agent and its sub-agents."""
-        if not hasattr(self, 'is_initialized'):
-            self.is_initialized = False
-        if not self.is_initialized:
-            self.logger.info("Initializing Master Agent")
-            self._initialize_agents()
-            self.is_initialized = True
-        else:
-            self.logger.info("Master Agent already initialized")
-
-    def shutdown(self) -> None:
-        """Shut down the Master Agent and its sub-agents."""
-        if hasattr(self, 'is_initialized') and self.is_initialized and self.is_running:
-            self.logger.info("Shutting down Master Agent")
-            self.is_running = False
-            # Shutdown logic for sub-agents if needed
-        else:
-            self.logger.info("Master Agent is not running or initialized, no shutdown needed")
-
-    def get_status(self) -> str:
-        """Get the current status of the Master Agent."""
-        return f"Master Agent is {'running' if self.is_running else 'not running'} and {'initialized' if hasattr(self, 'is_initialized') and self.is_initialized else 'not initialized'}"
-
-    def execute_task(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> str:
-        """Execute a task by delegating to the appropriate agent or handling directly."""
-        context = context or {}
-        self.logger.info(f"Executing task: {prompt}")
-        try:
-            # Decompose task into subtasks if complex
-            subtasks = self._decompose_task(prompt)
-
-            # --- Send plan to UI ---
-            if self.status_callback:
-                plan_payload = {
-                    "type": "plan",
-                    "data": {
-                        "description": prompt,
-                        "steps": [{"description": s} for s in subtasks],
-                    },
-                }
-                try:
-                    self.status_callback(plan_payload)
-                except Exception:
-                    # Ignore UI callback errors – should never crash agent flow
-                    self.logger.exception("Status callback failed while sending plan payload")
-
-            if len(subtasks) > 1:
-                self.logger.info(f"Task decomposed into {len(subtasks)} subtasks.")
-                return self._execute_subtasks(subtasks, context)
-            else:
-                # Single task execution
-                return self._delegate_task(prompt, context)
-        except Exception as e:
-            self.logger.error(f"Error executing task: {e}")
-            return f"Failed to execute task: {str(e)}"
-
-    def _decompose_task(self, prompt: str) -> List[str]:
-        """Break down a complex task into smaller, actionable subtasks."""
-        self.logger.info(f"Decomposing task: {prompt}")
-        # Simple decomposition logic based on keywords or task complexity
-        if "and" in prompt:
-            return [task.strip() for task in prompt.split("and") if task.strip()]
-        elif "then" in prompt:
-            return [task.strip() for task in prompt.split("then") if task.strip()]
-        elif len(prompt.split()) > 10:  # Arbitrary threshold for complexity
-            # Break into assumed steps if long prompt
-            return [f"Step {i+1}: {part}" for i, part in enumerate(prompt.split(".")) if part.strip()]
-        return [prompt]
-
-    def _execute_subtasks(self, subtasks: List[str], context: Dict[str, Any]) -> str:
-        """Execute a series of subtasks and track progress."""
-        results = []
-        for i, subtask in enumerate(subtasks, 1):
-            # Notify UI – step start
-            if self.status_callback:
-                try:
-                    self.status_callback({
-                        "type": "step_start",
-                        "data": {
-                            "index": i - 1,
-                            "step": {"description": subtask, "tool_name": "AUTO", "arguments": {}},
-                        },
-                    })
-                except Exception:
-                    self.logger.exception("Status callback failed for step_start")
-
-            self.logger.info(f"Executing subtask {i}/{len(subtasks)}: {subtask}")
-            result = self._delegate_task(subtask, context)
-            results.append(f"Subtask {i} - {subtask}: {result}")
-
-            # Notify UI – step end
-            if self.status_callback:
-                status_flag = "success" if not result.lower().startswith("failed") else "error"
-                try:
-                    self.status_callback({
-                        "type": "step_end",
-                        "data": {
-                            "index": i - 1,
-                            "step": {"description": subtask},
-                            "status": status_flag,
-                            "result": result if status_flag == "success" else None,
-                            "error": None if status_flag == "success" else result,
-                        },
-                    })
-                except Exception:
-                    self.logger.exception("Status callback failed for step_end")
-
-            self.logger.info(f"[PROGRESS] Completed subtask {i}/{len(subtasks)}: {subtask}")
-        return "\n".join(results)
-
-    def _delegate_task(self, prompt: str, context: Dict[str, Any]) -> str:
-        """Delegate task to the appropriate agent based on task type."""
-        self.logger.info(f"Delegating task: {prompt}")
-        if any(term in prompt.lower() for term in ["browse", "open browser", "search online", "click", "web", "internet", "navigate", "close browser"]):
-            self.logger.info("Task identified as browser-related, delegating to BrowserAgent.")
-            if self._browser_agent:
-                return str(self._browser_agent.execute_task(prompt, context))
-            return "BrowserAgent is unavailable."
-        elif any(term in prompt.lower() for term in ["app", "application", "window", "script", "ui", "automation", "open app", "close app"]):
-            self.logger.info("Task identified as advanced application control, delegating to AdvancedApplicationAgent.")
-            if self._app_agent:
-                return str(self._app_agent.execute_task(prompt, context))
-            return "AdvancedApplicationAgent is unavailable."
-        elif any(term in prompt.lower() for term in ["remember", "recall", "memory", "past", "history", "previous", "store", "save"]):
-            self.logger.info("Task identified as memory-related, delegating to EnhancedMemoryManager.")
-            if self._memory_manager is not None:
-                return str(self._memory_manager.execute_task(prompt, context))
-            else:
-                return "Memory management functionality is not available."
-        else:
-            self.logger.info("Task not matched to specific agent, handling with default logic.")
-            return "Task executed with default logic."
-
-    def _handle_browser_goal(self, goal: str) -> bool:
-        """Handle browser-related goals."""
-        try:
-            if not self.agent_manager:
-                self.logger.error("Agent manager not available")
-                return False
-                
-            # Get browser agent
-            browser_agent = None
-            if hasattr(self.agent_manager, 'get_agent'):
-                browser_agent = self.agent_manager.get_agent("browser_agent")
-            elif hasattr(self.agent_manager, 'agents') and hasattr(self.agent_manager.agents, 'get'):
-                browser_agent = self.agent_manager.agents.get("browser_agent")
-                
-            if not browser_agent:
-                # Try to import browser agent directly
-                from agents.browser_agent import BrowserAgent
-                browser_agent = BrowserAgent()
-                
-            # Execute browser task
-            result = browser_agent.execute_task(goal, {})
-            self.logger.info(f"Browser agent result: {result}")
-            
-            # Consider successful if no error occurred
-            return bool(result and not ("error" in result.lower() or "failed" in result.lower()))
-            
-        except Exception as e:
-            self.logger.error(f"Error handling browser goal: {e}")
-            return False
-
-    def _handle_application_goal(self, goal: str) -> bool:
-        """Handle application control goals."""
-        try:
-            if not self.agent_manager:
-                self.logger.error("Agent manager not available")
-                return False
-                
-            # Get application agent
-            application_agent = None
-            if hasattr(self.agent_manager, 'get_agent'):
-                application_agent = self.agent_manager.get_agent("application_agent")
-            elif hasattr(self.agent_manager, 'agents') and hasattr(self.agent_manager.agents, 'get'):
-                application_agent = self.agent_manager.agents.get("application_agent")
-                
-            if not application_agent:
-                # Try to import application agent directly
-                from agents.application_agent import ApplicationAgent
-                application_agent = ApplicationAgent()
-                
-            # Execute application task
-            result = application_agent.execute_task(goal, {})
-            self.logger.info(f"Application agent result: {result}")
-            
-            # Consider successful if no error occurred
-            return bool(result and not ("error" in result.lower() or "failed" in result.lower()))
-            
-        except Exception as e:
-            self.logger.error(f"Error handling application goal: {e}")
-            return False
-
-    def _handle_advanced_application_goal(self, goal: str) -> bool:
-        """Handle advanced application control goals."""
-        try:
-            if not self.agent_manager:
-                self.logger.error("Agent manager not available")
-                return False
-                
-            # Get advanced application agent
-            advanced_app_agent = None
-            if hasattr(self.agent_manager, 'get_agent'):
-                advanced_app_agent = self.agent_manager.get_agent("advanced_application_agent")
-            elif hasattr(self.agent_manager, 'agents') and hasattr(self.agent_manager.agents, 'get'):
-                advanced_app_agent = self.agent_manager.agents.get("advanced_application_agent")
-                
-            if not advanced_app_agent:
-                # Try to import advanced application agent directly
-                from agents.advanced_application_agent import AdvancedApplicationAgent
-                advanced_app_agent = AdvancedApplicationAgent()
-                
-            # Execute advanced application task
-            result = advanced_app_agent.execute_task(goal, {})
-            self.logger.info(f"Advanced application agent result: {result}")
-            
-            # Consider successful if no error occurred
-            return bool(result and not ("error" in result.lower() or "failed" in result.lower()))
-            
-        except Exception as e:
-            self.logger.error(f"Error handling advanced application goal: {e}")
-            return False
-
-    def _execute_objective_with_retries(self, objective: Dict[str, Any], max_retries: int = 3) -> bool:
-        """Executes an objective with retries on failure."""
-        current_goal = objective.get("goal", "")
-        self.logger.info(f"Executing objective: {current_goal}")
+    def execute_task(self, task: str) -> dict:
+        """Execute a task using appropriate tool."""
+        # Extract subtasks
+        subtasks = self.task_recognizer.extract_subtasks(task)
         
-        # Check for specialized agents based on goal content
-        goal_lower = current_goal.lower()
-        if any(term in goal_lower for term in ["browse", "web", "internet", "url", "website", "safari", "chrome", "firefox"]):
-            self.logger.info(f"Delegating browser goal to specialized agent: {current_goal}")
-            return self._handle_browser_goal(current_goal)
-        elif any(term in goal_lower for term in ["terminal", "command", "shell", "mouse", "keyboard", "clipboard", "launch app", "open app", "start app"]):
-            self.logger.info(f"Delegating application control goal to specialized agent: {current_goal}")
-            return self._handle_application_goal(current_goal)
-        # Default execution for other goals
-        for attempt in range(max_retries):
-            try:
-                self.logger.info(f"Attempt {attempt + 1} for default goal execution")
-                return True
-            except Exception as e:
-                self.logger.error(f"Error in default goal execution attempt {attempt + 1}: {e}")
-                if attempt == max_retries - 1:
-                    return False
-        return False
-
-    def _generate_strategic_plan(self, sub_goal: str) -> Dict[str, Any]:
-        """Generate a strategic plan for a single sub-goal.
-
-        Args:
-            sub_goal: The sub-goal text provided by the user or decomposition agent.
-
-        Returns:
-            A dictionary with a short description and a list of strategic steps. Each step is a
-            dictionary that, at minimum, contains a human-readable description of the objective.
-        """
-        try:
-            objectives: List[str] = self.strategic_planner.generate_strategic_plan(sub_goal)
-        except Exception as e:  # pragma: no cover – defensive fallback
-            self.logger.error(f"Strategic planner failed: {e}. Falling back to single objective.")
-            objectives = [sub_goal]
-
-        # Normalise into the structure expected by the executor.
-        steps = [
-            {
-                "description": objective,
-                "objective": objective,  # Preserve the raw objective for downstream planners
-            }
-            for objective in objectives
-        ]
+        # Prioritize subtasks
+        ordered_tasks = self.task_recognizer.prioritize_tasks(subtasks)
+        
+        results = []
+        for subtask in ordered_tasks:
+            task_type, params = self.recognize_task_type(subtask)
+            
+            if task_type == 'unknown':
+                results.append({"success": False, "error": "Could not recognize task type"})
+                continue
+                
+            if task_type == 'browser':
+                if 'url' in params:
+                    result = self.browser_tool.open_url(params['url'])
+                    results.append(result)
+                else:
+                    results.append({"success": False, "error": "No URL specified for browser task"})
+                    
+            elif task_type == 'email':
+                if 'search_terms' in params:
+                    # Handle security-related emails
+                    if params.get('security'):
+                        result = self.email_tool.search_emails(
+                            query=f"{params['search_terms']} security",
+                            categories=['security', 'account'],
+                            importance='high'
+                        )
+                        results.append(result)
+                    # Handle regular email search
+                    else:
+                        result = self.email_tool.search_emails(query=params['search_terms'])
+                        results.append(result)
+                else:
+                    results.append({"success": False, "error": "No search terms specified for email task"})
+                    
+        # Return combined results
         return {
-            "description": f"Strategic plan for: {sub_goal}",
-            "steps": steps,
+            "success": all(r.get('success', False) for r in results),
+            "results": results,
+            "errors": [r.get('error') for r in results if r.get('error')]
         }
 
-    def _generate_tactical_plan(self, strategic_step: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate a tactical plan for a single strategic step.
-
-        Args:
-            strategic_step: A dictionary element from the strategic plan list.
-
-        Returns:
-            A dictionary with a description and a list of tactical steps (each with at least
-            ``sub_goal`` and ``description`` keys).
-        """
-        objective: str = strategic_step.get("objective") or strategic_step.get("description", "")
-        if not objective:
-            return {"description": "No objective provided", "steps": []}
-
-        try:
-            plan: Dict[str, Any] = self.tactical_planner.generate_tactical_plan(objective)
-        except Exception as e:  # pragma: no cover
-            self.logger.error(f"Tactical planner failed: {e}. Using fallback plan.")
-            plan = {}
-
-        steps = plan.get("steps") if isinstance(plan, dict) else None
-        if not steps:
-            # Fallback: wrap the objective itself in a single tactical step.
-            steps = [
-                {
-                    "sub_goal": objective,
-                    "description": objective,
-                }
-            ]
-        return {
-            "description": plan.get("description", f"Tactical plan for: {objective}"),
-            "steps": steps,
-        }
+    def recognize_task_type(self, task: str) -> tuple[str, dict]:
+        """Recognize task type using TaskRecognizer."""
+        return self.task_recognizer.recognize_task_type(task)
 
     def _generate_operational_plan(self, tactical_step: Dict[str, Any]) -> Dict[str, Any]:
         """Generate an operational (executable) plan for a single tactical step.

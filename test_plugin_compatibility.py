@@ -47,7 +47,7 @@ def analyze_duplications():
         "browser_automation": {
             "components": [
                 "plugins/browser_plugin.py",
-                "plugins/web_browsing/plugin.py", 
+                "plugins/unified_browser/plugin.py", 
                 "tools/real_browser_tool.py",
                 "tools/web_browser_tool.py"
             ],

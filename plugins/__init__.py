@@ -17,14 +17,10 @@ from .base_plugin import (
     execute_plugin_command
 )
 
-from .gmail_plugin import GmailPlugin, register_gmail_plugin
-from .unified_browser_plugin import UnifiedBrowserPlugin, register_unified_browser_plugin
-
-# Auto-register built-in plugins
+# Register built-in plugins
 def register_builtin_plugins():
     """Register all built-in plugins."""
-    register_gmail_plugin()
-    register_unified_browser_plugin()
+    plugin_manager = get_plugin_manager()
 
 # Export main functions
 __all__ = [
@@ -36,7 +32,5 @@ __all__ = [
     'register_plugin',
     'set_active_provider',
     'execute_plugin_command',
-    'register_builtin_plugins',
-    'GmailPlugin',
-    'UnifiedBrowserPlugin'
+    'register_builtin_plugins'
 ]

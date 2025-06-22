@@ -106,7 +106,7 @@ class AgentManager:
                                 self._generated_tools.append(name)
                                 tool_load_end_time = time.perf_counter()
                                 duration = tool_load_end_time - tool_load_start_time
-                                metrics_manager.record_tool_load_time(name, duration)
+                                metrics_manager_instance.record_tool_load_time(name, duration)
                                 self.logger.info(f"Dynamically loaded and registered tool: '{name}' from {filename} in {duration:.4f}s")
                                 break
                 except (SyntaxError, ImportError, AttributeError, Exception) as e:
@@ -328,9 +328,7 @@ class AgentManager:
             self.add_tool("send_telegram", notif_manager.send_telegram, "Send a Telegram notification")
             self.add_tool("send_sms", notif_manager.send_sms, "Send an SMS notification")
 
-            #Web Browser tool
-            from tools.web_browser_tool import open_url
-            self.add_tool("open_url", open_url, "Open a URL in the default web browser")
+
 
             #Translation tool (for internal use, not exposed to user directly)
             from tools.translation_tool import create_translation_tool
