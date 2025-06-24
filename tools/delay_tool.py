@@ -3,82 +3,62 @@
 Delay Tool for adding pauses between actions
 """
 
-import time
+import asyncio
 import logging
 from typing import Dict, Any
+from .base_tool import BaseTool
 
-logger = logging.getLogger(__name__)
+class DelayTool(BaseTool):
+    """
+    Tool for adding controlled delays between actions (async, metadata, chaining).
+    """
+    name = "delay_tool"
+    description = "Adds controlled delays between actions for better execution."
+    capabilities = ["wait", "smart_wait", "progressive_wait"]
+    version = "2.0"
 
-class DelayTool:
-    """Tool for adding controlled delays between actions."""
-    
     def __init__(self):
-        self.name = "delay_tool"
-        self.description = "Adds controlled delays between actions for better execution"
-    
-    def wait(self, duration: float = 1.0, **kwargs) -> Dict[str, Any]:
+        super().__init__()
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    async def run(self, duration: float = 1.0, **kwargs) -> Dict[str, Any]:
         """
-        Wait for specified duration.
-        
-        Args:
-            duration: Duration to wait in seconds (default: 1.0)
-            
-        Returns:
-            Status of the delay operation
+        Async wait for specified duration.
         """
+        self.log_usage("wait", {"duration": duration})
         try:
-            logger.info(f"⏱️ Waiting for {duration} seconds...")
-            time.sleep(duration)
-            logger.info(f"✅ Delay completed ({duration}s)")
-            
+            await asyncio.sleep(duration)
             return {
                 "status": "success",
                 "message": f"Waited for {duration} seconds",
                 "duration": duration,
-                "timestamp": time.time()
             }
-            
         except Exception as e:
-            logger.error(f"❌ Delay failed: {e}")
             return {
                 "status": "error",
                 "message": f"Delay failed: {str(e)}",
                 "duration": duration,
-                "timestamp": time.time()
             }
-    
-    def smart_wait(self, action_type: str = "general", **kwargs) -> Dict[str, Any]:
+
+    async def smart_wait(self, action_type: str = "general", **kwargs) -> Dict[str, Any]:
         """
-        Smart wait with duration based on action type.
-        
-        Args:
-            action_type: Type of action ("browser", "search", "click", "general")
-            
-        Returns:
-            Status of the delay operation
+        Smart async wait with duration based on action type.
         """
-        # Define smart delays based on action type
         delays = {
-            "browser": 2.0,      # Browser operations need more time
-            "search": 1.5,       # Search operations need moderate time
-            "click": 0.5,        # Click operations need minimal time
-            "screenshot": 1.0,   # Screenshot operations need moderate time
-            "general": 1.0       # Default delay
+            "browser": 2.0,
+            "search": 1.5,
+            "click": 0.5,
+            "screenshot": 1.0,
+            "general": 1.0
         }
-        
         duration = delays.get(action_type, delays["general"])
-        return self.wait(duration)
-    
-    def progressive_wait(self, step_number: int = 1, **kwargs) -> Dict[str, Any]:
+        self.log_usage("smart_wait", {"action_type": action_type, "duration": duration})
+        return await self.run(duration)
+
+    async def progressive_wait(self, step_number: int = 1, **kwargs) -> Dict[str, Any]:
         """
-        Progressive wait that increases with step number.
-        
-        Args:
-            step_number: Current step number (1-based)
-            
-        Returns:
-            Status of the delay operation
+        Progressive async wait that increases with step number.
         """
-        # Progressive delay: 1s for step 1, 1.5s for step 2, 2s for step 3, etc.
-        duration = min(1.0 + (step_number - 1) * 0.5, 3.0)  # Cap at 3 seconds
-        return self.wait(duration) 
+        duration = min(1.0 + (step_number - 1) * 0.5, 3.0)
+        self.log_usage("progressive_wait", {"step_number": step_number, "duration": duration})
+        return await self.run(duration) 

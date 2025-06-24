@@ -7,7 +7,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from agents.agent_manager import AgentManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope
+from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
 from utils.llm_manager import LLMManager
 from utils.logger import get_logger
 
@@ -26,11 +26,35 @@ class OperationalPlanner:
     def generate_operational_plan(self, goal: str, context: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Takes a tactical goal and generates a JSON plan of tool commands using Chain-of-Thought.
+        If 'preferred_tool' is present in context and valid, instruct the LLM to use it as the first step.
         """
-        feedback_memories = self.memory_manager.search_memory(agent_type=MemoryScope.MASTER_AGENT, query=f"feedback related to goal: {goal}", limit=5)
-        knowledge_memories = self.memory_manager.search_memory(agent_type=MemoryScope.SYSTEM_KNOWLEDGE, query=f"general knowledge for: {goal}", limit=5)
+        preferred_tool = context.get('preferred_tool')
+        preferred_tool_instruction = ""
+        if preferred_tool and self.agent_manager:
+            if preferred_tool in self.agent_manager.get_tool_names():
+                preferred_tool_instruction = (
+                    f"\n**MANDATE:** The first step of your plan MUST use the tool '{preferred_tool}' if at all possible. "
+                    f"If it is not possible, explain why in your <thinking> block."
+                )
+                self.logger.info(f"[OperationalPlanner] Injected preferred_tool '{preferred_tool}' into planning prompt.")
+        
+        # Feedback memories (from MASTER_AGENT, FEEDBACK)
+        feedback_memories = self.memory_manager.search_memories_for_agent(
+            agent_type=MemoryScope.MASTER_AGENT,
+            memory_type=MemoryType.FEEDBACK,
+            query=f"feedback related to goal: {goal}",
+            n_results=5
+        )
+        # Knowledge memories (from SYSTEM_KNOWLEDGE)
+        knowledge_memories = self.memory_manager.search_memories(
+            query=f"general knowledge for: {goal}",
+            collection_names=[MemoryScope.SYSTEM_KNOWLEDGE.value],
+            n_results=5
+        )
 
         system_prompt = self._get_planning_prompt(goal, feedback_memories, knowledge_memories, context)
+        if preferred_tool_instruction:
+            system_prompt += preferred_tool_instruction
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": goal}]
 
         try:
@@ -61,9 +85,9 @@ class OperationalPlanner:
             self.logger.error(f"Plan generation failed: {e}", exc_info=True)
             return None
 
-    def _get_planning_prompt(self, goal: str, feedback: List[Dict[str, Any]], knowledge: List[Dict[str, Any]], context: Dict[str, Any]) -> str:
+    def _get_planning_prompt(self, goal: str, feedback: list, knowledge: list, context: Dict[str, Any]) -> str:
         """Constructs the system prompt for the planning LLM, incorporating Chain-of-Thought."""
-        tools_string = self.agent_manager.get_tools_string()
+        tools_string = self.agent_manager.get_tool_list_string() if self.agent_manager else ""
 
         feedback_context = "No feedback from past attempts."
         if feedback:

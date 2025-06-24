@@ -352,7 +352,7 @@ class AgentManager:
             self.logger.error(f"Error loading built-in tools: {e}", exc_info=True)
 
     def get_all_tools_details(self) -> List[Dict[str, Any]]:
-        """Returns a list of dictionaries with details about all tools (built-in and generated)."""
+        """Returns a list of dictionaries with details about all tools (built-in, generated, plugin, and superhuman)."""
         details = []
 
         #Add generated tools
@@ -441,6 +441,24 @@ class AgentManager:
             except Exception as e:
                 self.logger.warning(f"Error processing plugin tools for UI display: {e}")
 
+        # Add superhuman tools (creative, proactive, playful)
+        try:
+            from tools.creative_tool import CreativeTool
+            from tools.proactive_tool import ProactiveTool
+            from tools.playful_tool import PlayfulTool
+            superhuman_tools = [CreativeTool(), ProactiveTool(), PlayfulTool()]
+            for tool in superhuman_tools:
+                details.append({
+                    "name": tool.name,
+                    "doc": tool.__doc__ or tool.description,
+                    "file_path": f"tools/{tool.name}.py",
+                    "type": "superhuman",
+                    "source": "Atlas Superhuman Module",
+                    "capabilities": getattr(tool, "capabilities", []),
+                })
+        except Exception as e:
+            self.logger.warning(f"Could not load superhuman tools: {e}")
+
         #Debug: Print tool counts for troubleshooting
         generated_count = len([d for d in details if d["type"] == "generated"])
         builtin_count = len([d for d in details if d["type"] == "built-in"])
@@ -454,3 +472,45 @@ class AgentManager:
     def set_plugin_manager(self, plugin_manager):
         """Set the plugin manager after initialization to avoid circular dependency."""
         self.plugin_manager = plugin_manager
+
+    def parse_and_execute_request(self, request: str) -> Any:
+        """
+        Parse a user request and execute the appropriate tool chain for system/app control.
+        Uses simple rules/keywords for now.
+        Args:
+            request: User request as a string.
+        Returns:
+            Results of tool chain execution.
+        """
+        request_lower = request.lower()
+        tool_chain = []
+        # Simple rules for demo
+        if "mute" in request_lower:
+            tool_chain.append({"tool": "system_event", "args": {"event": "mute"}})
+        if "unmute" in request_lower:
+            tool_chain.append({"tool": "system_event", "args": {"event": "unmute"}})
+        if "sleep" in request_lower:
+            tool_chain.append({"tool": "system_event", "args": {"event": "sleep"}})
+        if "open" in request_lower:
+            # Try to extract app name
+            words = request_lower.split()
+            idx = words.index("open") if "open" in words else -1
+            if idx != -1 and idx+1 < len(words):
+                app = words[idx+1].capitalize()
+                tool_chain.append({"tool": "system_event", "args": {"event": "open_app", "app_name": app}})
+        if "set volume to" in request_lower:
+            try:
+                vol = int(request_lower.split("set volume to")[-1].split()[0])
+                tool_chain.append({"tool": "system_event", "args": {"event": "set_volume", "value": vol}})
+            except Exception:
+                pass
+        if not tool_chain:
+            return {"status": "error", "error": "Could not parse request or no matching tools."}
+        # Execute tool chain
+        results = []
+        for step in tool_chain:
+            tool_name = step["tool"]
+            args = step["args"]
+            result = self.execute_tool(tool_name, args)
+            results.append({"tool": tool_name, "args": args, "result": result})
+        return {"status": "success", "results": results}

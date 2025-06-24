@@ -152,3 +152,39 @@ For more details on development protocols and standards, see:
 - `.windsurf/rules/security_protocol.md`
 - `ORGANIZATION.md`
 - `LINTING.md`
+
+## Superhuman Tools
+
+### CreativeTool
+- **Purpose:** Chain other tools in creative ways to solve complex or open-ended tasks.
+- **Capabilities:** chain_tools, creative_workflows
+- **Example Workflow:** Screenshot → OCR → Translate → Search
+
+### ProactiveTool
+- **Purpose:** Monitor for triggers (e.g., repeated actions, idle time) and suggest or launch automations.
+- **Capabilities:** monitor_triggers, suggest_automations, auto_launch
+- **Example Workflow:** Detects user idle for 5 seconds, suggests automating a repeated task.
+
+### PlayfulTool
+- **Purpose:** Gamify routine tasks or add creative, playful outputs.
+- **Capabilities:** gamify_tasks, creative_outputs
+- **Example Workflow:** Inbox Zero Challenge – turns email cleanup into a game.
+
+## Superhuman Workflows (Demo Scenarios)
+
+- **Automated Multistep Task:**
+    - User clicks 'Screenshot → OCR → Translate' in the UI.
+    - Atlas takes a screenshot, extracts text, translates it, and displays the result.
+
+- **Proactive Automation:**
+    - Atlas detects the user is idle for 10 seconds.
+    - Suggests automating the last repeated action (e.g., opening three apps together).
+
+- **Gamified Productivity:**
+    - User launches 'Inbox Zero Challenge'.
+    - Atlas tracks email cleanup progress and celebrates when the inbox is empty.
+
+- **Custom Tool Chain:**
+    - User opens the Custom Tool Chain Composer.
+    - Builds a chain: Download file → Extract text → Summarize → Email summary.
+    - Atlas executes the chain and reports results.

@@ -111,6 +111,87 @@ class ToolRegistry:
             keywords=["generic", "execute", "task"],
             priority=999  # Lowest priority
         )
+        
+        # PDF extraction tool
+        self.register_tool(
+            name="extract_pdf_text",
+            category=ToolCategory.GENERIC,
+            description="Extract text from a PDF file.",
+            keywords=["pdf", "extract", "document", "text"],
+            priority=2
+        )
+        
+        # Summarization tool
+        self.register_tool(
+            name="summarize_text",
+            category=ToolCategory.GENERIC,
+            description="Summarize input text (first 3 sentences).",
+            keywords=["summarize", "summary", "text", "document"],
+            priority=2
+        )
+        
+        # Meme caption tool
+        self.register_tool(
+            name="add_meme_caption",
+            category=ToolCategory.GENERIC,
+            description="Overlay a caption on an image to create a meme.",
+            keywords=["meme", "caption", "image", "fun"],
+            priority=2
+        )
+        
+        # Save image tool
+        self.register_tool(
+            name="save_image",
+            category=ToolCategory.GENERIC,
+            description="Save a PIL image object to a file.",
+            keywords=["save", "image", "file", "picture"],
+            priority=2
+        )
+        
+        # Macro suggestion tool
+        self.register_tool(
+            name="macro_suggestion",
+            category=ToolCategory.GENERIC,
+            description="Suggest a macro (sequence of steps) based on recent user actions.",
+            keywords=["macro", "automation", "pattern", "suggestion"],
+            priority=2
+        )
+        
+        # AppleScript tool
+        self.register_tool(
+            name="run_applescript",
+            category=ToolCategory.GENERIC,
+            description="Run an AppleScript command for macOS app/system control.",
+            keywords=["applescript", "macos", "automation", "system", "app"],
+            priority=1
+        )
+        
+        # Automator/Shortcuts tool
+        self.register_tool(
+            name="run_automator_or_shortcut",
+            category=ToolCategory.GENERIC,
+            description="Trigger an Automator workflow or macOS Shortcut by name/path.",
+            keywords=["automator", "shortcut", "macos", "workflow", "automation"],
+            priority=1
+        )
+        
+        # Accessibility tool
+        self.register_tool(
+            name="accessibility_action",
+            category=ToolCategory.GENERIC,
+            description="Simulate a mouse click or keystroke using AppleScript (System Events).",
+            keywords=["accessibility", "click", "keystroke", "macos", "automation"],
+            priority=1
+        )
+        
+        # System events tool
+        self.register_tool(
+            name="system_event",
+            category=ToolCategory.GENERIC,
+            description="Query or trigger common macOS system events (sleep, mute, open app, etc).",
+            keywords=["system", "event", "macos", "sleep", "volume", "app", "automation"],
+            priority=1
+        )
     
     def register_tool(self, name: str, category: ToolCategory, description: str, 
                      keywords: List[str], priority: int = 1):

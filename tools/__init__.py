@@ -1,11 +1,13 @@
 """Atlas tools package.
 
 Core automation tools for screen capture, OCR, image recognition,
-mouse/keyboard control, clipboard management, and terminal operations.
+mouse/keyboard control, clipboard management, terminal operations, and creative chaining.
+
+Modernized tools support async execution, chaining, and rich metadata for creative workflows.
+Creative, proactive, and playful tool modules are included for superhuman and enjoyable automation.
 """
 
 from typing import Optional, List, Dict, Any, Tuple
-from googleapiclient.discovery import build
 import logging
 
 from .clipboard_tool import (
@@ -42,13 +44,32 @@ from .terminal_tool import (
     get_environment,
     kill_process,
 )
+from .base_tool import BaseTool
+from .delay_tool import DelayTool
+from .creative_tool import CreativeTool
+from .proactive_tool import ProactiveTool
+from .playful_tool import PlayfulTool
+from .pdf_extraction_tool import extract_pdf_text
+from .summarize_text_tool import summarize_text
+from .add_meme_caption_tool import add_meme_caption
+from .save_image_tool import save_image
+from .macro_suggestion_tool import macro_suggestion
+from .applescript_tool import run_applescript
+from .automator_shortcuts_tool import run_automator_or_shortcut
+from .accessibility_tool import accessibility_action
+from .system_events_tool import system_event
 
 # Unified Email Tool that provides access to all email functionality
 class EmailTool:
     """Unified email tool that provides access to all email functionality."""
     
-    def __init__(self, service: build):
+    def __init__(self, service):
         """Initialize EmailTool with Gmail service."""
+        # Import build only if needed for Gmail service
+        try:
+            from googleapiclient.discovery import build
+        except ImportError:
+            build = None  # Not needed unless using Gmail features
         self.service = service
         self.logger = logging.getLogger(__name__)
         self.analytics = EmailAnalytics(service)
@@ -135,4 +156,14 @@ __all__ = [
     "change_directory", "kill_process", "TerminalResult",
     #Email
     "EmailAnalytics", "EmailAutomation", "EmailFilter", "EmailTemplateManager", "EmailSignatureManager", "EmailTool",
+    "BaseTool", "DelayTool", "CreativeTool", "ProactiveTool", "PlayfulTool",
+    "extract_pdf_text",
+    "summarize_text",
+    "add_meme_caption",
+    "save_image",
+    "macro_suggestion",
+    "run_applescript",
+    "run_automator_or_shortcut",
+    "accessibility_action",
+    "system_event",
 ] 
