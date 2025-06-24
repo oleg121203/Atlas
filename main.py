@@ -1975,15 +1975,6 @@ class AtlasApp(ctk.CTk):
         except Exception as e:
             self.logger.error(f"Failed to save application state: {e}")
 
-    def _copy_input_text(self):
-        """Copies the selected text from the chat input to the clipboard."""
-        try:
-            selected_text = self.chat_input.get("sel.first", "sel.last")
-            self.clipboard_clear()
-            self.clipboard_append(selected_text)
-        except tk.TclError:
-            # No text selected, do nothing
-            pass
 
     def _create_chat_tab(self, tab):
         """Creates the interactive chat interface for user-Atlas communication."""
@@ -2091,51 +2082,6 @@ class AtlasApp(ctk.CTk):
         )
         self.clear_context_button.grid(row=0, column=8, padx=(5, 10), pady=5, sticky="e")
 
-        #Input frame
-        input_frame = ctk.CTkFrame(chat_frame)
-        input_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 10))
-        input_frame.grid_columnconfigure(0, weight=1)
-        input_frame.grid_rowconfigure(0, weight=1)
-
-        # Add top frame for input copy button
-        input_top_frame = ctk.CTkFrame(input_frame, height=30)
-        input_top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=2, pady=2)
-        input_top_frame.grid_columnconfigure(1, weight=1)
-
-        # Input copy button (small and subtle)
-        self.input_copy_button = ctk.CTkButton(
-            input_top_frame,
-            text="📋",
-            width=25,
-            height=25,
-            font=ctk.CTkFont(size=12),
-            fg_color="transparent",
-            text_color="gray50",
-            hover_color="gray30",
-            command=self._copy_input_text,
-        )
-        self.input_copy_button.grid(row=0, column=0, padx=5, pady=2, sticky="w")
-
-        #Chat input textbox
-        self.chat_input = ctk.CTkTextbox(input_frame, height=80, wrap="word")
-        self.chat_input.grid(row=1, column=0, sticky="ew", padx=(10, 5), pady=10)
-
-        #Enable formatting context menu for chat input
-        enable_formatting_context_menu(self.chat_input, self.chat_context_manager)
-
-        #Send button
-        self.send_button = ctk.CTkButton(
-            input_frame,
-            text="Send",
-            command=self._send_chat_message,
-            width=80,
-        )
-        self.send_button.grid(row=1, column=1, sticky="ns", padx=(5, 10), pady=10)
-
-        #Bind Enter key to send message (Ctrl+Enter for new line)
-        self.chat_input.bind("<Return>", self._on_enter_key)
-        self.chat_input.bind("<Control-Return>", self._on_ctrl_enter)
-
         #Add initial welcome message with context explanation
         welcome_message = """Hello! I'm Atlas, your AI assistant. 
 
@@ -2151,17 +2097,6 @@ The current mode will be shown above. How can I help you today?"""
 
         self.chat_view.add_message("assistant", welcome_message)
 
-    def _send_chat_message(self):
-        """Handles sending a chat message to Atlas."""
-        message = self.chat_input.get("1.0", "end").strip()
-        if not message:
-            return
-
-        #Clear the input
-        self.chat_input.delete("1.0", "end")
-
-        #Add user message to chat
-        self.chat_view.add_message("user", message)
 
         #Check if any LLM provider is available
         if not hasattr(self.master_agent, "llm_manager") or not self.master_agent.llm_manager:
@@ -2903,18 +2838,6 @@ Quick Start Guide:
 
 Ready to help! What would you like to accomplish? 🚀"""
 
-    def _on_enter_key(self, event):
-        """Handle Enter key press in chat input."""
-        #Send message on Enter (unless Shift is held)
-        if not (event.state & 0x1):  #Not Shift+Enter
-            self._send_chat_message()
-            return "break"  #Prevent default behavior
-        return None
-
-    def _on_ctrl_enter(self, event):
-        """Handle Ctrl+Enter for new line."""
-        self.chat_input.insert("insert", "\n")
-        return "break"
 
     def _toggle_auto_mode(self):
         """Toggle automatic mode detection on/off."""

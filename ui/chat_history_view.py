@@ -10,6 +10,12 @@ import customtkinter as ctk
 from pygments import lex
 from pygments.lexers import get_lexer_by_name, guess_lexer
 
+# --- Voice recognition import (optional, handled gracefully) ---
+try:
+    import speech_recognition as sr
+except ImportError:
+    sr = None
+
 
 class ChatHistoryView(ctk.CTkFrame):
     """A frame that contains a single CTkTextbox for displaying chat history."""
@@ -23,39 +29,6 @@ class ChatHistoryView(ctk.CTkFrame):
         self.history: List[Dict[str, str]] = []
         self.compact_mode = True  # Default to compact mode
         self.max_compact_lines = 10  # Maximum lines to show in compact mode
-
-        # Add top copy button frame
-        self.top_copy_frame = ctk.CTkFrame(self, height=30)
-        self.top_copy_frame.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
-        self.top_copy_frame.grid_columnconfigure(1, weight=1)
-
-        # Top copy button (small and subtle)
-        self.top_copy_button = ctk.CTkButton(
-            self.top_copy_frame,
-            text="📋",
-            width=25,
-            height=25,
-            font=ctk.CTkFont(size=12),
-            fg_color="transparent",
-            text_color="gray50",
-            hover_color="gray30",
-            command=self._copy_all_chat,
-        )
-        self.top_copy_button.grid(row=0, column=0, padx=5, pady=2, sticky="w")
-
-        # Compact mode toggle button
-        self.compact_toggle_button = ctk.CTkButton(
-            self.top_copy_frame,
-            text="▼",
-            width=25,
-            height=25,
-            font=ctk.CTkFont(size=12),
-            fg_color="transparent",
-            text_color="gray50",
-            hover_color="gray30",
-            command=self._toggle_compact_mode,
-        )
-        self.compact_toggle_button.grid(row=0, column=1, padx=5, pady=2, sticky="w")
 
         self.textbox = ctk.CTkTextbox(self, wrap="word", state="disabled", font=("Helvetica", 13))
         self.textbox.grid(row=1, column=0, sticky="nsew")
@@ -78,6 +51,43 @@ class ChatHistoryView(ctk.CTkFrame):
             command=self._copy_all_chat,
         )
         self.bottom_copy_button.grid(row=0, column=1, padx=5, pady=2, sticky="e")
+
+        # --- Chat input area ---
+        self.input_frame = ctk.CTkFrame(self, height=40)
+        self.input_frame.grid(row=3, column=0, sticky="ew", padx=2, pady=2)
+        self.input_frame.grid_columnconfigure(1, weight=1)
+
+        # Voice input button (microphone) - left
+        self.voice_button = ctk.CTkButton(
+            self.input_frame,
+            text="🎤",
+            width=35,
+            height=35,
+            font=ctk.CTkFont(size=16),
+            fg_color="#e0e0e0",
+            text_color="black",
+            hover_color="#b0b0b0",
+            command=self._on_voice_input
+        )
+        self.voice_button.grid(row=0, column=0, padx=4, pady=2)
+
+        # Message entry field (single, only here)
+        self.message_entry = ctk.CTkEntry(self.input_frame, font=("Helvetica", 13))
+        self.message_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
+
+        # Send button - right
+        self.send_button = ctk.CTkButton(
+            self.input_frame,
+            text="Send",
+            width=50,
+            height=35,
+            font=ctk.CTkFont(size=13),
+            fg_color="#00A0E0",
+            text_color="white",
+            hover_color="#0077b6",
+            command=self._on_send_message
+        )
+        self.send_button.grid(row=0, column=2, padx=4, pady=2)
 
         # Add context menu support
         self._setup_context_menu()
@@ -141,15 +151,16 @@ class ChatHistoryView(ctk.CTkFrame):
         self.textbox.tag_config("markdown_bullet", foreground="#87CEEB")  # Sky blue for bullets
         self.textbox.tag_config("markdown_emoji", foreground="#FFA500")   # Orange for emojis
 
+        # Voice assistant plugin instance (lazy init)
+        self.voice_assistant = None
+
     def _toggle_compact_mode(self):
         """Toggle between compact and full view modes."""
         self.compact_mode = not self.compact_mode
         
         if self.compact_mode:
-            self.compact_toggle_button.configure(text="▼")
             self._apply_compact_view()
         else:
-            self.compact_toggle_button.configure(text="▲")
             self._apply_full_view()
 
     def _apply_compact_view(self):
@@ -402,3 +413,55 @@ class ChatHistoryView(ctk.CTkFrame):
         """Load chat history from a list of dictionaries."""
         self.history = history.copy()
         self._apply_full_view()
+
+    def _on_voice_input(self):
+        """Handle voice input button click: recognize speech, auto-send as message."""
+        if self.voice_assistant is None:
+            try:
+                from plugins.voice_assistant.plugin import VoiceAssistantPlugin
+                self.voice_assistant = VoiceAssistantPlugin()
+                self.voice_assistant.initialize()
+            except Exception as e:
+                print(f"[VoiceInput] Failed to initialize voice assistant: {e}")
+                return
+        self.voice_button.configure(text="⏳")
+        self.update_idletasks()
+        # Enhanced: use ambient noise adjustment and auto phrase end
+        result = self._listen_with_ambient_noise(timeout=8)
+        self.voice_button.configure(text="🎤")
+        if result.get("success") and "data" in result and "text" in result["data"]:
+            recognized = result["data"]["text"]
+            self.message_entry.delete(0, "end")
+            self.message_entry.insert(0, recognized)
+            # Auto-send after recognition
+            self._on_send_message()
+        else:
+            print(f"[VoiceInput] Error: {result.get('error')}")
+
+    def _listen_with_ambient_noise(self, timeout=8):
+        """Listen for speech with ambient noise adjustment and phrase end detection."""
+        try:
+            if not self.voice_assistant or not self.voice_assistant.is_initialized:
+                return {"success": False, "error": "Voice assistant not initialized"}
+            recognizer = self.voice_assistant.recognizer
+            microphone = self.voice_assistant.microphone
+            if not recognizer or not microphone or sr is None:
+                return {"success": False, "error": "Speech recognition not available"}
+            with microphone as source:
+                recognizer.adjust_for_ambient_noise(source, duration=1)
+                print("[VoiceInput] Listening with ambient noise adjustment...")
+                try:
+                    audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=timeout)
+                    text = recognizer.recognize_google(audio, language=self.voice_assistant.language)
+                    return {"success": True, "data": {"text": text}, "message": f"Recognized: {text}"}
+                except Exception as e:
+                    return {"success": False, "error": f"Speech recognition failed: {str(e)}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def _on_send_message(self):
+        """Handle send button click: get text from entry and add as user message."""
+        text = self.message_entry.get().strip()
+        if text:
+            self.add_message("user", text)
+            self.message_entry.delete(0, "end")
