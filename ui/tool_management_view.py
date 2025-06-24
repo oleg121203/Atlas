@@ -15,6 +15,7 @@ class ToolManagementView(ctk.CTkFrame):
     """A view to display and manage dynamically created tools."""
 
     def __init__(self, master, agent_manager: "AgentManager", **kwargs):
+        print("[LOG] ToolManagementView: __init__ called")
         super().__init__(master, **kwargs)
         self.agent_manager = agent_manager
 
@@ -61,7 +62,7 @@ class ToolManagementView(ctk.CTkFrame):
             return
 
         for i, tool in enumerate(tools):
-            tool_stats = usage_stats.get(tool.get("name"), {})
+            tool_stats = usage_stats.get(tool.get("name", ""), {})
             self._create_tool_entry(tool, i, tool_stats)
 
     def _edit_tool(self, file_path: str):
@@ -93,7 +94,7 @@ class ToolManagementView(ctk.CTkFrame):
             error_dialog.geometry("300x100")
             label = ctk.CTkLabel(error_dialog, text=f"Error reading file:\n{e}", wraplength=280)
             label.pack(expand=True, fill="both", padx=10, pady=10)
-            error_dialog.transient(self)
+            error_dialog.transient(self.winfo_toplevel())
             error_dialog.grab_set()
             return
 
@@ -110,7 +111,7 @@ class ToolManagementView(ctk.CTkFrame):
         textbox.insert("1.0", code_content)
         textbox.configure(state="disabled")
 
-        source_window.transient(self)
+        source_window.transient(self.winfo_toplevel())
         source_window.grab_set()
 
     def _show_tool_info(self, tool: Dict[str, Any]):
@@ -118,7 +119,7 @@ class ToolManagementView(ctk.CTkFrame):
         info_window = ctk.CTkToplevel(self)
         info_window.title(f"Tool Info: {tool['name']}")
         info_window.geometry("500x400")
-        info_window.transient(self)
+        info_window.transient(self.winfo_toplevel())
         info_window.grab_set()
 
         #Main frame

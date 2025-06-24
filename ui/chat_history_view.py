@@ -15,6 +15,7 @@ class ChatHistoryView(ctk.CTkFrame):
     """A frame that contains a single CTkTextbox for displaying chat history."""
 
     def __init__(self, master, **kwargs):
+        print("[LOG] ChatHistoryView: __init__ called")
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)

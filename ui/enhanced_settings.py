@@ -18,6 +18,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
     """Enhanced settings view with comprehensive configuration options."""
 
     def __init__(self, parent, config_manager=None, plugin_manager=None, save_callback: Optional[Callable] = None):
+        print("[LOG] EnhancedSettingsView: __init__ called")
         super().__init__(parent)
         self.config_manager = config_manager
         self.plugin_manager = plugin_manager

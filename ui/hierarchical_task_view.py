@@ -37,6 +37,7 @@ class HierarchicalTaskView(ctk.CTkFrame):
             master: Parent widget
             task_callback: Callback for task actions (action, task_id, data)
         """
+        print("[LOG] HierarchicalTaskView: __init__ called")
         super().__init__(master)
         self.task_callback = task_callback
         self.logger = get_logger(self.__class__.__name__)

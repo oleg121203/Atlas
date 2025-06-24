@@ -16,6 +16,7 @@ class StatusPanel(ctk.CTkFrame):
     """Enhanced real-time status display for Atlas agents."""
 
     def __init__(self, parent):
+        print("[LOG] StatusPanel: __init__ called")
         super().__init__(parent)
         self.status_data = {
             "agent_status": "Idle",
