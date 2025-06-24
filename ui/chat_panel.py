@@ -8,7 +8,7 @@ class ChatPanel(ctk.CTkFrame):
         if chat_input_panel is None:
             self.chat_input_panel = ChatInputPanel(self, self._on_send_message)
         else:
-            self.chat_input_panel = chat_input_panel
+        self.chat_input_panel = chat_input_panel
         self._build_ui()
 
     def _build_ui(self):

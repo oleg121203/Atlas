@@ -9,6 +9,9 @@ from utils.llm_manager import LLMManager
 from agents.memory_manager import MemoryManager
 from agents.token_tracker import TokenTracker
 from utils.config_manager import config_manager
+import subprocess
+import tempfile
+import os
 
 class MetaAgent:
     """
@@ -383,9 +386,39 @@ class MetaAgent:
             )
             self.logger.info(f"[MetaAgent] Saved user feedback: {feedback} for message: {message}") 
 
+    def apply_patch(self, file_path: str, patch: str) -> bool:
+        """
+        Apply a unified diff patch to a file using the 'patch' utility. Returns True if successful.
+        """
+        try:
+            with tempfile.NamedTemporaryFile('w', delete=False) as patch_file:
+                patch_file.write(patch)
+                patch_file_path = patch_file.name
+            # Run the patch command
+            result = subprocess.run(['patch', file_path, patch_file_path], capture_output=True, text=True)
+            os.unlink(patch_file_path)
+            if result.returncode == 0:
+                self.logger.info(f"[MetaAgent] Patch applied successfully to {file_path}.")
+                self.reasoning_log.append(f"Patch applied successfully to {file_path}.")
+                # Optionally reload the tool/module here
+                if hasattr(self.master_agent, 'agent_manager') and self.master_agent.agent_manager:
+                    self.master_agent.agent_manager.reload_generated_tools()
+                    self.logger.info(f"[MetaAgent] Reloaded generated tools after patch.")
+                    self.reasoning_log.append(f"Reloaded generated tools after patch.")
+                return True
+            else:
+                self.logger.warning(f"[MetaAgent] Failed to apply patch to {file_path}: {result.stderr}")
+                self.reasoning_log.append(f"Failed to apply patch to {file_path}: {result.stderr}")
+                return False
+        except Exception as e:
+            self.logger.error(f"[MetaAgent] Exception during patch application: {e}")
+            self.reasoning_log.append(f"Exception during patch application: {e}")
+            return False
+
     def propose_code_patch(self, file_path: str, problem_description: str):
         """
         Use ToolCreatorAgent (or LLM) to generate a code patch for a problematic file.
+        Automatically applies the patch and suggests further options if patching fails.
         """
         patch_prompt = (
             f"The file '{file_path}' has been identified as problematic due to: {problem_description}.\n"
@@ -397,11 +430,33 @@ class MetaAgent:
             patch = result.get('code')
             self.logger.info(f'[MetaAgent] Proposed code patch for {file_path}:\n{patch}')
             self.reasoning_log.append(f'Proposed code patch for {file_path}')
-            # (Optional) Apply patch automatically or ask user for approval (stub)
-            # self.apply_patch(file_path, patch)
+            # Apply patch automatically
+            if patch and self.apply_patch(file_path, patch):
+                self.logger.info(f'[MetaAgent] Patch applied and tool/module reloaded.')
+                self.reasoning_log.append(f'Patch applied and tool/module reloaded.')
+            else:
+                self.logger.warning(f'[MetaAgent] Patch application failed. Suggesting self-improvement options.')
+                self.reasoning_log.append(f'Patch application failed. Suggesting self-improvement options.')
+                self.suggest_self_improvement_options(file_path, problem_description)
         else:
             self.logger.warning(f'[MetaAgent] Failed to generate code patch for {file_path}')
             self.reasoning_log.append(f'Failed to generate code patch for {file_path}')
+            self.suggest_self_improvement_options(file_path, problem_description)
+
+    def suggest_self_improvement_options(self, file_path: str, problem_description: str):
+        """
+        Suggest further self-improvement options to the user or UI after failed patching.
+        """
+        options = [
+            'Try a different patch',
+            'Generate a new tool from scratch',
+            'Change strategy/plan',
+            'Request user input or custom patch',
+            'Skip and continue with alternatives'
+        ]
+        self.logger.info(f"[MetaAgent] Suggesting self-improvement options for {file_path}: {options}")
+        self.reasoning_log.append(f"Suggesting self-improvement options for {file_path}: {options}")
+        # Optionally, send these options to the UI for user confirmation/input
 
     # ... in achieve_goal, after repeated auto-fix or failure ...
     # Example usage (pseudo-code, to be integrated where needed):

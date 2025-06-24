@@ -92,4 +92,4 @@ class ChatInputPanel(ctk.CTkFrame):
         # Mac: Control+Click
         import platform
         if platform.system() == "Darwin":
-            entry.bind("<Control-Button-1>", show_menu) 
+            entry.bind("<Control-Button-1>", show_menu)
