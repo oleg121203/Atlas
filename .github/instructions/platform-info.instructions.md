@@ -1,24 +1,15 @@
----
-applyTo: '**'
----
-
 # Atlas Development Platform Instructions
 
-## Dual Development Environment
+## Unified Development Environment
 
-Atlas is developed using a dual-environment approach:
+Atlas uses a unified development approach for all platforms:
 
-### Primary Development (Linux)
-- **Platform**: Linux (Ubuntu/Codespaces)
-- **Python Version**: 3.12
-- **Purpose**: Core development, testing, CI/CD
-- **Environment**: Headless-compatible for cloud development
-
-### Target Platform (macOS)
-- **Platform**: macOS (Primary target deployment)
-- **Python Version**: 3.13
-- **Purpose**: Native macOS application deployment
-- **Environment**: Full GUI with native macOS integration
+### Universal Development Setup
+- **Platform**: Linux (development) / macOS (primary target)
+- **Python Version**: 3.12+ (recommended: 3.12.8)
+- **Purpose**: Cross-platform development and deployment
+- **Environment**: GUI-compatible with headless fallbacks
+- **Virtual Environment**: Single `venv` for all platforms
 
 ## Development Standards
 
@@ -35,12 +26,9 @@ import sys
 if sys.version_info < (3, 8):
     raise RuntimeError("Python 3.8+ required")
 
-# Use version-appropriate features
+# Use version-appropriate features for Python 3.12+
 if sys.version_info >= (3, 12):
-    # Use Python 3.12+ features for Linux dev
-    pass
-elif sys.version_info >= (3, 13):
-    # Use Python 3.13+ features for macOS
+    # Use Python 3.12+ features
     pass
 ```
 
@@ -49,13 +37,13 @@ elif sys.version_info >= (3, 13):
 #### Linux Development Environment
 - **Focus**: Core logic, algorithms, AI integration
 - **Testing**: Headless operation, CLI interface
-- **Dependencies**: `requirements-linux.txt`
+- **Dependencies**: `requirements.txt`
 - **Features**: Docker support, CI/CD compatibility
 
 #### macOS Target Environment  
 - **Focus**: Native GUI, system integration, user experience
 - **Testing**: Full GUI operation, native features
-- **Dependencies**: `requirements-macos.txt`
+- **Dependencies**: `requirements.txt` (with macOS-specific packages)
 - **Features**: Quartz API, Dock integration, native permissions
 
 ### File Structure Standards
@@ -65,9 +53,9 @@ Atlas/
 │   ├── platform_utils.py      # Cross-platform detection
 │   ├── macos_utils.py         # macOS-specific utilities
 │   └── linux_utils.py         # Linux development utilities
-├── requirements-linux.txt      # Linux (Python 3.12) deps
-├── requirements-macos.txt      # macOS (Python 3.13) deps
+├── requirements.txt            # Universal dependencies (Python 3.12+)
 ├── launch_macos.sh            # macOS native launcher
+├── venv/                      # Single virtual environment
 └── dev-tools/                 # Development utilities
 ```
 
@@ -107,19 +95,19 @@ except ImportError:
   - `MACOS_SETUP.md` (macOS-specific)
 
 ### Deployment Strategy
-1. **Development**: Linux environment with Python 3.12
+1. **Development**: Universal environment with Python 3.12+
 2. **Testing**: Both platforms for compatibility
-3. **Release**: macOS-optimized build with Python 3.13
+3. **Release**: Cross-platform optimized build
 4. **Distribution**: Native macOS application bundle
 
 ### Code Review Guidelines
 - Ensure cross-platform compatibility
-- Test on both Python 3.12 (Linux) and 3.13 (macOS)
+- Test on Python 3.12+ across platforms
 - Verify headless operation works on Linux
 - Confirm native features work on macOS
 - Check platform detection logic
 
-This dual-environment approach ensures robust development on Linux while delivering a native macOS experience.
+This unified approach ensures consistent development across platforms while maintaining native platform features.
 
 ## Windsurf AI Development Instructions
 
