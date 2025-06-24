@@ -101,7 +101,7 @@ pyasn1==0.6.1
 pyasn1_modules==0.4.2
 PyAutoGUI==0.9.54
 pydantic==2.11.7
-pydantic_core==2.33.2
+pydantic_core==2.35.1
 PyGetWindow==0.0.9
 Pygments==2.19.1
 PyMsgBox==1.0.9
