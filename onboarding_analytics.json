@@ -1,0 +1,31 @@
+[
+  {
+    "user_id": "user123",
+    "start_time": "2025-06-26T01:18:56.138619",
+    "steps": [
+      {
+        "step_name": "Welcome",
+        "timestamp": "2025-06-26T01:18:56.138644",
+        "completed": true,
+        "duration": 10.5,
+        "error": ""
+      },
+      {
+        "step_name": "Account Setup",
+        "timestamp": "2025-06-26T01:18:56.138649",
+        "completed": true,
+        "duration": 30.2,
+        "error": ""
+      },
+      {
+        "step_name": "Feature Tour",
+        "timestamp": "2025-06-26T01:18:56.138652",
+        "completed": false,
+        "duration": 15.0,
+        "error": "User closed window"
+      }
+    ],
+    "end_time": "2025-06-26T01:18:56.138655",
+    "completed_onboarding": false
+  }
+]

@@ -10,6 +10,8 @@ import json
 from typing import Optional, Dict, List, Any
 import logging
 from pathlib import Path
+import time
+import statistics
 
 import requests
 
@@ -18,6 +20,13 @@ from core.config import load_config
 
 # Set up logging
 logger = get_logger("AIIntegration")
+
+# Performance metrics storage
+_performance_metrics = {
+    'inference_times': {},
+    'success_rates': {},
+    'error_counts': {}
+}
 
 class AIIntegrationError(Exception):
     """Custom exception for AI integration errors."""
@@ -160,19 +169,30 @@ class AIModelManager:
             Any: Inference results
         """
         logger.info("Performing inference with model: %s", model_name)
+        start_time = time.time()
         model_config = self.get_model(model_name)
         if not model_config:
             raise AIIntegrationError(f"Model {model_name} not found")
         
         provider = model_config.get("provider", "")
-        if provider.lower() == "openai":
-            return self._infer_openai(model_config, input_data, context)
-        elif provider.lower() == "anthropic":
-            return self._infer_anthropic(model_config, input_data, context)
-        elif provider.lower() == "local":
-            return self._infer_local(model_config, input_data, context)
-        else:
-            raise AIIntegrationError(f"Unsupported provider {provider} for model {model_name}")
+        try:
+            if provider.lower() == "openai":
+                result = self._infer_openai(model_config, input_data, context)
+                _record_performance(model_name, start_time, True)
+                return result
+            elif provider.lower() == "anthropic":
+                result = self._infer_anthropic(model_config, input_data, context)
+                _record_performance(model_name, start_time, True)
+                return result
+            elif provider.lower() == "local":
+                result = self._infer_local(model_config, input_data, context)
+                _record_performance(model_name, start_time, True)
+                return result
+            else:
+                raise AIIntegrationError(f"Unsupported provider {provider} for model {model_name}")
+        except Exception as e:
+            _record_performance(model_name, start_time, False, str(e))
+            raise
     
     def _infer_openai(self, model_config: Dict, input_data: Any, context: Optional[Dict] = None) -> Any:
         """
@@ -423,6 +443,108 @@ Additional context:
         except json.JSONDecodeError:
             logger.warning("Could not parse automation response as JSON, returning raw text")
             return {"steps": [], "raw_response": response}
+
+def _record_performance(model_name: str, start_time: float, success: bool, error_message: str = None):
+    """
+    Record performance metrics for AI model inference.
+    
+    Args:
+        model_name: Name of the AI model
+        start_time: Start time of the inference
+        success: Whether the inference was successful
+        error_message: Error message if inference failed
+    """
+    duration = time.time() - start_time
+    
+    # Update inference times
+    if model_name not in _performance_metrics['inference_times']:
+        _performance_metrics['inference_times'][model_name] = []
+    _performance_metrics['inference_times'][model_name].append(duration)
+    
+    # Update success rates
+    if model_name not in _performance_metrics['success_rates']:
+        _performance_metrics['success_rates'][model_name] = {'success': 0, 'total': 0}
+    _performance_metrics['success_rates'][model_name]['total'] += 1
+    if success:
+        _performance_metrics['success_rates'][model_name]['success'] += 1
+    
+    # Update error counts
+    if not success:
+        if model_name not in _performance_metrics['error_counts']:
+            _performance_metrics['error_counts'][model_name] = {}
+        error_type = error_message.split(':')[0] if error_message else 'Unknown'
+        _performance_metrics['error_counts'][model_name][error_type] = _performance_metrics['error_counts'][model_name].get(error_type, 0) + 1
+    
+    logger.debug(f"Performance recorded for {model_name}: Duration={duration:.2f}s, Success={success}")
+
+def get_performance_report(model_name: str = None) -> Dict:
+    """
+    Generate a performance report for AI models.
+    
+    Args:
+        model_name: Optional specific model name to report on
+    
+    Returns:
+        Dict: Performance statistics for the specified model or all models
+    """
+    report = {}
+    models = [model_name] if model_name else _performance_metrics['inference_times'].keys()
+    
+    for model in models:
+        if model in _performance_metrics['inference_times']:
+            times = _performance_metrics['inference_times'][model]
+            success_data = _performance_metrics['success_rates'].get(model, {'success': 0, 'total': 0})
+            success_rate = success_data['success'] / success_data['total'] if success_data['total'] > 0 else 0
+            
+            report[model] = {
+                'average_time': statistics.mean(times) if times else 0,
+                'min_time': min(times) if times else 0,
+                'max_time': max(times) if times else 0,
+                'total_calls': len(times),
+                'success_rate': success_rate,
+                'errors': _performance_metrics['error_counts'].get(model, {})
+            }
+    
+    return report
+
+def optimize_model_selection(context: Dict) -> str:
+    """
+    Select the optimal AI model based on context and performance metrics.
+    
+    Args:
+        context: Context information including task type and requirements
+    
+    Returns:
+        str: Name of the optimal model to use
+    """
+    task_type = context.get('task_type', 'general')
+    performance_report = get_performance_report()
+    
+    # Default model selection logic
+    if task_type == 'code':
+        preferred_model = 'gpt-4-turbo'  # Known for strong coding capabilities
+    elif task_type == 'task_automation':
+        preferred_model = 'claude-3-opus'  # Strong in task planning
+    else:
+        preferred_model = 'gpt-4'
+    
+    # Adjust based on performance metrics if available
+    if performance_report:
+        best_model = None
+        best_score = -1
+        
+        for model, metrics in performance_report.items():
+            # Calculate a simple performance score (lower time, higher success rate = better)
+            score = metrics['success_rate'] / (metrics['average_time'] + 1)  # +1 to avoid division by zero
+            if score > best_score:
+                best_score = score
+                best_model = model
+        
+        if best_model and best_model != preferred_model:
+            logger.info(f"Optimized model selection: Using {best_model} instead of {preferred_model} based on performance")
+            return best_model
+    
+    return preferred_model
 
 # Global function to get the AI model manager instance
 def get_ai_model_manager(config_path: Optional[str] = None, environment: str = "dev") -> AIModelManager:

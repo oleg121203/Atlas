@@ -35,6 +35,7 @@ from core.event_bus import EventBus
 from core.agents.meta_agent import MetaAgent
 from core.module_registry import MODULE_REGISTRY, ModuleBase
 from core.feature_flags import is_feature_enabled
+from ui.theme_manager import ThemeManager
 
 from ui.input_validation import validate_ui_input, sanitize_ui_input, validate_form_data, sanitize_form_data
 
@@ -169,6 +170,8 @@ class AtlasMainWindow(QMainWindow):
         self._consent_manager_module = None
         self._decision_explanation_module = None
         self._user_management_module = None
+        self.theme_manager = ThemeManager(self)
+        self.theme_manager.themeChanged.connect(self.on_theme_changed)
         self._init_ui()
         logger.debug("AtlasMainWindow initialization completed")
 
@@ -538,3 +541,113 @@ class AtlasMainWindow(QMainWindow):
     def setup_basic_menu_bar(self):
         # Create basic menu bar
         pass
+
+    # Implementing UI enhancements for ASC-024
+    # Note: This is a placeholder for actual implementation code.
+    # In a real scenario, this would include updates to QMainWindow, navigation, sidebar, etc.
+    # based on the specifications in ui_design_specifications.md.
+
+    def load_theme(self):
+        """Load the theme stylesheet based on user preferences."""
+        # Use ThemeManager to apply the initial theme
+        self.theme_manager.apply_theme(self.theme_manager.get_current_theme())
+        logger.info("Initial theme applied via ThemeManager")
+
+    def on_theme_changed(self, stylesheet):
+        """Slot to handle theme changes.
+
+        Args:
+            stylesheet (str): The stylesheet to apply.
+        """
+        self.setStyleSheet(stylesheet)
+        logger.info("Theme stylesheet updated")
+
+    def setup_navigation(self):
+        """Setup the header navigation and sidebar based on design specs."""
+        # Header setup with gradient background
+        self.header = QWidget()
+        self.header.setObjectName("appHeader")
+        self.header_layout = QHBoxLayout()
+        self.header.setLayout(self.header_layout)
+        
+        # Logo placeholder
+        self.logo_label = QLabel()
+        self.logo_label.setObjectName("headerLogo")
+        self.logo_label.setText("Atlas")
+        self.header_layout.addWidget(self.logo_label)
+        
+        # Navigation tabs placeholder
+        self.nav_tabs = QTabBar()
+        self.nav_tabs.addTab("Home")
+        self.nav_tabs.addTab("Tasks")
+        self.nav_tabs.addTab("Chat")
+        self.nav_tabs.addTab("Plugins")
+        self.nav_tabs.addTab("Settings")
+        self.header_layout.addWidget(self.nav_tabs)
+        
+        # Stretch to push search bar to the right
+        self.header_layout.addStretch()
+        
+        # Search bar
+        self.search_bar = QLineEdit()
+        self.search_bar.setObjectName("searchBar")
+        self.search_bar.setPlaceholderText("Search Atlas...")
+        self.header_layout.addWidget(self.search_bar)
+        
+        # Add header to main layout
+        self.main_layout.addWidget(self.header)
+        
+        # Sidebar setup (collapsible)
+        self.sidebar = QWidget()
+        self.sidebar.setObjectName("sidebar")
+        self.sidebar_layout = QVBoxLayout()
+        self.sidebar.setLayout(self.sidebar_layout)
+        
+        # Sidebar toggle button
+        self.sidebar_toggle = QPushButton("◀")
+        self.sidebar_toggle.setObjectName("sidebarToggle")
+        self.sidebar_toggle.clicked.connect(self.toggle_sidebar)
+        self.sidebar_layout.addWidget(self.sidebar_toggle)
+        
+        # Sidebar items placeholder
+        self.sidebar_items = []
+        for item in ["My Tasks", "Team Tasks", "Completed"]:
+            btn = QPushButton(item)
+            btn.setObjectName("sidebarItem")
+            self.sidebar_items.append(btn)
+            self.sidebar_layout.addWidget(btn)
+        
+        self.sidebar_layout.addStretch()
+        
+        # Add sidebar to main layout (assuming a splitter or similar for main layout structure)
+        # TODO: Adjust based on actual main layout structure
+        # For now, assuming it's added as a separate widget
+        self.main_layout.addWidget(self.sidebar)
+        
+        # Breadcrumb placeholder
+        self.breadcrumb = QLabel("Home > Tasks > My Tasks")
+        self.breadcrumb.setObjectName("breadcrumb")
+        self.main_layout.addWidget(self.breadcrumb)
+        
+        logger.info("Navigation setup completed")
+        # TODO: Implement full styling and dynamic behavior as per specs
+
+    def toggle_sidebar(self):
+        """Toggle the sidebar visibility or width."""
+        # TODO: Implement actual collapse/expand logic with animation
+        if self.sidebar.width() > 60:
+            self.sidebar.setFixedWidth(60)  # Collapsed width
+            self.sidebar_toggle.setText("▶")
+        else:
+            self.sidebar.setFixedWidth(250)  # Expanded width
+            self.sidebar_toggle.setText("◀")
+        logger.info("Sidebar toggled")
+
+    def setup_accessibility(self):
+        """Setup accessibility features like high-contrast mode and text scaling."""
+        # TODO: Implement ARIA labels and keyboard navigation
+        # Placeholder for setting up focus policies and shortcuts
+        self.setFocusPolicy(Qt.StrongFocus)
+        logger.info("Accessibility features setup initiated")
+        # TODO: Implement high-contrast mode toggle via ThemeManager
+        # TODO: Implement text scaling based on user settings
