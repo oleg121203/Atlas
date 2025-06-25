@@ -47,7 +47,7 @@ except ImportError:
 
 #Try to import memory manager components
 try:
-    from agents.enhanced_memory_manager import MemoryScope, MemoryType
+    from modules.agents.enhanced_memory_manager import MemoryScope, MemoryType
     MEMORY_INTEGRATION_AVAILABLE = True
 except ImportError:
     MEMORY_INTEGRATION_AVAILABLE = False

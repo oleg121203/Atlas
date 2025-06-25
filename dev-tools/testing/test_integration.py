@@ -18,7 +18,7 @@ def test_creator_authentication():
     """Тестування системи аутентифікації творця"""
     print("🔐 Тестування CreatorAuthentication...")
 
-    from agents.creator_authentication import CreatorAuthentication
+    from modules.agents.creator_authentication import CreatorAuthentication
 
     auth = CreatorAuthentication()
 
@@ -52,7 +52,7 @@ def test_formatting_functions():
     """Тестування форматувальних функцій"""
     print("\n📝 Тестування форматувальних функцій...")
 
-    from agents.chat_context_manager import ChatContextManager
+    from modules.agents.chat_context_manager import ChatContextManager
 
     manager = ChatContextManager()
 

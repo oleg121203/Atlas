@@ -14,7 +14,7 @@ def test_translation_initialization():
     print("=" * 50)
 
     try:
-        from agents.chat_translation_manager import ChatTranslationManager
+        from modules.agents.chat_translation_manager import ChatTranslationManager
 
         #Тест 1: Initialization без LLM manager
         print("\n1. Тест ініціалізації без LLM manager:")
@@ -80,7 +80,7 @@ def test_language_detection_patterns():
     print("=" * 50)
 
     try:
-        from agents.chat_translation_manager import ChatTranslationManager
+        from modules.agents.chat_translation_manager import ChatTranslationManager
 
         translation_manager = ChatTranslationManager()
 

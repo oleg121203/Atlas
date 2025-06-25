@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-from agents.master_agent import MasterAgent
+from modules.agents.master_agent import MasterAgent
 from utils.llm_manager import LLMManager, LLMResponse
 
 

@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 # Import the class to test
-from agents.browser_agent import BrowserAgent
+from modules.agents.browser_agent import BrowserAgent
 
 class TestBrowserAgent(unittest.TestCase):
     def setUp(self):

@@ -54,7 +54,7 @@ def test_complete_system():
         #Тестуємо LLMManager з правильними ключами
         print("\n🤖 Тестування LLMManager...")
         try:
-            from agents.token_tracker import TokenTracker
+            from modules.agents.token_tracker import TokenTracker
             token_tracker = TokenTracker()
             llm_manager = LLMManager(token_tracker=token_tracker, config_manager=config_manager)
             print("    ✅ LLMManager створено успішно")

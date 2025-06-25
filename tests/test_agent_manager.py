@@ -3,8 +3,8 @@ import shutil
 import unittest
 from unittest.mock import MagicMock
 
-from agents.agent_manager import AgentManager
-from agents.memory_manager import MemoryManager
+from modules.agents.agent_manager import AgentManager
+from modules.agents.memory_manager import MemoryManager
 from utils.llm_manager import LLMManager
 
 

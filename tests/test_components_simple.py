@@ -10,8 +10,8 @@ print("🧪 Testing Atlas enhanced components (simplified)...")
 
 #Test imports
 try:
-    from agents.enhanced_deputy_agent import EnhancedDeputyAgent
-    from agents.enhanced_security_agent import EnhancedSecurityAgent
+    from modules.agents.enhanced_deputy_agent import EnhancedDeputyAgent
+    from modules.agents.enhanced_security_agent import EnhancedSecurityAgent
     from ui.enhanced_plugin_manager import EnhancedPluginManagerWindow
     from ui.enhanced_settings import EnhancedSettingsView
     from ui.goal_history import GoalHistoryManager

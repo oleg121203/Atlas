@@ -5,7 +5,7 @@ Demonstration script for the enhanced memory organization in Atlas
 
 import logging
 
-from agents.enhanced_memory_manager import (
+from modules.agents.enhanced_memory_manager import (
     EnhancedMemoryManager,
     MemoryScope,
     MemoryType,

@@ -8,12 +8,12 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.enhanced_memory_manager import (
+from modules.agents.enhanced_memory_manager import (
     EnhancedMemoryManager,
     MemoryScope,
     MemoryType,
 )
-from agents.token_tracker import TokenTracker
+from modules.agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager
 

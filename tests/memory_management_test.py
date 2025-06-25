@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QCoreApplication, QTimer
-from ui_qt.main_window import AtlasMainWindow
+from ui.main_window import AtlasMainWindow
 from utils.memory_management import MemoryManager
 from datetime import datetime, timedelta
 

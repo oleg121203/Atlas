@@ -18,7 +18,7 @@ sys.path.append(base_dir)
 sys.path.append(os.path.join(base_dir, 'core'))
 sys.path.append(os.path.join(base_dir, 'agents'))
 sys.path.append(os.path.join(base_dir, 'plugins'))
-sys.path.append(os.path.join(base_dir, 'ui_qt'))
+sys.path.append(os.path.join(base_dir, 'ui'))
 
 # Disable Posthog analytics to prevent segmentation fault
 os.environ['POSTHOG_DISABLED'] = '1'
@@ -29,8 +29,9 @@ def main():
         from PySide6.QtWidgets import QApplication
         import qdarkstyle
         
-        app = QApplication(sys.argv)
-        logger.debug("QApplication created successfully")
+        from core.application import AtlasApplication
+        app = AtlasApplication()
+        logger.debug("AtlasApplication created successfully")
         
         app.setStyleSheet(qdarkstyle.load_stylesheet())
         logger.debug("Stylesheet set successfully")
@@ -51,7 +52,7 @@ def main():
         dummy_meta_agent = DummyMetaAgent()
         logger.debug("DummyMetaAgent created successfully")
         
-        from ui_qt.main_window import AtlasMainWindow
+        from ui.main_window import AtlasMainWindow
         logger.debug("AtlasMainWindow imported successfully")
         
         window = AtlasMainWindow(meta_agent=dummy_meta_agent)
@@ -60,7 +61,7 @@ def main():
         window.show()
         logger.debug("AtlasMainWindow shown")
         
-        sys.exit(app.exec())
+        sys.exit(app.run())
     except Exception as e:
         logger.error(f"Atlas application failed: {str(e)}", exc_info=True)
         sys.exit(1)

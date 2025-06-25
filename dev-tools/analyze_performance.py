@@ -20,14 +20,14 @@ from performance_profiler import AtlasPerformanceProfiler, profile_operation
 
 # Try to import Atlas components
 try:
-    from agents.master_agent import MasterAgent
+    from modules.agents.master_agent import MasterAgent
 except ImportError:
     MasterAgent = None
 
 try:
-    from agents.planning.operational_planner import OperationalPlanner
-    from agents.planning.strategic_planner import StrategicPlanner
-    from agents.planning.tactical_planner import TacticalPlanner
+    from modules.agents.planning.operational_planner import OperationalPlanner
+    from modules.agents.planning.strategic_planner import StrategicPlanner
+    from modules.agents.planning.tactical_planner import TacticalPlanner
 except ImportError:
     StrategicPlanner = TacticalPlanner = OperationalPlanner = None
 

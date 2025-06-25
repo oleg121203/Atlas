@@ -46,7 +46,7 @@ def test_env_loading():
     #5. Тест LLMManager ініціалізації
     print("\n🤖 LLMManager ініціалізація:")
     try:
-        from agents.token_tracker import TokenTracker
+        from modules.agents.token_tracker import TokenTracker
         from utils.llm_manager import LLMManager
 
         token_tracker = TokenTracker()

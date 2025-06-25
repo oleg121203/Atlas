@@ -15,8 +15,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from unittest.mock import MagicMock, patch
 from utils.memory_management import MemoryManager
-from agents.self_learning_agent import SelfLearningAgent
-from agents.task_planner_agent import TaskPlannerAgent
+from modules.agents.self_learning_agent import SelfLearningAgent
+from modules.agents.task_planner_agent import TaskPlannerAgent
 
 class TestTaskPlannerAgent(unittest.TestCase):
     def setUp(self):

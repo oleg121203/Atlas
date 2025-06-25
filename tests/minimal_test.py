@@ -11,7 +11,7 @@ os.chdir("/Users/developer/Documents/Atlas")
 print("1. Тестую імпорти...")
 
 try:
-    from agents.token_tracker import TokenTracker
+    from modules.agents.token_tracker import TokenTracker
     print("✅ TokenTracker")
 except Exception as e:
     print(f"❌ TokenTracker: {e}")
@@ -29,13 +29,13 @@ except Exception as e:
     print(f"❌ ConfigManager: {e}")
 
 try:
-    from agents.enhanced_memory_manager import EnhancedMemoryManager
+    from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
     print("✅ EnhancedMemoryManager")
 except Exception as e:
     print(f"❌ EnhancedMemoryManager: {e}")
 
 try:
-    from agents.agent_manager import AgentManager
+    from modules.agents.agent_manager import AgentManager
     print("✅ AgentManager")
 except Exception as e:
     print(f"❌ AgentManager: {e}")
@@ -43,21 +43,21 @@ except Exception as e:
 print("\n2. Тестую створення компонентів...")
 
 try:
-    from agents.token_tracker import TokenTracker
+    from modules.agents.token_tracker import TokenTracker
     from utils.llm_manager import LLMManager
 
     token_tracker = TokenTracker()
     llm_manager = LLMManager(token_tracker)
     print("✅ LLMManager створено")
 
-    from agents.enhanced_memory_manager import EnhancedMemoryManager
+    from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
     from config_manager import ConfigManager
 
     config = ConfigManager()
     memory = EnhancedMemoryManager(llm_manager, config)
     print("✅ MemoryManager створено")
 
-    from agents.agent_manager import AgentManager
+    from modules.agents.agent_manager import AgentManager
     agent_manager = AgentManager(llm_manager, memory)
     print("✅ AgentManager створено")
 

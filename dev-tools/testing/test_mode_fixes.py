@@ -8,9 +8,9 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.chat_context_manager import ChatContextManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.token_tracker import TokenTracker
+from modules.agents.chat_context_manager import ChatContextManager
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager
 

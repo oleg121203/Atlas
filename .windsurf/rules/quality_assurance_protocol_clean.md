@@ -14,3 +14,6 @@ Ensures code quality and adherence to project architecture.
 6. **Performance**: for tools manipulating screen or input, measure latency; keep <100 ms.
 7. **Dependency Audit**: ensure `requirements.txt` remains minimal and pinned.
 8. **Review Cycle**: self-review code diff, update `CHANGELOG.md`, then proceed.
+9. **English-Only Code**: All code, variable names, function names, and comments must be in English.
+10. **Multilingual UI**: Ensure UI supports Ukrainian, Russian, and English languages.
+11. **macOS Optimization**: Optimize for Mac Studio M1 Max 32GB unified memory architecture.

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 
-from agents.master_agent import MasterAgent
+from modules.agents.master_agent import MasterAgent
 
 
 class TestFullWorkflow(unittest.TestCase):

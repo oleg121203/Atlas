@@ -11,7 +11,7 @@ try:
     sys.path.append(".")
 
     print("📥 Імпорт модулів...")
-    from agents.chat_context_manager import ChatMode
+    from modules.agents.chat_context_manager import ChatMode
     print("✅ Основні класи імпортовано")
 
     #Verification enum
@@ -20,7 +20,7 @@ try:
 
     #Тестування без memory_manager
     print("📝 Створення ChatContextManager...")
-    from agents.chat_context_manager import ChatContextManager
+    from modules.agents.chat_context_manager import ChatContextManager
 
     #Creation без залежностей
     manager = ChatContextManager(memory_manager=None)

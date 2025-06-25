@@ -2,12 +2,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agents.agent_manager import AgentManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.master_agent import MasterAgent
-from agents.planning.operational_planner import OperationalPlanner
-from agents.planning.strategic_planner import StrategicPlanner
-from agents.planning.tactical_planner import TacticalPlanner
+from modules.agents.agent_manager import AgentManager
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.master_agent import MasterAgent
+from modules.agents.planning.operational_planner import OperationalPlanner
+from modules.agents.planning.strategic_planner import StrategicPlanner
+from modules.agents.planning.tactical_planner import TacticalPlanner
 from intelligence.context_awareness_engine import ContextAwarenessEngine
 from utils.llm_manager import LLMManager
 

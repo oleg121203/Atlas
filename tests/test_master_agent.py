@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from agents.agent_manager import (
+from modules.agents.agent_manager import (
     AgentManager,
     InvalidToolArgumentsError,
     ToolNotFoundError,
 )
-from agents.master_agent import MasterAgent, PlanExecutionError
-from agents.memory_manager import MemoryManager
-from agents.tool_creator_agent import ToolCreatorAgent
+from modules.agents.master_agent import MasterAgent, PlanExecutionError
+from modules.agents.memory_manager import MemoryManager
+from modules.agents.tool_creator_agent import ToolCreatorAgent
 from intelligence.context_awareness_engine import ContextAwarenessEngine
 from utils.llm_manager import LLMManager
 

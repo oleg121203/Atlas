@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def test_security_protocols():
     """Тестуємо систему протоколів безпеки"""
     try:
-        from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
+        from modules.agents.encrypted_creator_protocols import EncryptedCreatorProtocols
 
         print("Тест 1: Створення екземпляра протоколів...")
         protocols = EncryptedCreatorProtocols()
@@ -52,7 +52,7 @@ def test_main_app_security():
     """Тестуємо перевірку безпеки в main.py без запуску GUI"""
     try:
         #Імітуємо клас AtlasApp без creation GUI
-        from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
+        from modules.agents.encrypted_creator_protocols import EncryptedCreatorProtocols
 
         print("Тест 5: Перевірка функції безпеки з main.py...")
 

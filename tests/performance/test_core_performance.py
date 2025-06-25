@@ -21,7 +21,7 @@ class TestCorePerformance:
                  patch("agents.master_agent.TokenTracker"), \
                  patch("intelligence.context_awareness_engine.ContextAwarenessEngine"):
 
-                from agents.master_agent import MasterAgent
+                from modules.agents.master_agent import MasterAgent
                 return MasterAgent(
                     config_manager=Mock(),
                     agent_manager=Mock(),
@@ -43,7 +43,7 @@ class TestCorePerformance:
                  patch("utils.llm_manager.anthropic"), \
                  patch("utils.llm_manager.groq"):
 
-                from agents.token_tracker import TokenTracker
+                from modules.agents.token_tracker import TokenTracker
                 from utils.llm_manager import LLMManager
 
                 llm_manager = LLMManager(
@@ -69,7 +69,7 @@ class TestCorePerformance:
         """Test memory storage and retrieval latency."""
         def memory_operations():
             with patch("agents.enhanced_memory_manager.chromadb"):
-                from agents.enhanced_memory_manager import (
+                from modules.agents.enhanced_memory_manager import (
                     EnhancedMemoryManager,
                     MemoryType,
                 )

@@ -43,7 +43,7 @@ except ImportError:
 
 #Try to import memory manager components
 try:
-    from agents.enhanced_memory_manager import MemoryScope, MemoryType
+    from modules.agents.enhanced_memory_manager import MemoryScope, MemoryType
     MEMORY_INTEGRATION_AVAILABLE = True
 except ImportError:
     MEMORY_INTEGRATION_AVAILABLE = False
@@ -820,7 +820,7 @@ def register(llm_manager=None, atlas_app=None, **kwargs):
                 if hasattr(agent_manager, "memory_manager"):
                     memory_manager = agent_manager.memory_manager
             else:
-                from agents.agent_manager import AgentManager
+                from modules.agents.agent_manager import AgentManager
                 agent_manager = AgentManager.get_instance()
                 if agent_manager and hasattr(agent_manager, "memory_manager"):
                     memory_manager = agent_manager.memory_manager

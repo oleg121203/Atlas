@@ -18,7 +18,7 @@ def test_creator_system_integration():
 
     try:
         #Імпортуємо компоненти
-        from agents.creator_authentication import (
+        from modules.agents.creator_authentication import (
             CreatorAuthentication,
             CreatorIdentityLevel,
         )
@@ -135,7 +135,7 @@ def test_protocol_security():
     print("-" * 50)
 
     try:
-        from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
+        from modules.agents.encrypted_creator_protocols import EncryptedCreatorProtocols
 
         #Створюємо протоколи без аутентифікації
         protocols = EncryptedCreatorProtocols()

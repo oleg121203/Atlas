@@ -1,8 +1,8 @@
 import unittest
 import time
 from unittest.mock import MagicMock
-from agents.plugin_manager import PluginManager
-from agents.agent_manager import AgentManager
+from modules.agents.plugin_manager import PluginManager
+from modules.agents.agent_manager import AgentManager
 
 class PluginLoadTest(unittest.TestCase):
     def setUp(self):

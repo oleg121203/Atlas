@@ -3,7 +3,7 @@ import time
 from unittest.mock import MagicMock
 from PySide6.QtWidgets import QWidget, QApplication
 from PySide6.QtCore import QCoreApplication
-from ui_qt.main_window import AtlasMainWindow
+from ui.main_window import AtlasMainWindow
 
 class ModulePerformanceTest(unittest.TestCase):
     def setUp(self):

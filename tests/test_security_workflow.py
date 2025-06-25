@@ -10,7 +10,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from agents.security_agent import SecurityAgent
+from modules.agents.security_agent import SecurityAgent
 from utils.logger import LOG_FILE_PATH
 
 

@@ -54,9 +54,9 @@ def test_tool_loading():
     print("🛠️ Testing tool loading at startup...")
 
     try:
-        from agents.agent_manager import AgentManager
-        from agents.enhanced_memory_manager import EnhancedMemoryManager
-        from agents.token_tracker import TokenTracker
+        from modules.agents.agent_manager import AgentManager
+        from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+        from modules.agents.token_tracker import TokenTracker
         from config_manager import ConfigManager
         from utils.llm_manager import LLMManager
 
@@ -95,9 +95,9 @@ def test_chat_mode_detection():
     print("🗣️ Testing chat mode detection...")
 
     try:
-        from agents.chat_context_manager import ChatContextManager, ChatMode
-        from agents.enhanced_memory_manager import EnhancedMemoryManager
-        from agents.token_tracker import TokenTracker
+        from modules.agents.chat_context_manager import ChatContextManager, ChatMode
+        from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+        from modules.agents.token_tracker import TokenTracker
         from config_manager import ConfigManager
         from utils.llm_manager import LLMManager
 

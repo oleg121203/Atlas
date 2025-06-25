@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def test_with_damaged_protocols():
     """Тестуємо поведінку з пошкодженими протоколами"""
     try:
-        from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
+        from modules.agents.encrypted_creator_protocols import EncryptedCreatorProtocols
 
         print("Тест 1: Створення екземпляра з пошкодженими протоколами...")
 
@@ -46,7 +46,7 @@ def test_main_security_fail():
         print("Тест 3: Симуляція запуску Atlas з пошкодженими протоколами...")
 
         #Імітуємо функцію перевірки з main.py
-        from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
+        from modules.agents.encrypted_creator_protocols import EncryptedCreatorProtocols
 
         class DamagedProtocols(EncryptedCreatorProtocols):
             def _initialize_encrypted_protocols(self):

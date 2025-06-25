@@ -50,7 +50,7 @@ def diagnose_thinking_module():
 
     try:
         #Verification memory_manager
-        from agents.enhanced_memory_manager import MemoryScope, MemoryType
+        from modules.agents.enhanced_memory_manager import MemoryScope, MemoryType
         print("✅ enhanced_memory_manager доступний")
     except ImportError as e:
         issues_found.append(f"⚠️  enhanced_memory_manager недоступний: {e}")

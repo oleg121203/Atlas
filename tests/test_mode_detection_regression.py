@@ -8,7 +8,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.chat_context_manager import ChatContextManager, ChatMode
+from modules.agents.chat_context_manager import ChatContextManager, ChatMode
 
 
 def test_messages():

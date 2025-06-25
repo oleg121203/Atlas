@@ -11,9 +11,9 @@ from pathlib import Path
 #Add parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agents.chat_context_manager import ChatContext, ChatContextManager, ChatMode
-from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.enhanced_plugin_manager import EnhancedPluginManager
+from modules.agents.chat_context_manager import ChatContext, ChatContextManager, ChatMode
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.enhanced_plugin_manager import EnhancedPluginManager
 
 
 def test_chat_memory_isolation():

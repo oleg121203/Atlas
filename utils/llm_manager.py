@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 # Imports for LLM providers are deferred to improve startup performance.
 # OpenAI-specific types will be imported when needed
 
-from agents.token_tracker import TokenTracker, TokenUsage
+from modules.agents.token_tracker import TokenTracker, TokenUsage
 from utils.config_manager import config_manager as utils_config_manager
 
 # ---------------------------------------------------------------------------

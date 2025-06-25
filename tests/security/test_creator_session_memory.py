@@ -16,7 +16,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 import time
 from datetime import datetime
 
-from agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
+from modules.agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
 
 
 def test_session_data_persistence():

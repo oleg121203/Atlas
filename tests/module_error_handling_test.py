@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtCore import QCoreApplication
-from ui_qt.main_window import AtlasMainWindow
+from ui.main_window import AtlasMainWindow
 
 class ModuleErrorHandlingTest(unittest.TestCase):
     def setUp(self):

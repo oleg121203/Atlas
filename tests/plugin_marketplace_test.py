@@ -15,8 +15,8 @@ print(f"Current sys.path: {sys.path}")
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QCoreApplication
 try:
-    from ui_qt.main_window import AtlasMainWindow
-    from ui_qt.plugin_marketplace_module import PluginMarketplace
+    from ui.main_window import AtlasMainWindow
+    from ui.plugin_marketplace_module import PluginMarketplace
 except ImportError as e:
     print(f"Import error: {e}")
     raise

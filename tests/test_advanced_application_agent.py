@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from agents.advanced_application_agent import AdvancedApplicationAgent
+from modules.agents.advanced_application_agent import AdvancedApplicationAgent
 
 
 class TestAdvancedApplicationAgent(unittest.TestCase):

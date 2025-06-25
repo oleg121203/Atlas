@@ -10,8 +10,8 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.chat_context_manager import ChatContextManager, ChatMode
-from agents.chat_translation_manager import ChatTranslationManager
+from modules.agents.chat_context_manager import ChatContextManager, ChatMode
+from modules.agents.chat_translation_manager import ChatTranslationManager
 
 
 def test_ukrainian_chat_integration():

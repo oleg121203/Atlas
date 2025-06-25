@@ -16,9 +16,9 @@ def test_tools_loading():
     print("=" * 50)
 
     try:
-        from agents.agent_manager import AgentManager
-        from agents.memory_manager import EnhancedMemoryManager
-        from agents.token_tracker import TokenTracker
+        from modules.agents.agent_manager import AgentManager
+        from modules.agents.memory_manager import EnhancedMemoryManager
+        from modules.agents.token_tracker import TokenTracker
         from config_manager import ConfigManager
         from utils.llm_manager import LLMManager
 

@@ -8,8 +8,8 @@ import time
 from pathlib import Path
 from typing import Any, Dict
 
-from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.memory_manager import MemoryManager
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.memory_manager import MemoryManager
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager
 

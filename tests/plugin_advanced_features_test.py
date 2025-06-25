@@ -5,7 +5,7 @@ import sys
 
 # Ensure the parent directory is in the path for module imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from agents.plugin_manager import PluginManager
+from modules.agents.plugin_manager import PluginManager
 
 class PluginAdvancedFeaturesTest(unittest.TestCase):
     def setUp(self):

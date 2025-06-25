@@ -7,7 +7,7 @@ sys.path.append(base_dir)
 sys.path.append(os.path.join(base_dir, 'chat'))
 
 try:
-    from chat.chat_logic import ChatProcessor
+    from modules.chat.chat_logic import ChatProcessor
     print('Successfully imported ChatProcessor')
 except ImportError as e:
     print(f'Failed to import ChatProcessor: {e}')

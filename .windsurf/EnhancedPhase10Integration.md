@@ -9,7 +9,7 @@ Before executing ANY Phase 10 task, Windsurf MUST:
 ```bash
 # Auto-execute this setup sequence
 source .windsurf/INITIALIZATION.md commands
-python -c "import sys; print(f'Python: {sys.version}')"
+python -c "import sys; v=sys.version_info; assert (v.major==3 and v.minor==9 and v.micro==6), 'Python 3.9.6 required'; print('Python: 3.9.6 ✅')"
 python -c "import PySide6; print('PySide6: OK')" || pip install PySide6
 python -c "import ruff; print('Ruff: OK')" || pip install ruff
 python -c "import mypy; print('MyPy: OK')" || pip install mypy

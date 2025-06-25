@@ -63,7 +63,7 @@ def test_llm_manager():
 
     try:
         #Import necessary modules
-        from agents.token_tracker import TokenTracker
+        from modules.agents.token_tracker import TokenTracker
         from utils.llm_manager import LLMManager
 
         #Create instances

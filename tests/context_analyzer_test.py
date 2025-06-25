@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from unittest.mock import MagicMock, patch
 from utils.memory_management import MemoryManager
-from agents.context_analyzer import ContextAnalyzer
+from modules.agents.context_analyzer import ContextAnalyzer
 
 class TestContextAnalyzer(unittest.TestCase):
     def setUp(self):

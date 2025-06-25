@@ -9,7 +9,7 @@ Atlas is exclusively developed and optimized for:
 - **Memory**: 32GB unified memory with high bandwidth
 - **Operating System**: macOS
 - **Architecture**: ARM64 (Apple Silicon)
-- **Python Version**: 3.13.x
+- **Python Version**: 3.9.6
 
 ## Compatibility Status
 

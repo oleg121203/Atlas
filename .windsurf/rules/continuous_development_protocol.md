@@ -58,8 +58,26 @@ Purpose: guarantee that Atlas development never stalls until final release.
 
 ## Development Environment Standards
 
-All development MUST use platform-appropriate environments:
-- **macOS**: `venv-macos` with Python 3.13
-- **Linux**: `venv-linux` with Python 3.12
+All development MUST use the Mac Studio M1 Max 32GB optimized environment:
+- **Hardware**: Mac Studio M1 Max with 32GB RAM
+- **OS**: macOS
+- **Python**: 3.13.x (ARM64 native)
+- **Virtual Environment**: `venv-macos`
+- **Performance**: Optimized for Apple Silicon
+
+## Language Standards
+
+1. **English-Only Code**: All code, comments, documentation, and commit messages MUST be in English.
+   ```python
+   # ✅ CORRECT
+   def process_task(task_id: str) -> Task:
+       """Process the task with the given ID."""
+       return Task(task_id)
+   ```
+
+2. **Multilingual UI**: User interface must support all three languages:
+   - Ukrainian (default)
+   - Russian
+   - English
 
 Refer to `.windsurf/ENVIRONMENT_SETUP.md` for detailed setup instructions.

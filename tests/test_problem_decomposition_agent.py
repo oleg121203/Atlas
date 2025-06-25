@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from agents.problem_decomposition_agent import ProblemDecompositionAgent
+from modules.agents.problem_decomposition_agent import ProblemDecompositionAgent
 
 # Temporarily comment out the import due to missing LLMResponse
 # from utils.llm_manager import LLMManager

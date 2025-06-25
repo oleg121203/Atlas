@@ -3,8 +3,8 @@
 import unittest
 from typing import Any, Dict
 
-from agents.agent_manager import ToolNotFoundError
-from agents.master_agent import MasterAgent
+from modules.agents.agent_manager import ToolNotFoundError
+from modules.agents.master_agent import MasterAgent
 
 
 class _StubLLMManager:

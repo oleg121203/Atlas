@@ -23,9 +23,9 @@ mock_screenshot_module.capture_screen = mock_capture_screen
 sys.modules["tools.screenshot_tool"] = mock_screenshot_module
 
 # Now that mocks are in place, we can import our modules.
-from agents.chat_context_manager import ChatContextManager
-from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.token_tracker import TokenTracker
+from modules.agents.chat_context_manager import ChatContextManager
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager
 

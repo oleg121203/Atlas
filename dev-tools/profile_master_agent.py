@@ -9,13 +9,13 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 # Import necessary classes from the Atlas project
-from agents.agent_manager import AgentManager
-from agents.master_agent import MasterAgent
-from agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.agent_manager import AgentManager
+from modules.agents.master_agent import MasterAgent
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
 from intelligence.context_awareness_engine import ContextAwarenessEngine
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager
-from agents.token_tracker import TokenTracker
+from modules.agents.token_tracker import TokenTracker
 from utils.logger import get_logger
 
 def profile_master_agent():

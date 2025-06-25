@@ -17,7 +17,7 @@ def test_atlas_startup():
         print("Тест: Імпорт модулів Atlas...")
 
         #Імпортуємо необхідні модули
-        from agents.encrypted_creator_protocols import EncryptedCreatorProtocols
+        from modules.agents.encrypted_creator_protocols import EncryptedCreatorProtocols
         print("✅ Модуль протоколів імпортовано")
 
         #Перевіряємо протоколи

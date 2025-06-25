@@ -8,7 +8,7 @@ import sys
 sys.path.append("/workspaces/Atlas")
 
 try:
-    from agents.chat_context_manager import ChatContextManager
+    from modules.agents.chat_context_manager import ChatContextManager
 
     #Initialize the context manager
     manager = ChatContextManager()

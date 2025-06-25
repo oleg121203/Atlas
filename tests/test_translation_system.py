@@ -10,7 +10,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.chat_translation_manager import ChatTranslationManager
+from modules.agents.chat_translation_manager import ChatTranslationManager
 from tools.translation_tool import TranslationTool
 
 

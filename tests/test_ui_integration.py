@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from PySide6.QtWidgets import QApplication
 from plugins.base import PluginBase, PluginMetadata
 from plugins.plugin_registry import PluginRegistry
-from ui_qt.plugins_module import PluginsModule
+from ui.plugins_module import PluginsModule
 import logging
 
 # Configure logging for tests

@@ -7,7 +7,7 @@ import sys
 
 sys.path.append("/Users/dev/Documents/autoclicker")
 
-from agents.enhanced_memory_manager import (
+from modules.agents.enhanced_memory_manager import (
     EnhancedMemoryManager,
     MemoryScope,
     MemoryType,

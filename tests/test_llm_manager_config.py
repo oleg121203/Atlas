@@ -8,7 +8,7 @@ including provider/model validation and OpenAI key handling.
 
 import sys
 
-from agents.token_tracker import TokenTracker
+from modules.agents.token_tracker import TokenTracker
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager
 

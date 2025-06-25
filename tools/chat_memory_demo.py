@@ -18,13 +18,13 @@ from pathlib import Path
 #Add parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agents.chat_context_manager import (
+from modules.agents.chat_context_manager import (
     ChatContext,
     ChatContextManager,
     ChatMode,
     ModeControl,
 )
-from agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
 
 
 class ChatMemoryDemo:

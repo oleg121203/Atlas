@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import sys
 import os
 from PySide6.QtWidgets import QApplication
-from agents.plugin_manager import PluginManager
+from modules.agents.plugin_manager import PluginManager
 
 # Adjust the system path to include the project root directory for module imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

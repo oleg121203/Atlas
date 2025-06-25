@@ -9,7 +9,7 @@ sys.path.append("/workspaces/Atlas")
 
 def test_chat_improvements():
     try:
-        from agents.chat_context_manager import ChatContextManager, ChatMode
+        from modules.agents.chat_context_manager import ChatContextManager, ChatMode
         print("✅ Успішно імпортований ChatContextManager")
 
         #Initialization

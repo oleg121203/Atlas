@@ -42,8 +42,21 @@ Ensures code quality and adherence to project architecture.
 
 ## Environment Requirements
 
-All development MUST use the appropriate platform-specific virtual environment:
-- **macOS**: `venv-macos` (Python 3.13)
-- **Linux**: `venv-linux` (Python 3.12)
+All development MUST use the macOS Mac Studio M1 Max 32GB environment:
+- **Hardware**: Mac Studio M1 Max with 32GB unified memory
+- **OS**: macOS
+- **Python**: 3.13.x (ARM64 native)
+- **Virtual Environment**: `venv-macos`
+- **Native Frameworks**: PyObjC, Metal, CoreML
+
+## Language Quality Standards
+
+1. **English-Only Code**: All source code, comments, and documentation must be in English.
+   - Linters will enforce English naming conventions
+   - Automated checks for non-English code will run during pre-commit
+
+2. **Multilingual UI**: All user-facing strings must be available in Ukrainian, Russian, and English
+   - Automated checks for missing translations
+   - Default to Ukrainian when translation is unavailable
 
 See `.windsurf/ENVIRONMENT_SETUP.md` for detailed setup instructions.

@@ -15,7 +15,7 @@ def analyze_creator_session_management():
     print("=" * 60)
 
     try:
-        from agents.creator_authentication import CreatorAuthentication
+        from modules.agents.creator_authentication import CreatorAuthentication
 
         auth = CreatorAuthentication()
 
@@ -35,7 +35,7 @@ def analyze_creator_session_management():
 
         #Симулюємо активацію для перевірки привілеїв
         print("   Симулюємо аутентифікацію...")
-        from agents.creator_authentication import CreatorIdentityLevel
+        from modules.agents.creator_authentication import CreatorIdentityLevel
         auth.current_identity_level = CreatorIdentityLevel.VERIFIED_CREATOR
         auth.is_creator_session_active = True
         auth.current_session_id = "test_session"

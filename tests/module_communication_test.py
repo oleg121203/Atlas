@@ -2,8 +2,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtCore import QCoreApplication
-from ui_qt.main_window import AtlasMainWindow
-from ui_qt.module_communication import EVENT_BUS, publish_module_event
+from ui.main_window import AtlasMainWindow
+from ui.module_communication import EVENT_BUS, publish_module_event
 
 class ModuleCommunicationTest(unittest.TestCase):
     def setUp(self):

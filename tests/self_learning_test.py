@@ -15,7 +15,7 @@ import numpy as np
 # Ensure the parent directory is in the path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agents.self_learning_agent import SelfLearningAgent
+from modules.agents.self_learning_agent import SelfLearningAgent
 from utils.memory_management import MemoryManager
 
 class TestSelfLearningAgent(unittest.TestCase):

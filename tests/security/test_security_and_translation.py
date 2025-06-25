@@ -8,8 +8,8 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.chat_translation_manager import ChatTranslationManager
-from agents.creator_authentication import CreatorAuthentication
+from modules.agents.chat_translation_manager import ChatTranslationManager
+from modules.agents.creator_authentication import CreatorAuthentication
 
 
 def test_translation_completeness():

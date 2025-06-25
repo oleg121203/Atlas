@@ -12,7 +12,7 @@ sys.path.insert(0, os.getcwd())
 def test_english_only_processing():
     """Test that context manager only processes English keywords."""
     try:
-        from agents.chat_context_manager import ChatContextManager, ChatMode
+        from modules.agents.chat_context_manager import ChatContextManager, ChatMode
 
         print("🔍 Testing English-only Chat Context Manager...")
         print("=" * 60)

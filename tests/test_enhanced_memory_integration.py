@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from agents.enhanced_memory_manager import (
+from modules.agents.enhanced_memory_manager import (
     EnhancedMemoryManager,
     MemoryScope,
     MemoryType,

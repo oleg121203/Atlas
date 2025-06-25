@@ -6,7 +6,7 @@ from pathlib import Path
 # Add the parent directory to sys.path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
-from agents.master_agent import MasterAgent
+from modules.agents.master_agent import MasterAgent
 
 # Mock dependencies to isolate MasterAgent
 class _StubLLMManager:

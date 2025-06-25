@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from agents.master_agent import MasterAgent, PlanExecutionError
+from modules.agents.master_agent import MasterAgent, PlanExecutionError
 
 # Mock any missing attributes or methods if necessary
 # For now, we assume the test will handle missing attributes gracefully

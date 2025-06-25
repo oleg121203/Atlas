@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch
 
-from agents.application_agent import ApplicationAgent
+from modules.agents.application_agent import ApplicationAgent
 
 
 class TestApplicationAgent(unittest.TestCase):

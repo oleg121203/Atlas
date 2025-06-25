@@ -14,7 +14,7 @@ def test_task_manager():
         print("🧪 Тестую архітектуру Atlas TaskManager...")
 
         #Імпорт компонентів
-        from agents.task_manager import TaskManager, TaskPriority
+        from modules.agents.task_manager import TaskManager, TaskPriority
 
         print("✅ Всі компоненти імпортовано успішно!")
 

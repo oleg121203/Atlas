@@ -23,7 +23,7 @@ try:
     #Import the HelperSyncTellTool from the plugin
     from plugin import HelperSyncTellTool
 
-    from agents.enhanced_memory_manager import (
+    from modules.agents.enhanced_memory_manager import (
         EnhancedMemoryManager,
         MemoryScope,
         MemoryType,

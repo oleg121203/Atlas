@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
-from agents.plugin_manager import PluginManager
-from agents.agent_manager import AgentManager
+from modules.agents.plugin_manager import PluginManager
+from modules.agents.agent_manager import AgentManager
 
 class PluginEdgeCaseTests(unittest.TestCase):
     def setUp(self):

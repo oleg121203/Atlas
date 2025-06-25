@@ -2,9 +2,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from agents.enhanced_memory_manager import EnhancedMemoryManager
-from agents.planning.strategic_planner import StrategicPlanner
-from agents.token_tracker import TokenUsage
+from modules.agents.enhanced_memory_manager import EnhancedMemoryManager
+from modules.agents.planning.strategic_planner import StrategicPlanner
+from modules.agents.token_tracker import TokenUsage
 from utils.llm_manager import LLMManager
 
 

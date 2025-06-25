@@ -25,13 +25,26 @@ Ensures Atlas maintains robust security standards throughout development.
 
 ## Environment Security Standards
 
-Security testing MUST be performed in the appropriate environment:
-- **macOS**: `venv-macos` with security tools installed
-- **Linux**: `venv-linux` with security tools installed
+Security testing MUST be performed in the macOS Mac Studio M1 Max 32GB environment:
+- **Hardware**: Mac Studio M1 Max 32GB
+- **OS**: macOS
+- **Python**: 3.9.6 (ARM64 native)
+- **Virtual Environment**: `venv-macos`
 
 All security tests require:
 - `bandit` for security linting
 - `safety` for dependency vulnerability checking
 - `gitleaks` for secret detection
+- `osquery` for macOS-specific security monitoring
+
+## Language Security Standards
+
+1. **English Code Standard**: All security-critical code must be in English
+   - No non-English variable names or comments in security modules
+   - All security documentation must be in English with Ukrainian translations
+
+2. **Localization Security**: UI language files must be validated against injection attacks
+   - Sanitize all translated strings
+   - Use dedicated security functions for displaying localized content
 
 See `.windsurf/ENVIRONMENT_SETUP.md` for detailed security tool setup.
