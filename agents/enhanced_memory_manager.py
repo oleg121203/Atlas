@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import chromadb
-from chromadb import Client, Collection, EmbeddingFunction
+from chromadb import Client, Collection
 
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager

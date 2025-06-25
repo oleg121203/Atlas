@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QSlider, QHBoxLayout, QVBoxLayout, QStatusBar, QMessageBox, QToolTip
+from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QSlider, QHBoxLayout, QVBoxLayout, QStatusBar, QMessageBox
 from PySide6.QtCore import Qt
 
 class SystemControlModule(QWidget):

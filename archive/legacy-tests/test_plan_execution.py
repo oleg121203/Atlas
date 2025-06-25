@@ -9,7 +9,6 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from agents.hierarchical_plan_manager import HierarchicalPlanManager, TaskLevel, TaskStatus, HierarchicalTask
-from utils.logger import get_logger
 import time
 
 def test_plan_execution():

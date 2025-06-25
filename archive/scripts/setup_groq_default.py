@@ -5,7 +5,6 @@ Setup Groq as default provider for Atlas
 This script updates the Atlas configuration to use Groq as the default LLM provider.
 """
 
-import os
 import yaml
 from pathlib import Path
 

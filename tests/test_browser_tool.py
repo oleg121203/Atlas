@@ -1,7 +1,6 @@
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from tools.browser import BrowserTool
 from tools.browser.navigation import BrowserNavigation
 from tools.browser.interaction import BrowserInteraction

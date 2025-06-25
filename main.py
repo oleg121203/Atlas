@@ -2,7 +2,6 @@ import sys
 from PySide6.QtWidgets import QApplication
 from ui_qt.main_window import AtlasMainWindow
 import qdarkstyle
-from ui.system_control_panel import SystemControlPanel
 # --- Add agent imports ---
 from agents.token_tracker import TokenTracker
 from utils.llm_manager import LLMManager

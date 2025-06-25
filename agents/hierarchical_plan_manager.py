@@ -9,7 +9,6 @@ This module implements a three-level hierarchical planning system:
 Each level is displayed in the chat as thinking process and in the UI as manageable tasks.
 """
 
-import json
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -17,9 +16,8 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Callable
 
 from utils.logger import get_logger
-from .tool_registry import tool_registry, ToolCategory
-from .email_strategy_manager import email_strategy_manager, EmailAccessMethod
-from .adaptive_execution_manager import adaptive_execution_manager
+from .tool_registry import tool_registry
+from .email_strategy_manager import email_strategy_manager
 from .self_regeneration_manager import self_regeneration_manager
 
 

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QAction, QStackedWidget, QDockWidget, QWidget, QLabel, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QVBoxLayout, QFrame
+from PySide6.QtWidgets import QMainWindow, QToolBar, QAction, QStackedWidget, QDockWidget, QLabel, QComboBox, QLineEdit, QListWidget, QListWidgetItem
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtCore import Qt, QTimer, QSize
 from ui_qt.chat_module import ChatModule
@@ -13,17 +13,82 @@ from ui_qt.system_control_module import SystemControlModule
 from ui.self_improvement_center import SelfImprovementCenter
 
 class AtlasMainWindow(QMainWindow):
-    def __init__(self, meta_agent=None):
+    """Main window for Atlas application with cyberpunk styling.
+
+    Attributes:
+        sidebar (QToolBar): Vertical toolbar for navigation
+        topbar (QToolBar): Horizontal toolbar for controls
+        central (QStackedWidget): Main content area
+        right_panel (QDockWidget): Right-side statistics panel
+        modules (Dict[str, QWidget]): Application modules
+        plugin_manager (PluginManager): Plugin management system
+        search_results (QListWidget): Search results popup
+        search_box (QLineEdit): Global search input
+        lang_combo (QComboBox): Language selector
+    """
+
+    def __init__(self, meta_agent: Optional[Any] = None):
+        """Initialize the main window.
+
+        Args:
+            meta_agent: Optional meta agent instance
+        """
         super().__init__()
         self.setWindowTitle("Atlas — Cyberpunk Edition")
         self.resize(1400, 900)
 
-        # Sidebar (ToolBar)
+        # Initialize UI components
+        self._init_sidebar()
+        self._init_topbar()
+        self._init_central_area()
+        self._init_right_panel()
+        self._init_modules(meta_agent)
+        self._connect_signals()
+
+    def _init_sidebar(self) -> None:
+        """Initialize the sidebar toolbar."""
         self.sidebar = QToolBar(str(_("Sidebar")) or "")
         self.sidebar.setOrientation(Qt.Orientation.Vertical)
         self.sidebar.setMovable(False)
         self.sidebar.setIconSize(QSize(32, 32))
         self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.sidebar)
+
+    def _init_topbar(self) -> None:
+        """Initialize the top toolbar."""
+        self.topbar = QToolBar(str(_("Topbar")) or "")
+        self.topbar.setMovable(False)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.topbar)
+
+        # Language selector
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItem("English", "en")
+        self.lang_combo.addItem("Українська", "uk")
+        self.lang_combo.addItem("Русский", "ru")
+        self.lang_combo.currentIndexChanged.connect(self.change_language)
+        self.topbar.addWidget(self.lang_combo)
+
+        # Global search
+        self.search_box = QLineEdit()
+        placeholder = str(_("Search…")) or ""
+        self.search_box.setPlaceholderText(placeholder)
+        self.search_box.textChanged.connect(self.on_search_text_changed)
+        self.search_box.installEventFilter(self)
+        self.topbar.addWidget(self.search_box)
+
+        # Search results list
+        self.search_results = QListWidget()
+        self.search_results.setWindowFlags(Qt.WindowType.Popup)
+        self.search_results.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.search_results.setStyleSheet("""
+            background: #181c20;
+            color: #fff;
+            border: 1px solid #00fff7;
+            border-radius: 8px;
+            font-size: 15px;
+        """)
+        self.search_results.itemClicked.connect(self.on_search_result_clicked)
+        self.search_results.installEventFilter(self)
+        self.search_results.hide()
 
         # Topbar
         self.topbar = QToolBar(str(_("Topbar")) or "")
@@ -129,36 +194,50 @@ class AtlasMainWindow(QMainWindow):
         self.topbar.addAction(QAction(_("Theme"), self))
         self.topbar.addAction(QAction(_("Refresh"), self))
 
-    def _add_sidebar_action(self, text, key, emoji):
+    def _add_sidebar_action(self, text: str, key: str, emoji: str) -> None:
+        """Add a sidebar action with emoji and text.
+
+        Args:
+            text: Action text
+            key: Module key
+            emoji: Emoji icon
+        """
         action = QAction(QIcon(), f"{emoji} {str(text) if text is not None else ''}", self)
         action.setCheckable(True)
         action.triggered.connect(lambda: self.central.setCurrentWidget(self.modules[key]))
         self.sidebar.addAction(action)
 
-    def change_language(self):
+    def change_language(self) -> None:
+        """Change application language and update UI."""
         lang_code = self.lang_combo.currentData()
         set_language(lang_code)
-        # Оновити всі модулі та елементи UI
-        for m in self.modules.values():
-            if hasattr(m, 'update_ui'):
-                m.update_ui()
+
+        # Update all modules and UI elements
+        for module in self.modules.values():
+            if hasattr(module, 'update_ui'):
+                module.update_ui()
+
+        # Rebuild sidebar with translated labels
         self.sidebar.clear()
-        self._add_sidebar_action(_("Chat"), "chat", "💬")
-        self._add_sidebar_action(_("Agents"), "agents", "🤖")
-        self._add_sidebar_action(_("Tasks"), "tasks", "📋")
-        self._add_sidebar_action(_("Plugins"), "plugins", "🧩")
-        self._add_sidebar_action(_("Settings"), "settings", "⚙️")
-        self._add_sidebar_action(_("Stats"), "stats", "📊")
-        self._add_sidebar_action(_("System Control"), "system_control", "🖥️")
+        self._add_sidebar_action(str(_("Chat")) or "Chat", "chat", "💬")
+        self._add_sidebar_action(str(_("Agents")) or "Agents", "agents", "🤖")
+        self._add_sidebar_action(str(_("Tasks")) or "Tasks", "tasks", "📋")
+        self._add_sidebar_action(str(_("Plugins")) or "Plugins", "plugins", "🧩")
+        self._add_sidebar_action(str(_("Settings")) or "Settings", "settings", "⚙️")
+        self._add_sidebar_action(str(_("Stats")) or "Stats", "stats", "📊")
+        self._add_sidebar_action(str(_("System Control")) or "System Control", "system_control", "🖥️")
+        
         # Add sidebar action for Self-Improvement Center
         if "self_improvement" in self.modules:
-            self._add_sidebar_action(_("Self-Improvement"), "self_improvement", "🛠️")
+            self._add_sidebar_action(str(_("Self-Improvement")) or "Self-Improvement", "self_improvement", "🛠️")
+
+        # Rebuild topbar with translated labels
         self.topbar.clear()
         self.topbar.addWidget(self.lang_combo)
         self.topbar.addWidget(self.search_box)
-        self.topbar.addAction(QAction(_("Profile"), self))
-        self.topbar.addAction(QAction(_("Theme"), self))
-        self.topbar.addAction(QAction(_("Refresh"), self)) 
+        self.topbar.addAction(QAction(str(_("Profile")) or "Profile", self))
+        self.topbar.addAction(QAction(str(_("Theme")) or "Theme", self))
+        self.topbar.addAction(QAction(str(_("Refresh")) or "Refresh", self)) 
 
     def on_search_text_changed(self, text):
         if not text.strip():

@@ -3,7 +3,6 @@ Performance benchmarks for Atlas core components.
 Tests latency requirements (<100ms for screen/input tools).
 """
 
-import time
 from unittest.mock import Mock, patch
 
 import pytest

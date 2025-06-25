@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from .base_tool import BaseTool
 
 class ProactiveTool(BaseTool):

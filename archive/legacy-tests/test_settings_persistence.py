@@ -3,9 +3,6 @@
 Test script for settings persistence
 """
 
-import json
-import os
-from pathlib import Path
 from utils.config_manager import ConfigManager
 
 def test_settings_persistence():

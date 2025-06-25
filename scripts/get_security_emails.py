@@ -1,6 +1,5 @@
 import subprocess
 import json
-import time
 
 def get_security_emails():
     # AppleScript to get security emails

@@ -7,7 +7,6 @@ and the new real Gmail API integration.
 """
 
 import time
-import json
 
 def demo_simulation():
     """Demonstrate the old simulation approach."""

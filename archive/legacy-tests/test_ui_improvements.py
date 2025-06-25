@@ -7,11 +7,9 @@ Test script for UI improvements including:
 - Text formatting
 """
 
-import tkinter as tk
 import customtkinter as ctk
-from ui.context_menu import enable_context_menu, setup_context_menus_for_container
+from ui.context_menu import enable_context_menu
 from ui.chat_history_view import ChatHistoryView
-from agents.chat_context_manager import ChatContextManager
 
 def test_context_menu():
     """Test context menu functionality."""

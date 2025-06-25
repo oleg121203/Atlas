@@ -5,11 +5,10 @@ Automatically chooses between Gmail API and browser automation
 based on availability and requirements.
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 import logging
 from enum import Enum
 import os
-import json
 
 class EmailAccessMethod(Enum):
     """Available email access methods."""

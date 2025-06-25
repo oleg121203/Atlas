@@ -5,7 +5,6 @@ import time
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 from agents.tool_creator_agent import ToolCreatorAgent
-from monitoring.metrics_manager import metrics_manager
 from utils.llm_manager import LLMManager
 from utils.logger import get_logger
 
@@ -21,28 +20,54 @@ class InvalidToolArgumentsError(Exception):
 
 
 class AgentManager:
-    """Manages the registration, retrieval, and execution of agents and tools."""
+    """Manages the registration, retrieval, and execution of agents and tools.
 
-    def __init__(self, llm_manager: LLMManager, memory_manager: Union["MemoryManager", "EnhancedMemoryManager"], master_agent_update_callback: Optional[Callable] = None):
+    Attributes:
+        _agents (Dict[str, Any]): Registered agents
+        _tools (Dict[str, Dict[str, Any]]): Registered tools with their metadata
+        llm_manager (LLMManager): Language model manager
+        memory_manager (Union[MemoryManager, EnhancedMemoryManager]): Memory management system
+        master_agent_update_callback (Optional[Callable]): Callback for master agent updates
+        _generated_tools (List[str]): List of dynamically generated tools
+    """
+
+    def __init__(self, 
+                 llm_manager: LLMManager, 
+                 memory_manager: Union["MemoryManager", "EnhancedMemoryManager"], 
+                 master_agent_update_callback: Optional[Callable] = None):
+        """Initialize the AgentManager.
+
+        Args:
+            llm_manager (LLMManager): Language model manager
+            memory_manager (Union[MemoryManager, EnhancedMemoryManager]): Memory management system
+            master_agent_update_callback (Optional[Callable]): Callback for master agent updates
+        """
         self._agents: Dict[str, Any] = {}
-        self._tools: Dict[str, Callable] = {}
+        self._tools: Dict[str, Dict[str, Any]] = {}
         self.logger = get_logger()
         self.llm_manager = llm_manager
         self.memory_manager = memory_manager
         self.master_agent_update_callback = master_agent_update_callback
-        self.plugin_manager = None  #Will be set later to avoid circular dependency
+        self.plugin_manager: Optional[Any] = None  # Will be set later to avoid circular dependency
 
-        #Keep track of which tools are dynamically loaded
+        # Keep track of which tools are dynamically loaded
         self._generated_tools: List[str] = []
 
-        #Initialize and register the ToolCreatorAgent's create_tool method
-        self.tool_creator = ToolCreatorAgent(llm_manager=self.llm_manager, memory_manager=self.memory_manager)
-        self.add_tool("create_tool", self.tool_creator.create_tool, "Creates a new Python tool function from a description, saves it to a file, and makes it available for use.")
+        # Initialize and register the ToolCreatorAgent's create_tool method
+        self.tool_creator = ToolCreatorAgent(
+            llm_manager=self.llm_manager, 
+            memory_manager=self.memory_manager
+        )
+        self.add_tool(
+            "create_tool", 
+            self.tool_creator.create_tool, 
+            "Creates a new Python tool function from a description, saves it to a file, and makes it available for use."
+        )
 
-        #Load tools from the generated directory
+        # Load tools from the generated directory
         self.reload_generated_tools()
 
-        #Load built-in tools
+        # Load built-in tools
         self.load_builtin_tools()
 
     @property
@@ -130,20 +155,36 @@ class AgentManager:
         """Return a registered agent by name or *None* if not present (legacy helper)."""
         return self._agents.get(name)
 
-    def add_tool(self, name: str, tool_function: Callable, description: str = None, silent_overwrite: bool = False) -> None:
-        """Registers a new tool function."""
+    def add_tool(self, 
+                 name: str, 
+                 tool_function: Callable, 
+                 description: Optional[str] = None, 
+                 silent_overwrite: bool = False) -> None:
+        """Registers a new tool function.
+
+        Args:
+            name (str): Tool name
+            tool_function (Callable): Tool implementation function
+            description (Optional[str]): Tool description
+            silent_overwrite (bool): Whether to silently overwrite existing tool
+        """
         if name in self._tools:
             if not silent_overwrite:
                 self.logger.warning(f"Tool '{name}' is already registered. It will be overwritten.")
 
-        #Store the function and its description (or docstring)
-        if description:
-            doc = description
-        else:
-            doc = inspect.getdoc(tool_function)
+        # Store the function and its description (or docstring)
+        doc = description or inspect.getdoc(tool_function) or "No description available"
 
-        self._tools[name] = {"function": tool_function, "doc": doc}
+        self._tools[name] = {
+            "function": tool_function,
+            "doc": doc,
+            "name": name
+        }
         self.logger.info(f"Registered tool: {name}")
+
+        # Notify master agent if callback is set
+        if self.master_agent_update_callback:
+            self.master_agent_update_callback()
 
     def get_tool_list_string(self) -> str:
         """Returns a formatted string of available tools and their docstrings for the LLM prompt."""
@@ -158,8 +199,22 @@ class AgentManager:
                 tool_docs.append(f"- {name}: No description available.")
         return "\n".join(tool_docs)
 
-    def execute_tool(self, tool_name: str, args: Dict[str, Any]) -> Any:
-        """Executes a specified tool with the given arguments."""
+    def execute_tool(self, 
+                 tool_name: str, 
+                 args: Dict[str, Any]) -> Any:
+        """Executes a specified tool with the given arguments.
+
+        Args:
+            tool_name (str): Name of the tool to execute
+            args (Dict[str, Any]): Arguments for the tool
+
+        Returns:
+            Any: Result of the tool execution
+
+        Raises:
+            ToolNotFoundError: If the tool is not found
+            InvalidToolArgumentsError: If arguments are invalid
+        """
         self.logger.info(f"Executing tool: {tool_name} with args: {args}")
         if tool_name not in self._tools:
             self.logger.error(f"Tool '{tool_name}' not found.")
@@ -170,11 +225,17 @@ class AgentManager:
         func_spec = inspect.getfullargspec(func)
 
         try:
-            #This is a basic check. For production, a more robust validation (e.g., with Pydantic) would be better.
-            for arg_name in args:
-                if arg_name not in func_spec.args:
-                    self.logger.warning(f"Argument '{arg_name}' is not a valid argument for tool '{tool_name}'.")
-            return func(**args)
+            # Validate arguments against function signature
+            if func_spec.args and not func_spec.varargs:
+                for arg_name in args:
+                    if arg_name not in func_spec.args:
+                        self.logger.warning(f"Argument '{arg_name}' is not a valid argument for tool '{tool_name}'.")
+                        raise InvalidToolArgumentsError(
+                            f"Argument '{arg_name}' is not a valid argument for tool '{tool_name}'"
+                        )
+            
+            result = func(**args)
+            return result
         except TypeError as e:
             self.logger.error(f"Invalid arguments for tool {tool_name}: {e}", exc_info=True)
             tool_doc = tool_info.get("doc", "No documentation available.")

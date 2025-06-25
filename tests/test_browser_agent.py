@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import MagicMock, patch
-import os
 
 # Import the class to test
 from agents.browser_agent import BrowserAgent

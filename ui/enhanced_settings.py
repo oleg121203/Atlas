@@ -440,7 +440,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                             self.after(0, lambda: self.connection_status_label.configure(
                                 text="Status: ❌ Ollama server not responding", text_color="red",
                             ))
-                    except Exception as e:
+                    except Exception:
                         self.after(0, lambda: self.connection_status_label.configure(
                             text=f"Status: ❌ Ollama error: {str(e)[:50]}", text_color="red",
                         ))
@@ -561,7 +561,7 @@ class EnhancedSettingsView(ctk.CTkFrame):
                         self.after(0, lambda: self.ollama_status_label.configure(
                             text="Ollama: API error", text_color="red",
                         ))
-                except Exception as e:
+                except Exception:
                     self.after(0, lambda: self.ollama_status_label.configure(
                         text=f"Ollama: Error - {str(e)[:30]}...", text_color="red",
                     ))

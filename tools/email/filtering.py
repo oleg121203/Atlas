@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional, Tuple, Any
 import logging
 import re
-from datetime import datetime, timedelta
 from googleapiclient.discovery import build
 
 class EmailFilter:

@@ -13,7 +13,7 @@ import time
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from agents.memory_manager import MemoryManager
+    pass
 
 from agents.agent_manager import AgentManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryType

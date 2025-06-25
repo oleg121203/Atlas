@@ -1,7 +1,7 @@
 """Tests for ApplicationAgent."""
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from agents.application_agent import ApplicationAgent
 

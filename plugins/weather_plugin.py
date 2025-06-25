@@ -1,5 +1,4 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QHBoxLayout
-from PySide6.QtCore import Qt
 import requests
 from plugins.base import PluginBase
 
@@ -46,7 +45,7 @@ class WeatherPlugin(PluginBase):
             # Get coordinates from Open-Meteo geocoding
             geo = requests.get(f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1").json()
             if not geo.get("results"):
-                self.weather_label.setText(f"Weather: city not found")
+                self.weather_label.setText("Weather: city not found")
                 return
             lat = geo["results"][0]["latitude"]
             lon = geo["results"][0]["longitude"]

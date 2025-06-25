@@ -12,7 +12,7 @@ import logging
 # Add the project root to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from agents.adaptive_execution_manager import adaptive_execution_manager, ExecutionStrategy
+from agents.adaptive_execution_manager import adaptive_execution_manager
 
 # Configure logging
 logging.basicConfig(

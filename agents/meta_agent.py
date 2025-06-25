@@ -134,8 +134,8 @@ class MetaAgent:
                         self.reasoning_log.append(f"Auto-fixed tool: {tool_name}")
                         if hasattr(self.master_agent, 'agent_manager') and self.master_agent.agent_manager:
                             self.master_agent.agent_manager.reload_generated_tools()
-                            self.logger.info(f"[MetaAgent] Reloaded generated tools after auto-fix.")
-                            self.reasoning_log.append(f"Reloaded generated tools after auto-fix.")
+                            self.logger.info("[MetaAgent] Reloaded generated tools after auto-fix.")
+                            self.reasoning_log.append("Reloaded generated tools after auto-fix.")
                     else:
                         self.logger.warning(f"[MetaAgent] Auto-fix failed for tool: {tool_name}")
                         self.reasoning_log.append(f"Auto-fix failed for tool: {tool_name}")
@@ -173,8 +173,8 @@ class MetaAgent:
             # Meta-reasoning: check if planned strategy matches a bad one
             planned_strategy = tuple(entry for entry in self.reasoning_log if entry.startswith('Step:'))
             if bad_strategies and planned_strategy in bad_strategies:
-                self.logger.warning(f"[MetaAgent] Planned strategy matches a known bad strategy. Requesting user input or skipping.")
-                self.reasoning_log.append(f"Planned strategy matches a known bad strategy. Requesting user input or skipping.")
+                self.logger.warning("[MetaAgent] Planned strategy matches a known bad strategy. Requesting user input or skipping.")
+                self.reasoning_log.append("Planned strategy matches a known bad strategy. Requesting user input or skipping.")
                 # Optionally, request user choice (stub)
                 user_choice = self.request_user_choice(options=['try anyway', 'choose different tool/strategy'], prompt="Planned strategy is known to fail. What should I do?")
                 if user_choice == 'choose different tool/strategy':
@@ -221,12 +221,12 @@ class MetaAgent:
                     tried_tools.add(new_tool)
             # Try alternative toolchains or strategies
             if len(tried_toolchains) < self.max_toolchain_variants:
-                self.logger.info(f"[MetaAgent] Trying alternative toolchain/strategy...")
-                self.reasoning_log.append(f"Trying alternative toolchain/strategy...")
+                self.logger.info("[MetaAgent] Trying alternative toolchain/strategy...")
+                self.reasoning_log.append("Trying alternative toolchain/strategy...")
                 self._try_alternative_toolchain(goal, current_context, tried_toolchains)
             else:
-                self.logger.warning(f"[MetaAgent] All toolchain variants exhausted.")
-                self.reasoning_log.append(f"All toolchain variants exhausted.")
+                self.logger.warning("[MetaAgent] All toolchain variants exhausted.")
+                self.reasoning_log.append("All toolchain variants exhausted.")
                 break
             time.sleep(1)  # Avoid tight loop
         self._store_reasoning_log(goal, "failure")
@@ -245,8 +245,8 @@ class MetaAgent:
             # Hot-reload generated tools so the new tool is available immediately
             if hasattr(self.master_agent, 'agent_manager') and self.master_agent.agent_manager:
                 self.master_agent.agent_manager.reload_generated_tools()
-                self.logger.info(f"[MetaAgent] Reloaded generated tools after tool creation.")
-                self.reasoning_log.append(f"Reloaded generated tools after tool creation.")
+                self.logger.info("[MetaAgent] Reloaded generated tools after tool creation.")
+                self.reasoning_log.append("Reloaded generated tools after tool creation.")
             if new_tool_name in tried_tools:
                 self.logger.info(f"[MetaAgent] Tool {new_tool_name} was already tried. Skipping retry.")
                 self.reasoning_log.append(f"Tool {new_tool_name} was already tried. Skipping retry.")
@@ -403,8 +403,8 @@ class MetaAgent:
                 # Optionally reload the tool/module here
                 if hasattr(self.master_agent, 'agent_manager') and self.master_agent.agent_manager:
                     self.master_agent.agent_manager.reload_generated_tools()
-                    self.logger.info(f"[MetaAgent] Reloaded generated tools after patch.")
-                    self.reasoning_log.append(f"Reloaded generated tools after patch.")
+                    self.logger.info("[MetaAgent] Reloaded generated tools after patch.")
+                    self.reasoning_log.append("Reloaded generated tools after patch.")
                 return True
             else:
                 self.logger.warning(f"[MetaAgent] Failed to apply patch to {file_path}: {result.stderr}")
@@ -432,11 +432,11 @@ class MetaAgent:
             self.reasoning_log.append(f'Proposed code patch for {file_path}')
             # Apply patch automatically
             if patch and self.apply_patch(file_path, patch):
-                self.logger.info(f'[MetaAgent] Patch applied and tool/module reloaded.')
-                self.reasoning_log.append(f'Patch applied and tool/module reloaded.')
+                self.logger.info('[MetaAgent] Patch applied and tool/module reloaded.')
+                self.reasoning_log.append('Patch applied and tool/module reloaded.')
             else:
-                self.logger.warning(f'[MetaAgent] Patch application failed. Suggesting self-improvement options.')
-                self.reasoning_log.append(f'Patch application failed. Suggesting self-improvement options.')
+                self.logger.warning('[MetaAgent] Patch application failed. Suggesting self-improvement options.')
+                self.reasoning_log.append('Patch application failed. Suggesting self-improvement options.')
                 self.suggest_self_improvement_options(file_path, problem_description)
         else:
             self.logger.warning(f'[MetaAgent] Failed to generate code patch for {file_path}')

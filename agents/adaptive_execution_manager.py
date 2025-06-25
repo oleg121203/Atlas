@@ -5,7 +5,7 @@ Automatically adapts execution strategy when goals are not achieved,
 with self-diagnosis and multiple fallback attempts.
 """
 
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, List, Optional
 import logging
 import time
 from enum import Enum

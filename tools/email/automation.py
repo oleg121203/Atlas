@@ -1,11 +1,9 @@
 from typing import Dict, Optional, List, Any
 import logging
-from googleapiclient.discovery import build
 import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 
 class EmailAutomation:
     def __init__(self, service: Any):

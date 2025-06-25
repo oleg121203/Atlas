@@ -1,10 +1,9 @@
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, Any
 import logging
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 class BrowserNavigation:
     def __init__(self, driver: webdriver.Chrome):

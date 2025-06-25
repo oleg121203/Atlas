@@ -9,12 +9,10 @@ This plugin provides comprehensive browser automation with multiple methods:
 5. Direct HTTP requests (final fallback)
 """
 
-import json
 import logging
 import os
-import time
 import subprocess
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

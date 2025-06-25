@@ -6,7 +6,6 @@ This script demonstrates the real Gmail integration functionality.
 It shows how Atlas can now perform actual email searches instead of simulations.
 """
 
-import json
 import time
 import sys
 import os

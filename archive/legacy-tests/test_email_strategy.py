@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.email_strategy_manager import email_strategy_manager, EmailAccessMethod
+from agents.email_strategy_manager import email_strategy_manager
 
 def test_email_strategy():
     """Test Email Strategy Manager functionality."""

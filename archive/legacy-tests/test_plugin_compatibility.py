@@ -6,11 +6,9 @@ This script tests the compatibility between plugins and tools,
 identifying duplications and conflicts.
 """
 
-import json
 import logging
 import sys
 import os
-from typing import Dict, List, Set
 
 # Add the project root to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -18,7 +16,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plugins import (
     get_plugin_manager,
     set_active_provider,
-    execute_plugin_command,
     register_builtin_plugins
 )
 

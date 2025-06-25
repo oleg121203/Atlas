@@ -9,7 +9,7 @@ import os
 import json
 import base64
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, Any
 from datetime import datetime, timedelta
 import re
 
@@ -173,7 +173,7 @@ class GmailTool:
                 try:
                     parsed_date = datetime.strptime(date, '%a, %d %b %Y %H:%M:%S %z')
                     formatted_date = parsed_date.strftime('%Y-%m-%d %H:%M')
-                except:
+                except ValueError:
                     formatted_date = date
                 
                 email_details.append({

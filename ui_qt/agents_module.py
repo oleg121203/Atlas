@@ -1,5 +1,4 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QInputDialog, QMessageBox, QFrame
-from PySide6.QtCore import Qt
 from ui_qt.i18n import _
 
 class AgentsModule(QWidget):

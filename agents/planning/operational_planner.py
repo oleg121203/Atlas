@@ -4,7 +4,7 @@ Defines the Operational Planner for translating tactical steps into executable c
 
 import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from agents.agent_manager import AgentManager
 from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType

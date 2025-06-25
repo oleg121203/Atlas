@@ -6,7 +6,6 @@ Test script for async UI updates to prevent blocking
 import customtkinter as ctk
 import threading
 import time
-import random
 from ui.hierarchical_task_view import HierarchicalTaskView
 
 def create_mock_plan_data(num_tasks=50):

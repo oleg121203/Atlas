@@ -7,7 +7,6 @@ This script tests that important settings fields are properly locked and can be 
 
 import sys
 import os
-import tkinter as tk
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.config_manager import ConfigManager

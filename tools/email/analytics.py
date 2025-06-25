@@ -1,10 +1,7 @@
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List
 import logging
-from datetime import datetime, timedelta
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 import re
-import base64
 
 class EmailAnalytics:
     def __init__(self, service: Any):

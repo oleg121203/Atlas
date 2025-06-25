@@ -4,12 +4,10 @@ Test script for tools and plugins verification in hierarchical planning
 """
 
 import customtkinter as ctk
-import threading
 import time
 from agents.hierarchical_plan_manager import HierarchicalPlanManager
 from utils.llm_manager import LLMManager
 from utils.config_manager import ConfigManager
-from agents.task_aware_master_agent import TaskAwareMasterAgent
 
 def create_mock_llm_manager():
     """Create a mock LLM manager for testing."""

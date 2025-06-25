@@ -4,7 +4,6 @@ Check current Atlas settings
 """
 
 from utils.config_manager import ConfigManager
-import os
 
 def check_settings():
     """Check current Atlas settings."""

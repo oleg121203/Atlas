@@ -6,8 +6,6 @@ Test script to verify that Atlas buttons are created correctly
 import sys
 import os
 import customtkinter as ctk
-import tkinter as tk
-from unittest.mock import MagicMock
 
 # Add the project root to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

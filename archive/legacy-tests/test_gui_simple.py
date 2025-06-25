@@ -3,10 +3,8 @@
 Simple GUI test to check if buttons are visible
 """
 
-import tkinter as tk
 import customtkinter as ctk
 import sys
-import os
 
 def test_gui():
     """Test basic GUI functionality with buttons"""

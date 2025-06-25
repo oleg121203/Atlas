@@ -4,10 +4,8 @@ Voice Assistant Plugin for Atlas
 This plugin provides voice recognition and text-to-speech capabilities.
 """
 
-import json
 import logging
 import threading
-import time
 from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)

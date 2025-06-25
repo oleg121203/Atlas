@@ -4,7 +4,6 @@ Simple test for scrolling functionality without problematic elements
 """
 
 import customtkinter as ctk
-import time
 
 def test_simple_scrolling():
     """Test basic scrolling with many items."""

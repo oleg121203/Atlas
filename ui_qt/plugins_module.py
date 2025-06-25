@@ -1,14 +1,31 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QMessageBox, QFrame
-from PySide6.QtCore import Qt
-from ui_qt.plugin_manager import PluginManager
 from ui_qt.i18n import _
 
 class PluginsModule(QWidget):
-    def __init__(self, parent=None):
+    """Plugin management module with cyberpunk styling.
+
+    Attributes:
+        plugin_manager: Plugin manager instance
+        tool_widgets: List of tool UI widgets
+        list: QListWidget for plugins
+        activate_btn: QPushButton for activating plugins
+        deactivate_btn: QPushButton for deactivating plugins
+        reload_btn: QPushButton for reloading plugins
+        tools_frame: QFrame for plugin tools
+        tools_layout: QVBoxLayout for tool widgets
+        title: QLabel for module title
+    """
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        """Initialize the plugins module.
+
+        Args:
+            parent: Parent widget
+        """
         super().__init__(parent)
         self.setObjectName("PluginsModule")
-        self.plugin_manager = None
-        self.tool_widgets = []
+        self.plugin_manager: Optional[PluginManager] = None
+        self.tool_widgets: List[QWidget] = []
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(12)
@@ -42,78 +59,172 @@ class PluginsModule(QWidget):
         self.tools_layout.setContentsMargins(0, 10, 0, 0)
         layout.addWidget(self.tools_frame)
 
-    def update_ui(self):
-        self.title.setText(_("🧩 Plugins"))
-        self.activate_btn.setText(_("Activate"))
-        self.deactivate_btn.setText(_("Deactivate"))
-        self.reload_btn.setText(_("Reload Plugins"))
+    def update_ui(self) -> None:
+        """Update UI elements with translated text."""
+        self.title.setText(str(_("🧩 Plugins")) or "🧩 Plugins")
+        self.activate_btn.setText(str(_("Activate")) or "Activate")
+        self.deactivate_btn.setText(str(_("Deactivate")) or "Deactivate")
+        self.reload_btn.setText(str(_("Reload Plugins")) or "Reload Plugins")
 
-    def set_plugin_manager(self, plugin_manager):
+    def set_plugin_manager(self, plugin_manager: PluginManager) -> None:
+        """Set the plugin manager instance.
+
+        Args:
+            plugin_manager: Plugin manager instance
+        """
         self.plugin_manager = plugin_manager
         self.update_plugins()
 
-    def update_plugins(self):
+    def update_plugins(self) -> None:
+        """Update the list of plugins in the UI.
+
+        Shows active/inactive status for each plugin.
+        """
         self.list.clear()
         if not self.plugin_manager:
             return
-        for name, plugin in self.plugin_manager.plugins.items():
-            status = _( "(active)") if plugin.active else _( "(inactive)")
-            self.list.addItem(f"{name} {status}")
-        self.update_tools()
 
-    def update_tools(self):
-        for w in self.tool_widgets:
-            w.setParent(None)
+        try:
+            for name, plugin in self.plugin_manager.plugins.items():
+                status = "(active)" if plugin.active else "(inactive)"
+                self.list.addItem(f"{name} {status}")
+            self.update_tools()
+        except Exception as e:
+            self.logger.error(f"Error updating plugins: {e}")
+
+    def update_tools(self) -> None:
+        """Update plugin tools in the UI.
+
+        Removes old tools and adds new ones from active plugins.
+        """
+        # Remove old tools
+        for widget in self.tool_widgets:
+            widget.setParent(None)
         self.tool_widgets.clear()
+
         if not self.plugin_manager:
             return
-        for name, plugin in self.plugin_manager.plugins.items():
+
+        # Add tools from active plugins
+        for plugin in self.plugin_manager.plugins.values():
             if plugin.active and hasattr(plugin, 'get_widget'):
-                widget = plugin.get_widget(self)
-                if widget:
-                    self.tools_layout.addWidget(widget)
-                    self.tool_widgets.append(widget)
+                try:
+                    widget = plugin.get_widget(self)
+                    if widget:
+                        self.tools_layout.addWidget(widget)
+                        self.tool_widgets.append(widget)
+                except Exception as e:
+                    self.logger.error(f"Error adding widget for plugin {plugin.name}: {e}")
+                    continue
 
-    def activate_plugin(self):
+    def activate_plugin(self) -> None:
+        """Activate the selected plugin.
+
+        Shows a warning if no plugin is selected.
+        """
         row = self.list.currentRow()
         if row >= 0 and self.plugin_manager:
-            name = self.list.item(row).text().split()[0]
-            self.plugin_manager.activate_plugin(name)
-            self.update_plugins()
+            try:
+                name = self.list.item(row).text().split()[0]
+                self.plugin_manager.activate_plugin(name)
+                self.update_plugins()
+            except Exception as e:
+                QMessageBox.warning(
+                    self,
+                    str(_("Error")) or "Error",
+                    f"{str(_('Failed to activate plugin:')) or 'Failed to activate plugin:'} {str(e)}"
+                )
         else:
-            QMessageBox.warning(self, _( "Activate Plugin"), _( "Select a plugin to activate."))
+            QMessageBox.warning(
+                self,
+                str(_("Activate Plugin")) or "Activate Plugin",
+                str(_("Select a plugin to activate.")) or "Select a plugin to activate."
+            )
 
-    def deactivate_plugin(self):
+    def deactivate_plugin(self) -> None:
+        """Deactivate the selected plugin.
+
+        Shows a warning if no plugin is selected.
+        """
         row = self.list.currentRow()
         if row >= 0 and self.plugin_manager:
-            name = self.list.item(row).text().split()[0]
-            self.plugin_manager.deactivate_plugin(name)
-            self.update_plugins()
+            try:
+                name = self.list.item(row).text().split()[0]
+                self.plugin_manager.deactivate_plugin(name)
+                self.update_plugins()
+            except Exception as e:
+                QMessageBox.warning(
+                    self,
+                    str(_("Error")) or "Error",
+                    f"{str(_('Failed to deactivate plugin:')) or 'Failed to deactivate plugin:'} {str(e)}"
+                )
         else:
-            QMessageBox.warning(self, _( "Deactivate Plugin"), _( "Select a plugin to deactivate."))
+            QMessageBox.warning(
+                self,
+                str(_("Deactivate Plugin")) or "Deactivate Plugin",
+                str(_("Select a plugin to deactivate.")) or "Select a plugin to deactivate."
+            )
 
-    def reload_plugins(self):
+    def reload_plugins(self) -> None:
+        """Reload all plugins.
+
+        Shows a message when complete.
+        """
         if self.plugin_manager:
-            self.plugin_manager.reload_all_plugins()
-            self.update_plugins()
-            QMessageBox.information(self, _( "Reload Plugins"), _( "All plugins reloaded."))
+            try:
+                self.plugin_manager.reload_all_plugins()
+                self.update_plugins()
+                QMessageBox.information(
+                    self,
+                    str(_("Reload Plugins")) or "Reload Plugins",
+                    str(_("All plugins reloaded.")) or "All plugins reloaded."
+                )
+            except Exception as e:
+                QMessageBox.warning(
+                    self,
+                    str(_("Error")) or "Error",
+                    f"{str(_('Failed to reload plugins:')) or 'Failed to reload plugins:'} {str(e)}"
+                )
 
-    def search(self, query):
-        """Повертає список словників: {'label': ім'я + опис, 'key': ім'я}"""
-        results = []
+    def search(self, query: str) -> List[Dict[str, str]]:
+        """Search for plugins matching the query.
+
+        Args:
+            query: Search term
+
+        Returns:
+            List of dictionaries with 'label' and 'key' containing matching plugins
+        """
+        results: List[Dict[str, str]] = []
         if not self.plugin_manager:
             return results
-        for name, plugin in self.plugin_manager.plugins.items():
-            info = plugin.info()
-            label = f"{info.get('name', name)}: {info.get('description', '')}"
-            if query.lower() in label.lower():
-                results.append({'label': label, 'key': name})
+
+        try:
+            for plugin in self.plugin_manager.plugins.values():
+                info = plugin.info()
+                label = f"{info.get('name', plugin.name)}: {info.get('description', '')}"
+                if query.lower() in label.lower():
+                    results.append({
+                        'label': label,
+                        'key': plugin.name
+                    })
+        except Exception as e:
+            self.logger.error(f"Error searching plugins: {e}")
         return results
 
-    def select_by_key(self, key):
+    def select_by_key(self, key: str) -> None:
+        """Select a plugin by its key.
+
+        Args:
+            key: Plugin key to select
+        """
         for i in range(self.list.count()):
-            name = self.list.item(i).text().split()[0]
-            if name == key:
-                self.list.setCurrentRow(i)
-                self.list.scrollToItem(self.list.item(i))
-                break 
+            try:
+                name = self.list.item(i).text().split()[0]
+                if name == key:
+                    self.list.setCurrentRow(i)
+                    self.list.scrollToItem(self.list.item(i))
+                    break
+            except Exception as e:
+                self.logger.error(f"Error selecting plugin {i}: {e}")
+                continue

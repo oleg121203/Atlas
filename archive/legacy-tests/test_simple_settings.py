@@ -4,7 +4,6 @@ Simple test for settings persistence
 """
 
 from utils.config_manager import ConfigManager
-import time
 
 def test_simple_settings():
     """Test simple settings save and load."""

@@ -4,7 +4,6 @@ Test script for intuitive adaptive system
 """
 
 import customtkinter as ctk
-import threading
 import time
 from agents.hierarchical_plan_manager import HierarchicalPlanManager
 from utils.llm_manager import LLMManager

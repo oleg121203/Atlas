@@ -9,7 +9,7 @@ TokenTracker to monitor and log token usage for all API calls.
 import logging
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Iterable, Union, Mapping, Literal
+from typing import Any, Dict, List, Optional
 
 # Imports for LLM providers are deferred to improve startup performance.
 # OpenAI-specific types will be imported when needed

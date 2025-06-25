@@ -3,14 +3,12 @@ Enhanced Browser Agent with plugin integration.
 Uses the Advanced Web Browsing Plugin for comprehensive automation.
 """
 
-import json
 import re
 import webbrowser
 from typing import Any, Dict, Optional, Tuple
 import logging
 import os
 import subprocess
-from typing import Optional
 
 from agents.base_agent import BaseAgent
 

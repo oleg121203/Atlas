@@ -1,7 +1,7 @@
 """Application Agent module."""
 
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Tuple
 
 # Assuming BaseAgent or similar parent class exists in agents directory
 from agents.base_agent import BaseAgent

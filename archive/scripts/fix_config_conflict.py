@@ -3,7 +3,6 @@
 Fix configuration conflict between .env, config.ini, and config.yaml
 """
 
-import os
 from pathlib import Path
 from utils.config_manager import ConfigManager
 

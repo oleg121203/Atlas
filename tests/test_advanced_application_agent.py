@@ -2,7 +2,6 @@
 
 import unittest
 from unittest.mock import patch, MagicMock
-import os
 
 from agents.advanced_application_agent import AdvancedApplicationAgent
 

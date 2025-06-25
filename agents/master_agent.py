@@ -5,13 +5,11 @@ This file implements hierarchical planning (strategic, tactical, operational)
 and orchestrates tool execution for Atlas.
 """
 
-import json
-import re
 import threading
 import time
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from agents.browser_agent import BrowserAgent
-from agents.enhanced_memory_manager import EnhancedMemoryManager, MemoryScope, MemoryType
+from agents.enhanced_memory_manager import EnhancedMemoryManager
 try:
     from agents.agent_manager import AgentManager
 except ImportError:
@@ -25,18 +23,13 @@ from agents.creator_authentication import CreatorAuthentication
 
 from intelligence.context_awareness_engine import ContextAwarenessEngine
 
-from agents.token_tracker import TokenUsage
 
 from agents.planning.operational_planner import OperationalPlanner
 from agents.planning.strategic_planner import StrategicPlanner
 from agents.planning.tactical_planner import TacticalPlanner
 from agents.problem_decomposition_agent import ProblemDecompositionAgent
-from agents.screen_agent import ScreenAgent
-from agents.system_interaction_agent import SystemInteractionAgent
-from agents.text_agent import TextAgent
 from monitoring.metrics_manager import MetricsManager
 metrics_manager_instance = MetricsManager()
-from utils.llm_manager import LLMManager
 from utils.logger import get_logger
 
 try:

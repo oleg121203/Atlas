@@ -6,11 +6,9 @@ This script tests the unified browser plugin functionality
 after removing duplications.
 """
 
-import json
 import logging
 import sys
 import os
-from typing import Dict, Any
 
 # Add the project root to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

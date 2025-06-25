@@ -7,7 +7,7 @@ the chat system to execute plugin commands and manage plugins.
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from plugins import (
     get_plugin_manager,

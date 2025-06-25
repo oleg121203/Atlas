@@ -6,7 +6,6 @@ This script demonstrates the difference between the old simulation
 approach and the new plugin system approach.
 """
 
-import json
 import logging
 import sys
 import os

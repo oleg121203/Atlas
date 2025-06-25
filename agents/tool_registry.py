@@ -4,10 +4,10 @@ Tool Registry for Atlas System
 Centralized tool management to avoid incorrect tool assignments.
 """
 
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Optional
 import logging
 from enum import Enum
-from .email_strategy_manager import email_strategy_manager, EmailAccessMethod
+from .email_strategy_manager import email_strategy_manager
 
 class ToolCategory(Enum):
     """Tool categories for proper assignment."""

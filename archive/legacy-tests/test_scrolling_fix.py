@@ -3,11 +3,9 @@
 Test script for improved scrolling in Hierarchical Task View
 """
 
-import tkinter as tk
 import customtkinter as ctk
 from ui.hierarchical_task_view import HierarchicalTaskView
 import time
-import threading
 
 def create_test_tasks():
     """Create a comprehensive set of test tasks to demonstrate scrolling."""

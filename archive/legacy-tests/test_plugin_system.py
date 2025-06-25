@@ -15,10 +15,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from plugins import (
-    get_plugin_manager,
-    set_active_provider,
-    execute_plugin_command,
-    register_builtin_plugins
+    execute_plugin_command
 )
 
 from tools.plugin_tool import (
@@ -26,7 +23,6 @@ from tools.plugin_tool import (
     list_plugins,
     get_plugin_help,
     gmail_search_emails,
-    browser_open_gmail,
     browser_navigate_to_url
 )
 

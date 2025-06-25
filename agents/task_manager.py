@@ -177,27 +177,50 @@ class APIResourceManager:
 
 
 class TaskManager:
-    """Manages multiple concurrent tasks with memory isolation."""
+    """Manages multiple concurrent tasks with memory isolation.
+    
+    Attributes:
+        max_concurrent_tasks (int): Maximum number of concurrent tasks
+        tasks (Dict[str, TaskInstance]): All registered tasks
+        task_queue (Queue): Queue for pending tasks
+        running_tasks (Dict[str, TaskInstance]): Currently running tasks
+        completed_tasks (List[str]): List of completed task IDs
+        api_resource_manager (APIResourceManager): API resource manager
+        config_manager (ConfigManager): Configuration manager
+        memory_manager (EnhancedMemoryManager): Memory manager
+        _shutdown (bool): Shutdown flag
+        _shutdown_event (threading.Event): Shutdown event
+        _task_executor (threading.Thread): Task execution thread
+    """
 
     def __init__(self,
                  max_concurrent_tasks: int = 3,
                  llm_manager: Optional[LLMManager] = None,
                  agent_manager: Optional[AgentManager] = None,
                  memory_db_path: Optional[str] = None):
-        """
-        Initialize the TaskManager.
+        """Initialize the TaskManager.
         
         Args:
-            max_concurrent_tasks: Maximum number of tasks to run concurrently
-            llm_manager: LLM manager instance
-            agent_manager: Agent manager instance
-            memory_db_path: Path to ChromaDB database (not used, kept for compatibility)
+            max_concurrent_tasks (int): Maximum number of tasks to run concurrently
+            llm_manager (Optional[LLMManager]): LLM manager instance
+            agent_manager (Optional[AgentManager]): Agent manager instance
+            memory_db_path (Optional[str]): Path to ChromaDB database
         """
+        if max_concurrent_tasks < 1:
+            raise ValueError("max_concurrent_tasks must be at least 1")
+            
         self.max_concurrent_tasks = max_concurrent_tasks
         self.tasks: Dict[str, TaskInstance] = {}
         self.task_queue = Queue()
         self.running_tasks: Dict[str, TaskInstance] = {}
         self.completed_tasks: List[str] = []
+        self.api_resource_manager = APIResourceManager()
+        self.config_manager = ConfigManager()
+        self.memory_manager = EnhancedMemoryManager()
+        self._shutdown = False
+        self._shutdown_event = threading.Event()
+        self._task_executor = threading.Thread(target=self._execute_tasks, daemon=True)
+        self._task_executor.start()
 
         #Managers
         if llm_manager is None:
@@ -207,102 +230,90 @@ class TaskManager:
         else:
             self.llm_manager = llm_manager
 
-        self.config_manager = ConfigManager()
-        self.logger = get_logger()
-        self.memory_manager = EnhancedMemoryManager(
-            llm_manager=self.llm_manager,
-            config_manager=self.config_manager,
-            logger=self.logger,
-        )
-
         self.agent_manager = agent_manager or AgentManager(
             llm_manager=self.llm_manager,
             memory_manager=self.memory_manager,
         )
-        self.api_resource_manager = APIResourceManager()
-
-        #Synchronization
-        self.tasks_lock = threading.Lock()
-        self.shutdown_event = threading.Event()
-
-        #Task scheduler thread
-        self.scheduler_thread = threading.Thread(target=self._task_scheduler, daemon=True)
-        self.scheduler_running = True
 
         # Initialize required collections in memory manager
         self._initialize_collections()
 
+        self.logger = get_logger()
         self.logger.info(f"TaskManager initialized with max {max_concurrent_tasks} concurrent tasks")
 
     def start(self):
         """Start the task manager."""
-        if not self.scheduler_thread.is_alive():
-            self.scheduler_thread.start()
+        if not self._task_executor.is_alive():
+            self._task_executor.start()
             self.logger.info("TaskManager started")
 
     def stop(self):
         """Stop the task manager and all running tasks."""
-        self.scheduler_running = False
-        self.shutdown_event.set()
+        self._shutdown = True
+        self._shutdown_event.set()
 
         #Stop all running tasks
         with self.tasks_lock:
             for task_id, task in list(self.running_tasks.items()):
                 self.cancel_task(task_id)
 
-        #Wait for scheduler to finish
-        if self.scheduler_thread.is_alive():
-            self.scheduler_thread.join(timeout=10)
+        #Wait for task executor to finish
+        if self._task_executor.is_alive():
+            self._task_executor.join(timeout=10)
 
         self.logger.info("TaskManager stopped")
 
-    def create_task(self,
-                   goal: str,
-                   priority: TaskPriority = TaskPriority.NORMAL,
-                   options: Dict[str, Any] = None,
-                   status_callback: Callable = None,
-                   progress_callback: Callable = None) -> str:
-        """
-        Create a new task.
+    def create_task(self, 
+                 goal: str, 
+                 priority: TaskPriority = TaskPriority.NORMAL, 
+                 options: Optional[Dict[str, Any]] = None) -> str:
+        """Create a new task with specified parameters.
         
         Args:
-            goal: The goal to accomplish
-            priority: Task priority
-            options: Additional task options
-            status_callback: Callback for status updates
-            progress_callback: Callback for progress updates
+            goal (str): Task goal description
+            priority (TaskPriority): Task priority level (default: NORMAL)
+            options (Optional[Dict[str, Any]]): Additional task options
             
         Returns:
-            Task ID
+            str: Unique task ID
+            
+        Raises:
+            ValueError: If goal is empty
         """
-        task_id = str(uuid.uuid4())[:8]
-
+        if not goal:
+            raise ValueError("Task goal cannot be empty")
+            
+        task_id = str(uuid.uuid4())
         task = TaskInstance(
             task_id=task_id,
             goal=goal,
             priority=priority,
             options=options or {},
-            status_callback=status_callback,
-            progress_callback=progress_callback,
+            status=TaskStatus.PENDING,
         )
-
-        with self.tasks_lock:
-            self.tasks[task_id] = task
-            self.task_queue.put(task_id)
-
-        #Store task creation in memory
-        self._store_task_event(task_id, "created", {"goal": goal, "priority": priority.value})
-
-        self.logger.info(f"Created task {task_id}: {goal[:50]}...")
+        
+        self.tasks[task_id] = task
+        self.task_queue.put(task_id)
+        self.logger.info(f"Created new task: {task_id} with priority {priority}")
+        
         return task_id
 
-    def get_task(self, task_id: str) -> Optional[TaskInstance]:
-        """Get a task by ID."""
-        return self.tasks.get(task_id)
-
     def get_task_status(self, task_id: str) -> Optional[TaskStatus]:
-        """Get task status."""
-        task = self.get_task(task_id)
+        """Get the status of a task.
+        
+        Args:
+            task_id (str): Task ID
+            
+        Returns:
+            Optional[TaskStatus]: Current task status
+            
+        Raises:
+            ValueError: If task_id is empty
+        """
+        if not task_id:
+            raise ValueError("Task ID cannot be empty")
+            
+        task = self.tasks.get(task_id)
         return task.status if task else None
 
     def pause_task(self, task_id: str) -> bool:
@@ -329,26 +340,31 @@ class TaskManager:
         return False
 
     def cancel_task(self, task_id: str) -> bool:
-        """Cancel a task."""
-        with self.tasks_lock:
-            task = self.tasks.get(task_id)
-            if task and task.status in [TaskStatus.PENDING, TaskStatus.RUNNING, TaskStatus.PAUSED]:
-                task.status = TaskStatus.CANCELLED
-
-                #Stop the thread if running
-                if task.thread and task.thread.is_alive():
-                    #Note: Python doesn't support forceful thread termination
-                    #The task should check for cancellation status periodically
-                    pass
-
-                #Remove from running tasks
-                if task_id in self.running_tasks:
-                    del self.running_tasks[task_id]
-
-                self._store_task_event(task_id, "cancelled")
-                self.logger.info(f"Cancelled task {task_id}")
-                return True
-        return False
+        """Cancel a running task.
+        
+        Args:
+            task_id (str): Task ID
+            
+        Returns:
+            bool: True if task was successfully cancelled
+            
+        Raises:
+            ValueError: If task_id is empty
+        """
+        if not task_id:
+            raise ValueError("Task ID cannot be empty")
+            
+        task = self.tasks.get(task_id)
+        if not task:
+            return False
+            
+        if task.status in [TaskStatus.COMPLETED, TaskStatus.CANCELLED, TaskStatus.FAILED]:
+            return False
+            
+        task.status = TaskStatus.CANCELLED
+        task.completed_at = datetime.now()
+        self.logger.info(f"Task {task_id} cancelled")
+        return True
 
     def get_all_tasks(self) -> Dict[str, TaskInstance]:
         """Get all tasks."""
@@ -358,20 +374,32 @@ class TaskManager:
         """Get currently running tasks."""
         return self.running_tasks.copy()
 
-    def get_task_statistics(self) -> Dict[str, Any]:
-        """Get task execution statistics."""
-        with self.tasks_lock:
-            stats = {
-                "total_tasks": len(self.tasks),
-                "running": len([t for t in self.tasks.values() if t.status == TaskStatus.RUNNING]),
-                "pending": len([t for t in self.tasks.values() if t.status == TaskStatus.PENDING]),
-                "completed": len([t for t in self.tasks.values() if t.status == TaskStatus.COMPLETED]),
-                "failed": len([t for t in self.tasks.values() if t.status == TaskStatus.FAILED]),
-                "cancelled": len([t for t in self.tasks.values() if t.status == TaskStatus.CANCELLED]),
-                "paused": len([t for t in self.tasks.values() if t.status == TaskStatus.PAUSED]),
-                "max_concurrent": self.max_concurrent_tasks,
-                "api_stats": self.api_resource_manager.get_provider_stats(),
-            }
+    def get_task_stats(self) -> Dict[str, Any]:
+        """Get comprehensive statistics about all tasks.
+        
+        Returns:
+            Dict[str, Any]: Task statistics including:
+            - total_tasks: Total number of tasks
+            - running: Number of running tasks
+            - completed: Number of completed tasks
+            - status_counts: Count of tasks by status
+            - api_usage: API resource usage statistics
+            - memory_usage: Memory usage statistics
+            - task_queue_length: Length of task queue
+        """
+        stats = {
+            "total_tasks": len(self.tasks),
+            "running": len(self.running_tasks),
+            "completed": len(self.completed_tasks),
+            "status_counts": {
+                status.value: sum(1 for task in self.tasks.values() 
+                               if task.status == status)
+                for status in TaskStatus
+            },
+            "api_usage": self.api_resource_manager.get_provider_stats(),
+            "memory_usage": self.memory_manager.get_usage_stats(),
+            "task_queue_length": self.task_queue.qsize()
+        }
         return stats
 
     def _task_scheduler(self):
@@ -609,7 +637,6 @@ class TaskManager:
         """
         try:
             # Extract browser name and URL from goal
-            import re
             goal_lower = task.goal.lower()
             
             # Check if this is a browser task

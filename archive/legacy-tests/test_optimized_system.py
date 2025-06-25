@@ -4,7 +4,6 @@ Test script for optimized system with delays and token limits
 """
 
 import customtkinter as ctk
-import threading
 import time
 from agents.hierarchical_plan_manager import HierarchicalPlanManager
 from utils.llm_manager import LLMManager

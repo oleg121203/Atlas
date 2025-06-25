@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextBrowser, QLineEdit, QPushButton, QHBoxLayout, QMenu, QApplication, QFileDialog, QCompleter, QFrame
-from PySide6.QtCore import Qt, QTimer, QEvent, QMimeData
+from PySide6.QtCore import Qt, QTimer, QEvent
 import markdown2
 import json
 import datetime
@@ -9,13 +9,35 @@ EMOJI_LIST = [":smile:", ":rocket:", ":fire:", ":star:", ":robot:", ":zap:", ":s
 EMOJI_MAP = {":smile:": "😄", ":rocket:": "🚀", ":fire:": "🔥", ":star:": "⭐", ":robot:": "🤖", ":zap:": "⚡", ":sunglasses:": "😎", ":thumbsup:": "👍", ":wave:": "👋", ":bulb:": "💡"}
 
 class ChatModule(QWidget):
-    def __init__(self, parent=None):
+    """Chat interface module with cyberpunk styling.
+
+    Attributes:
+        llm_callback: Callback function for LLM/agent responses
+        history: List of chat messages with role, text, and timestamp
+        plugin_manager: Plugin manager instance
+        tool_widgets: List of tool UI widgets
+        completer: QCompleter for input suggestions
+        chat_history: QTextBrowser for chat messages
+        input_line: QLineEdit for user input
+        send_btn: QPushButton for sending messages
+        tools_frame: QFrame for plugin tools
+        tools_layout: QVBoxLayout for tool widgets
+        title: QLabel for module title
+        history_btn: QPushButton for history management
+    """
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        """Initialize the chat module.
+
+        Args:
+            parent: Parent widget
+        """
         super().__init__(parent)
         self.setObjectName("ChatModule")
-        self.llm_callback = None  # LLM/agent callback
-        self.history = []  # Зберігає всі повідомлення (role, text, timestamp)
-        self.plugin_manager = None
-        self.tool_widgets = []
+        self.llm_callback: Optional[Callable[[str, Callable[[str], None]], None]] = None
+        self.history: List[Dict[str, Any]] = []
+        self.plugin_manager: Optional[PluginManager] = None
+        self.tool_widgets: List[QWidget] = []
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(12)
@@ -68,21 +90,34 @@ class ChatModule(QWidget):
         self.tools_layout.setContentsMargins(0, 10, 0, 0)
         layout.addWidget(self.tools_frame)
 
-    def update_ui(self):
-        self.title.setText(_("💬 Chat (Cyberpunk)"))
-        self.history_btn.setText(_("History"))
-        self.input_line.setPlaceholderText(_("Type your message… (Markdown, emoji supported)"))
-        self.send_btn.setText(_("Send"))
-        # Оновити тулси, якщо потрібно
+    def update_ui(self) -> None:
+        """Update UI elements with translated text."""
+        self.title.setText(str(_("💬 Chat (Cyberpunk)")) or "💬 Chat (Cyberpunk)")
+        self.history_btn.setText(str(_("History")) or "History")
+        self.input_line.setPlaceholderText(str(_("Type your message… (Markdown, emoji supported)")) or "Type your message… (Markdown, emoji supported)")
+        self.send_btn.setText(str(_("Send")) or "Send")
         self.update_tools()
 
     # LLM інтеграція
-    def set_llm_callback(self, callback):
+    def set_llm_callback(self, callback: Callable[[str, Callable[[str], None]], None]) -> None:
+        """Set the LLM callback function.
+
+        Args:
+            callback: Function to handle LLM responses
+        """
         self.llm_callback = callback
 
-    def send_message(self):
+    def send_message(self) -> None:
+        """Send user message to chat.
+
+        Raises:
+            ValueError: If message is empty
+        """
         text = self.input_line.text().strip()
-        if text:
+        if not text:
+            return
+
+        try:
             text = self.replace_emoji(text)
             html = markdown2.markdown(f'**🧑 You:** {text}')
             self.chat_history.append(html)
@@ -91,22 +126,38 @@ class ChatModule(QWidget):
             self.scroll_to_bottom()
             self.get_agent_response(text)
             self.update_completer()
+        except Exception as e:
+            self.chat_history.append(f'<span style="color:#ff00a0;">⚠️ Error:</span> {str(e)}')
+            self.scroll_to_bottom()
 
-    def get_agent_response(self, user_text):
-        # Якщо задано LLM callback — використовуємо його, інакше імітація
+    def get_agent_response(self, user_text: str) -> None:
+        """Get response from LLM/agent.
+
+        Args:
+            user_text: User input text
+        """
         if self.llm_callback:
-            def handle_response(response):
+            def handle_response(response: str) -> None:
                 self.show_agent_response(response)
             self.llm_callback(user_text, handle_response)
         else:
             QTimer.singleShot(900, lambda: self.show_agent_response(f"🤖 Atlas: *Echo:* {user_text[::-1]}"))
 
-    def show_agent_response(self, text):
-        text = self.replace_emoji(text)
-        html = markdown2.markdown(text)
-        self.chat_history.append(html)
-        self.append_history("agent", text)
-        self.scroll_to_bottom()
+    def show_agent_response(self, text: str) -> None:
+        """Show agent's response in chat.
+
+        Args:
+            text: Agent's response text
+        """
+        try:
+            text = self.replace_emoji(text)
+            html = markdown2.markdown(text)
+            self.chat_history.append(html)
+            self.append_history("agent", text)
+            self.scroll_to_bottom()
+        except Exception as e:
+            self.chat_history.append(f'<span style="color:#ff00a0;">⚠️ Error:</span> {str(e)}')
+            self.scroll_to_bottom()
 
     def scroll_to_bottom(self):
         self.chat_history.verticalScrollBar().setValue(self.chat_history.verticalScrollBar().maximum())

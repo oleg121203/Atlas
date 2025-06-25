@@ -5,15 +5,11 @@ Automatically detects, diagnoses, and fixes issues in the system,
 including creating missing plugins, tools, and fixing broken components.
 """
 
-import os
-import sys
 import logging
 import importlib
-import inspect
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from pathlib import Path
 import json
-import subprocess
 
 class SelfRegenerationManager:
     """Manages self-regeneration of missing or broken components."""

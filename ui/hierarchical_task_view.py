@@ -5,8 +5,7 @@ This module provides a UI component for displaying and managing the three-level
 hierarchical task structure in the Atlas interface.
 """
 
-import tkinter as tk
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, Optional, Callable
 import customtkinter as ctk
 from datetime import datetime
 import threading

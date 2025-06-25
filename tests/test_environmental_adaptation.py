@@ -2,7 +2,6 @@
 
 import unittest
 from typing import Any, Dict
-import pytest
 import os
 import sys
 from unittest.mock import MagicMock

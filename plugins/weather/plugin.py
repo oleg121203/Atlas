@@ -4,7 +4,6 @@ Weather Tool Plugin for Atlas
 This plugin provides weather information and forecasts for any location.
 """
 
-import json
 import logging
 import requests
 from typing import Any, Dict, Optional

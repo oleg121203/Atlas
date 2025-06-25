@@ -5,7 +5,7 @@ Defines the abstract base class for all specialized agents.
 import multiprocessing
 import threading
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 from utils.logger import get_logger
 

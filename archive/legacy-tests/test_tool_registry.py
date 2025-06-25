@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from agents.tool_registry import tool_registry, ToolCategory
+from agents.tool_registry import tool_registry
 
 def test_tool_registry():
     """Test Tool Registry functionality."""

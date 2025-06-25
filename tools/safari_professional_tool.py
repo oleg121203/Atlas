@@ -41,6 +41,9 @@ class SafariProfessionalTool:
             from selenium.webdriver.chrome.service import Service
             from selenium.webdriver.chrome.options import Options
             from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support import expected_conditions as EC
+            from selenium.webdriver.firefox.options import FirefoxOptions
             
             chrome_options = Options()
             # Disable headless for better interaction
@@ -605,13 +608,13 @@ class SafariProfessionalTool:
                                 email_data = self._extract_email_data_from_element(element)
                                 if email_data:
                                     emails.append(email_data)
-                            except Exception as e:
+                            except Exception:
                                 continue
                         
                         if emails:
                             break
                             
-                except Exception as e:
+                except Exception:
                     continue
             
         except Exception as e:
@@ -622,63 +625,68 @@ class SafariProfessionalTool:
     def _extract_email_data_from_element(self, element) -> Optional[Dict[str, Any]]:
         """Extract email data from a single element."""
         try:
-            from selenium.webdriver.common.by import By
-            
-            # Try to extract sender, subject, snippet, date
-            sender = ""
-            subject = ""
-            snippet = ""
-            date = ""
-            
-            # Try different selectors for each field
+            # Define selectors for different email components
             sender_selectors = ["td[data-th='From'] span", ".yW .zF", ".gD"]
             subject_selectors = ["td[data-th='Subject'] span", ".bog", ".bqe"]
             snippet_selectors = ["td[data-th='Snippet'] span", ".y2", ".bqe"]
             date_selectors = ["td[data-th='Date'] span", ".xW .xY", ".xS"]
             
+            # Extract sender
+            sender = None
             for selector in sender_selectors:
                 try:
                     sender_elem = element.find_element(By.CSS_SELECTOR, selector)
                     sender = sender_elem.text.strip()
                     if sender:
                         break
-                except:
+                except Exception as e:
+                    self.logger.debug(f"Failed to extract sender with {selector}: {e}")
                     continue
             
+            # Extract subject
+            subject = None
             for selector in subject_selectors:
                 try:
                     subject_elem = element.find_element(By.CSS_SELECTOR, selector)
                     subject = subject_elem.text.strip()
                     if subject:
                         break
-                except:
+                except Exception as e:
+                    self.logger.debug(f"Failed to extract subject with {selector}: {e}")
                     continue
             
+            # Extract snippet
+            snippet = None
             for selector in snippet_selectors:
                 try:
                     snippet_elem = element.find_element(By.CSS_SELECTOR, selector)
                     snippet = snippet_elem.text.strip()
                     if snippet:
                         break
-                except:
+                except Exception as e:
+                    self.logger.debug(f"Failed to extract snippet with {selector}: {e}")
                     continue
             
+            # Extract date
+            date = None
             for selector in date_selectors:
                 try:
                     date_elem = element.find_element(By.CSS_SELECTOR, selector)
                     date = date_elem.text.strip()
                     if date:
                         break
-                except:
+                except Exception as e:
+                    self.logger.debug(f"Failed to extract date with {selector}: {e}")
                     continue
             
-            # Determine priority
+            # Determine priority based on subject
             priority = "low"
-            if any(keyword in subject.lower() for keyword in ["security", "alert", "warning", "critical"]):
+            if subject and any(keyword in subject.lower() for keyword in ["security", "alert", "warning", "critical"]):
                 priority = "high"
-            elif any(keyword in subject.lower() for keyword in ["verify", "confirm", "login"]):
+            elif subject and any(keyword in subject.lower() for keyword in ["verify", "confirm", "login"]):
                 priority = "medium"
             
+            # Return extracted data if we have at least sender or subject
             if sender or subject:
                 return {
                     "sender": sender or "Unknown",
@@ -688,10 +696,11 @@ class SafariProfessionalTool:
                     "priority": priority
                 }
             
+            return None
+            
         except Exception as e:
-            self.logger.warning(f"Email data extraction failed: {e}")
-        
-        return None
+            self.logger.error(f"Email data extraction failed: {e}")
+            return None
 
     def _detect_browser_info(self) -> Dict[str, Any]:
         """Detect current browser information."""
