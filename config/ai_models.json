@@ -1,0 +1,71 @@
+{
+  "ai_models": {
+    "general_assistant": {
+      "provider": "openai",
+      "model_id": "gpt-3.5-turbo",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "temperature": 0.7,
+      "max_tokens": 2048,
+      "description": "General purpose assistant for text queries and suggestions"
+    },
+    "code_assistant": {
+      "provider": "openai",
+      "model_id": "gpt-4",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "temperature": 0.5,
+      "max_tokens": 4096,
+      "description": "Specialized assistant for code generation and debugging"
+    },
+    "task_planner": {
+      "provider": "anthropic",
+      "model_id": "claude-3-opus-20240229",
+      "endpoint": "https://api.anthropic.com/v1/messages",
+      "temperature": 0.6,
+      "max_tokens": 2048,
+      "description": "Task planning and automation assistant"
+    },
+    "local_model": {
+      "provider": "local",
+      "model_id": "local-llm",
+      "endpoint": "http://localhost:11434/api/generate",
+      "temperature": 0.7,
+      "max_tokens": 1024,
+      "description": "Local LLM for offline inference (requires separate setup)"
+    }
+  },
+  "ai_model_overrides": {
+    "dev": {
+      "general_assistant": {
+        "model_id": "gpt-3.5-turbo"
+      },
+      "code_assistant": {
+        "model_id": "gpt-4"
+      }
+    },
+    "staging": {
+      "general_assistant": {
+        "model_id": "gpt-3.5-turbo"
+      },
+      "code_assistant": {
+        "model_id": "gpt-4-turbo-preview"
+      }
+    },
+    "prod": {
+      "general_assistant": {
+        "model_id": "gpt-4-turbo"
+      },
+      "code_assistant": {
+        "model_id": "gpt-4-turbo"
+      }
+    }
+  },
+  "api_keys": {
+    "openai": "",
+    "anthropic": ""
+  },
+  "ai_models_storage": "config/ai_models.json",
+  "logging": {
+    "level": "INFO",
+    "file": "atlas_ai_integration.log"
+  }
+}

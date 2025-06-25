@@ -72,7 +72,13 @@ class BrowserTool:
             self.driver.get(url)
             self.logger.info("Chrome WebDriver initialized successfully")
             
-            return {"success": True, "url": url, "message": "Browser opened successfully"}
+            return {
+                "success": True, 
+                "data": {
+                    "url": url,
+                    "title": self.driver.title
+                }
+            }
             
         except Exception as e:
             self.logger.error(f"Failed to open URL: {e}")

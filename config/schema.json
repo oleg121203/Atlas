@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atlas Configuration Schema",
+  "description": "Schema for Atlas application configuration",
+  "type": "object",
+  "properties": {
+    "app_name": {
+      "type": "string",
+      "description": "Name of the application",
+      "default": "Atlas"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of the application",
+      "default": "1.0.0"
+    },
+    "language": {
+      "type": "string",
+      "description": "UI language",
+      "enum": ["en", "uk", "ru"],
+      "default": "en"
+    },
+    "theme": {
+      "type": "string",
+      "description": "UI theme",
+      "enum": ["dark", "light"],
+      "default": "dark"
+    },
+    "debug": {
+      "type": "boolean",
+      "description": "Enable debug mode",
+      "default": false
+    },
+    "log_level": {
+      "type": "string",
+      "description": "Logging level",
+      "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+      "default": "INFO"
+    },
+    "ui": {
+      "type": "object",
+      "description": "UI-related configuration",
+      "properties": {
+        "font_size": {
+          "type": "integer",
+          "description": "Font size for UI text",
+          "minimum": 8,
+          "maximum": 24,
+          "default": 12
+        },
+        "window_width": {
+          "type": "integer",
+          "description": "Initial window width",
+          "minimum": 800,
+          "default": 1200
+        },
+        "window_height": {
+          "type": "integer",
+          "description": "Initial window height",
+          "minimum": 600,
+          "default": 800
+        }
+      },
+      "required": ["font_size", "window_width", "window_height"]
+    },
+    "chat": {
+      "type": "object",
+      "description": "Chat module configuration",
+      "properties": {
+        "history_limit": {
+          "type": "integer",
+          "description": "Maximum number of messages to keep in history",
+          "minimum": 10,
+          "default": 50
+        },
+        "auto_scroll": {
+          "type": "boolean",
+          "description": "Automatically scroll to new messages",
+          "default": true
+        }
+      },
+      "required": ["history_limit", "auto_scroll"]
+    },
+    "tasks": {
+      "type": "object",
+      "description": "Tasks module configuration",
+      "properties": {
+        "max_concurrent": {
+          "type": "integer",
+          "description": "Maximum number of concurrent tasks",
+          "minimum": 1,
+          "default": 5
+        },
+        "auto_cleanup": {
+          "type": "boolean",
+          "description": "Automatically cleanup completed tasks",
+          "default": true
+        }
+      },
+      "required": ["max_concurrent", "auto_cleanup"]
+    },
+    "agents": {
+      "type": "object",
+      "description": "Agents module configuration",
+      "properties": {
+        "default_model": {
+          "type": "string",
+          "description": "Default AI model to use",
+          "default": "gpt-4"
+        },
+        "api_key": {
+          "type": "string",
+          "description": "API key for AI service",
+          "default": ""
+        }
+      },
+      "required": ["default_model", "api_key"]
+    },
+    "plugins": {
+      "type": "object",
+      "description": "Plugin-specific configurations",
+      "additionalProperties": {
+        "type": "object"
+      },
+      "default": {}
+    }
+  },
+  "required": ["app_name", "version"]
+}

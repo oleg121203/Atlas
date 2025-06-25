@@ -1,0 +1,25 @@
+{
+  "app_name": "Atlas",
+  "version": "1.0.0",
+  "language": "en",
+  "theme": "dark",
+  "debug": false,
+  "log_level": "INFO",
+  "ui": {
+    "font_size": 12,
+    "window_width": 1200,
+    "window_height": 800
+  },
+  "chat": {
+    "history_limit": 50,
+    "auto_scroll": true
+  },
+  "tasks": {
+    "max_concurrent": 5,
+    "auto_cleanup": true
+  },
+  "agents": {
+    "default_model": "gpt-4",
+    "api_key": ""
+  }
+}

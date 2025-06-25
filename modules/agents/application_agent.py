@@ -54,11 +54,11 @@ class ApplicationAgent(BaseAgent):
                 # Default to center or parse coordinates if provided
                 x, y = self._extract_coordinates(instruction)
                 result = click_at(x, y, MouseButton.LEFT)
-                return f"Performed mouse click: {result}"
+                return f"Performed mouse click at ({x}, {y})"
             elif "move" in instruction.lower():
                 x, y = self._extract_coordinates(instruction)
                 result = move_mouse(x, y)
-                return f"Moved mouse: {result}"
+                return f"Moved mouse to ({x}, {y})"
             return "Mouse control action not recognized."
         except Exception as e:
             self.logger.error(f"Failed to perform mouse control: {e}")
@@ -71,11 +71,11 @@ class ApplicationAgent(BaseAgent):
             if "type" in instruction.lower():
                 text = self._extract_text(instruction)
                 result = type_text(text)
-                return f"Typed text: {result}"
+                return f"Typed text: {text}"
             elif "press" in instruction.lower():
                 key = self._extract_key(instruction)
                 result = press_key(key)
-                return f"Pressed key: {result}"
+                return f"Pressed key: {key}"
             return "Keyboard control action not recognized."
         except Exception as e:
             self.logger.error(f"Failed to perform keyboard control: {e}")
@@ -88,13 +88,13 @@ class ApplicationAgent(BaseAgent):
             if "copy" in instruction.lower():
                 text = self._extract_text(instruction)
                 result = set_clipboard_text(text)
-                return f"Copied to clipboard: {result}"
+                return f"Copied to clipboard: {text}"
             elif "paste" in instruction.lower():
                 result = get_clipboard_text()
                 return f"Pasted from clipboard: {result}"
             elif "clear" in instruction.lower():
                 result = clear_clipboard()
-                return f"Cleared clipboard: {result}"
+                return f"Cleared clipboard"
             return "Clipboard operation not recognized."
         except Exception as e:
             self.logger.error(f"Failed to perform clipboard operation: {e}")
@@ -111,7 +111,7 @@ class ApplicationAgent(BaseAgent):
                 command = f"start {app_name}"
             from tools.terminal_tool import execute_command
             result = execute_command(command)
-            return f"Launched application {app_name}: {result}"
+            return f"Launched application {app_name}"
         except Exception as e:
             self.logger.error(f"Failed to launch application: {e}")
             return f"Failed to launch application: {str(e)}"

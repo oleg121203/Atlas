@@ -1,5 +1,63 @@
 """Platform detection utilities for Atlas."""
+"""Platform detection and utility functions."""
 
+import os
+import platform
+import sys
+from typing import Dict, Any
+
+# Platform constants
+IS_MACOS = platform.system() == "Darwin"
+IS_WINDOWS = platform.system() == "Windows"
+IS_LINUX = platform.system() == "Linux"
+IS_ARM = platform.machine().startswith("arm") or platform.machine() == "aarch64"
+IS_APPLE_SILICON = IS_MACOS and (platform.machine() == "arm64" or platform.machine().startswith("arm"))
+
+# Environment detection
+IS_HEADLESS = not os.environ.get("DISPLAY") and not IS_MACOS and not IS_WINDOWS
+
+def get_platform_info() -> Dict[str, Any]:
+    """Get detailed information about the current platform.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary with platform information
+    """
+    info = {
+        "system": platform.system(),
+        "release": platform.release(),
+        "version": platform.version(),
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "python_version": platform.python_version(),
+        "is_64bit": sys.maxsize > 2**32,
+        "is_macos": IS_MACOS,
+        "is_windows": IS_WINDOWS,
+        "is_linux": IS_LINUX,
+        "is_arm": IS_ARM,
+        "is_apple_silicon": IS_APPLE_SILICON,
+        "is_headless": IS_HEADLESS,
+    }
+
+    # Add display information if available
+    try:
+        if IS_MACOS:
+            # Get screen resolution on macOS
+            import subprocess
+            result = subprocess.run(["system_profiler", "SPDisplaysDataType"], 
+                                   capture_output=True, text=True, check=True)
+            info["display_info"] = result.stdout
+
+            # Try to extract resolution
+            import re
+            resolution = re.search(r"Resolution: (\d+ x \d+)", result.stdout)
+            if resolution:
+                info["display_resolution"] = resolution.group(1)
+    except Exception as e:
+        info["display_error"] = str(e)
+
+    return info
 import importlib.util
 import os
 import platform

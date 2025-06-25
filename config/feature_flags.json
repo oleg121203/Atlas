@@ -1,0 +1,48 @@
+{
+  "feature_flags": {
+    "dark_mode": true,
+    "ai_assistant": {
+      "enabled": true,
+      "description": "Enables the AI Assistant feature for natural language processing and automation",
+      "environments": {
+        "dev": { "enabled": true },
+        "staging": { "enabled": true },
+        "prod": { "enabled": false }
+      }
+    },
+    "plugin_system": true,
+    "task_management": true,
+    "chat_module": true,
+    "settings_ui": true,
+    "advanced_settings": false,
+    "experimental_features": false,
+    "beta_features": false,
+    "analytics": true,
+    "crash_reporting": true,
+    "auto_updates": true,
+    "language_support": true,
+    "multilingual_ui": true
+  },
+  "feature_flag_overrides": {
+    "dev": {
+      "experimental_features": true,
+      "beta_features": true,
+      "advanced_settings": true
+    },
+    "staging": {
+      "experimental_features": false,
+      "beta_features": true,
+      "advanced_settings": true
+    },
+    "prod": {
+      "experimental_features": false,
+      "beta_features": false,
+      "advanced_settings": false
+    }
+  },
+  "feature_flags_storage": "config/feature_flags.json",
+  "logging": {
+    "level": "INFO",
+    "file": "atlas_feature_flags.log"
+  }
+}

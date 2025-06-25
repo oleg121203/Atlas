@@ -1,0 +1,49 @@
+name: Code Review
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  code_review:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install ruff mypy radon lizard interrogate pytest-cov
+    
+    - name: Run code review script
+      run: |
+        python scripts/code_review.py --environment dev --log-level DEBUG
+    
+    - name: Upload code review report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-review-report
+        path: code_review/*.json
+    
+    - name: Notify on failure
+      if: failure()
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        curl -X POST -H 'Content-type: application/json' --data '{"text": "Code review failed. Check GitHub Actions for details."}' $SLACK_WEBHOOK_URL

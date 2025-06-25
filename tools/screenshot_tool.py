@@ -140,9 +140,8 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
             print(last_error)
 
     # 2. PyAutoGUI (works cross-platform; tests patch this path)
-    if img is None:
+    if img is None and _PYAUTOGUI_AVAILABLE:
         try:
-            import pyautogui  # type: ignore
             pyautogui.FAILSAFE = False  # type: ignore[attr-defined]
             img = pyautogui.screenshot()  # type: ignore[attr-defined]
             if not isinstance(img, Image.Image):
@@ -153,13 +152,12 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
                 print(last_error)
 
     # 3. macOS native screencapture / AppleScript fallbacks
-    if img is None and IS_MACOS:
-        if _MACOS_NATIVE_AVAILABLE:
-            try:
-                img = capture_screen_native_macos(None)
-            except Exception as e:
-                last_error = f"Native screencapture failed: {e}"
-                print(last_error)
+    if img is None and IS_MACOS and _MACOS_NATIVE_AVAILABLE:
+        try:
+            img = capture_screen_native_macos(None)
+        except Exception as e:
+            last_error = f"Native screencapture failed: {e}"
+            print(last_error)
 
         if img is None:
             try:
@@ -188,11 +186,8 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
     # Save if requested (adding timestamp & ensuring directory)
     if save_to and img:
         save_to = Path(save_to)
-        try:
-            save_to.parent.mkdir(parents=True, exist_ok=True)
-        except FileExistsError:
-            # Directory already exists – ignore like POSIX 'mkdir -p'
-            pass
+        # Create parent directory if it doesn't exist
+        save_to.parent.mkdir(parents=True, exist_ok=True)
 
         # Append timestamp before extension if exactly 'screenshot.png'
         timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")

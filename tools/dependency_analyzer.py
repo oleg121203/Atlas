@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """
 Dependency Analyzer Tool for Atlas
-Analyzes project dependencies, imports, and architectural relationships
+
+This script analyzes the codebase to identify import dependencies and detect potential circular imports.
 """
 
 import ast
 import logging
+import os
+import sys
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-
-import networkx as nx
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +64,8 @@ class DependencyAnalyzer:
             ".DS_Store", "unused", "monitoring/logs",
         }
 
-        #Initialize NetworkX graph for dependency analysis
-        self.dependency_graph = nx.DiGraph()
+        #Initialize dependency graph
+        self.dependency_graph = defaultdict(list)
         self.modules = {}
 
     def analyze_project_architecture(self) -> ArchitecturalAnalysis:
@@ -97,7 +98,7 @@ class DependencyAnalyzer:
 
         return ArchitecturalAnalysis(
             modules=self.modules,
-            dependency_graph=self._graph_to_dict(),
+            dependency_graph=self.dependency_graph,
             circular_dependencies=circular_deps,
             external_dependencies=external_deps,
             internal_dependencies=internal_deps,
@@ -146,24 +147,45 @@ class DependencyAnalyzer:
             return None
 
     def _build_dependency_graph(self):
-        """Build dependency graph using NetworkX."""
+        """Build dependency graph."""
         #Add all modules as nodes
         for module_name, module_info in self.modules.items():
-            self.dependency_graph.add_node(module_name, **asdict(module_info))
+            self.dependency_graph[module_name] = module_info.dependencies
 
         #Add dependency edges
         for module_name, module_info in self.modules.items():
             for dependency in module_info.dependencies:
                 if dependency in self.modules:
-                    self.dependency_graph.add_edge(module_name, dependency)
                     #Add to dependents list
                     self.modules[dependency].dependents.append(module_name)
 
     def _find_circular_dependencies(self) -> List[List[str]]:
         """Find circular dependencies in the project."""
         try:
-            cycles = list(nx.simple_cycles(self.dependency_graph))
-            return cycles
+            circular_deps = []
+            visited = set()
+            path = set()
+
+            def dfs(module, current_path):
+                visited.add(module)
+                path.add(module)
+                current_path.append(module)
+                for dep in self.dependency_graph[module]:
+                    if dep not in visited:
+                        if dfs(dep, current_path):
+                            if current_path[-1] == current_path[0]:
+                                circular_deps.append(current_path[:])
+                    elif dep in path:
+                        cycle_start = current_path.index(dep)
+                        circular_deps.append(current_path[cycle_start:])
+                path.remove(module)
+                current_path.pop()
+                return False
+
+            for module in self.dependency_graph:
+                if module not in visited:
+                    dfs(module, [])
+            return circular_deps
         except Exception as e:
             self.logger.error(f"Error finding circular dependencies: {e}")
             return []
@@ -190,8 +212,7 @@ class DependencyAnalyzer:
             "os", "sys", "json", "time", "datetime", "collections", "typing",
             "pathlib", "dataclasses", "logging", "re", "subprocess", "threading",
             "asyncio", "functools", "itertools", "operator", "copy", "pickle",
-            "uuid", "hashlib", "base64", "urllib", "http", "email", "html",
-            "xml", "sqlite3", "csv", "configparser", "argparse", "tempfile",
+            "uuid", "hashlib", "base64", "urllib", "http", "html", "xml", "sqlite3", "csv", "configparser", "argparse", "tempfile",
         }
 
         root_module = module_name.split(".")[0]
@@ -203,11 +224,28 @@ class DependencyAnalyzer:
 
         try:
             #Calculate topological sort to determine layers
-            topo_order = list(nx.topological_sort(self.dependency_graph))
+            topo_order = []
+            visited = set()
+            temp_visited = set()
+
+            def dfs(module):
+                if module in temp_visited:
+                    raise ValueError("Circular dependency detected")
+                if module in visited:
+                    return
+                temp_visited.add(module)
+                for dep in self.dependency_graph[module]:
+                    dfs(dep)
+                temp_visited.remove(module)
+                visited.add(module)
+                topo_order.append(module)
+
+            for module in self.dependency_graph:
+                dfs(module)
 
             #Assign layers based on longest path from nodes with no dependencies
             for node in topo_order:
-                predecessors = list(self.dependency_graph.predecessors(node))
+                predecessors = self.dependency_graph[node]
                 if not predecessors:
                     layers[0].append(node)
                 else:
@@ -216,10 +254,10 @@ class DependencyAnalyzer:
                     )
                     layers[max_pred_layer + 1].append(node)
 
-        except nx.NetworkXError:
+        except Exception as e:
             #If graph has cycles, fall back to simple approach
-            for node in self.dependency_graph.nodes():
-                in_degree = self.dependency_graph.in_degree(node)
+            for node in self.dependency_graph:
+                in_degree = len(self.dependency_graph[node])
                 layers[in_degree].append(node)
 
         return dict(layers)
@@ -287,11 +325,6 @@ class DependencyAnalyzer:
                 complexity_ranges["very_high"] += 1
 
         return complexity_ranges
-
-    def _graph_to_dict(self) -> Dict[str, List[str]]:
-        """Convert NetworkX graph to dictionary representation."""
-        return {node: list(self.dependency_graph.successors(node))
-                for node in self.dependency_graph.nodes()}
 
     def generate_dependency_report(self) -> str:
         """Generate a comprehensive dependency analysis report."""
@@ -423,11 +456,67 @@ class ModuleASTAnalyzer(ast.NodeVisitor):
         self.exports.append(node.name)
         self.generic_visit(node)
 
-#Integration function for Chat Context Manager
-def analyze_dependencies(focus_area: str = None) -> str:
-    """Analyze project dependencies and architecture."""
-    analyzer = DependencyAnalyzer()
-    return analyzer.generate_dependency_report()
+def analyze_imports(file_path):
+    """Analyze imports in a given Python file."""
+    # Avoid conflict with standard library 'email' module
+    # by renaming the local email tool directory to email_tool
+    imports = []
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            tree = ast.parse(file.read(), filename=file_path)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for name in node.names:
+                    imports.append(name.name)
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    imports.append(node.module)
+    except Exception as e:
+        print(f"Error analyzing {file_path}: {e}")
+    return imports
+
+def build_dependency_graph(root_dir):
+    """Build a dependency graph for all Python files in the root directory."""
+    dependency_graph = defaultdict(list)
+    for root, _, files in os.walk(root_dir):
+        for file in files:
+            if file.endswith('.py'):
+                file_path = os.path.join(root, file)
+                module_name = os.path.relpath(file_path, root_dir).replace(os.sep, '.')[:-3]
+                imports = analyze_imports(file_path)
+                dependency_graph[module_name] = imports
+    return dependency_graph
+
+def detect_circular_dependencies(dependency_graph):
+    """Detect circular dependencies in the dependency graph."""
+    visited = set()
+    path = set()
+    cycles = []
+
+    def dfs(module, current_path):
+        visited.add(module)
+        path.add(module)
+        current_path.append(module)
+        # Create a copy of dependencies to avoid runtime modification issues
+        deps = list(dependency_graph.get(module, []))
+        for dep in deps:
+            if dep not in visited:
+                if dfs(dep, current_path):
+                    if current_path[-1] == current_path[0]:
+                        cycles.append(current_path[:])
+            elif dep in path:
+                cycle_start = current_path.index(dep)
+                cycles.append(current_path[cycle_start:])
+        path.remove(module)
+        current_path.pop()
+        return False
+
+    # Create a list of keys to avoid runtime modification issues
+    modules = list(dependency_graph.keys())
+    for module in modules:
+        if module not in visited:
+            dfs(module, [])
+    return cycles
 
 def find_circular_dependencies() -> str:
     """Find and report circular dependencies."""
@@ -451,7 +540,19 @@ def find_circular_dependencies() -> str:
 
     return "\n".join(report)
 
-if __name__ == "__main__":
-    #Test the analyzer
-    analyzer = DependencyAnalyzer()
-    print(analyzer.generate_dependency_report())
+if __name__ == '__main__':
+    root_directory = Path(__file__).parent.parent
+    print(f"Analyzing dependencies in {root_directory}")
+    dep_graph = build_dependency_graph(root_directory)
+    print("Dependency Graph:")
+    for module, deps in dep_graph.items():
+        if deps:
+            print(f"  {module}: {', '.join(deps)}")
+    print("\nDetecting Circular Dependencies...")
+    circular_deps = detect_circular_dependencies(dep_graph)
+    if circular_deps:
+        print("Circular Dependencies Detected:")
+        for cycle in circular_deps:
+            print("  -> ".join(cycle) + " -> " + cycle[0])
+    else:
+        print("No Circular Dependencies Detected.")

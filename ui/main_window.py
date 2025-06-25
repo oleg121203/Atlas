@@ -34,6 +34,9 @@ from ui.module_communication import EVENT_BUS, register_module_events, publish_m
 from core.event_bus import EventBus
 from core.agents.meta_agent import MetaAgent
 from core.module_registry import MODULE_REGISTRY, ModuleBase
+from core.feature_flags import is_feature_enabled
+
+from ui.input_validation import validate_ui_input, sanitize_ui_input, validate_form_data, sanitize_form_data
 
 logger = get_logger()
 
@@ -165,6 +168,7 @@ class AtlasMainWindow(QMainWindow):
         self._plugin_marketplace_module = None
         self._consent_manager_module = None
         self._decision_explanation_module = None
+        self._user_management_module = None
         self._init_ui()
         logger.debug("AtlasMainWindow initialization completed")
 
@@ -210,6 +214,10 @@ class AtlasMainWindow(QMainWindow):
         decision_explanation_action = QAction("AI Decision Explanation", self)
         decision_explanation_action.triggered.connect(lambda: self.show_module("DecisionExplanation"))
         tools_menu.addAction(decision_explanation_action)
+
+        user_management_action = QAction("User Management", self)
+        user_management_action.triggered.connect(lambda: self.show_module("UserManagement"))
+        tools_menu.addAction(user_management_action)
 
         # Settings Menu
         settings_menu = menubar.addMenu("Settings")
@@ -280,6 +288,7 @@ class AtlasMainWindow(QMainWindow):
         MODULE_REGISTRY.register_module("plugin_marketplace", PluginMarketplace, ["plugins", "settings"])
         MODULE_REGISTRY.register_module("consent", ConsentManager, ["settings"])
         MODULE_REGISTRY.register_module("decision_explanation", DecisionExplanation, ["settings"])
+        MODULE_REGISTRY.register_module("user_management", UserManagementWidget, ["settings"])
         
         # Load and initialize modules based on configuration or default settings
         enabled_modules = [
@@ -350,6 +359,10 @@ class AtlasMainWindow(QMainWindow):
         decision_btn.clicked.connect(lambda: self.show_module("DecisionExplanation"))
         sidebar_layout.addWidget(decision_btn)
 
+        user_management_btn = QPushButton("User Management")
+        user_management_btn.clicked.connect(lambda: self.show_module("UserManagement"))
+        sidebar_layout.addWidget(user_management_btn)
+
         sidebar_layout.addStretch()
 
         logger.debug("Sidebar creation completed")
@@ -388,3 +401,140 @@ class AtlasMainWindow(QMainWindow):
             logger.debug(f"Switched to module: {module_name}")
         else:
             logger.error(f"Failed to load module: {module_name}")
+
+    def validate_input(self, value: str, input_type: str, field_name: str = "Input") -> tuple[bool, str]:
+        """
+        Validate user input using the input validation utilities.
+        
+        Args:
+            value: Input value to validate
+            input_type: Type of input (email, url, filepath, username, password, text, alphanumeric)
+            field_name: Name of the input field for error messaging
+        
+        Returns:
+            tuple[bool, str]: (is_valid, error_message)
+        """
+        return validate_ui_input(value, input_type, field_name)
+
+    def sanitize_input(self, value: str) -> str:
+        """
+        Sanitize user input to remove potentially dangerous content.
+        
+        Args:
+            value: Input value to sanitize
+        
+        Returns:
+            str: Sanitized input value
+        """
+        return sanitize_ui_input(value)
+
+    def check_permission(self, username: str, permission: str) -> bool:
+        """
+        Check if a user has a specific permission.
+        
+        Args:
+            username: Username to check
+            permission: Permission string to verify
+        
+        Returns:
+            bool: True if user has permission, False otherwise
+        """
+        try:
+            from security.rbac import Permission
+            perm = Permission(permission)
+            return self.app.rbac_manager.check_permission(username, perm)
+        except ValueError:
+            logger.error("Invalid permission requested: %s", permission)
+            return False
+    
+    def enforce_permission(self, username: str, permission: str, operation: str) -> None:
+        """
+        Enforce a permission check for a user.
+        
+        Args:
+            username: Username to check
+            permission: Permission string to verify
+            operation: Description of operation for error message
+        
+        Raises:
+            PermissionError: If user lacks permission
+        """
+        try:
+            from security.rbac import Permission
+            perm = Permission(permission)
+            self.app.rbac_manager.enforce_permission(username, perm, operation)
+        except ValueError:
+            logger.error("Invalid permission requested for enforcement: %s", permission)
+            raise PermissionError(f"Invalid permission check for {operation}")
+
+    def closeEvent(self, event) -> None:
+        """Handle window close event."""
+        logger.info("Closing main window")
+        self.app.shutdown()
+        event.accept()
+
+    def setup_ui(self) -> None:
+        """Set up the user interface components based on feature flags."""
+        self.logger.info("Setting up UI components")
+        
+        # Create central widget and layout
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout(central_widget)
+        
+        # Create sidebar or tab widget based on feature flags
+        if is_feature_enabled("multilingual_ui"):
+            self.setup_multilingual_ui(layout)
+        else:
+            self.setup_standard_ui(layout)
+        
+        # Add menu bar if feature is enabled
+        if is_feature_enabled("advanced_settings"):
+            self.setup_advanced_menu_bar()
+        else:
+            self.setup_basic_menu_bar()
+        
+        self.logger.info("UI setup complete")
+
+    def setup_multilingual_ui(self, layout):
+        # Create multilingual UI components
+        pass
+
+    def setup_standard_ui(self, layout):
+        # Create standard UI components
+        self.tab_widget = QTabWidget()
+        layout.addWidget(self.tab_widget)
+        
+        # Initialize core widgets for standard UI
+        self.chat_widget = ChatWidget(self.app)
+        self.tasks_widget = TaskWidget(self.app)
+        self.settings_widget = SettingsWidget(self.app)
+        self.plugins_widget = PluginsWidget(self.app)
+        self.user_management_widget = UserManagementWidget(self.app)
+        self.ai_assistant_widget = AIAssistantWidget(self.app)
+        
+        # Add tabs to tab widget with feature flag checks
+        if is_feature_enabled("chat_module"):
+            self.tab_widget.addTab(self.chat_widget, "Chat")
+        if is_feature_enabled("task_management"):
+            self.tab_widget.addTab(self.tasks_widget, "Tasks")
+        if is_feature_enabled("ai_assistant"):
+            self.tab_widget.addTab(self.ai_assistant_widget, "AI Assistant")
+        if is_feature_enabled("settings_ui"):
+            self.tab_widget.addTab(self.settings_widget, "Settings")
+        if is_feature_enabled("plugin_system"):
+            self.tab_widget.addTab(self.plugins_widget, "Plugins")
+        
+        # Add User Management tab with permission check
+        if self.app.rbac_manager.has_permission("manage_users"):
+            self.tab_widget.addTab(self.user_management_widget, "User Management")
+        
+        self.logger.info("Standard UI setup with tabs")
+
+    def setup_advanced_menu_bar(self):
+        # Create advanced menu bar
+        pass
+
+    def setup_basic_menu_bar(self):
+        # Create basic menu bar
+        pass

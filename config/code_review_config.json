@@ -1,0 +1,8 @@
+{
+  "app_name": "atlas",
+  "review_dir": "code_review",
+  "logging": {
+    "level": "INFO",
+    "file": "atlas_review.log"
+  }
+}

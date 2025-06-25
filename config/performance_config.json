@@ -1,0 +1,14 @@
+{
+  "app_name": "atlas",
+  "audit_dir": "performance_audit",
+  "logging": {
+    "level": "INFO",
+    "file": "atlas_audit.log"
+  },
+  "modules": [
+    "chat",
+    "tasks",
+    "agents",
+    "plugins"
+  ]
+}

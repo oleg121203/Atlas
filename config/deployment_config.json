@@ -1,0 +1,46 @@
+{
+  "app_name": "atlas",
+  "version": "0.1.0",
+  "build_dir": "build",
+  "package_dir": "dist",
+  "logging": {
+    "level": "INFO",
+    "file": "atlas_deploy.log"
+  },
+  "build_commands": [
+    "python -m build"
+  ],
+  "deployment_targets": {
+    "dev": {
+      "type": "local",
+      "path": "/opt/atlas/dev",
+      "backup": true,
+      "post_deploy_commands": [
+        "systemctl restart atlas-dev"
+      ],
+      "health_check_url": "http://localhost:8080/health"
+    },
+    "staging": {
+      "type": "sftp",
+      "host": "staging.example.com",
+      "port": 22,
+      "username": "deploy_user",
+      "key_path": "/home/deploy/.ssh/id_rsa",
+      "remote_path": "/opt/atlas/staging",
+      "post_deploy_commands": [
+        "cd /opt/atlas/staging && tar -xzf atlas-*.tar.gz",
+        "systemctl restart atlas-staging"
+      ],
+      "health_check_url": "https://staging.atlas.example.com/health"
+    },
+    "prod": {
+      "type": "aws_s3",
+      "bucket_name": "atlas-prod-deployments",
+      "region": "us-east-1",
+      "s3_path": "deployments/prod",
+      "notify_lambda": true,
+      "lambda_function": "atlas-prod-deployment-handler",
+      "health_check_url": "https://atlas.example.com/health"
+    }
+  }
+}

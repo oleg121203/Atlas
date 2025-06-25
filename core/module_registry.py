@@ -6,6 +6,7 @@ of application modules, including dependency resolution.
 """
 import logging
 from typing import Dict, List, Type, Optional, Set
+from .lazy_loader import lazy_import
 
 logger = logging.getLogger(__name__)
 
@@ -45,24 +46,26 @@ class ModuleRegistry:
     def __init__(self):
         """Initialize the module registry."""
         self.modules: Dict[str, ModuleBase] = {}
-        self.module_classes: Dict[str, Type[ModuleBase]] = {}
         self.dependencies: Dict[str, List[str]] = {}
+        self.lazy_loaders: Dict[str, lazy_import] = {}
+        self.state: Dict[str, str] = {}
+        logger.info("Module registry initialized")
 
-    def register_module(self, module_name: str, module_class: Type[ModuleBase], dependencies: Optional[List[str]] = None) -> None:
-        """Register a module class for later instantiation."""
-        self.module_classes[module_name] = module_class
+    def register_module(self, module_name: str, module_class: Type[ModuleBase] = None, dependencies: List[str] = None):
+        """Register a module for dynamic loading with optional lazy loading."""
+        if module_class:
+            self.modules[module_name] = module_class(module_name)
+        else:
+            self.lazy_loaders[module_name] = lazy_import(f'modules.{module_name.lower()}', 'Module')
         self.dependencies[module_name] = dependencies or []
-        logger.info(f"Registered module: {module_name} with dependencies: {self.dependencies[module_name]}")
+        self.state[module_name] = 'registered'
+        logger.info(f"Module registered: {module_name}")
 
     def load_module(self, module_name: str, *args, **kwargs) -> Optional[ModuleBase]:
         """Load and instantiate a specific module."""
-        if module_name not in self.module_classes:
-            logger.error(f"Module not registered: {module_name}")
+        if module_name not in self.modules:
+            logger.error(f"Module not loaded: {module_name}")
             return None
-
-        if module_name in self.modules:
-            logger.info(f"Module already loaded: {module_name}")
-            return self.modules[module_name]
 
         # Resolve dependencies first
         for dep in self.dependencies.get(module_name, []):
@@ -71,13 +74,23 @@ class ModuleRegistry:
                 self.load_module(dep, *args, **kwargs)
 
         try:
-            module_instance = self.module_classes[module_name](module_name, *args, **kwargs)
-            self.modules[module_name] = module_instance
             logger.info(f"Loaded module: {module_name}")
-            return module_instance
+            return self.modules[module_name]
         except Exception as e:
             logger.error(f"Error loading module {module_name}: {e}")
             return None
+
+    def get_module(self, module_name: str) -> Optional[ModuleBase]:
+        """Get a module instance, loading it if necessary."""
+        if module_name in self.lazy_loaders and module_name not in self.modules:
+            try:
+                module_class = self.lazy_loaders[module_name].get()
+                self.modules[module_name] = module_class(module_name)
+                logger.info(f"Module lazily loaded: {module_name}")
+            except ImportError as e:
+                logger.error(f"Failed to lazily load module {module_name}: {e}")
+                return None
+        return self.modules.get(module_name)
 
     def initialize_module(self, module_name: str) -> bool:
         """Initialize a loaded module."""
@@ -149,10 +162,6 @@ class ModuleRegistry:
         except Exception as e:
             logger.error(f"Error cleaning up module {module_name}: {e}")
             return False
-
-    def get_module(self, module_name: str) -> Optional[ModuleBase]:
-        """Get a module instance by name."""
-        return self.modules.get(module_name)
 
     def get_all_modules(self) -> Dict[str, ModuleBase]:
         """Get all loaded modules."""

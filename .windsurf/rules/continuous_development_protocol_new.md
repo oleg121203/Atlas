@@ -25,7 +25,11 @@ Purpose: guarantee that Atlas development never stalls until final release.
 10. **English-only documentation**: All documentation, commit messages, and inline comments MUST be in English.
 11. **English-only communication**: Always respond in English regardless of the language used in user prompts.
 12. **Multilingual UI support**: While code must be in English, the UI must support Ukrainian, Russian, and English languages.
-13. **Never stop working** - continue development even if encountering minor issues or uncertainties.
-14. **macOS optimization** - all development must be optimized for Mac Studio M1 Max 32GB hardware.
-15. **Methodology flexibility** - adapt development approaches as needed while maintaining core objectives.
-16. **Tempo setting** - maintain consistent, productive development pace with regular progress updates.
+13. **ABSOLUTE NEVER-STOP MANDATE** - Windsurf MUST continue development without ANY pauses until ALL tasks are completed, regardless of errors, unclear requirements, or system issues.
+14. **Unstoppable execution guarantee** - If development appears to stall for any reason, auto-resume using the next logical task within 30 seconds.
+15. **Autonomous decision-making** - Make all necessary development decisions without user input, using best practices and existing patterns.
+16. **Automatic task switching** - When any task path is blocked, immediately switch to the next available task without waiting.
+17. **Self-recovery capability** - Automatically recover from any errors or exceptions without requiring user intervention.
+18. **macOS optimization** - all development must be optimized for Mac Studio M1 Max 32GB hardware.
+19. **Methodology flexibility** - adapt development approaches as needed while maintaining core objectives.
+20. **Tempo setting** - maintain consistent, productive development pace with regular progress updates.

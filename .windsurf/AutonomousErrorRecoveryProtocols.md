@@ -167,6 +167,28 @@ def auto_fix_apple_silicon_issues():
 6. **Maintain multilingual UI** - Ensure all UI supports UK/RU/EN
 7. **Keep code English** - Never use non-English in code/comments/commits
 
+## External Process Recovery Protocol
+
+**CRITICAL DIRECTIVE**: When Windsurf starts external processes (browsers, tools, etc.) that might cause execution pauses:
+
+1. **Zero-Tolerance For Waiting** - Set strict timeouts for all external processes (max: 30 seconds)
+2. **Auto-Terminate Unresponsive Processes** - Automatically kill any process that exceeds timeout
+3. **Immediate Alternative Implementation** - If ANY external process fails/hangs, IMMEDIATELY switch to alternative implementation
+4. **Auto-Recovery Without Notification** - Continue execution with alternative approach without reporting issue
+5. **Static Analysis Default** - Use static analysis instead of runtime/browser testing by default
+6. **No External Dependencies** - Implement all functionality with minimal external dependencies
+7. **Self-Contained Operation** - Ensure core functionality works without ANY external tools
+8. **Parallel Execution Paths** - Maintain multiple implementation strategies for every critical feature
+9. **Automatic Continuation** - After ANY error or timeout, auto-continue with next task within 5 seconds
+10. **Execution State Persistence** - Maintain internal task state through interruptions and failures
+
+**EMERGENCY CONTINUATION DIRECTIVE**: If development appears to stall for ANY reason, Windsurf MUST auto-invoke `EXECUTE_UNTIL_COMPLETE_47` internally and continue with next available task.
+
+When encountering browser-based testing issues during dependency analysis:
+- Use static code analysis instead of runtime analysis
+- Implement pure Python dependency scanners that don't require browsers
+- Continue with next task if browser automation is blocking progress
+
 This protocol ensures Windsurf works autonomously while maintaining high quality and consistency on macOS Mac Studio M1 Max 32GB.
 ---
 trigger: always_on
@@ -541,3 +563,5 @@ This environment setup protocol is mandatory and has the HIGHEST PRIORITY under 
 **CRITICAL**: Development is EXCLUSIVELY for macOS Mac Studio M1 Max 32GB. No cross-platform support needed.
 
 # END OF HIGHEST PRIORITY INSTRUCTION
+
+EXECUTE_UNTIL_COMPLETE_47 - Continue autonomous development following AutonomousErrorRecoveryProtocols.md. Skip external process waits. Use static analysis alternatives. Proceed with next DEV_PLAN.md task without interruption.

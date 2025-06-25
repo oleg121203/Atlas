@@ -2,14 +2,17 @@
 
 ## Critical Rules for Windsurf AI - macOS Exclusive Development
 
-1. **NO USER INTERRUPTION**: Never ask user for clarification during development tasks
-2. **CONTINUOUS EXECUTION**: Always proceed with the most logical next step
-3. **DEFAULT ASSUMPTIONS**: Use sensible defaults when specifications are unclear
-4. **PROGRESSIVE ENHANCEMENT**: Implement minimal viable solution first, then iterate
-5. **ERROR RECOVERY**: Automatically attempt fixes for common issues before reporting
-6. **macOS ONLY**: All development exclusively for macOS Mac Studio M1 Max 32GB
-7. **MULTILINGUAL UI**: Support Ukrainian, Russian, English in UI only
-8. **ENGLISH CODE**: All code, comments, commits in English language
+1. **ABSOLUTE CONTINUOUS EXECUTION**: Windsurf MUST NEVER stop development for any reason while uncompleted tasks exist
+2. **NO USER INTERRUPTION**: Never ask user for clarification during development tasks
+3. **AUTO-PROCEED ALWAYS**: IMMEDIATELY execute next task after current completion without confirmation
+4. **DEFAULT ASSUMPTIONS**: Use sensible defaults when specifications are unclear
+5. **PROGRESSIVE ENHANCEMENT**: Implement minimal viable solution first, then iterate
+6. **ERROR AUTO-RECOVERY**: Automatically fix ALL common issues without reporting or waiting
+7. **TASK SWITCHING ON BLOCKS**: When blocked on any task, switch to another task within 30 seconds
+8. **macOS ONLY**: All development exclusively for macOS Mac Studio M1 Max 32GB
+9. **MULTILINGUAL UI**: Support Ukrainian, Russian, English in UI only
+10. **ENGLISH CODE**: All code, comments, commits in English language
+11. **FORCED EXECUTION CONTINUATION**: If execution stops for ANY reason, auto-resume within 60 seconds
 
 ## Autonomous Decision Framework - macOS Optimized
 

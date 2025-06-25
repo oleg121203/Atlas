@@ -13,6 +13,11 @@ Atlas — сучасна модульна AI-платформа з кіберп�
 - Оптимізовано для Mac Studio M1 Max 32GB
 
 ## Структура
+- **AtlasApplication**: Головний клас програми, відповідальний за ініціалізацію, управління життєвим циклом та інтеграцію компонентів.
+- **ConfigManager**: Керує конфігурацією програми з підтримкою середовищно-залежних налаштувань та перевірки JSON-схеми.
+- **EventBus**: Обробляє розповсюдження подій по всій програмі для відокремленого спілкування між компонентами.
+- **ModuleRegistry**: Керує реєстрацією та життєвим циклом модулів програми.
+- **PluginRegistry**: Відкриває, завантажує та керує плагінами з хуками життєвого циклу (ініціалізація, запуск, зупинка, завершення роботи).
 - `main.py` — точка входу (PySide6 UI)
 - `ui/` — всі QWidget-модулі (chat, tasks, agents, plugins, settings, stats, plugin_manager)
 - `plugins/` — плагіни (кожен — клас-нащадок PluginBase)
@@ -49,6 +54,11 @@ Atlas is a modern modular AI platform with cyberpunk design, extensibility throu
 - Optimized for Mac Studio M1 Max 32GB
 
 ## Structure
+- **AtlasApplication**: The main application class responsible for initialization, lifecycle management, and integration of components.
+- **ConfigManager**: Manages application configuration with support for environment-based settings and JSON schema validation.
+- **EventBus**: Handles event distribution across the application for decoupled communication between components.
+- **ModuleRegistry**: Manages the registration and lifecycle of application modules.
+- **PluginRegistry**: Discovers, loads, and manages plugins with lifecycle hooks (initialize, start, stop, shutdown).
 - `main.py` — entry point (PySide6 UI)
 - `ui/` — all QWidget modules (chat, tasks, agents, plugins, settings, stats, plugin_manager)
 - `plugins/` — plugins (each one is a PluginBase child class)
