@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QSlider, 
 from PySide6.QtCore import Qt
 
 class SystemControlModule(QWidget):
-    def __init__(self, agent_manager, parent=None):
+    def __init__(self, agent_manager=None, parent=None):
         super().__init__(parent)
         self.agent_manager = agent_manager
         self._build_ui()
@@ -86,8 +86,9 @@ class SystemControlModule(QWidget):
         self.status_bar = QStatusBar()
         layout.addWidget(self.status_bar)
 
-        self._refresh_volume()
-        self._refresh_apps()
+        if self.agent_manager:
+            self._refresh_volume()
+            self._refresh_apps()
 
     def _show_help(self):
         QMessageBox.information(self, "System Control Help",
@@ -100,57 +101,78 @@ class SystemControlModule(QWidget):
             "\nTip: Hover over any button for a tooltip.")
 
     def _mute(self):
-        result = self.agent_manager.execute_tool("system_event", {"event": "mute"})
-        self._show_feedback(result)
-        self._refresh_volume()
-        self._set_status("Muted system audio.")
+        if self.agent_manager:
+            result = self.agent_manager.execute_tool("system_event", {"event": "mute"})
+            self._show_feedback(result)
+            self._refresh_volume()
+            self._set_status("Muted system audio.")
+        else:
+            print("Agent manager not initialized, cannot mute")
 
     def _unmute(self):
-        result = self.agent_manager.execute_tool("system_event", {"event": "unmute"})
-        self._show_feedback(result)
-        self._refresh_volume()
-        self._set_status("Unmuted system audio.")
+        if self.agent_manager:
+            result = self.agent_manager.execute_tool("system_event", {"event": "unmute"})
+            self._show_feedback(result)
+            self._refresh_volume()
+            self._set_status("Unmuted system audio.")
+        else:
+            print("Agent manager not initialized, cannot unmute")
 
     def _sleep(self):
-        result = self.agent_manager.execute_tool("system_event", {"event": "sleep"})
-        self._show_feedback(result)
-        self._set_status("Put Mac to sleep.")
+        if self.agent_manager:
+            result = self.agent_manager.execute_tool("system_event", {"event": "sleep"})
+            self._show_feedback(result)
+            self._set_status("Put Mac to sleep.")
+        else:
+            print("Agent manager not initialized, cannot sleep")
 
     def _open_app(self):
-        app = self.app_entry.text().strip()
-        if app:
-            result = self.agent_manager.execute_tool("system_event", {"event": "open_app", "app_name": app})
-            self._show_feedback(result)
-            self._refresh_apps()
-            self._set_status(f"Opened app: {app}")
+        if self.agent_manager:
+            app = self.app_entry.text().strip()
+            if app:
+                result = self.agent_manager.execute_tool("system_event", {"event": "open_app", "app_name": app})
+                self._show_feedback(result)
+                self._refresh_apps()
+                self._set_status(f"Opened app: {app}")
+            else:
+                self._show_feedback({"status": "error", "error": "Please enter an app name."})
+                self._set_status("No app name entered.")
         else:
-            self._show_feedback({"status": "error", "error": "Please enter an app name."})
-            self._set_status("No app name entered.")
+            print("Agent manager not initialized, cannot open app")
 
     def _set_volume(self):
-        vol = int(self.volume_slider.value())
-        result = self.agent_manager.execute_tool("system_event", {"event": "set_volume", "value": vol})
-        self._show_feedback(result)
-        self._refresh_volume()
-        self._set_status(f"Set volume to {vol}%.")
+        if self.agent_manager:
+            vol = int(self.volume_slider.value())
+            result = self.agent_manager.execute_tool("system_event", {"event": "set_volume", "value": vol})
+            self._show_feedback(result)
+            self._refresh_volume()
+            self._set_status(f"Set volume to {vol}%.")
+        else:
+            print("Agent manager not initialized, cannot set volume")
 
     def _refresh_volume(self):
-        result = self.agent_manager.execute_tool("system_event", {"event": "get_volume"})
-        if result.get("status") == "success":
-            self.volume_label.setText(f"Current Volume: {result.get('output')}")
-            self._set_status(f"Current volume: {result.get('output')}")
+        if self.agent_manager:
+            result = self.agent_manager.execute_tool("system_event", {"event": "get_volume"})
+            if result.get("status") == "success":
+                self.volume_label.setText(f"Current Volume: {result.get('output')}")
+                self._set_status(f"Current volume: {result.get('output')}")
+            else:
+                self.volume_label.setText("Current Volume: ?")
+                self._set_status("Could not get volume.")
         else:
-            self.volume_label.setText("Current Volume: ?")
-            self._set_status("Could not get volume.")
+            print("Agent manager not initialized, cannot refresh volume")
 
     def _refresh_apps(self):
-        result = self.agent_manager.execute_tool("system_event", {"event": "get_running_apps"})
-        if result.get("status") == "success":
-            self.apps_label.setText(f"Running Apps: {result.get('output')}")
-            self._set_status("Refreshed running apps.")
+        if self.agent_manager:
+            result = self.agent_manager.execute_tool("system_event", {"event": "get_running_apps"})
+            if result.get("status") == "success":
+                self.apps_label.setText(f"Running Apps: {result.get('output')}")
+                self._set_status("Refreshed running apps.")
+            else:
+                self.apps_label.setText("Running Apps: ?")
+                self._set_status("Could not get running apps.")
         else:
-            self.apps_label.setText("Running Apps: ?")
-            self._set_status("Could not get running apps.")
+            print("Agent manager not initialized, cannot refresh apps")
 
     def _show_feedback(self, result):
         if result.get("status") == "success":
@@ -159,4 +181,4 @@ class SystemControlModule(QWidget):
             self.status_bar.showMessage(f"Error: {result.get('error')}", 5000)
 
     def _set_status(self, msg):
-        self.status_bar.showMessage(msg, 4000) 
+        self.status_bar.showMessage(msg, 4000)

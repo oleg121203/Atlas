@@ -1,0 +1,78 @@
+{
+    "machine_info": {
+        "node": "DEVs-Mac-Studio.local",
+        "processor": "arm",
+        "machine": "arm64",
+        "python_compiler": "Clang 17.0.0 (clang-1700.0.13.5)",
+        "python_implementation": "CPython",
+        "python_implementation_version": "3.9.6",
+        "python_version": "3.9.6",
+        "python_build": [
+            "default",
+            "Apr 30 2025 02:07:17"
+        ],
+        "release": "24.5.0",
+        "system": "Darwin",
+        "cpu": {
+            "python_version": "3.9.6.final.0 (64 bit)",
+            "cpuinfo_version": [
+                9,
+                0,
+                0
+            ],
+            "cpuinfo_version_string": "9.0.0",
+            "arch": "ARM_8",
+            "bits": 64,
+            "count": 10,
+            "arch_string_raw": "arm64",
+            "brand_raw": "Apple M1 Max"
+        }
+    },
+    "commit_info": {
+        "id": "ecb5dfc9860de51da2337b910903484adbcfd7b3",
+        "time": "2025-06-25T07:19:57+03:00",
+        "author_time": "2025-06-25T07:19:57+03:00",
+        "dirty": true,
+        "project": "Atlas",
+        "branch": "main"
+    },
+    "benchmarks": [
+        {
+            "group": null,
+            "name": "test_dependency_resolution_performance",
+            "fullname": "tests/test_plugin_performance.py::test_dependency_resolution_performance",
+            "params": null,
+            "param": null,
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 8.350000000012514e-05,
+                "max": 0.0002171660000001019,
+                "mean": 8.558045750387822e-05,
+                "stddev": 3.378652193653045e-06,
+                "rounds": 8389,
+                "median": 8.475000000007782e-05,
+                "iqr": 9.579999997733069e-07,
+                "q1": 8.437500000013642e-05,
+                "q3": 8.533299999990973e-05,
+                "iqr_outliers": 1414,
+                "stddev_outliers": 536,
+                "outliers": "536;1414",
+                "ld15iqr": 8.350000000012514e-05,
+                "hd15iqr": 8.679099999975293e-05,
+                "ops": 11684.910657958137,
+                "total": 0.7179344580000344,
+                "iterations": 1
+            }
+        }
+    ],
+    "datetime": "2025-06-25T12:03:44.886983+00:00",
+    "version": "5.1.0"
+}

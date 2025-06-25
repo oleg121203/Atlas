@@ -131,7 +131,8 @@ class AgentManager:
                                 self._generated_tools.append(name)
                                 tool_load_end_time = time.perf_counter()
                                 duration = tool_load_end_time - tool_load_start_time
-                                metrics_manager_instance.record_tool_load_time(name, duration)
+                                if 'metrics_manager_instance' in globals():
+                                    metrics_manager_instance.record_tool_load_time(name, duration)
                                 self.logger.info(f"Dynamically loaded and registered tool: '{name}' from {filename} in {duration:.4f}s")
                                 break
                 except (SyntaxError, ImportError, AttributeError, Exception) as e:
@@ -314,6 +315,7 @@ class AgentManager:
 
             #Notify the master agent of the change
             if self.master_agent_update_callback:
+                self.logger.info("Notifying MasterAgent of tool updates.")
                 self.master_agent_update_callback()
 
         except Exception as e:

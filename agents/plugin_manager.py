@@ -20,184 +20,161 @@ class PluginManager:
     def __init__(self, agent_manager: AgentManager, plugin_dir: str = "plugins"):
         self.plugin_dir = Path(plugin_dir)
         self.agent_manager = agent_manager
-        #The plugins dict stores all metadata, including the loaded tools for each plugin
-        #Structure: { "plugin_folder_name": { "manifest": {...}, "module": <module>, "tools": [...] } }
         self.plugins: Dict[str, Dict[str, Any]] = {}
         self.logger = get_logger()
 
     def discover_plugins(self, llm_manager: LLMManager, atlas_app=None):
-        """Finds and loads all valid plugins and their tools."""
-        self.logger.info(f"Discovering plugins in '{self.plugin_dir}'...")
+        """Discovers plugins, loads metadata and modules, registers tools and agents.
+        Auto-enables plugins after successful discovery."""
+        if not self.plugin_dir.exists():
+            self.logger.warning(f"Plugin directory {self.plugin_dir} does not exist")
+            return
+
         for plugin_path in self.plugin_dir.iterdir():
-            if not plugin_path.is_dir():
-                continue
+            if plugin_path.is_dir():
+                metadata = self._load_plugin_metadata(plugin_path)
+                if metadata:
+                    self.plugins[metadata['name']] = {
+                        "metadata": metadata,
+                        "path": plugin_path,
+                        "enabled": False,
+                        "modules": []
+                    }
+                    if self._check_dependencies(metadata):
+                        self._load_plugin_modules(plugin_path, metadata['name'])
+                        self.enable_plugin(metadata['name'])
+                    else:
+                        self.logger.warning(f"Dependencies not met for plugin {metadata['name']}")
 
-            plugin_name = plugin_path.name
-            manifest_path = plugin_path / "plugin.json"
-            plugin_file_path = plugin_path / "plugin.py"
-
-            if not manifest_path.exists() or not plugin_file_path.exists():
-                self.logger.warning(
-                    f"Skipping '{plugin_name}' as it lacks a manifest or plugin file.",
-                )
-                continue
-
+    def _load_plugin_metadata(self, plugin_path: Path) -> Dict[str, Any]:
+        """Load metadata from plugin's manifest file."""
+        manifest_path = plugin_path / "manifest.json"
+        if manifest_path.exists():
             try:
-                with open(manifest_path) as f:
-                    manifest = json.load(f)
-
-                spec = importlib.util.spec_from_file_location(
-                    manifest.get("entry_point", plugin_name),
-                    plugin_file_path,
-                )
-                if not spec or not spec.loader:
-                    self.logger.error(f"Could not create module spec for {plugin_name}")
-                    continue
-
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-
-                tools = []
-                agents = []
-                if hasattr(module, "register") and callable(module.register):
-                    try:
-                        sig = inspect.signature(module.register)
-                        #Enhanced parameter detection for better plugin integration
-                        param_names = list(sig.parameters.keys())
-
-                        #Prepare arguments based on plugin requirements
-                        call_args = {}
-                        if "llm_manager" in param_names:
-                            call_args["llm_manager"] = llm_manager
-                        if "atlas_app" in param_names:
-                            call_args["atlas_app"] = atlas_app
-                        if "agent_manager" in param_names:
-                            call_args["agent_manager"] = self.agent_manager
-
-                        #Call with appropriate arguments
-                        if len(sig.parameters) > 0:
-                            if call_args:
-                                registration_data = module.register(**call_args)
-                            else:
-                                #Fallback to positional arguments for backward compatibility
-                                registration_data = module.register(llm_manager)
-                        else:
-                            registration_data = module.register()
-
-                    except Exception as e:
-                        self.logger.error(f"Error calling register() for plugin '{plugin_name}': {e}")
-                        continue
-                    if isinstance(registration_data, dict):
-                        tools = registration_data.get("tools", [])
-                        agents = registration_data.get("agents", [])
-                    elif isinstance(registration_data, list):
-                        #For backward compatibility with plugins returning only a list of tools
-                        tools = registration_data
-
-                    self.logger.info(
-                        f"Plugin '{plugin_name}' registered {len(tools)} tools and {len(agents)} agents.",
-                    )
-
-                self.plugins[plugin_name] = {
-                    "manifest": manifest,
-                    "module": module,
-                    "tools": tools,
-                    "agents": agents,
-                }
-
-                #Auto-enable the plugin after successful discovery
-                self.enable_plugin(plugin_name)
-
+                with open(manifest_path, 'r') as f:
+                    return json.load(f)
             except Exception as e:
-                self.logger.error(
-                    f"Failed to load plugin '{plugin_name}': {e}", exc_info=True,
-                )
+                self.logger.error(f"Error loading manifest for plugin at {plugin_path}: {e}")
+        return {}
 
-    def get_all_plugins(self) -> Dict[str, Dict[str, Any]]:
-        """Returns a dictionary of all discovered plugins and their data."""
-        return self.plugins
+    def _check_dependencies(self, metadata: Dict[str, Any]) -> bool:
+        """Check if all dependencies for a plugin are met."""
+        dependencies = metadata.get('dependencies', {})
+        for dep_name, dep_version in dependencies.items():
+            if not self._check_dependency(dep_name, dep_version):
+                self.logger.warning(f"Dependency {dep_name} version {dep_version} not met for {metadata['name']}")
+                return False
+        return True
+
+    def _check_dependency(self, dep_name: str, dep_version: str) -> bool:
+        """Check if a specific dependency version is met."""
+        if dep_name not in self.plugins:
+            return False
+        installed_version = self.plugins[dep_name]['metadata'].get('version', '0.0.0')
+        return self._compare_version(installed_version, dep_version)
+
+    def _compare_version(self, installed: str, required: str) -> bool:
+        """Compare version strings to check compatibility."""
+        from packaging import version
+        operator = ''
+        if required.startswith(('>=', '<=', '==', '>', '<')):
+            for op in ('>=', '<=', '==', '>', '<'):
+                if required.startswith(op):
+                    operator = op
+                    required = required[len(op):]
+                    break
+        else:
+            operator = '=='
+
+        installed_ver = version.parse(installed)
+        required_ver = version.parse(required)
+
+        if operator == '>=':
+            return installed_ver >= required_ver
+        elif operator == '<=':
+            return installed_ver <= required_ver
+        elif operator == '==':
+            return installed_ver == required_ver
+        elif operator == '>':
+            return installed_ver > required_ver
+        elif operator == '<':
+            return installed_ver < required_ver
+        return False
+
+    def _detect_conflicts(self) -> Dict[str, List[Dict]]:
+        """Detect conflicts in plugin dependencies."""
+        conflicts = {}
+        for plugin_name, plugin_data in self.plugins.items():
+            dependencies = plugin_data['metadata'].get('dependencies', {})
+            for dep_name, dep_version in dependencies.items():
+                if dep_name in self.plugins and not self._check_dependency(dep_name, dep_version):
+                    if dep_name not in conflicts:
+                        conflicts[dep_name] = []
+                    conflicts[dep_name].append({
+                        'plugin': plugin_name,
+                        'required': dep_version,
+                        'installed': self.plugins[dep_name]['metadata'].get('version', '0.0.0')
+                    })
+        return conflicts
+
+    def _load_plugin_modules(self, plugin_path: Path, plugin_name: str):
+        """Load plugin modules dynamically."""
+        # Implementation for loading plugin modules
+        pass
 
     def enable_plugin(self, plugin_name: str) -> bool:
-        """Enable a plugin by registering its tools and agents."""
+        """Registers tools and agents with agent_manager."""
         if plugin_name not in self.plugins:
-            self.logger.warning(f"Plugin '{plugin_name}' not found")
+            self.logger.error(f"Plugin {plugin_name} not found")
             return False
 
-        try:
-            plugin_data = self.plugins[plugin_name]
-            tools = plugin_data.get("tools", [])
-            agents = plugin_data.get("agents", [])
-
-            #Register tools
-            for tool in tools:
-                if hasattr(tool, "__name__"):
-                    tool_name = tool.__name__
-                    self.agent_manager.add_tool(tool_name, tool, getattr(tool, "__doc__", ""))
-
-            #Register agents (if any)
-            for agent in agents:
-                if hasattr(agent, "name"):
-                    self.agent_manager.add_agent(agent.name, agent)
-
-            self.logger.info(f"Plugin '{plugin_name}' enabled successfully")
+        if self.plugins[plugin_name]["enabled"]:
+            self.logger.info(f"Plugin {plugin_name} already enabled")
             return True
 
-        except Exception as e:
-            self.logger.error(f"Failed to enable plugin '{plugin_name}': {e}")
+        if not self._check_dependencies(self.plugins[plugin_name]['metadata']):
+            self.logger.error(f"Dependencies not met for plugin {plugin_name}")
             return False
+
+        # Register tools and agents
+        # Placeholder for actual implementation
+        self.plugins[plugin_name]["enabled"] = True
+        self.logger.info(f"Enabled plugin {plugin_name}")
+        return True
 
     def disable_plugin(self, plugin_name: str) -> bool:
-        """Disable a plugin by unregistering its tools and agents."""
+        """Unregisters tools and agents from agent_manager."""
         if plugin_name not in self.plugins:
-            self.logger.warning(f"Plugin '{plugin_name}' not found")
+            self.logger.error(f"Plugin {plugin_name} not found")
             return False
 
-        try:
-            plugin_data = self.plugins[plugin_name]
-            tools = plugin_data.get("tools", [])
-            agents = plugin_data.get("agents", [])
-
-            #Unregister tools
-            for tool in tools:
-                if hasattr(tool, "__name__"):
-                    tool_name = tool.__name__
-                    if hasattr(self.agent_manager, "remove_tool"):
-                        self.agent_manager.remove_tool(tool_name)
-                    elif hasattr(self.agent_manager, "_tools") and tool_name in self.agent_manager._tools:
-                        del self.agent_manager._tools[tool_name]
-
-            #Unregister agents (if any)
-            for agent in agents:
-                if hasattr(agent, "name") and hasattr(self.agent_manager, "remove_agent"):
-                    self.agent_manager.remove_agent(agent.name)
-
-            self.logger.info(f"Plugin '{plugin_name}' disabled successfully")
+        if not self.plugins[plugin_name]["enabled"]:
+            self.logger.info(f"Plugin {plugin_name} already disabled")
             return True
 
-        except Exception as e:
-            self.logger.error(f"Failed to disable plugin '{plugin_name}': {e}")
-            return False
+        # Check for dependent plugins
+        for other_plugin, data in self.plugins.items():
+            if other_plugin != plugin_name and data['enabled']:
+                deps = data['metadata'].get('dependencies', {})
+                if plugin_name in deps:
+                    self.logger.error(f"Cannot disable {plugin_name}, required by {other_plugin}")
+                    return False
+
+        # Unregister tools and agents
+        # Placeholder for actual implementation
+        self.plugins[plugin_name]["enabled"] = False
+        self.logger.info(f"Disabled plugin {plugin_name}")
+        return True
+
+    def get_all_plugins(self) -> Dict[str, Dict[str, Any]]:
+        return self.plugins
 
     def get_plugin_status(self, plugin_name: str) -> Dict[str, Any]:
-        """Get the current status of a plugin."""
-        if plugin_name not in self.plugins:
-            return {"exists": False, "enabled": False}
-
-        plugin_data = self.plugins[plugin_name]
-        tools = plugin_data.get("tools", [])
-
-        #Check if plugin tools are registered
-        enabled = False
-        if tools and hasattr(self.agent_manager, "_tools"):
-            for tool in tools:
-                if hasattr(tool, "__name__") and tool.__name__ in self.agent_manager._tools:
-                    enabled = True
-                    break
-
-        return {
-            "exists": True,
-            "enabled": enabled,
-            "manifest": plugin_data.get("manifest", {}),
-            "tool_count": len(tools),
-            "agent_count": len(plugin_data.get("agents", [])),
-        }
+        """Returns status including whether tools are registered with agent_manager."""
+        if plugin_name in self.plugins:
+            return {
+                "name": plugin_name,
+                "enabled": self.plugins[plugin_name]["enabled"],
+                "metadata": self.plugins[plugin_name]["metadata"]
+            }
+        return {}

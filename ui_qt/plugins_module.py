@@ -1,4 +1,7 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QMessageBox, QFrame
+from typing import Optional, List, Dict
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QMessageBox, QFrame, QAbstractItemView
+from PySide6.QtCore import Qt
+from ui_qt.plugin_manager import PluginManager
 from ui_qt.i18n import _
 
 class PluginsModule(QWidget):
@@ -35,8 +38,11 @@ class PluginsModule(QWidget):
         layout.addWidget(self.title)
 
         self.list = QListWidget()
+        self.list.setDragEnabled(True)
+        self.list.setDragDropMode(QAbstractItemView.InternalMove)
+        self.list.setDefaultDropAction(Qt.MoveAction)
+        self.list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list.setStyleSheet("background: #181c20; color: #fff; border: 1px solid #ff00c8; border-radius: 8px; font-size: 15px;")
-        self.list.setDragDropMode(self.list.InternalMove)
         layout.addWidget(self.list, stretch=1)
 
         btns = QHBoxLayout()

@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextBrowser, QLineEdit, QPushButton, QHBoxLayout, QMenu, QApplication, QFileDialog, QCompleter, QFrame
-from PySide6.QtCore import Qt, QTimer, QEvent
+from typing import Optional, Callable
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextBrowser, QLineEdit, QPushButton, QHBoxLayout, QMenu, QApplication, QFileDialog, QCompleter, QFrame, QListWidget, QListWidgetItem
+from PySide6.QtCore import Qt, QTimer, QEvent, Signal
 import markdown2
 import json
 import datetime
@@ -25,6 +26,8 @@ class ChatModule(QWidget):
         title: QLabel for module title
         history_btn: QPushButton for history management
     """
+
+    message_sent = Signal(str)
 
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize the chat module.
@@ -90,6 +93,11 @@ class ChatModule(QWidget):
         self.tools_layout.setContentsMargins(0, 10, 0, 0)
         layout.addWidget(self.tools_frame)
 
+        self.feedback_layout = QVBoxLayout()
+        self.feedback_widget = QWidget()
+        self.feedback_widget.setLayout(self.feedback_layout)
+        layout.addWidget(self.feedback_widget)
+
     def update_ui(self) -> None:
         """Update UI elements with translated text."""
         self.title.setText(str(_("💬 Chat (Cyberpunk)")) or "💬 Chat (Cyberpunk)")
@@ -126,6 +134,7 @@ class ChatModule(QWidget):
             self.scroll_to_bottom()
             self.get_agent_response(text)
             self.update_completer()
+            self.message_sent.emit(text)
         except Exception as e:
             self.chat_history.append(f'<span style="color:#ff00a0;">⚠️ Error:</span> {str(e)}')
             self.scroll_to_bottom()
@@ -155,6 +164,7 @@ class ChatModule(QWidget):
             self.chat_history.append(html)
             self.append_history("agent", text)
             self.scroll_to_bottom()
+            self.add_feedback_widget(text)
         except Exception as e:
             self.chat_history.append(f'<span style="color:#ff00a0;">⚠️ Error:</span> {str(e)}')
             self.scroll_to_bottom()
@@ -283,3 +293,28 @@ class ChatModule(QWidget):
                 if found:
                     self.chat_history.setTextCursor(self.chat_history.textCursor())
                 break 
+
+    def add_feedback_widget(self, text):
+        layout = QHBoxLayout()
+        rating_label = QLabel("Rate this response:")
+        rating_label.setStyleSheet("QLabel { color: #AAAAAA; font-size: 12px; }")
+        layout.addWidget(rating_label)
+        
+        for rating in range(1, 6):
+            btn = QPushButton(str(rating))
+            btn.setFixedSize(30, 30)
+            btn.setStyleSheet("QPushButton { background: #3A3A3A; color: white; border: none; } QPushButton:hover { background: #4A4A4A; }")
+            btn.clicked.connect(lambda checked, r=rating: self.submit_feedback(r))
+            layout.addWidget(btn)
+        
+        self.feedback_layout.addLayout(layout)
+
+    def submit_feedback(self, rating):
+        """Submit user feedback for a specific response."""
+        from utils.memory_management import MEMORY_MANAGER
+        user_id = "default_user"  # Placeholder for actual user ID retrieval
+        MEMORY_MANAGER.store_feedback(user_id, rating)
+        logger = get_logger()
+        logger.info(f"Feedback submitted: Rating {rating}")
+        # Optionally notify self_learning_agent here if accessible
+        print(f"DEBUG: Feedback submitted: Rating {rating}")

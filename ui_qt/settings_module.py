@@ -1,3 +1,5 @@
+from typing import Optional
+from ui_qt.plugin_manager import PluginManager
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QInputDialog, QMessageBox, QFormLayout, QComboBox, QFrame
 from ui_qt.i18n import _
 
