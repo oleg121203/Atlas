@@ -310,10 +310,20 @@ class ChatModule(QWidget):
         self.feedback_layout.addLayout(layout)
 
     def submit_feedback(self, rating):
-        """Submit user feedback for a specific response."""
-        from utils.memory_management import MEMORY_MANAGER
-        user_id = "default_user"  # Placeholder for actual user ID retrieval
-        MEMORY_MANAGER.store_feedback(user_id, rating)
+        """Submit feedback for the last AI response."""
+        if not hasattr(self, 'user_id'):
+            user_id = "default_user"
+        else:
+            user_id = self.user_id
+        
+        if hasattr(self, 'last_message_id') and self.last_message_id:
+            from utils.memory_management import MEMORY_MANAGER
+            MEMORY_MANAGER.store_feedback(user_id, self.last_message_id, rating)
+        else:
+            logger = get_logger()
+            logger.warning("No last message ID found for feedback submission")
+            from utils.memory_management import MEMORY_MANAGER
+            MEMORY_MANAGER.store_feedback(user_id, "unknown_message", rating)
         logger = get_logger()
         logger.info(f"Feedback submitted: Rating {rating}")
         # Optionally notify self_learning_agent here if accessible
