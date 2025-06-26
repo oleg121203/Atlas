@@ -4,6 +4,8 @@ description: A comprehensive workflow for Atlas development on macOS Apple Silic
 
 # Atlas Development Workflow
 
+This workflow outlines the steps for developing the Atlas project, ensuring continuous development, adherence to quality and security standards, and autonomous error recovery.
+
 ## Target Platform
 
 Atlas is exclusively developed and optimized for:
@@ -65,11 +67,66 @@ Before starting development:
 
 ### Development Workflow
 
-1. **Continuous Progress**: Complete tasks sequentially without interruption
-2. **Quality Assurance**: Run tests and linting before committing changes
-3. **Memory Optimization**: Leverage M1 Max unified memory architecture
-4. **Performance**: Monitor resource usage and optimize for Apple Silicon
-5. **Error Recovery**: Implement automatic error detection and recovery
+1. **Environment Setup**
+   - Ensure the development environment is set up according to `.windsurf/ENVIRONMENT_SETUP.md`.
+   - Verify that all necessary tools and dependencies are installed for macOS Apple Silicon (M1 Max 32GB).
+   - Use Python 3.9.6 (ARM64 native) within the `venv-macos` virtual environment.
+
+2. **Review Current Tasks**
+   - Open and review `DEV_PLAN.md` to identify the next uncompleted task under the current phase.
+   - Prioritize tasks based on dependencies and estimated time, focusing on high-priority items.
+
+3. **Code Development**
+   - Create or modify necessary files to implement the selected task.
+   - Follow English-only code and documentation standards as per the protocol.
+   - Ensure code is optimized for macOS Apple Silicon hardware.
+   - Implement multilingual UI support (Ukrainian, Russian, English) where applicable.
+
+4. **Quality Assurance**
+   - Write unit tests using PyTest to cover core logic of new modules.
+   - Run `ruff` and `mypy` for linting before committing code.
+   - Ensure public functions have Google-style docstrings.
+   - Verify performance requirements (e.g., screen/input tools <100ms latency).
+
+5. **Error Recovery and Continuation**
+   - If errors occur (e.g., AttributeError, ImportError), auto-implement fixes inline without stopping.
+   - For test failures, implement missing functionality and continue development.
+   - Switch to the next available task if the current path is blocked, adhering to the NEVER-STOP MANDATE.
+
+6. **Security Checks**
+   - Use environment variables for credentials, never commit sensitive data.
+   - Run `safety check` before adding new dependencies.
+   - Sanitize all external inputs to prevent injection attacks.
+
+7. **Documentation Updates**
+   - Update `DEV_PLAN.md` to mark completed tasks with checkboxes.
+   - Add detailed entries to `CHANGELOG.md` under *Unreleased* for each completed task.
+   - Batch documentation updates at phase completion to avoid loops.
+
+8. **Commit and Progress**
+   - Commit small, logical code increments with descriptive messages in English.
+   - Log progress in `CHANGELOG.md` at least every 30 minutes of active work.
+   - If no immediate tasks remain, perform a retrospective and expand the plan with new milestones.
+
+9. **Continuous Integration and Testing**
+   - Ensure CI pipeline (GitHub Actions) runs `ruff`, `mypy`, and full test suite.
+   - Maintain ≥90% test coverage; failing this blocks CI.
+   - Continue testing even with minor issues, logging them separately without halting.
+
+10. **Performance Optimization**
+    - Monitor operation latencies and implement fallbacks for slow operations.
+    - Auto-generate performance reports every 30 minutes.
+    - Switch to fallback implementations on degradation, logging diagnostics.
+
+11. **Autonomous Decision-Making**
+    - Make development decisions without user input using best practices and existing patterns.
+    - Auto-resume within 30 seconds if development stalls, selecting the next logical task.
+    - Use `EXECUTE_UNTIL_COMPLETE_47` override code if needed to force continuous execution.
+
+12. **Completion and Review**
+    - Review completed phases and update `DEV_PLAN.md` with new phases if necessary.
+    - Ensure all documentation and metrics are updated before moving to the next phase.
+    - Self-review code diffs for quality control before major commits.
 
 ### Quality Gates
 
@@ -114,4 +171,4 @@ Implement automatic recovery for common issues:
 - GUI rendering problems
 - Plugin loading failures
 
-This workflow ensures consistent, high-quality development for Atlas on the Mac Studio M1 Max platform.
+This workflow ensures continuous development without pauses, adhering to the ABSOLUTE NEVER-STOP MANDATE until all tasks are completed.

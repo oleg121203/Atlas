@@ -1,0 +1,1294 @@
+{
+  "patterns": {
+    "etl_basic": {
+      "name": "Basic ETL Pipeline",
+      "description": "Extract, Transform, Load workflow for data processing. (Customized) (Customized) (Customized) (Customized) (Customized) (Customized) (Customized) (Customized) (Customized) (Customized) (Customized) (Customized)",
+      "category": "Data Processing",
+      "tags": [
+        "ETL",
+        "data",
+        "pipeline",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized",
+        "customized"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "config": {
+              "source": "demo_custom_source"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:36:40.887049",
+      "last_updated": "2025-06-26T06:48:06.506901",
+      "usage_count": 25
+    },
+    "ml_training": {
+      "name": "Machine Learning Training Pipeline",
+      "description": "Workflow for training machine learning models.",
+      "category": "Machine Learning",
+      "tags": [
+        "ML",
+        "training",
+        "model"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Data Ingestion",
+            "type": "input",
+            "config": {
+              "source": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Data Preprocessing",
+            "type": "processing",
+            "config": {
+              "steps": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Model Training",
+            "type": "training",
+            "config": {
+              "algorithm": "configurable"
+            }
+          },
+          {
+            "id": 4,
+            "name": "Model Evaluation",
+            "type": "evaluation",
+            "config": {
+              "metrics": "configurable"
+            }
+          },
+          {
+            "id": 5,
+            "name": "Model Deployment",
+            "type": "output",
+            "config": {
+              "target": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          },
+          {
+            "from": 3,
+            "to": 4
+          },
+          {
+            "from": 4,
+            "to": 5
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:36:40.887058",
+      "last_updated": "2025-06-26T06:48:06.507830",
+      "usage_count": 25
+    },
+    "batch_processing": {
+      "name": "Batch Processing Workflow",
+      "description": "Workflow for processing data in batches.",
+      "category": "Data Processing",
+      "tags": [
+        "batch",
+        "data",
+        "processing"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Batch Input",
+            "type": "input",
+            "config": {
+              "source": "configurable",
+              "batch_size": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Batch Process",
+            "type": "processing",
+            "config": {
+              "logic": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Batch Output",
+            "type": "output",
+            "config": {
+              "destination": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:36:40.887061",
+      "last_updated": "2025-06-26T06:36:40.887062",
+      "usage_count": 0
+    },
+    "custom_workflow_1": {
+      "name": "Updated Custom Workflow",
+      "description": "An updated custom workflow with enhanced features",
+      "category": "Custom",
+      "tags": [
+        "custom",
+        "specialized"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Custom Input",
+            "type": "input",
+            "config": {}
+          },
+          {
+            "id": 2,
+            "name": "Custom Process",
+            "type": "process",
+            "config": {}
+          },
+          {
+            "id": 3,
+            "name": "Custom Output",
+            "type": "output",
+            "config": {}
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:36:40.888446",
+      "last_updated": "2025-06-26T06:48:06.508644",
+      "usage_count": 0
+    },
+    "demo_custom_etl": {
+      "name": "Customized Basic ETL Pipeline",
+      "description": "Customized version of Customized Basic ETL Pipeline created on 2025-06-26",
+      "category": "Custom Data Processing",
+      "tags": [
+        "ETL",
+        "data",
+        "pipeline",
+        "customized",
+        "custom"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "config": {
+              "source": "demo_custom_source"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:36:40.887049",
+      "last_updated": "2025-06-26T06:42:11.878090",
+      "usage_count": 14,
+      "id": "demo_custom_etl"
+    },
+    "demo_imported_ml": {
+      "id": "demo_imported_ml",
+      "name": "Machine Learning Training Pipeline",
+      "description": "Workflow for training machine learning models.",
+      "category": "Machine Learning",
+      "tags": [
+        "ML",
+        "training",
+        "model"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Data Ingestion",
+            "type": "input",
+            "config": {
+              "source": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Data Preprocessing",
+            "type": "processing",
+            "config": {
+              "steps": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Model Training",
+            "type": "training",
+            "config": {
+              "algorithm": "configurable"
+            }
+          },
+          {
+            "id": 4,
+            "name": "Model Evaluation",
+            "type": "evaluation",
+            "config": {
+              "metrics": "configurable"
+            }
+          },
+          {
+            "id": 5,
+            "name": "Model Deployment",
+            "type": "output",
+            "config": {
+              "target": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          },
+          {
+            "from": 3,
+            "to": 4
+          },
+          {
+            "from": 4,
+            "to": 5
+          }
+        ]
+      }
+    },
+    "demo_custom_etl_2": {
+      "name": "Customized Basic ETL Pipeline",
+      "description": "Customized version of Customized Basic ETL Pipeline created on 2025-06-26",
+      "category": "Custom Data Processing",
+      "tags": [
+        "ETL",
+        "data",
+        "pipeline",
+        "customized",
+        "customized",
+        "customized",
+        "custom"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "config": {
+              "source": "demo_custom_source"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:36:40.887049",
+      "last_updated": "2025-06-26T06:44:04.382966",
+      "usage_count": 16,
+      "id": "demo_custom_etl_2"
+    },
+    "demo_imported_ml_2": {
+      "id": "demo_imported_ml_2",
+      "name": "Machine Learning Training Pipeline",
+      "description": "Workflow for training machine learning models.",
+      "category": "Machine Learning",
+      "tags": [
+        "ML",
+        "training",
+        "model"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Data Ingestion",
+            "type": "input",
+            "config": {
+              "source": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Data Preprocessing",
+            "type": "processing",
+            "config": {
+              "steps": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Model Training",
+            "type": "training",
+            "config": {
+              "algorithm": "configurable"
+            }
+          },
+          {
+            "id": 4,
+            "name": "Model Evaluation",
+            "type": "evaluation",
+            "config": {
+              "metrics": "configurable"
+            }
+          },
+          {
+            "id": 5,
+            "name": "Model Deployment",
+            "type": "output",
+            "config": {
+              "target": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          },
+          {
+            "from": 3,
+            "to": 4
+          },
+          {
+            "from": 4,
+            "to": 5
+          }
+        ]
+      }
+    },
+    "data-processing-pipeline": {
+      "id": "data-processing-pipeline",
+      "name": "Data Processing Pipeline",
+      "description": "A pipeline for processing data.",
+      "structure": {
+        "steps": [
+          {
+            "id": "step1",
+            "name": "Data Ingestion",
+            "type": "input",
+            "config": {}
+          },
+          {
+            "id": "step2",
+            "name": "Data Cleaning",
+            "type": "transform",
+            "config": {}
+          },
+          {
+            "id": "step3",
+            "name": "Data Analysis",
+            "type": "analysis",
+            "config": {}
+          }
+        ],
+        "connections": [
+          {
+            "from": "step1",
+            "to": "step2"
+          },
+          {
+            "from": "step2",
+            "to": "step3"
+          }
+        ]
+      },
+      "version": "1.0.3",
+      "created_at": "2025-06-26T06:46:51.090347",
+      "updated_at": "2025-06-26T06:48:06.514287",
+      "versions": {
+        "1.0.0": {
+          "snapshot": {
+            "id": "data-processing-pipeline",
+            "name": "Data Processing Pipeline",
+            "description": "A pipeline for processing data.",
+            "structure": {
+              "steps": [
+                {
+                  "id": "step1",
+                  "name": "Data Ingestion",
+                  "type": "input",
+                  "config": {}
+                },
+                {
+                  "id": "step2",
+                  "name": "Data Cleaning",
+                  "type": "transform",
+                  "config": {}
+                },
+                {
+                  "id": "step3",
+                  "name": "Data Analysis",
+                  "type": "analysis",
+                  "config": {}
+                }
+              ],
+              "connections": [
+                {
+                  "from": "step1",
+                  "to": "step2"
+                },
+                {
+                  "from": "step2",
+                  "to": "step3"
+                }
+              ]
+            },
+            "version": "1.0.0",
+            "created_at": "2025-06-26T06:46:51.090347",
+            "updated_at": "2025-06-26T06:46:51.090355",
+            "versions": {}
+          },
+          "change_description": "Previous version",
+          "timestamp": "2025-06-26T06:46:51.090355",
+          "version_label": "1.0.0"
+        },
+        "1.0.1": {
+          "snapshot": {
+            "id": "data-processing-pipeline",
+            "name": "Data Processing Pipeline",
+            "description": "A pipeline for processing data.",
+            "structure": {
+              "steps": [
+                {
+                  "id": "step1",
+                  "name": "Data Ingestion",
+                  "type": "input",
+                  "config": {}
+                },
+                {
+                  "id": "step2",
+                  "name": "Data Cleaning",
+                  "type": "transform",
+                  "config": {}
+                },
+                {
+                  "id": "step3",
+                  "name": "Data Analysis",
+                  "type": "analysis",
+                  "config": {}
+                },
+                {
+                  "id": "step3",
+                  "name": "Data Analysis",
+                  "type": "analysis",
+                  "config": {}
+                }
+              ],
+              "connections": [
+                {
+                  "from": "step1",
+                  "to": "step2"
+                },
+                {
+                  "from": "step2",
+                  "to": "step3"
+                },
+                {
+                  "from": "step2",
+                  "to": "step3"
+                }
+              ]
+            },
+            "version": "1.0.1",
+            "created_at": "2025-06-26T06:46:51.090347",
+            "updated_at": "2025-06-26T06:46:51.090401",
+            "versions": {
+              "1.0.0": {
+                "snapshot": {
+                  "id": "data-processing-pipeline",
+                  "name": "Data Processing Pipeline",
+                  "description": "A pipeline for processing data.",
+                  "structure": {
+                    "steps": [
+                      {
+                        "id": "step1",
+                        "name": "Data Ingestion",
+                        "type": "input",
+                        "config": {}
+                      },
+                      {
+                        "id": "step2",
+                        "name": "Data Cleaning",
+                        "type": "transform",
+                        "config": {}
+                      },
+                      {
+                        "id": "step3",
+                        "name": "Data Analysis",
+                        "type": "analysis",
+                        "config": {}
+                      }
+                    ],
+                    "connections": [
+                      {
+                        "from": "step1",
+                        "to": "step2"
+                      },
+                      {
+                        "from": "step2",
+                        "to": "step3"
+                      }
+                    ]
+                  },
+                  "version": "1.0.0",
+                  "created_at": "2025-06-26T06:46:51.090347",
+                  "updated_at": "2025-06-26T06:46:51.090355",
+                  "versions": {}
+                },
+                "change_description": "Previous version",
+                "timestamp": "2025-06-26T06:46:51.090355",
+                "version_label": "1.0.0"
+              },
+              "1.0.1": {
+                "label": "rollback_to_1.0.1_20250626064651",
+                "timestamp": "2025-06-26T06:46:51.090416",
+                "changes": "Rollback to version 1.0.1",
+                "structure": {
+                  "steps": [
+                    {
+                      "id": "step1",
+                      "name": "Data Ingestion",
+                      "type": "input",
+                      "config": {}
+                    },
+                    {
+                      "id": "step2",
+                      "name": "Data Cleaning",
+                      "type": "transform",
+                      "config": {}
+                    },
+                    {
+                      "id": "step3",
+                      "name": "Data Analysis",
+                      "type": "analysis",
+                      "config": {}
+                    }
+                  ],
+                  "connections": [
+                    {
+                      "from": "step1",
+                      "to": "step2"
+                    },
+                    {
+                      "from": "step2",
+                      "to": "step3"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "name": "Data Processing Pipeline",
+                  "description": "A pipeline for processing data.",
+                  "category": "Uncategorized",
+                  "tags": []
+                }
+              }
+            }
+          },
+          "change_description": "Previous version",
+          "timestamp": "2025-06-26T06:46:51.090401",
+          "version_label": "1.0.1"
+        },
+        "1.0.2": {
+          "snapshot": {
+            "id": "data-processing-pipeline",
+            "name": "Data Processing Pipeline",
+            "description": "A pipeline for processing data.",
+            "structure": {
+              "steps": [
+                {
+                  "id": "step1",
+                  "name": "Data Ingestion",
+                  "type": "input",
+                  "config": {}
+                },
+                {
+                  "id": "step2",
+                  "name": "Data Cleaning",
+                  "type": "transform",
+                  "config": {}
+                },
+                {
+                  "id": "step3",
+                  "name": "Data Analysis",
+                  "type": "analysis",
+                  "config": {}
+                },
+                {
+                  "id": "step3",
+                  "name": "Data Analysis",
+                  "type": "analysis",
+                  "config": {}
+                },
+                {
+                  "id": "step3",
+                  "name": "Data Analysis",
+                  "type": "analysis",
+                  "config": {}
+                }
+              ],
+              "connections": [
+                {
+                  "from": "step1",
+                  "to": "step2"
+                },
+                {
+                  "from": "step2",
+                  "to": "step3"
+                },
+                {
+                  "from": "step2",
+                  "to": "step3"
+                },
+                {
+                  "from": "step2",
+                  "to": "step3"
+                }
+              ]
+            },
+            "version": "1.0.2",
+            "created_at": "2025-06-26T06:46:51.090347",
+            "updated_at": "2025-06-26T06:47:43.786906",
+            "versions": {
+              "1.0.0": {
+                "snapshot": {
+                  "id": "data-processing-pipeline",
+                  "name": "Data Processing Pipeline",
+                  "description": "A pipeline for processing data.",
+                  "structure": {
+                    "steps": [
+                      {
+                        "id": "step1",
+                        "name": "Data Ingestion",
+                        "type": "input",
+                        "config": {}
+                      },
+                      {
+                        "id": "step2",
+                        "name": "Data Cleaning",
+                        "type": "transform",
+                        "config": {}
+                      },
+                      {
+                        "id": "step3",
+                        "name": "Data Analysis",
+                        "type": "analysis",
+                        "config": {}
+                      }
+                    ],
+                    "connections": [
+                      {
+                        "from": "step1",
+                        "to": "step2"
+                      },
+                      {
+                        "from": "step2",
+                        "to": "step3"
+                      }
+                    ]
+                  },
+                  "version": "1.0.0",
+                  "created_at": "2025-06-26T06:46:51.090347",
+                  "updated_at": "2025-06-26T06:46:51.090355",
+                  "versions": {}
+                },
+                "change_description": "Previous version",
+                "timestamp": "2025-06-26T06:46:51.090355",
+                "version_label": "1.0.0"
+              },
+              "1.0.1": {
+                "snapshot": {
+                  "id": "data-processing-pipeline",
+                  "name": "Data Processing Pipeline",
+                  "description": "A pipeline for processing data.",
+                  "structure": {
+                    "steps": [
+                      {
+                        "id": "step1",
+                        "name": "Data Ingestion",
+                        "type": "input",
+                        "config": {}
+                      },
+                      {
+                        "id": "step2",
+                        "name": "Data Cleaning",
+                        "type": "transform",
+                        "config": {}
+                      },
+                      {
+                        "id": "step3",
+                        "name": "Data Analysis",
+                        "type": "analysis",
+                        "config": {}
+                      },
+                      {
+                        "id": "step3",
+                        "name": "Data Analysis",
+                        "type": "analysis",
+                        "config": {}
+                      }
+                    ],
+                    "connections": [
+                      {
+                        "from": "step1",
+                        "to": "step2"
+                      },
+                      {
+                        "from": "step2",
+                        "to": "step3"
+                      },
+                      {
+                        "from": "step2",
+                        "to": "step3"
+                      }
+                    ]
+                  },
+                  "version": "1.0.1",
+                  "created_at": "2025-06-26T06:46:51.090347",
+                  "updated_at": "2025-06-26T06:46:51.090401",
+                  "versions": {
+                    "1.0.0": {
+                      "snapshot": {
+                        "id": "data-processing-pipeline",
+                        "name": "Data Processing Pipeline",
+                        "description": "A pipeline for processing data.",
+                        "structure": {
+                          "steps": [
+                            {
+                              "id": "step1",
+                              "name": "Data Ingestion",
+                              "type": "input",
+                              "config": {}
+                            },
+                            {
+                              "id": "step2",
+                              "name": "Data Cleaning",
+                              "type": "transform",
+                              "config": {}
+                            },
+                            {
+                              "id": "step3",
+                              "name": "Data Analysis",
+                              "type": "analysis",
+                              "config": {}
+                            }
+                          ],
+                          "connections": [
+                            {
+                              "from": "step1",
+                              "to": "step2"
+                            },
+                            {
+                              "from": "step2",
+                              "to": "step3"
+                            }
+                          ]
+                        },
+                        "version": "1.0.0",
+                        "created_at": "2025-06-26T06:46:51.090347",
+                        "updated_at": "2025-06-26T06:46:51.090355",
+                        "versions": {}
+                      },
+                      "change_description": "Previous version",
+                      "timestamp": "2025-06-26T06:46:51.090355",
+                      "version_label": "1.0.0"
+                    },
+                    "1.0.1": {
+                      "label": "rollback_to_1.0.1_20250626064651",
+                      "timestamp": "2025-06-26T06:46:51.090416",
+                      "changes": "Rollback to version 1.0.1",
+                      "structure": {
+                        "steps": [
+                          {
+                            "id": "step1",
+                            "name": "Data Ingestion",
+                            "type": "input",
+                            "config": {}
+                          },
+                          {
+                            "id": "step2",
+                            "name": "Data Cleaning",
+                            "type": "transform",
+                            "config": {}
+                          },
+                          {
+                            "id": "step3",
+                            "name": "Data Analysis",
+                            "type": "analysis",
+                            "config": {}
+                          }
+                        ],
+                        "connections": [
+                          {
+                            "from": "step1",
+                            "to": "step2"
+                          },
+                          {
+                            "from": "step2",
+                            "to": "step3"
+                          }
+                        ]
+                      },
+                      "metadata": {
+                        "name": "Data Processing Pipeline",
+                        "description": "A pipeline for processing data.",
+                        "category": "Uncategorized",
+                        "tags": []
+                      }
+                    }
+                  }
+                },
+                "change_description": "Previous version",
+                "timestamp": "2025-06-26T06:46:51.090401",
+                "version_label": "1.0.1"
+              },
+              "1.0.2": {
+                "label": "rollback_to_1.0.2_20250626064743",
+                "timestamp": "2025-06-26T06:47:43.786920",
+                "changes": "Rollback to version 1.0.2",
+                "structure": {
+                  "steps": [
+                    {
+                      "id": "step1",
+                      "name": "Data Ingestion",
+                      "type": "input",
+                      "config": {}
+                    },
+                    {
+                      "id": "step2",
+                      "name": "Data Cleaning",
+                      "type": "transform",
+                      "config": {}
+                    },
+                    {
+                      "id": "step3",
+                      "name": "Data Analysis",
+                      "type": "analysis",
+                      "config": {}
+                    },
+                    {
+                      "id": "step3",
+                      "name": "Data Analysis",
+                      "type": "analysis",
+                      "config": {}
+                    }
+                  ],
+                  "connections": [
+                    {
+                      "from": "step1",
+                      "to": "step2"
+                    },
+                    {
+                      "from": "step2",
+                      "to": "step3"
+                    },
+                    {
+                      "from": "step2",
+                      "to": "step3"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "name": "Data Processing Pipeline",
+                  "description": "A pipeline for processing data.",
+                  "category": "Uncategorized",
+                  "tags": []
+                }
+              }
+            }
+          },
+          "change_description": "Previous version",
+          "timestamp": "2025-06-26T06:47:43.786906",
+          "version_label": "1.0.2"
+        },
+        "1.0.3": {
+          "label": "rollback_to_1.0.3_20250626064806",
+          "timestamp": "2025-06-26T06:48:06.512795",
+          "changes": "Rollback to version 1.0.3",
+          "structure": {
+            "steps": [
+              {
+                "id": "step1",
+                "name": "Data Ingestion",
+                "type": "input",
+                "config": {}
+              },
+              {
+                "id": "step2",
+                "name": "Data Cleaning",
+                "type": "transform",
+                "config": {}
+              },
+              {
+                "id": "step3",
+                "name": "Data Analysis",
+                "type": "analysis",
+                "config": {}
+              },
+              {
+                "id": "step3",
+                "name": "Data Analysis",
+                "type": "analysis",
+                "config": {}
+              },
+              {
+                "id": "step3",
+                "name": "Data Analysis",
+                "type": "analysis",
+                "config": {}
+              }
+            ],
+            "connections": [
+              {
+                "from": "step1",
+                "to": "step2"
+              },
+              {
+                "from": "step2",
+                "to": "step3"
+              },
+              {
+                "from": "step2",
+                "to": "step3"
+              },
+              {
+                "from": "step2",
+                "to": "step3"
+              }
+            ]
+          },
+          "metadata": {
+            "name": "Data Processing Pipeline",
+            "description": "A pipeline for processing data.",
+            "category": "Uncategorized",
+            "tags": []
+          }
+        },
+        "rollback_to_1.0.0_20250626064806": {
+          "label": "rollback_to_1.0.0_20250626064806",
+          "timestamp": "2025-06-26T06:48:06.514297",
+          "changes": "Rollback to version 1.0.0",
+          "structure": {
+            "steps": [
+              {
+                "id": "step1",
+                "name": "Data Ingestion",
+                "type": "input",
+                "config": {}
+              },
+              {
+                "id": "step2",
+                "name": "Data Cleaning",
+                "type": "transform",
+                "config": {}
+              },
+              {
+                "id": "step3",
+                "name": "Data Analysis",
+                "type": "analysis",
+                "config": {}
+              }
+            ],
+            "connections": [
+              {
+                "from": "step1",
+                "to": "step2"
+              },
+              {
+                "from": "step2",
+                "to": "step3"
+              }
+            ]
+          },
+          "metadata": {
+            "name": "Data Processing Pipeline",
+            "description": "A pipeline for processing data.",
+            "category": "Uncategorized",
+            "tags": []
+          }
+        }
+      },
+      "category": "Uncategorized",
+      "tags": []
+    }
+  },
+  "categories": {
+    "Data Processing": [
+      "etl_basic",
+      "batch_processing",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic"
+    ],
+    "Machine Learning": [
+      "ml_training",
+      "demo_imported_ml",
+      "demo_imported_ml_2"
+    ],
+    "Custom": [
+      "custom_workflow_1"
+    ],
+    "Custom Data Processing": [
+      "demo_custom_etl",
+      "demo_custom_etl_2"
+    ]
+  },
+  "tags": {
+    "ETL": [
+      "etl_basic",
+      "etl_basic",
+      "demo_custom_etl",
+      "etl_basic",
+      "etl_basic",
+      "demo_custom_etl_2",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic"
+    ],
+    "data": [
+      "etl_basic",
+      "batch_processing",
+      "etl_basic",
+      "demo_custom_etl",
+      "etl_basic",
+      "etl_basic",
+      "demo_custom_etl_2",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic"
+    ],
+    "pipeline": [
+      "etl_basic",
+      "etl_basic",
+      "demo_custom_etl",
+      "etl_basic",
+      "etl_basic",
+      "demo_custom_etl_2",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic"
+    ],
+    "ML": [
+      "ml_training",
+      "demo_imported_ml",
+      "demo_imported_ml_2"
+    ],
+    "training": [
+      "ml_training",
+      "demo_imported_ml",
+      "demo_imported_ml_2"
+    ],
+    "model": [
+      "ml_training",
+      "demo_imported_ml",
+      "demo_imported_ml_2"
+    ],
+    "batch": [
+      "batch_processing"
+    ],
+    "processing": [
+      "batch_processing"
+    ],
+    "custom": [
+      "custom_workflow_1",
+      "demo_custom_etl",
+      "demo_custom_etl_2"
+    ],
+    "specialized": [
+      "custom_workflow_1"
+    ],
+    "customized": [
+      "etl_basic",
+      "demo_custom_etl",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "demo_custom_etl_2",
+      "demo_custom_etl_2",
+      "demo_custom_etl_2",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic",
+      "etl_basic"
+    ]
+  }
+}

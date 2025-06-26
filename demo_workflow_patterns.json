@@ -1,0 +1,285 @@
+{
+  "patterns": {
+    "etl_basic": {
+      "name": "Basic ETL Pipeline",
+      "description": "Extract, Transform, Load workflow for data processing.",
+      "category": "Data Processing",
+      "tags": [
+        "ETL",
+        "data",
+        "pipeline"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Extract",
+            "type": "input",
+            "config": {
+              "source": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Transform",
+            "type": "processing",
+            "config": {
+              "rules": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Load",
+            "type": "output",
+            "config": {
+              "destination": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:33:41.323705",
+      "last_updated": "2025-06-26T06:33:41.324488",
+      "usage_count": 2
+    },
+    "ml_training": {
+      "name": "Machine Learning Training Pipeline",
+      "description": "Workflow for training machine learning models.",
+      "category": "Machine Learning",
+      "tags": [
+        "ML",
+        "training",
+        "model"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Data Ingestion",
+            "type": "input",
+            "config": {
+              "source": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Data Preprocessing",
+            "type": "processing",
+            "config": {
+              "steps": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Model Training",
+            "type": "training",
+            "config": {
+              "algorithm": "configurable"
+            }
+          },
+          {
+            "id": 4,
+            "name": "Model Evaluation",
+            "type": "evaluation",
+            "config": {
+              "metrics": "configurable"
+            }
+          },
+          {
+            "id": 5,
+            "name": "Model Deployment",
+            "type": "output",
+            "config": {
+              "target": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          },
+          {
+            "from": 3,
+            "to": 4
+          },
+          {
+            "from": 4,
+            "to": 5
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:33:41.323712",
+      "last_updated": "2025-06-26T06:33:41.323713",
+      "usage_count": 0
+    },
+    "batch_processing": {
+      "name": "Batch Processing Workflow",
+      "description": "Workflow for processing data in batches.",
+      "category": "Data Processing",
+      "tags": [
+        "batch",
+        "data",
+        "processing"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Batch Input",
+            "type": "input",
+            "config": {
+              "source": "configurable",
+              "batch_size": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Batch Process",
+            "type": "processing",
+            "config": {
+              "logic": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Batch Output",
+            "type": "output",
+            "config": {
+              "destination": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.0.0",
+      "created": "2025-06-26T06:33:41.323715",
+      "last_updated": "2025-06-26T06:33:41.323716",
+      "usage_count": 0
+    },
+    "custom_data_pipeline": {
+      "name": "Custom Data Pipeline",
+      "description": "An updated custom data processing pipeline",
+      "category": "Custom Workflows",
+      "tags": [
+        "custom",
+        "data",
+        "pipeline",
+        "updated"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Input",
+            "type": "input",
+            "config": {
+              "source": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Process",
+            "type": "processing",
+            "config": {
+              "logic": "configurable"
+            }
+          },
+          {
+            "id": 3,
+            "name": "Output",
+            "type": "output",
+            "config": {
+              "destination": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          },
+          {
+            "from": 2,
+            "to": 3
+          }
+        ]
+      },
+      "version": "1.1.0",
+      "created": "2025-06-26T06:33:41.324783",
+      "last_updated": "2025-06-26T06:33:41.325140",
+      "usage_count": 0
+    }
+  },
+  "categories": {
+    "Data Processing": [
+      "etl_basic",
+      "batch_processing"
+    ],
+    "Machine Learning": [
+      "ml_training"
+    ],
+    "Custom Workflows": [
+      "custom_data_pipeline"
+    ]
+  },
+  "tags": {
+    "ETL": [
+      "etl_basic"
+    ],
+    "data": [
+      "etl_basic",
+      "batch_processing",
+      "custom_data_pipeline"
+    ],
+    "pipeline": [
+      "etl_basic",
+      "custom_data_pipeline"
+    ],
+    "ML": [
+      "ml_training"
+    ],
+    "training": [
+      "ml_training"
+    ],
+    "model": [
+      "ml_training"
+    ],
+    "batch": [
+      "batch_processing"
+    ],
+    "processing": [
+      "batch_processing"
+    ],
+    "custom": [
+      "custom_data_pipeline"
+    ],
+    "updated": [
+      "custom_data_pipeline"
+    ]
+  }
+}

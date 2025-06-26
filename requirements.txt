@@ -21,13 +21,16 @@ langchain-core==0.1.53
 langchain-community==0.0.38
 chromadb>=0.4.0 
 sentence-transformers>=2.2.0 
+nltk==3.8.1
 
 # Data Processing
 pandas==2.2.2 
+matplotlib==3.7.1
 matplotlib==3.9.0 
 numpy>=1.24.0 
 scikit-learn==1.5.0
 pillow==11.2.1 # Exact version from later list 
+seaborn==0.12.2
 
 # Network and HTTP
 requests==2.32.4 # Exact version from later list 

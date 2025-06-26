@@ -1,0 +1,366 @@
+{
+  "patterns": {
+    "contrib_comment": {
+      "name": "Comment Me",
+      "description": "Comment Desc",
+      "category": "Comment Cat",
+      "tags": [
+        "comment"
+      ],
+      "structure": {},
+      "author": "Author",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.088925",
+      "last_updated": "2025-06-26T06:37:00.169127",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": [
+        {
+          "text": "Great pattern!",
+          "author": "Commenter1",
+          "timestamp": "2025-06-26T06:36:40.089123"
+        },
+        {
+          "text": "Very useful, thanks!",
+          "author": "Commenter2",
+          "timestamp": "2025-06-26T06:36:40.089226"
+        },
+        {
+          "text": "Great pattern!",
+          "author": "Commenter1",
+          "timestamp": "2025-06-26T06:37:00.169126"
+        }
+      ]
+    },
+    "contrib_test": {
+      "name": "Contributed Pattern",
+      "description": "A contributed workflow pattern",
+      "category": "Contributed",
+      "tags": [
+        "contrib",
+        "test"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Contrib Step",
+            "type": "test",
+            "config": {}
+          }
+        ],
+        "connections": []
+      },
+      "author": "Test Author",
+      "version": "1.0.0",
+      "license": "Apache 2.0",
+      "created": "2025-06-26T06:36:40.089514",
+      "last_updated": "2025-06-26T06:36:40.089514",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_duplicate": {
+      "name": "First",
+      "description": "First Desc",
+      "category": "Test",
+      "tags": [
+        "test"
+      ],
+      "structure": {},
+      "author": "Author",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.089738",
+      "last_updated": "2025-06-26T06:36:40.089738",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_get": {
+      "name": "Get Me",
+      "description": "Get Desc",
+      "category": "Get Cat",
+      "tags": [
+        "get"
+      ],
+      "structure": {},
+      "author": "Author",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.090832",
+      "last_updated": "2025-06-26T06:36:40.090832",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_instantiate": {
+      "name": "Instantiable",
+      "description": "Inst Desc",
+      "category": "Inst Cat",
+      "tags": [
+        "inst"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Step 1",
+            "type": "input",
+            "config": {
+              "source": "configurable"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Step 2",
+            "type": "process",
+            "config": {
+              "rules": "configurable"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          }
+        ]
+      },
+      "author": "Author",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.091554",
+      "last_updated": "2025-06-26T06:37:00.172454",
+      "usage_count": 3,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib1": {
+      "name": "Contrib 1",
+      "description": "Desc 1",
+      "category": "Cat A",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "structure": {},
+      "author": "Author 1",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.093317",
+      "last_updated": "2025-06-26T06:36:40.093317",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib2": {
+      "name": "Contrib 2",
+      "description": "Desc 2",
+      "category": "Cat A",
+      "tags": [
+        "tag2",
+        "tag3"
+      ],
+      "structure": {},
+      "author": "Author 2",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.093550",
+      "last_updated": "2025-06-26T06:36:40.093550",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib3": {
+      "name": "Contrib 3",
+      "description": "Desc 3",
+      "category": "Cat B",
+      "tags": [
+        "tag3"
+      ],
+      "structure": {},
+      "author": "Author 1",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.093766",
+      "last_updated": "2025-06-26T06:36:40.093766",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_rate": {
+      "name": "Rate Me",
+      "description": "Rate Desc",
+      "category": "Rate Cat",
+      "tags": [
+        "rate"
+      ],
+      "structure": {},
+      "author": "Author",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.094672",
+      "last_updated": "2025-06-26T06:37:00.174770",
+      "usage_count": 0,
+      "rating": 4.17,
+      "rating_count": 3,
+      "comments": []
+    },
+    "contrib_save": {
+      "name": "Marketplace Save Test",
+      "description": "Testing marketplace save functionality",
+      "category": "Marketplace Test",
+      "tags": [
+        "marketplace",
+        "save",
+        "test"
+      ],
+      "structure": {
+        "steps": [],
+        "connections": []
+      },
+      "author": "Save Tester",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.096610",
+      "last_updated": "2025-06-26T06:36:40.096610",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_search1": {
+      "name": "Search ETL",
+      "description": "ETL workflow",
+      "category": "Data",
+      "tags": [
+        "ETL"
+      ],
+      "structure": {},
+      "author": "Author",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.097423",
+      "last_updated": "2025-06-26T06:36:40.097423",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_search2": {
+      "name": "Search Data",
+      "description": "Data workflow",
+      "category": "Data",
+      "tags": [
+        "data"
+      ],
+      "structure": {},
+      "author": "Searcher",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.097694",
+      "last_updated": "2025-06-26T06:36:40.097694",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_search3": {
+      "name": "Other",
+      "description": "Other desc",
+      "category": "Other",
+      "tags": [
+        "other"
+      ],
+      "structure": {},
+      "author": "Author",
+      "version": "1.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.097960",
+      "last_updated": "2025-06-26T06:36:40.097960",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_update": {
+      "name": "Updated Contrib",
+      "description": "Updated description",
+      "category": "Updated Category",
+      "tags": [
+        "updated",
+        "modified"
+      ],
+      "structure": {},
+      "author": "Author",
+      "version": "2.0.0",
+      "license": "MIT",
+      "created": "2025-06-26T06:36:40.098583",
+      "last_updated": "2025-06-26T06:37:00.177411",
+      "usage_count": 0,
+      "rating": 0.0,
+      "rating_count": 0,
+      "comments": []
+    },
+    "contrib_demo_1": {
+      "id": "contrib_demo_1",
+      "name": "Demo Contributed Pattern",
+      "description": "A demo pattern contributed to the marketplace",
+      "category": "Demo",
+      "tags": [
+        "demo",
+        "contrib"
+      ],
+      "structure": {
+        "steps": [
+          {
+            "id": 1,
+            "name": "Demo Input",
+            "type": "input",
+            "config": {
+              "source": "demo_data"
+            }
+          },
+          {
+            "id": 2,
+            "name": "Demo Process",
+            "type": "process",
+            "config": {
+              "rules": "demo_rules"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": 1,
+            "to": 2
+          }
+        ]
+      },
+      "author": "Demo Author",
+      "license": "MIT",
+      "created_at": "2025-06-26T06:48:06.509413",
+      "updated_at": "2025-06-26T06:48:06.510616",
+      "rating": 4.5,
+      "rating_count": 1,
+      "usage_count": 1,
+      "comments": [
+        {
+          "text": "This pattern is very useful!",
+          "author": "Demo User",
+          "timestamp": "2025-06-26T06:48:06.510194"
+        }
+      ]
+    }
+  }
+}
