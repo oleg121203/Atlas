@@ -39,8 +39,8 @@ def demonstrate_multimodal_control():
     
     # Register example hotkeys for the demo with macOS-friendly options
     hotkeys = [
-        ("command+shift+a", {"action": "create_workflow", "parameters": {"name": "quick workflow"}}),
-        ("command+shift+b", {"action": "open_dashboard", "parameters": {"name": "main dashboard"}})
+        ("command+shift+left", {"action": "create_workflow", "parameters": {"name": "quick workflow"}}),
+        ("command+shift+right", {"action": "open_dashboard", "parameters": {"name": "main dashboard"}})
     ]
     
     for hotkey, action in hotkeys:
@@ -68,7 +68,7 @@ def demonstrate_multimodal_control():
         palette_button.pack(pady=10)
         
         # Add instructions
-        instructions = tk.Label(root, text="1. Press Command+Shift+A to create a workflow\n2. Press Command+Shift+B to open dashboard\n3. Say voice commands like 'create workflow test'\n4. Click button to show command palette", justify=tk.LEFT)
+        instructions = tk.Label(root, text="1. Press Command+Shift+Left to create a workflow\n2. Press Command+Shift+Right to open dashboard\n3. Say voice commands like 'create workflow test'\n4. Click button to show command palette", justify=tk.LEFT)
         instructions.pack(pady=10)
     else:
         print("Skipping command palette UI initialization due to missing dependencies.")
@@ -76,8 +76,8 @@ def demonstrate_multimodal_control():
     # Start listening for hotkeys
     print("\nStarting to listen for hotkeys...")
     print("Instructions:")
-    print("- Press Command+Shift+A to create a workflow")
-    print("- Press Command+Shift+B to open a dashboard")
+    print("- Press Command+Shift+Left to create a workflow")
+    print("- Press Command+Shift+Right to open a dashboard")
     print("- Say voice commands like 'create workflow test'")
     if command_palette:
         print("- Click the button to show the command palette")
@@ -86,7 +86,13 @@ def demonstrate_multimodal_control():
     try:
         # Start hotkey listening in a separate thread if supported
         hotkey_mapper.start_listening()
-        
+        print("Started listening for hotkeys")
+    except Exception as e:
+        print(f"Failed to start listening for hotkeys: {e}")
+        print("Hotkey functionality may be limited on this system. On macOS, you may need to run the script with sudo or grant keyboard access permissions in System Preferences > Security & Privacy > Accessibility.")
+        print("Continuing demo without hotkey listening.")
+
+    try:
         print("Starting voice command listening...")
         voice_parser.calibrate_microphone(duration=5)
         
@@ -98,8 +104,15 @@ def demonstrate_multimodal_control():
         print("\nMultimodal control demo terminated by user.")
     finally:
         hotkey_mapper.stop_listening()
-        if command_palette:
-            root.destroy()
+        try:
+            if command_palette and root.winfo_exists():
+                root.destroy()
+                print("GUI window closed.")
+            elif command_palette:
+                print("GUI window already closed or not initialized.")
+        except Exception as e:
+            print(f"Error closing GUI window: {e}")
+            print("Continuing with demo shutdown.")
 
 if __name__ == "__main__":
     try:
