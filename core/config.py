@@ -24,6 +24,11 @@ SCHEMA_PATH = os.path.join(CONFIG_DIR, "schema.json")
 # Environment variable prefix for overrides
 ENV_PREFIX = "ATLAS_"
 
+# Slack Integration
+SLACK_CLIENT_ID = os.getenv("SLACK_CLIENT_ID", "")
+SLACK_CLIENT_SECRET = os.getenv("SLACK_CLIENT_SECRET", "")
+SLACK_REDIRECT_URI = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5000/slack/callback")
+
 class ConfigManager:
     """Manages application configuration with support for environment-based settings and validation."""
     def __init__(self):
