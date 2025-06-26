@@ -81,7 +81,7 @@ selenium>=4.0.0
 
 # Documentation
 markdown>=3.5.0 
-pygments==2.19.1 # Exact version from later list 
+pygments==2.19.2 # Exact version from later list 
 markdown2>=2.4.10
 
 # Real-Time Collaboration Dependencies
