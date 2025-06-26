@@ -29,13 +29,14 @@ class ChatModule(QWidget):
 
     message_sent = Signal(str)
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent=None):
         """Initialize the chat module.
 
         Args:
             parent: Parent widget
         """
         super().__init__(parent)
+        self.module_name = "chat"  # Store for reference if needed, but don't pass to QWidget
         self.setObjectName("ChatModule")
         self.llm_callback: Optional[Callable[[str, Callable[[str], None]], None]] = None
         self.history: List[Dict[str, Any]] = []

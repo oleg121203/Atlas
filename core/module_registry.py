@@ -55,15 +55,14 @@ class ModuleRegistry:
         self.state: Dict[str, str] = {}
         logger.info("Module registry initialized")
 
-    def register_module(self, module_name: str, module_class: Type[ModuleBase] = None, dependencies: List[str] = None):
-        """Register a module for dynamic loading with optional lazy loading."""
-        if module_class:
-            self.modules[module_name] = module_class(module_name)
-        else:
-            self.lazy_loaders[module_name] = lazy_import(f'modules.{module_name.lower()}', 'Module')
-        self.dependencies[module_name] = dependencies or []
+    def register_module(self, module_name: str, module_class: Type, dependencies: List[str] = None) -> None:
+        """Register a module class with optional dependencies."""
+        if dependencies is None:
+            dependencies = []
+        self.modules[module_name] = module_class()
+        self.dependencies[module_name] = dependencies
         self.state[module_name] = 'registered'
-        logger.info(f"Module registered: {module_name}")
+        logger.info(f"Registered module: {module_name}")
 
     def load_module(self, module_name: str, *args, **kwargs) -> Optional[ModuleBase]:
         """Load and instantiate a specific module."""

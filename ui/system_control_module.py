@@ -1,11 +1,19 @@
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QSlider, QHBoxLayout, QVBoxLayout, QStatusBar, QMessageBox
 from PySide6.QtCore import Qt
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SystemControlModule(QWidget):
-    def __init__(self, agent_manager=None, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.agent_manager = agent_manager
+        self.agent_manager = None  # Initialize as None, to be set later if needed
         self._build_ui()
+
+    def set_agent_manager(self, agent_manager):
+        """Set the agent manager for this module."""
+        self.agent_manager = agent_manager
+        self._refresh_volume()  # Now safe to refresh volume with agent_manager set
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -86,10 +94,6 @@ class SystemControlModule(QWidget):
         self.status_bar = QStatusBar()
         layout.addWidget(self.status_bar)
 
-        if self.agent_manager:
-            self._refresh_volume()
-            self._refresh_apps()
-
     def _show_help(self):
         QMessageBox.information(self, "System Control Help",
             "• Mute/Unmute: Control system audio.\n"
@@ -101,78 +105,121 @@ class SystemControlModule(QWidget):
             "\nTip: Hover over any button for a tooltip.")
 
     def _mute(self):
-        if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "mute"})
-            self._show_feedback(result)
-            self._refresh_volume()
-            self._set_status("Muted system audio.")
+        if hasattr(self, 'agent_manager') and self.agent_manager:
+            try:
+                if hasattr(self.agent_manager, 'execute_tool'):
+                    result = self.agent_manager.execute_tool("system_event", {"event": "mute"})
+                    self._show_feedback(result)
+                    self._refresh_volume()
+                    self._set_status("Muted system audio.")
+                else:
+                    self._execute_tool_fallback("system_event", {"event": "mute"})
+            except Exception as e:
+                logger.error(f"Error during mute: {e}")
         else:
-            print("Agent manager not initialized, cannot mute")
+            logger.warning("Agent manager not set, skipping mute")
 
     def _unmute(self):
-        if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "unmute"})
-            self._show_feedback(result)
-            self._refresh_volume()
-            self._set_status("Unmuted system audio.")
+        if hasattr(self, 'agent_manager') and self.agent_manager:
+            try:
+                if hasattr(self.agent_manager, 'execute_tool'):
+                    result = self.agent_manager.execute_tool("system_event", {"event": "unmute"})
+                    self._show_feedback(result)
+                    self._refresh_volume()
+                    self._set_status("Unmuted system audio.")
+                else:
+                    self._execute_tool_fallback("system_event", {"event": "unmute"})
+            except Exception as e:
+                logger.error(f"Error during unmute: {e}")
         else:
-            print("Agent manager not initialized, cannot unmute")
+            logger.warning("Agent manager not set, skipping unmute")
 
     def _sleep(self):
-        if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "sleep"})
-            self._show_feedback(result)
-            self._set_status("Put Mac to sleep.")
+        if hasattr(self, 'agent_manager') and self.agent_manager:
+            try:
+                if hasattr(self.agent_manager, 'execute_tool'):
+                    result = self.agent_manager.execute_tool("system_event", {"event": "sleep"})
+                    self._show_feedback(result)
+                    self._set_status("Put Mac to sleep.")
+                else:
+                    self._execute_tool_fallback("system_event", {"event": "sleep"})
+            except Exception as e:
+                logger.error(f"Error during sleep: {e}")
         else:
-            print("Agent manager not initialized, cannot sleep")
+            logger.warning("Agent manager not set, skipping sleep")
 
     def _open_app(self):
-        if self.agent_manager:
-            app = self.app_entry.text().strip()
-            if app:
-                result = self.agent_manager.execute_tool("system_event", {"event": "open_app", "app_name": app})
-                self._show_feedback(result)
-                self._refresh_apps()
-                self._set_status(f"Opened app: {app}")
-            else:
-                self._show_feedback({"status": "error", "error": "Please enter an app name."})
-                self._set_status("No app name entered.")
+        if hasattr(self, 'agent_manager') and self.agent_manager:
+            try:
+                if hasattr(self.agent_manager, 'execute_tool'):
+                    app = self.app_entry.text().strip()
+                    if app:
+                        result = self.agent_manager.execute_tool("system_event", {"event": "open_app", "app_name": app})
+                        self._show_feedback(result)
+                        self._set_status(f"Opened {app}.")
+                        self.app_entry.clear()
+                    else:
+                        self._show_feedback({"status": "error", "error": "Please enter an app name."})
+                        self._set_status("No app name entered.")
+                else:
+                    self._execute_tool_fallback("system_event", {"event": "open_app", "app_name": self.app_entry.text().strip()})
+            except Exception as e:
+                logger.error(f"Error during open app: {e}")
         else:
-            print("Agent manager not initialized, cannot open app")
+            logger.warning("Agent manager not set, skipping open app")
 
     def _set_volume(self):
-        if self.agent_manager:
-            vol = int(self.volume_slider.value())
-            result = self.agent_manager.execute_tool("system_event", {"event": "set_volume", "value": vol})
-            self._show_feedback(result)
-            self._refresh_volume()
-            self._set_status(f"Set volume to {vol}%.")
+        if hasattr(self, 'agent_manager') and self.agent_manager:
+            try:
+                if hasattr(self.agent_manager, 'execute_tool'):
+                    vol = int(self.volume_slider.value())
+                    result = self.agent_manager.execute_tool("system_event", {"event": "set_volume", "value": vol})
+                    self._show_feedback(result)
+                    self._set_status(f"Set volume to {vol}%.")
+                else:
+                    self._execute_tool_fallback("system_event", {"event": "set_volume", "value": int(self.volume_slider.value())})
+            except Exception as e:
+                logger.error(f"Error during set volume: {e}")
         else:
-            print("Agent manager not initialized, cannot set volume")
+            logger.warning("Agent manager not set, skipping set volume")
 
     def _refresh_volume(self):
-        if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "get_volume"})
-            if result.get("status") == "success":
-                self.volume_label.setText(f"Current Volume: {result.get('output')}")
-                self._set_status(f"Current volume: {result.get('output')}")
-            else:
-                self.volume_label.setText("Current Volume: ?")
-                self._set_status("Could not get volume.")
+        """Refresh the current volume level."""
+        if hasattr(self, 'agent_manager') and self.agent_manager:
+            try:
+                if hasattr(self.agent_manager, 'execute_tool'):
+                    result = self.agent_manager.execute_tool("system_event", {"event": "get_volume"})
+                    if result and "volume" in result:
+                        self.volume_slider.setValue(int(result["volume"]))
+                        self.volume_label.setText(f"Volume: {result['volume']}%")
+                else:
+                    self._execute_tool_fallback("system_event", {"event": "get_volume"})
+            except Exception as e:
+                logger.error(f"Error refreshing volume: {e}")
         else:
-            print("Agent manager not initialized, cannot refresh volume")
+            logger.warning("Agent manager not set, skipping volume refresh")
 
     def _refresh_apps(self):
-        if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "get_running_apps"})
-            if result.get("status") == "success":
-                self.apps_label.setText(f"Running Apps: {result.get('output')}")
-                self._set_status("Refreshed running apps.")
-            else:
-                self.apps_label.setText("Running Apps: ?")
-                self._set_status("Could not get running apps.")
+        if hasattr(self, 'agent_manager') and self.agent_manager:
+            try:
+                if hasattr(self.agent_manager, 'execute_tool'):
+                    result = self.agent_manager.execute_tool("system_event", {"event": "get_running_apps"})
+                    if result.get("status") == "success":
+                        self.apps_label.setText(f"Running Apps: {result.get('output')}")
+                        self._set_status("Updated running apps.")
+                    else:
+                        self.apps_label.setText("Running Apps: ?")
+                        self._set_status("Could not get running apps.")
+                else:
+                    self._execute_tool_fallback("system_event", {"event": "get_running_apps"})
+            except Exception as e:
+                logger.error(f"Error during refresh apps: {e}")
         else:
-            print("Agent manager not initialized, cannot refresh apps")
+            logger.warning("Agent manager not set, skipping refresh apps")
+
+    def _execute_tool_fallback(self, tool_name, params):
+        logger.warning(f"Agent manager does not have execute_tool method, skipping {tool_name}")
+        self._set_status(f"Error: Agent manager does not have execute_tool method for {tool_name}")
 
     def _show_feedback(self, result):
         if result.get("status") == "success":

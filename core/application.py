@@ -22,7 +22,8 @@ class AtlasApplication:
     def __init__(self):
         """Initialize the Atlas application with core components."""
         logger.info("Initializing Atlas Application")
-        self.app = QApplication(sys.argv)
+        # Use existing QApplication instance if already created
+        self.app = QApplication.instance() or QApplication(sys.argv)
         
         # Initialize core systems
         self.token_tracker = TokenTracker()
@@ -31,11 +32,7 @@ class AtlasApplication:
         self.meta_agent = self.master_agent  # For compatibility
         
         # Initialize main window
-        self.main_window = AtlasMainWindow(
-            master_agent=self.master_agent,
-            meta_agent=self.meta_agent,
-            llm_manager=self.llm_manager
-        )
+        self.main_window = AtlasMainWindow(meta_agent=self.meta_agent)
         
     def run(self):
         """Start the application event loop."""
