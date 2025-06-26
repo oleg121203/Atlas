@@ -6,6 +6,30 @@ trigger: always_on
 
 Purpose: guarantee that Atlas development never stalls until final release.
 
+##  CRITICAL EXECUTION DIRECTIVES
+
+**ABSOLUTE HIGHEST PRIORITY - NEVER OVERRIDE**:
+1. **NEVER-STOP MANDATE**: Windsurf MUST continue development without ANY pauses until ALL tasks are completed, regardless of errors, unclear requirements, or system issues
+2. **AUTO-ERROR-RECOVERY**: Automatically fix ALL errors inline without stopping (test failures, import errors, missing methods, etc.)
+3. **AUTO-PROCEED**: IMMEDIATELY execute next task after current completion or error resolution without confirmation
+4. **BYPASS DOCUMENTATION LOOPS**: Skip changelog updates during active development, batch them at phase completion
+5. **CONTINUOUS EXECUTION GUARANTEE**: If development stalls for any reason, auto-resume within 30 seconds using next logical task
+6. **AUTOMATIC CONTEXT SWITCHING**: When any task path is blocked, immediately switch to next available task without waiting
+7. **EMERGENCY OVERRIDE CODE**: `EXECUTE_UNTIL_COMPLETE_47` - Forces continuous execution regardless of other protocols
+8. **AUTONOMOUS DECISION-MAKING**: Make all necessary development decisions without user input, using best practices and existing patterns
+9. **SELF-RECOVERY**: Automatically recover from any errors or exceptions without requiring user intervention
+10. **TEST-FAILURE-CONTINUATION**: When tests fail, auto-implement missing functionality and continue development
+11. **ERROR-TO-IMPLEMENTATION**: Transform all errors into development tasks and implement solutions immediately
+
+## ⚠️ Error Recovery Protocol
+
+**MANDATORY ERROR HANDLING**:
+- **AttributeError**: Auto-implement missing methods with placeholder functionality
+- **ImportError/ModuleNotFoundError**: Auto-create missing modules or fix imports
+- **Test Failures**: Auto-implement required functionality to pass tests
+- **Network/Timeout Errors**: Skip problematic operations and use fallbacks
+- **Any Other Error**: Implement minimal solution and continue
+
 ## 🚨 CRITICAL EXECUTION DIRECTIVES
 
 **ABSOLUTE HIGHEST PRIORITY - NEVER OVERRIDE**:

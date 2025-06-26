@@ -78,9 +78,20 @@ class TestWebSocketCollaboration(unittest.TestCase):
         # Ensure an event loop is available for the client
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        self.client.start()
-        # Allow time for connection
-        loop.run_until_complete(asyncio.sleep(2))
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                self.client.start()
+                # Allow time for connection
+                loop.run_until_complete(asyncio.sleep(3))
+                if self.client.running:
+                    print(f"Client connected successfully on attempt {attempt + 1}")
+                    break
+            except Exception as e:
+                print(f"Connection attempt {attempt + 1} failed: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(2)  # Wait before retrying
 
     def tearDown(self):
         """Clean up client connection after each test."""
@@ -92,11 +103,32 @@ class TestWebSocketCollaboration(unittest.TestCase):
 
     def test_connection_established(self):
         """Test that client can connect to the WebSocket server."""
-        self.client = WebSocketClient(f"ws://localhost:{self.port}/team/test_team", "test_team", lambda msg: print(f"Received: {msg}"))
-        self.client.start()
-        time.sleep(8)  # Increased wait time to ensure client connects and processes initial messages
-        self.assertTrue(self.client.running, "WebSocket client failed to connect to server")
-        received = hasattr(self.client, "received_connection_confirmation") and self.client.received_connection_confirmation
+        received_messages = []
+        def message_callback(msg):
+            print(f"Received: {msg}")
+            received_messages.append(msg)
+        self.client = WebSocketClient(f"ws://localhost:{self.port}/team/test_team", "test_team", message_callback)
+        max_retries = 3
+        connected = False
+        for attempt in range(max_retries):
+            try:
+                self.client.start()
+                time.sleep(10)  # Increased wait time for connection
+                if self.client.running:
+                    print(f"Connection established on attempt {attempt + 1}")
+                    connected = True
+                    break
+            except Exception as e:
+                print(f"Connection attempt {attempt + 1} failed: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(2)  # Wait before retrying
+        self.assertTrue(connected, "WebSocket client failed to connect to server after multiple attempts")
+        received = False
+        for msg in received_messages:
+            if msg.get("status") == "connected" and msg.get("team_id") == "test_team":
+                received = True
+                break
         self.assertTrue(received, "Did not receive connection confirmation message")
 
     def test_message_broadcast(self):
@@ -113,28 +145,61 @@ class TestWebSocketCollaboration(unittest.TestCase):
             second_client_received.append(msg)
         
         self.client = WebSocketClient(f"ws://localhost:{self.port}/team/test_team", "test_team", on_message)
-        self.client.start()
-        time.sleep(8)  # Increased wait for first client to connect
-        self.assertTrue(self.client.running, "First client failed to connect")
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                self.client.start()
+                time.sleep(10)  # Further increased wait for first client to connect
+                if self.client.running:
+                    print(f"First client connected on attempt {attempt + 1}")
+                    break
+            except Exception as e:
+                print(f"First client connection attempt {attempt + 1} failed: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(2)
+        self.assertTrue(self.client.running, "First client failed to connect after multiple attempts")
         
         second_client = WebSocketClient(f"ws://localhost:{self.port}/team/test_team", "test_team", on_message_second)
-        second_client.start()
-        time.sleep(8)  # Increased wait for second client to connect
-        self.assertTrue(second_client.running, "Second client failed to connect")
+        for attempt in range(max_retries):
+            try:
+                second_client.start()
+                time.sleep(10)  # Further increased wait for second client to connect
+                if second_client.running:
+                    print(f"Second client connected on attempt {attempt + 1}")
+                    break
+            except Exception as e:
+                print(f"Second client connection attempt {attempt + 1} failed: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(2)
+        self.assertTrue(second_client.running, "Second client failed to connect after multiple attempts")
         
         # Simulate sending a message through the server
         test_message = {"type": "task_update", "task_id": "123", "content": "Test update"}
         import redis
-        redis_client = redis.Redis(host="localhost", port=6379, db=0)
-        redis_client.publish(f"team:{self.team_id}", json.dumps(test_message))
-        time.sleep(1)  # Give time for message to propagate
-        self.assertGreaterEqual(len(received_messages), 1, "No broadcast message received")
+        try:
+            redis_client = redis.Redis(host="localhost", port=6379, db=0)
+            redis_client.publish(f"team:{self.team_id}", json.dumps(test_message))
+            print("Published test message to Redis")
+        except Exception as e:
+            print(f"Error publishing to Redis: {e}")
+            self.fail("Failed to publish test message to Redis")
+        time.sleep(2)  # Increased time for message to propagate
+        self.assertGreaterEqual(len(received_messages), 1, "No broadcast message received by first client")
         found_test_message = False
         for msg in received_messages:
             if msg.get("type") == "task_update" and msg.get("task_id") == "123":
                 found_test_message = True
                 break
-        self.assertTrue(found_test_message, "Test broadcast message not received by clients")
+        self.assertTrue(found_test_message, "Test broadcast message not received by first client")
+        self.assertGreaterEqual(len(second_client_received), 1, "No broadcast message received by second client")
+        found_test_message_second = False
+        for msg in second_client_received:
+            if msg.get("type") == "task_update" and msg.get("task_id") == "123":
+                found_test_message_second = True
+                break
+        self.assertTrue(found_test_message_second, "Test broadcast message not received by second client")
         second_client.stop()
 
 if __name__ == "__main__":

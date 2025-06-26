@@ -649,3 +649,16 @@ class HierarchicalTaskView(ctk.CTkFrame):
             # If scrolling fails, just log it and continue
             self.logger.debug(f"Simple scroll failed: {e}")
             # Don't raise the error - just continue normally 
+
+    def handle_websocket_task_update(self, task_data: Dict[str, Any]):
+        """
+        Handle task update received via WebSocket and update UI.
+        
+        Args:
+            task_data: Task data received from WebSocket
+        """
+        try:
+            self.logger.info(f"Received WebSocket task update: {task_data.get('id', 'unknown')}")
+            self.update_task(task_data)
+        except Exception as e:
+            self.logger.error(f"Error handling WebSocket task update: {e}", exc_info=True)

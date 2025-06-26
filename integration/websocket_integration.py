@@ -36,19 +36,31 @@ class CollaborationManager:
         print(f"Stopping collaboration for user {self.user_id}")
         self.client.stop()
 
-    def handle_update(self, data: Dict[str, Any]):
-        """Handle incoming WebSocket updates and trigger UI updates."""
-        print(f"Received collaboration update: {data}")
-        action = data.get("action")
-        if action in ["update", "create", "delete"] and self.task_update_callback:
-            self.task_update_callback(data)
+    def handle_update(self, message: Dict[str, Any]):
+        """
+        Handle incoming WebSocket updates and trigger UI updates.
+        
+        Args:
+            message: Received WebSocket message
+        """
+        try:
+            message_type = message.get("type")
+            if message_type == "task_update":
+                task_data = message.get("data", {})
+                print(f"Processing task update for task {task_data.get('id', 'unknown')}")
+                if self.task_update_callback:
+                    self.task_update_callback(task_data)
+            else:
+                print(f"Unhandled message type: {message_type}")
+        except Exception as e:
+            print(f"Error handling WebSocket update: {e}")
 
     def send_task_update(self, task_data: Dict[str, Any]):
         """Send task update to team members via WebSocket (placeholder for server integration)."""
         # In a full implementation, this would send data to Redis or directly via WebSocket
         print(f"Sending task update to team {self.team_id}: {task_data}")
         # For now, simulate local update
-        self.handle_update({"action": "update", "task_id": task_data.get("id", "unknown"), "data": task_data})
+        self.handle_update({"type": "task_update", "data": task_data})
 
 # Example integration in Atlas main app
 def integrate_collaboration(app_instance):

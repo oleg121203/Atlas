@@ -3,6 +3,8 @@ import sys
 import os
 import argparse
 import asyncio
+import uuid
+from typing import Dict, Any
 
 # Configure logging
 logging.basicConfig(
@@ -86,10 +88,32 @@ class AtlasApp:
         self.collab_manager.set_task_update_callback(self.handle_task_update)
         self.collab_manager.start()
 
-    def handle_task_update(self, data):
+    def _setup_collaboration(self):
+        """Set up team collaboration features via WebSocket."""
+        try:
+            print("Setting up collaboration features...")
+            team_id = "default_team"  # Replace with dynamic team ID in production
+            user_id = "user_" + str(uuid.uuid4())[:8]  # Generate a simple unique user ID
+            print(f"User ID: {user_id}, Team ID: {team_id}")
+            
+            self.collaboration_manager = CollaborationManager(team_id, user_id)
+            
+            # Set callback for task updates to update UI
+            if hasattr(self, 'task_view') and self.task_view:
+                self.collaboration_manager.set_task_update_callback(self.task_view.handle_websocket_task_update)
+            else:
+                print("Task view not available, using direct callback")
+                self.collaboration_manager.set_task_update_callback(self.handle_task_update)
+            
+            print("Collaboration setup complete")
+        except Exception as e:
+            print(f"Error setting up collaboration: {e}")
+
+    def handle_task_update(self, data: Dict[str, Any]):
         """Handle real-time task updates from WebSocket."""
         print(f"Task update received: {data}")
-        # Update task data or UI here
+        if hasattr(self, 'task_view') and self.task_view:
+            self.task_view.handle_websocket_task_update(data)
 
     def shutdown(self):
         """Shut down app components."""
