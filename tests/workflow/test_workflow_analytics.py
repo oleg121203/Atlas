@@ -5,7 +5,7 @@ Unit tests for Workflow Execution Analytics Module
 import unittest
 import pandas as pd
 from datetime import datetime, timedelta
-from workflow_analytics import WorkflowAnalytics
+from workflow.workflow_analytics import WorkflowAnalytics
 
 class TestWorkflowAnalytics(unittest.TestCase):
     def setUp(self):

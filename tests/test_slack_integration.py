@@ -11,8 +11,7 @@ from unittest.mock import patch, MagicMock
 # Ensure the parent directory is in the path so we can import from config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from slack_integration import SlackIntegration
-from core.config import Config
+from integration.slack.slack_integration import SlackIntegrationfrom core.config import Config
 
 class TestSlackIntegration(unittest.TestCase):
     def setUp(self):

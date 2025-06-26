@@ -5,8 +5,7 @@ Unit tests for User Satisfaction Monitoring System
 import unittest
 import pandas as pd
 from datetime import datetime, timedelta
-from user_satisfaction import UserSatisfactionMonitor
-
+from user.user_satisfaction import UserSatisfactionMonitor
 class TestUserSatisfactionMonitor(unittest.TestCase):
     def setUp(self):
         self.monitor = UserSatisfactionMonitor()

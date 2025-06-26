@@ -6,8 +6,7 @@ correlations between performance metrics and user feedback.
 """
 
 from workflow_analytics import WorkflowAnalytics
-from user_satisfaction import UserSatisfactionMonitor
-import pandas as pd
+from user.user_satisfaction import UserSatisfactionMonitorimport pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import random

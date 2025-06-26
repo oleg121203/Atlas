@@ -1,5 +1,5 @@
 import unittest
-from workflow_governance import WorkflowGovernance, ComplianceStandard, AccessRole
+from workflow.workflow_governance import WorkflowGovernance, ComplianceStandard, AccessRole
 from typing import Dict, Any
 from datetime import datetime
 

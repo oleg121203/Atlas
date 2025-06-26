@@ -5,8 +5,8 @@ Unit tests for Workflow Optimization Module
 import unittest
 import pandas as pd
 from datetime import datetime, timedelta
-from workflow_analytics import WorkflowAnalytics
-from workflow_optimization import WorkflowOptimizer
+from workflow.workflow_analytics import WorkflowAnalytics
+from workflow.workflow_optimization import WorkflowOptimizer
 
 class TestWorkflowOptimizer(unittest.TestCase):
     def setUp(self):

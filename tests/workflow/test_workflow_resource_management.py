@@ -1,5 +1,5 @@
 import unittest
-from workflow_resource_management import WorkflowResourceManager, ResourceType, PriorityLevel
+from workflow.workflow_resource_management import WorkflowResourceManager, ResourceType, PriorityLevel
 from typing import Dict, List, Any
 from datetime import datetime
 

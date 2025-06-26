@@ -5,7 +5,7 @@ Unit tests for Workflow Testing Framework Module
 import unittest
 import random
 from datetime import datetime, timedelta
-from workflow_testing import WorkflowTestFramework, framework
+from workflow.workflow_testing import WorkflowTestFramework, framework
 
 from unittest.mock import Mock
 

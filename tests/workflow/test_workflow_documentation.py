@@ -1,5 +1,5 @@
 import unittest
-from workflow_documentation import WorkflowDocumentation
+from workflow.workflow_documentation import WorkflowDocumentation
 
 class TestWorkflowDocumentation(unittest.TestCase):
     def setUp(self):

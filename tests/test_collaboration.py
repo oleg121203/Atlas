@@ -6,8 +6,7 @@ import time
 import unittest
 from unittest.mock import AsyncMock, patch
 import websockets
-from collaboration import WebSocketServer, WebSocketClient, CollaborationManager
-
+from collaboration.collaboration import WebSocketServer, WebSocketClient, CollaborationManager
 
 class TestWebSocketCollaboration(unittest.TestCase):
     """Test suite for WebSocket-based collaboration features."""

@@ -1,7 +1,7 @@
 import unittest
 import os
 import json
-from workflow_pattern_library import WorkflowPatternLibrary
+from workflow.workflow_pattern_library import WorkflowPatternLibrary
 from typing import Dict, List, Any
 
 class TestWorkflowPatternLibrary(unittest.TestCase):
