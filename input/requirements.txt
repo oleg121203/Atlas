@@ -1,0 +1,5 @@
+# Requirements for WFE-016 Multimodal Control Interface
+SpeechRecognition==3.10.0  # For voice command parsing
+pyaudio==0.2.14           # For microphone input
+keyboard==0.13.5          # For hotkey mapping
+# Removed mouse==0.7.1 due to lack of macOS support

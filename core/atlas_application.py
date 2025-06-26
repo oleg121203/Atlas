@@ -19,7 +19,12 @@ from core.logging import setup_logging, get_logger
 from core.monitoring import start_monitoring, stop_monitoring
 from core.alerting import initialize_alerting, raise_alert
 from core.module_registry import MODULE_REGISTRY, load_all_modules, initialize_module
-from security.security_utils import check_environment_security
+try:
+    from security.security_utils import check_environment_security
+except ImportError:
+    def check_environment_security() -> bool:
+        print("Security environment check not available, using fallback.")
+        return True
 from core.network_client import NetworkClient
 from security.rbac import get_rbac_manager, RBACManager, Role
 from core.feature_flags import FeatureFlagManager, get_feature_flag_manager

@@ -11,6 +11,33 @@ from typing import Dict, List, Type, Optional
 
 logger = logging.getLogger(__name__)
 
+class PluginMetadata:
+    """Metadata describing a plugin"""
+    
+    def __init__(self, name: str, version: str, description: str, author: str,
+                 category: str, dependencies: Optional[List[str]] = None):
+        self.name = name
+        self.version = version
+        self.description = description
+        self.author = author
+        self.category = category
+        self.dependencies = dependencies or []
+    
+    def to_dict(self) -> Dict[str, str]:
+        """Convert metadata to dictionary
+        
+        Returns:
+            Dict[str, str]: Dictionary representation of the metadata
+        """
+        return {
+            'name': self.name,
+            'version': self.version,
+            'description': self.description,
+            'author': self.author,
+            'category': self.category,
+            'dependencies': self.dependencies
+        }
+
 class PluginBase:
     """Base class for all Atlas plugins."""
 

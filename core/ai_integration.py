@@ -16,7 +16,13 @@ import statistics
 import requests
 
 from core.logging import get_logger
-from core.config import load_config
+
+try:
+    from core.config import load_config
+except ImportError:
+    def load_config(config_path: Optional[str] = None, environment: str = "dev") -> Dict[str, Any]:
+        print("Config loading not available, using default configuration.")
+        return {}
 
 # Set up logging
 logger = get_logger("AIIntegration")

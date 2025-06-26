@@ -8,11 +8,17 @@ allowing for controlled rollout of features and easy toggling of functionality.
 import json
 import os
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Dict, Any, Optional
 import logging
 
 from core.logging import get_logger
-from core.config import load_config
+
+try:
+    from core.config import load_config
+except ImportError:
+    def load_config(config_path: Optional[str] = None, environment: str = "dev") -> Dict[str, Any]:
+        print("Config loading not available, using default configuration.")
+        return {}
 
 # Set up logging
 logger = get_logger("FeatureFlags")

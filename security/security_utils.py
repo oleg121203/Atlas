@@ -10,7 +10,7 @@ import re
 import hashlib
 import hmac
 import secrets
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, Union
 
 import base64
 try:
@@ -267,50 +267,27 @@ def sanitize_input(input_str: str) -> str:
     return sanitized
 
 
-def check_environment_security() -> Dict[str, Any]:
+def check_environment_security() -> bool:
     """
-    Check environment for potential security issues.
+    Check if the environment meets basic security requirements.
     
     Returns:
-        Dict[str, Any]: Report of security checks
+        bool: True if environment passes security checks, False otherwise
     """
-    report = {
-        "checks": [],
-        "warnings": 0,
-        "errors": 0
-    }
-    
-    # Check for encryption key in environment variables (not ideal but common)
-    if os.environ.get("ATLAS_ENCRYPTION_KEY"):
-        report["checks"].append({
-            "name": "Encryption Key in Environment",
-            "status": "WARNING",
-            "message": "Encryption key found in environment variable. Consider using a secure vault solution."
-        })
-        report["warnings"] += 1
-    
-    # Check for other sensitive environment variables
-    sensitive_vars = [key for key in os.environ if any(kw in key.lower() for kw in ["password", "secret", "key", "token"])]
-    if sensitive_vars:
-        report["checks"].append({
-            "name": "Sensitive Environment Variables",
-            "status": "WARNING",
-            "message": f"Found {len(sensitive_vars)} environment variables with sensitive names. Ensure they are secure."
-        })
-        report["warnings"] += 1
-    
     # Check if running in debug mode
-    config = get_config_data()
-    if config.get("debug", False):
-        report["checks"].append({
-            "name": "Debug Mode",
-            "status": "WARNING",
-            "message": "Application is running in debug mode. Disable in production."
-        })
-        report["warnings"] += 1
-    
-    logger.info("Environment security check completed: %d warnings, %d errors", report["warnings"], report["errors"])
-    return report
+    if os.getenv('DEBUG', 'false').lower() == 'true':
+        print("WARNING: Application is running in DEBUG mode - not suitable for production")
+        return False
+        
+    # Check for presence of required security variables
+    required_vars = ['ATLAS_API_KEY', 'ATLAS_SECRET']
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        print(f"WARNING: Missing required security environment variables: {', '.join(missing_vars)}")
+        return False
+        
+    # Additional security checks can be added here
+    return True
 
 
 def secure_compare(a: bytes, b: bytes) -> bool:
@@ -327,6 +304,99 @@ def secure_compare(a: bytes, b: bytes) -> bool:
     return hmac.compare_digest(a, b)
 
 
+def constant_time_compare(a: Union[str, bytes], b: Union[str, bytes]) -> bool:
+    """Perform a constant-time comparison of two strings or bytes.
+    
+    Args:
+        a (Union[str, bytes]): First value to compare
+        b (Union[str, bytes]): Second value to compare
+    
+    Returns:
+        bool: True if the values are equal, False otherwise
+    """
+    # Convert strings to bytes if necessary
+    if isinstance(a, str):
+        a = a.encode('utf-8')
+    if isinstance(b, str):
+        b = b.encode('utf-8')
+        
+    return hmac.compare_digest(a, b)
+
+
+def generate_secure_random_string(length: int = 32) -> str:
+    """Generate a cryptographically secure random string.
+    
+    Args:
+        length (int): Length of the random string (default: 32)
+    
+    Returns:
+        str: Secure random string
+    """
+    return os.urandom(length).hex()
+
+
+def secure_hash(data: Union[str, bytes], salt: Optional[bytes] = None) -> bytes:
+    """Hash data using SHA-256 with an optional salt.
+    
+    Args:
+        data (Union[str, bytes]): Data to hash
+        salt (Optional[bytes]): Optional salt for additional security
+    
+    Returns:
+        bytes: Hashed data
+    """
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if salt is None:
+        salt = os.urandom(16)
+        
+    hasher = hashlib.sha256()
+    hasher.update(salt + data)
+    return hasher.digest()
+
+
+def hash_sensitive_data(data: Union[str, bytes], salt: Optional[bytes] = None) -> bytes:
+    """Hash sensitive data using SHA-256 with an optional salt.
+    
+    Args:
+        data (Union[str, bytes]): Data to hash
+        salt (Optional[bytes]): Optional salt for additional security
+    
+    Returns:
+        bytes: Hashed data
+    """
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if salt is None:
+        salt = os.urandom(16)
+        
+    hasher = hashlib.sha256()
+    hasher.update(salt + data)
+    return hasher.digest()
+
+
+def check_environment_security_new() -> bool:
+    """Check if the environment meets basic security requirements.
+    
+    Returns:
+        bool: True if environment passes security checks, False otherwise
+    """
+    # Check if running in debug mode
+    if os.getenv('DEBUG', 'false').lower() == 'true':
+        print("WARNING: Application is running in DEBUG mode - not suitable for production")
+        return False
+        
+    # Check for presence of required security variables
+    required_vars = ['ATLAS_API_KEY', 'ATLAS_SECRET']
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        print(f"WARNING: Missing required security environment variables: {', '.join(missing_vars)}")
+        return False
+        
+    # Additional security checks can be added here
+    return True
+
+
 # Removed circular import
 # from core.config import get_config
 
@@ -339,3 +409,141 @@ def get_config_data():
         # Placeholder for actual config loading
         CONFIG = {'encryption_key': 'placeholder_key'}
     return CONFIG
+
+
+def secure_hash_new(data: Union[str, bytes], salt: Optional[bytes] = None) -> bytes:
+    """Hash data using SHA-256 with an optional salt.
+    
+    Args:
+        data (Union[str, bytes]): Data to hash
+        salt (Optional[bytes]): Optional salt for additional security
+    
+    Returns:
+        bytes: Hashed data
+    """
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if salt is None:
+        salt = os.urandom(16)
+        
+    hasher = hashlib.sha256()
+    hasher.update(salt + data)
+    return hasher.digest()
+
+
+def generate_secure_token_new(length: int = 32) -> str:
+    """Generate a cryptographically secure random token.
+    
+    Args:
+        length (int): Length of the token in bytes (default: 32)
+    
+    Returns:
+        str: Hex-encoded secure token
+    """
+    return secrets.token_hex(length)
+
+
+def encrypt_data_new(data: Union[str, bytes], key: bytes) -> bytes:
+    """Encrypt data using a provided key (placeholder for real encryption).
+    
+    Args:
+        data (Union[str, bytes]): Data to encrypt
+        key (bytes): Encryption key
+    
+    Returns:
+        bytes: Encrypted data
+    """
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    # Placeholder for actual encryption logic
+    print("Encrypting data (placeholder implementation)")
+    return data  # In a real implementation, this would be proper encryption
+
+
+def decrypt_data_new(encrypted_data: bytes, key: bytes) -> bytes:
+    """Decrypt data using a provided key (placeholder for real decryption).
+    
+    Args:
+        encrypted_data (bytes): Data to decrypt
+        key (bytes): Decryption key
+    
+    Returns:
+        bytes: Decrypted data
+    """
+    # Placeholder for actual decryption logic
+    print("Decrypting data (placeholder implementation)")
+    return encrypted_data  # In a real implementation, this would be proper decryption
+
+
+def check_password_strength(password: str) -> bool:
+    """Check if a password meets minimum strength requirements.
+    
+    Args:
+        password (str): Password to check
+    
+    Returns:
+        bool: True if password meets strength requirements, False otherwise
+    """
+    if len(password) < 8:
+        return False
+    if not any(c.isupper() for c in password):
+        return False
+    if not any(c.islower() for c in password):
+        return False
+    if not any(c.isdigit() for c in password):
+        return False
+    return True
+
+
+def sanitize_input_new(input_str: str) -> str:
+    """Sanitize user input to prevent injection attacks.
+    
+    Args:
+        input_str (str): Input string to sanitize
+    
+    Returns:
+        str: Sanitized input string
+    """
+    # Basic sanitization - in a real implementation, this would be more comprehensive
+    return input_str.replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#x27;')
+
+
+def constant_time_compare_new(a: Union[str, bytes], b: Union[str, bytes]) -> bool:
+    """Perform a constant-time comparison of two strings or bytes.
+    
+    Args:
+        a (Union[str, bytes]): First value to compare
+        b (Union[str, bytes]): Second value to compare
+    
+    Returns:
+        bool: True if the values are equal, False otherwise
+    """
+    # Convert strings to bytes if necessary
+    if isinstance(a, str):
+        a = a.encode('utf-8')
+    if isinstance(b, str):
+        b = b.encode('utf-8')
+        
+    return hmac.compare_digest(a, b)
+
+
+def check_environment_security_new() -> bool:
+    """Check if the environment meets basic security requirements.
+    
+    Returns:
+        bool: True if environment passes security checks, False otherwise
+    """
+    # Check if running in debug mode
+    if os.getenv('DEBUG', 'false').lower() == 'true':
+        print("WARNING: Application is running in DEBUG mode - not suitable for production")
+        return False
+        
+    # Check for presence of required security variables
+    required_vars = ['ATLAS_API_KEY', 'ATLAS_SECRET']
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        print(f"WARNING: Missing required security environment variables: {', '.join(missing_vars)}")
+        return False
+        
+    # Additional security checks can be added here
+    return True

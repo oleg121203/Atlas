@@ -253,7 +253,40 @@ class ConfigManager:
         self.load_config()
 
 
-def get_config() -> ConfigManager:
+def load_config() -> Dict[str, Any]:
+    """Load configuration settings from environment or file.
+    
+    Returns:
+        Dict[str, Any]: Configuration dictionary
+    """
+    config = {
+        'feature_flags': {
+            'experimental_ui': False,
+            'voice_commands': True,
+            'hotkey_support': True
+        }
+    }
+    
+    config_file_path = os.getenv('ATLAS_CONFIG_PATH', 'config.json')
+    if os.path.exists(config_file_path):
+        try:
+            with open(config_file_path, 'r') as config_file:
+                file_config = json.load(config_file)
+                config.update(file_config)
+        except Exception as e:
+            print(f"Error loading config from file: {e}")
+    
+    return config
+
+def get_config() -> Dict[str, Any]:
+    """Get the application configuration.
+    
+    Returns:
+        Dict[str, Any]: Configuration dictionary
+    """
+    return load_config()
+
+def get_config_manager() -> ConfigManager:
     """
     Get the global configuration manager instance.
     
