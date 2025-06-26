@@ -42,11 +42,14 @@ class TestSystemMonitor(unittest.TestCase):
 
     def test_start_stop_monitoring(self):
         """Test starting and stopping the monitoring process."""
-        # Start monitoring in a separate thread or process if needed, but for simplicity, just check state
+        self.assertFalse(self.monitor.is_monitoring)
         self.monitor.start_monitoring()
-        self.assertTrue(self.monitor.is_running)
+        self.assertTrue(self.monitor.is_monitoring)
+        import time
+        time.sleep(5)
         self.monitor.stop_monitoring()
-        self.assertFalse(self.monitor.is_running)
+        self.assertFalse(self.monitor.is_monitoring)
+        self.assertGreater(len(self.monitor.metrics), 0)
 
 if __name__ == '__main__':
     unittest.main()

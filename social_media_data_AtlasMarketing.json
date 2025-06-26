@@ -1,0 +1,20 @@
+{
+  "content_plan": [
+    {
+      "idea": "Test Campaign Content",
+      "platforms": [
+        "Twitter",
+        "Instagram"
+      ],
+      "visual_description": "Test Visual",
+      "created_at": "2025-06-26T07:34:09.842632",
+      "status": "Draft"
+    }
+  ],
+  "scheduled_posts": [],
+  "engagement_metrics": {
+    "Twitter": [],
+    "Instagram": [],
+    "LinkedIn": []
+  }
+}

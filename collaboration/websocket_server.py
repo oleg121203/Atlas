@@ -130,27 +130,35 @@ class WebSocketServer:
         except Exception as e:
             self.logger.error(f"Broadcast error for team {team_id}: {e}", exc_info=True)
 
-            def start(self):
-        """Synchronous method to start the WebSocket server for testing compatibility."""
-        def run_server():
-            self._loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._loop)
-            self._server_task = self._loop.run_until_complete(self.start_server())
-            try:
-                self._loop.run_forever()
-            except Exception as e:
-                self.logger.error(f"Server loop error: {e}")
-
-        thread = threading.Thread(target=run_server, daemon=True)
-        thread.start()
-        time.sleep(1)  # Give server time to start
-
-            def stop(self):
-        """Stop the WebSocket server."""
-        if hasattr(self, '_loop') and self._loop and not self._loop.is_closed():
-            if hasattr(self, 'server') and self.server:
-                self._loop.call_soon_threadsafe(self.server.close)
-            self._loop.call_soon_threadsafe(self._loop.stop)
+    def start(self):
+        """
+        Start the WebSocket server in an event loop.
+        This method is designed to be run in a separate thread or process.
+        """
+        try:
+            # Create a new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            start_server = websockets.serve(
+                self.handle_connection,
+                self.host,
+                self.port,
+                loop=loop
+            )
+            
+            self.logger.info(f"WebSocket server starting on ws://{self.host}:{self.port}")
+            server = loop.run_until_complete(start_server)
+            self.logger.info("WebSocket server started")
+            
+            # Keep the server running
+            loop.run_forever()
+            
+        except Exception as e:
+            self.logger.error(f"WebSocket server error: {e}")
+            raise
+        finally:
+            self.logger.info("WebSocket server shutting down")
 
     async def start_server(self):
         """Start the WebSocket server for real-time collaboration on a specified port."""

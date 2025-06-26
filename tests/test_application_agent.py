@@ -17,13 +17,12 @@ class TestApplicationAgent(unittest.TestCase):
         """Test initialization of ApplicationAgent."""
         self.assertEqual(self.agent.name, "Application Control Agent")
 
-    @patch.object(ApplicationAgent, '_handle_terminal_command')
-    def test_handle_terminal_command(self, mock_terminal):
+    def test_handle_terminal_command(self):
         """Test handling of terminal commands."""
-        mock_terminal.return_value = "Command output"
-        result = self.agent._handle_terminal_command("ls -l")
-        self.assertIn("Executed terminal command", result)
-        mock_terminal.assert_called_once_with("ls -l")
+        with patch.object(self.agent, 'execute_command', return_value="Command output") as mock_execute:
+            result = self.agent.handle_terminal_command("ls")
+            mock_execute.assert_called_once_with("ls")
+            self.assertEqual(result, "Command output")
 
     @patch.object(ApplicationAgent, '_handle_mouse_control')
     @patch('tools.mouse_keyboard_tool.click_at')

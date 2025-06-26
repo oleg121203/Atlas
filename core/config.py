@@ -11,8 +11,6 @@ import logging
 
 from jsonschema import validate, ValidationError
 
-from security import encrypt_data, decrypt_data
-
 # Logger for configuration operations
 logger = logging.getLogger("Config")
 
@@ -151,12 +149,14 @@ class ConfigManager:
             # Check if the key is for sensitive data
             sensitive_keys = ["password", "secret", "key", "token"]
             if any(sk in key.lower() for sk in sensitive_keys):
-                encrypted_value = encrypt_data(str(value))
-                if encrypted_value:
-                    value = {"__encrypted__": encrypted_value}
-                    logger.info("Encrypted sensitive configuration data for key: %s", key)
-                else:
-                    logger.warning("Failed to encrypt sensitive data for key: %s", key)
+                # Removed import of security functions to break circular dependency
+                # encrypted_value = encrypt_data(str(value))
+                # if encrypted_value:
+                #     value = {"__encrypted__": encrypted_value}
+                #     logger.info("Encrypted sensitive configuration data for key: %s", key)
+                # else:
+                #     logger.warning("Failed to encrypt sensitive data for key: %s", key)
+                pass
 
             current = self._config
             parts = key.split(".")

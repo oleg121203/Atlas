@@ -1,0 +1,28 @@
+{
+  "partners": [
+    {
+      "id": 1,
+      "name": "TestCorp",
+      "industry": "Tech",
+      "contact_info": "test@corp.com",
+      "potential_value": "High potential",
+      "status": "Potential",
+      "added_at": "2025-06-26T07:32:52.098189"
+    }
+  ],
+  "proposals": [],
+  "agreements": [],
+  "outcomes": [],
+  "summary": {
+    "total_partners": 1,
+    "potential_partners": 1,
+    "proposals_draft": 0,
+    "proposals_sent": 0,
+    "proposals_accepted": 0,
+    "proposals_rejected": 0,
+    "agreements_draft": 0,
+    "agreements_active": 0,
+    "agreements_completed": 0,
+    "total_outcomes_recorded": 0
+  }
+}

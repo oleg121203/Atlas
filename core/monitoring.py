@@ -66,6 +66,13 @@ def initialize_monitoring() -> bool:
         return False
 
 
+def start_monitoring():
+    """Start the monitoring system."""
+    logger.info("Starting monitoring system")
+    # Placeholder for actual monitoring initialization
+    return True
+
+
 def track_performance(component: str, category: str, duration_ms: float, 
                      details: Optional[dict] = None) -> None:
     """

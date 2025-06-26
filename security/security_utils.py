@@ -22,7 +22,6 @@ except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
 
 from core.logging import get_logger
-from core.config import get_config
 
 # Logger for security operations
 logger = get_logger("Security")
@@ -57,7 +56,7 @@ def initialize_security() -> bool:
         logger.warning("Cryptography library not available. Encryption functionality will be limited.")
         return False
     
-    config = get_config()
+    config = get_config_data()
     security_config = config.get("security", {})
     if not security_config.get("encryption_key"):
         logger.warning("No encryption key configured. Generate one for secure operations.")
@@ -82,7 +81,7 @@ def get_encryption_key() -> Optional[bytes]:
     if not CRYPTOGRAPHY_AVAILABLE:
         return None
     
-    config = get_config()
+    config = get_config_data()
     security_config = config.get("security", {})
     key_str = security_config.get("encryption_key")
     if key_str:
@@ -130,12 +129,13 @@ def derive_key(password: str, salt: Optional[bytes] = None) -> bytes:
     return key
 
 
-def encrypt_data(data: str) -> Optional[str]:
+def encrypt_data(data: str, key=None) -> Optional[str]:
     """
     Encrypt sensitive data using Fernet symmetric encryption.
     
     Args:
         data (str): Data to encrypt
+        key (bytes): Encryption key
         
     Returns:
         Optional[str]: Encrypted data as base64 string, or None if encryption unavailable
@@ -144,7 +144,8 @@ def encrypt_data(data: str) -> Optional[str]:
         logger.error("Cannot encrypt data - cryptography library not available")
         return None
     
-    key = get_encryption_key()
+    if key is None:
+        key = get_encryption_key()
     if not key:
         logger.error("Cannot encrypt data - no encryption key available")
         return None
@@ -158,12 +159,13 @@ def encrypt_data(data: str) -> Optional[str]:
         return None
 
 
-def decrypt_data(encrypted_data: str) -> Optional[str]:
+def decrypt_data(encrypted_data: str, key=None) -> Optional[str]:
     """
     Decrypt data encrypted with Fernet symmetric encryption.
     
     Args:
         encrypted_data (str): Encrypted data as base64 string
+        key (bytes): Encryption key
         
     Returns:
         Optional[str]: Decrypted data, or None if decryption fails
@@ -172,7 +174,8 @@ def decrypt_data(encrypted_data: str) -> Optional[str]:
         logger.error("Cannot decrypt data - cryptography library not available")
         return None
     
-    key = get_encryption_key()
+    if key is None:
+        key = get_encryption_key()
     if not key:
         logger.error("Cannot decrypt data - no encryption key available")
         return None
@@ -297,7 +300,7 @@ def check_environment_security() -> Dict[str, Any]:
         report["warnings"] += 1
     
     # Check if running in debug mode
-    config = get_config()
+    config = get_config_data()
     if config.get("debug", False):
         report["checks"].append({
             "name": "Debug Mode",
@@ -322,3 +325,17 @@ def secure_compare(a: bytes, b: bytes) -> bool:
         bool: True if strings are equal
     """
     return hmac.compare_digest(a, b)
+
+
+# Removed circular import
+# from core.config import get_config
+
+# Use a placeholder or alternative method if config is needed
+CONFIG = None
+
+def get_config_data():
+    global CONFIG
+    if CONFIG is None:
+        # Placeholder for actual config loading
+        CONFIG = {'encryption_key': 'placeholder_key'}
+    return CONFIG

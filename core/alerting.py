@@ -8,6 +8,7 @@ performance issues, and errors through multiple channels.
 import logging
 from typing import Callable, Dict, List, Optional
 from datetime import datetime
+import uuid
 
 import json
 
@@ -397,6 +398,38 @@ def alert(title: str, message: str, severity: str = SEVERITY_WARNING,
         
     logger.debug("Alert sent to %d/%d channels: %s", success_count, total_channels, title)
     return success_count > 0
+
+
+def raise_alert(message: str, severity: str = SEVERITY_INFO, component: Optional[str] = None, 
+                details: Optional[dict] = None) -> None:
+    """
+    Raise an alert with the specified message and severity.
+    
+    Args:
+        message (str): The alert message
+        severity (str): Severity level (INFO, WARNING, ERROR, CRITICAL)
+        component (str, optional): Component raising the alert
+        details (dict, optional): Additional structured data about the alert
+    """
+    alert_data = {
+        'id': str(uuid.uuid4()),
+        'timestamp': datetime.now().isoformat(),
+        'message': message,
+        'severity': severity,
+        'component': component or 'unspecified',
+        'details': details or {}
+    }
+    logger.log({
+        SEVERITY_INFO: logging.INFO,
+        SEVERITY_WARNING: logging.WARNING,
+        SEVERITY_ERROR: logging.ERROR,
+        SEVERITY_CRITICAL: logging.CRITICAL
+    }.get(severity, logging.WARNING), f"Alert [{severity}]: {message}")
+    for handler in _ui_alert_handlers + _desktop_alert_handlers + _email_alert_handlers + _webhook_alert_handlers:
+        try:
+            handler(alert_data)
+        except Exception as e:
+            logger.error(f"Error in alert handler: {e}")
 
 
 def register_ui_alert_handler(handler: Callable[[str, str, Dict], None]) -> None:
