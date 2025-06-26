@@ -120,6 +120,10 @@ class AtlasApp:
         if self.collab_manager:
             self.collab_manager.stop()
 
+    def run(self):
+        # Add your application run logic here
+        pass
+
 # Optional profiling for ASC-025
 try:
     from performance.profiling_setup import PerformanceProfiler
@@ -147,26 +151,18 @@ def parse_arguments():
     parser.add_argument('--no-splash', action='store_true', help='Disable splash screen during startup')
     return parser.parse_args()
 
+def raise_alert(title, message, level):
+    # Implement your alert raising logic here
+    pass
+
 if __name__ == "__main__":
-    # Suppress urllib3 warning about OpenSSL compatibility
-    import warnings
-    warnings.filterwarnings('ignore', category=UserWarning, module='urllib3')
-    
-    # Initialize QApplication before ANY other imports that might touch GUI components
-    import sys
-    from PySide6.QtWidgets import QApplication
-    app = QApplication(sys.argv)
-    
-    # Now safe to import other modules
-    import logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger(__name__)
-    logger.info("QApplication initialized before other imports")
-    
-    # Import application logic after GUI app is ready
-    from core.application import AtlasApplication
-    atlas_app = AtlasApplication()
-    
-    # Start the application
-    logger.info("Starting Atlas application")
-    sys.exit(atlas_app.run())
+    try:
+        logger.info("Starting Atlas application")
+        app = AtlasApp()
+        asyncio.run(app.initialize())
+        logger.info("Atlas application initialized successfully")
+        sys.exit(app.run())
+    except Exception as e:
+        logger.error(f"Failed to start Atlas application: {str(e)}")
+        raise_alert("Application Launch Failed", f"Atlas application failed to start due to: {str(e)}", "error")
+        sys.exit(1)

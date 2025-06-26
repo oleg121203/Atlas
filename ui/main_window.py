@@ -1,5 +1,5 @@
 from typing import Optional, Any, Dict
-from PySide6.QtWidgets import QMainWindow, QApplication, QDockWidget, QWidget, QTabWidget, QMessageBox, QVBoxLayout, QPushButton, QLabel, QStatusBar, QToolBar, QStackedWidget, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QMenuBar, QMenu, QFrame, QCheckBox
+from PySide6.QtWidgets import (QMainWindow, QApplication, QDockWidget, QWidget, QTabWidget, QMessageBox, QVBoxLayout, QPushButton, QLabel, QStatusBar, QToolBar, QStackedWidget, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QMenuBar, QMenu, QFrame, QCheckBox, QHBoxLayout)
 from PySide6.QtCore import Qt, QSize, QTimer, Signal, Slot, QThreadPool, QRunnable, QObject
 from PySide6.QtGui import QIcon, QFont, QTextCharFormat, QColor
 
@@ -157,6 +157,7 @@ class AtlasMainWindow(QMainWindow):
         self.app_instance = QApplication.instance()
         self.event_bus = EventBus()
         self.memory_manager = MemoryManager()
+        self.modules = {}
         self.self_learning_agent = SelfLearningAgent(memory_manager=self.memory_manager)
         self.task_planner_agent = TaskPlannerAgent(memory_manager=self.memory_manager)
         self.context_analyzer = ContextAnalyzer(memory_manager=self.memory_manager)
@@ -175,13 +176,68 @@ class AtlasMainWindow(QMainWindow):
         logger.debug("AtlasMainWindow initialization completed")
 
     def _init_ui(self):
-        """Initialize the UI components."""
-        logger.debug("Starting UI initialization")
-        self._create_menu_bar()
+        """Initialize UI elements after QApplication is ready."""
+        logger.debug("Initializing UI elements")
+        self.setStyleSheet("""
+            QMainWindow {
+                background: #121518;
+                color: #fff;
+            }
+            QToolBar {
+                background: #181c20;
+                border: 0px;
+                spacing: 8px;
+            }
+            QToolButton {
+                background: transparent;
+                color: #fff;
+                border: 1px solid transparent;
+                border-radius: 6px;
+                padding: 6px;
+                font-size: 14px;
+            }
+            QToolButton:hover {
+                background: #00ff7f22;
+                border: 1px solid #00ff7f44;
+            }
+            QToolButton:pressed {
+                background: #00ff7f11;
+            }
+            QLineEdit {
+                background: #181c20;
+                color: #fff;
+                border: 1px solid #00fff7;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 14px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #00ff7f;
+            }
+            QPushButton {
+                background: transparent;
+                color: #fff;
+                border: 1px solid #00fff7;
+                border-radius: 6px;
+                padding: 6px 18px;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background: #00ff7f11;
+            }
+            QPushButton:pressed {
+                background: #00ff7f22;
+            }
+            QLabel {
+                color: #fff;
+            }
+        """)
+
         self._initialize_modules()
-        self._create_sidebar()
-        self._setup_memory_management()
-        logger.debug("UI initialization completed")
+        self._setup_topbar()
+        self._setup_sidebar()
+        self.central.setCurrentWidget(list(self.modules.values())[0] if self.modules else QWidget())
+        logger.info("UI initialization complete")
 
     def _create_menu_bar(self):
         """Create the menu bar with necessary menus and actions."""
@@ -393,7 +449,53 @@ class AtlasMainWindow(QMainWindow):
         self.central.setCurrentWidget(self.chat_module)
         logger.info("Modules initialized")
 
-    def _create_sidebar(self):
+    def _setup_topbar(self):
+        """Create the topbar with necessary actions."""
+        logger.debug("Creating topbar")
+        topbar_layout = QHBoxLayout(self.topbar)
+
+        # Add buttons for navigation
+        chat_btn = QPushButton("Chat")
+        chat_btn.clicked.connect(lambda: self.show_module("Chat"))
+        topbar_layout.addWidget(chat_btn)
+
+        plugins_btn = QPushButton("Plugins")
+        plugins_btn.clicked.connect(lambda: self.show_module("Plugins"))
+        topbar_layout.addWidget(plugins_btn)
+
+        settings_btn = QPushButton("Settings")
+        settings_btn.clicked.connect(lambda: self.show_module("Settings"))
+        topbar_layout.addWidget(settings_btn)
+
+        stats_btn = QPushButton("Stats")
+        stats_btn.clicked.connect(lambda: self.show_module("Stats"))
+        topbar_layout.addWidget(stats_btn)
+
+        system_btn = QPushButton("System Control")
+        system_btn.clicked.connect(lambda: self.show_module("System"))
+        topbar_layout.addWidget(system_btn)
+
+        self_improvement_btn = QPushButton("Self Improvement")
+        self_improvement_btn.clicked.connect(lambda: self.show_module("SelfImprovement"))
+        topbar_layout.addWidget(self_improvement_btn)
+
+        consent_btn = QPushButton("Consent Manager")
+        consent_btn.clicked.connect(lambda: self.show_module("Consent"))
+        topbar_layout.addWidget(consent_btn)
+
+        decision_btn = QPushButton("AI Decisions")
+        decision_btn.clicked.connect(lambda: self.show_module("DecisionExplanation"))
+        topbar_layout.addWidget(decision_btn)
+
+        user_management_btn = QPushButton("User Management")
+        user_management_btn.clicked.connect(lambda: self.show_module("UserManagement"))
+        topbar_layout.addWidget(user_management_btn)
+
+        topbar_layout.addStretch()
+
+        logger.debug("Topbar creation completed")
+
+    def _setup_sidebar(self):
         """Create the sidebar with necessary actions."""
         logger.debug("Creating sidebar")
         sidebar_layout = QVBoxLayout(self.sidebar)

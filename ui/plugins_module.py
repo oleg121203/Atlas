@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushBu
 from PySide6.QtCore import Qt
 from ui.plugin_manager import PluginManager
 from ui.i18n import _
+from core.async_task_manager import AsyncTaskManager
 
 class PluginsModule(QWidget):
     """Plugin management module with cyberpunk styling.
@@ -17,6 +18,7 @@ class PluginsModule(QWidget):
         tools_frame: QFrame for plugin tools
         tools_layout: QVBoxLayout for tool widgets
         title: QLabel for module title
+        async_manager: AsyncTaskManager instance
     """
 
     def __init__(self, parent: Optional[QWidget] = None):
@@ -29,6 +31,8 @@ class PluginsModule(QWidget):
         self.setObjectName("PluginsModule")
         self.plugin_manager: Optional[PluginManager] = None
         self.tool_widgets: List[QWidget] = []
+        self.async_manager = AsyncTaskManager()
+        self.async_manager.start()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(12)
@@ -82,46 +86,57 @@ class PluginsModule(QWidget):
         self.update_plugins()
 
     def update_plugins(self) -> None:
-        """Update the list of plugins in the UI.
+        """Update the list of plugins in the UI asynchronously.
 
         Shows active/inactive status for each plugin.
         """
-        self.list.clear()
-        if not self.plugin_manager:
-            return
+        def update_plugins_async():
+            self.list.clear()
+            if not self.plugin_manager:
+                return
 
-        try:
-            for name, plugin in self.plugin_manager.plugins.items():
-                status = "(active)" if plugin.active else "(inactive)"
-                self.list.addItem(f"{name} {status}")
-            self.update_tools()
-        except Exception as e:
-            self.logger.error(f"Error updating plugins: {e}")
+            try:
+                for name, plugin in self.plugin_manager.plugins.items():
+                    status = "✅" if plugin.active else "❌"
+                    info = plugin.info()
+                    desc = info.get("description", "")
+                    if len(desc) > 50:
+                        desc = desc[:50] + "..."
+                    self.list.addItem(f"{name} {status} {desc}")
+            except Exception as e:
+                self.logger.error(f"Error updating plugins: {e}")
+
+        self.async_manager.submit_task(update_plugins_async)
 
     def update_tools(self) -> None:
-        """Update plugin tools in the UI.
+        """Update plugin tools in the UI asynchronously.
 
         Removes old tools and adds new ones from active plugins.
         """
-        # Remove old tools
-        for widget in self.tool_widgets:
-            widget.setParent(None)
-        self.tool_widgets.clear()
+        def update_tools_async():
+            try:
+                for widget in self.tool_widgets:
+                    self.tools_layout.removeWidget(widget)
+                    widget.deleteLater()
+                self.tool_widgets.clear()
 
-        if not self.plugin_manager:
-            return
+                if not self.plugin_manager:
+                    return
 
-        # Add tools from active plugins
-        for plugin in self.plugin_manager.plugins.values():
-            if plugin.active and hasattr(plugin, 'get_widget'):
-                try:
-                    widget = plugin.get_widget(self)
-                    if widget:
-                        self.tools_layout.addWidget(widget)
-                        self.tool_widgets.append(widget)
-                except Exception as e:
-                    self.logger.error(f"Error adding widget for plugin {plugin.name}: {e}")
-                    continue
+                for plugin in self.plugin_manager.plugins.values():
+                    if plugin.active and hasattr(plugin, 'get_widget'):
+                        try:
+                            widget = plugin.get_widget(self)
+                            if widget:
+                                self.tools_layout.addWidget(widget)
+                                self.tool_widgets.append(widget)
+                        except Exception as e:
+                            self.logger.error(f"Error adding widget for plugin {plugin.name}: {e}")
+                            continue
+            except Exception as e:
+                self.logger.error(f"Error updating tools: {e}")
+
+        self.async_manager.submit_task(update_tools_async)
 
     def activate_plugin(self) -> None:
         """Activate the selected plugin.

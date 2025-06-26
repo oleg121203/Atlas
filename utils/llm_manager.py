@@ -9,13 +9,27 @@ TokenTracker to monitor and log token usage for all API calls.
 import logging
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Protocol, Union
 
 # Imports for LLM providers are deferred to improve startup performance.
-# OpenAI-specific types will be imported when needed
 
 from modules.agents.token_tracker import TokenTracker, TokenUsage
 from utils.config_manager import config_manager as utils_config_manager
+
+# Import provider-specific modules
+from utils.providers.openai_provider import OpenAIProvider
+from utils.providers.gemini_provider import GeminiProvider
+from utils.providers.groq_provider import GroqProvider
+from utils.providers.ollama_provider import OllamaProvider
+
+# Define a protocol for provider classes to ensure type safety
+class LLMProvider(Protocol):
+    def is_available(self) -> bool:
+        ...
+    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, max_tokens: Optional[int] = None) -> Dict[str, Any]:
+        ...
+    def get_embedding(self, text: str, model: str = "models/embedding-001") -> List[float]:
+        ...
 
 # ---------------------------------------------------------------------------
 # Legacy compatibility shim
@@ -46,7 +60,6 @@ class LLMManager:
 
         self.config_manager = config_manager or utils_config_manager
 
-        self.gemini_client: Optional[Any] = None
         self.default_provider = "gemini"
         
         self.gemini_model = "gemini-1.5-flash"
@@ -55,28 +68,13 @@ class LLMManager:
         self.current_provider = self.config_manager.get_current_provider() or self.default_provider
         self.current_model = self.config_manager.get_current_model() or self.gemini_model
 
-        self._initialize_clients()
-
-    def _initialize_clients(self):
-        """Initializes all available LLM clients."""
-        self._initialize_gemini()
-
-    def _initialize_gemini(self):
-        """Initializes the Gemini client using the API key from the config."""
-        import google.generativeai as genai
-        api_key = self.config_manager.get_gemini_api_key()
-        if not api_key or not api_key.strip():
-            self.logger.warning("Gemini API key not found. Gemini client is not available.")
-            self.gemini_client = None
-            return
-
-        try:
-            genai.configure(api_key=api_key)
-            self.gemini_client = genai.GenerativeModel(self.gemini_model)
-            self.logger.info("Gemini client initialized successfully.")
-        except Exception as e:
-            self.gemini_client = None
-            self.logger.error(f"Failed to initialize Gemini client: {e}")
+        # Initialize provider-specific clients
+        self.providers: Dict[str, Union[OpenAIProvider, GeminiProvider, GroqProvider, OllamaProvider]] = {
+            "openai": OpenAIProvider(self.config_manager),
+            "gemini": GeminiProvider(self.config_manager),
+            "groq": GroqProvider(self.config_manager),
+            "ollama": OllamaProvider(self.config_manager)
+        }
 
     def chat(
         self,
@@ -105,264 +103,91 @@ class LLMManager:
 
         cache_key = None
         try:
-            cache_key_obj = {"messages": messages, "tools": tools, "model": model_to_use, "provider": provider, "max_tokens": max_tokens}
-            cache_key = json.dumps(cache_key_obj, sort_keys=True)
-            if cache_key in self.cache:
-                self.logger.info("Returning cached LLM response.")
-                return self.cache[cache_key]
-        except TypeError as e:
-            self.logger.warning(f"Could not create cache key, bypassing cache: {e}")
-            cache_key = None
+            # Check cache first for non-conversational queries
+            if len(messages) == 1 and messages[0].get("role") == "user":
+                cache_key = json.dumps(messages[0])
+                if cache_key in self.cache:
+                    self.logger.info(f"Cache hit for request: {cache_key[:50]}...")
+                    return self.cache[cache_key]
 
-        try:
-            if provider == "openai":
-                result = self._chat_openai(messages, tools, model_to_use, max_tokens)
-            elif provider == "gemini":
-                result = self._chat_gemini(messages, tools, model_to_use, max_tokens)
-            elif provider == "groq":
-                result = self._chat_groq(messages, model_to_use, max_tokens)
-            elif provider == "ollama":
-                result = self._chat_ollama(messages, model_to_use, max_tokens)
-            else:
-                raise ValueError(f"Unsupported LLM provider: {provider}")
-            
+            # Route the request to the appropriate provider
+            if provider not in self.providers:
+                self.logger.error(f"Unsupported provider: {provider}")
+                return self._fallback_to_available_provider(messages, tools, model_to_use, max_tokens)
+
+            if not self.providers[provider].is_available():
+                self.logger.error(f"Provider {provider} is not available. Attempting fallback.")
+                return self._fallback_to_available_provider(messages, tools, model_to_use, max_tokens)
+
+            response_data = self.providers[provider].chat(messages, tools, model_to_use, max_tokens)
+            token_usage = TokenUsage(
+                response_text=response_data.get("content", ""),
+                tool_calls=response_data.get("tool_calls"),
+                prompt_tokens=response_data.get("prompt_tokens", 0),
+                completion_tokens=response_data.get("completion_tokens", 0),
+                total_tokens=response_data.get("total_tokens", 0),
+            )
+            self.token_tracker.add_usage(token_usage)
+
             if cache_key:
-                self.cache[cache_key] = result
-            return result
-        except Exception as e:
-            self.logger.error(f"Error during LLM chat with provider {provider}: {e}", exc_info=True)
-            return TokenUsage(
-                response_text=f"Error: {e}",
-                tool_calls=None,
-                prompt_tokens=0,
-                completion_tokens=0,
-                total_tokens=0,
-            )
+                self.cache[cache_key] = token_usage
+                self.logger.info(f"Cached response for request: {cache_key[:50]}...")
 
-    def _chat_openai(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gpt-4-turbo", max_tokens: Optional[int] = None) -> TokenUsage:
-        """Handle OpenAI chat requests."""
-        from openai import OpenAI
-        api_key = self.config_manager.get_openai_api_key()
-        if not api_key or "placeholder" in api_key:
-            self.logger.warning("OpenAI API key is invalid or placeholder, falling back to Gemini.")
-            return self._chat_gemini(messages, tools, self.gemini_model, max_tokens)
-
-        try:
-            openai_client = OpenAI(api_key=api_key)
-            kwargs = {"model": model, "messages": messages}
-            if tools:
-                kwargs["tools"] = tools
-                kwargs["tool_choice"] = "auto"
-            if max_tokens:
-                kwargs["max_tokens"] = max_tokens
-            response = openai_client.chat.completions.create(**kwargs)  
-            message = response.choices[0].message  
-            usage = response.usage  
-            tool_calls = None
-            if message.tool_calls:
-                tool_calls = [{"id": tc.id, "function": {"name": tc.function.name, "arguments": tc.function.arguments}} for tc in message.tool_calls]  
-
-            token_usage = TokenUsage(
-                response_text=message.content,  
-                tool_calls=tool_calls,
-                prompt_tokens=usage.prompt_tokens,  
-                completion_tokens=usage.completion_tokens,  
-                total_tokens=usage.total_tokens,  
-            )
-            self.token_tracker.add_usage(token_usage)
             return token_usage
         except Exception as e:
-            self.logger.error(f"An error occurred during the OpenAI call: {e}", exc_info=True)
-            self.logger.info("Falling back to Gemini due to OpenAI API error.")
-            return self._chat_gemini(messages, tools, self.gemini_model, max_tokens)
+            self.logger.error(f"LLM API error with {provider}: {e}", exc_info=True)
+            return self._fallback_to_available_provider(messages, tools, model_to_use, max_tokens)
 
-    def _chat_gemini(self, messages: List[dict], tools: Optional[List[Dict[str, Any]]] = None, model: str = "gemini-1.5-flash", max_tokens: Optional[int] = None) -> TokenUsage:
-        """Handle Gemini chat requests."""
-        import google.generativeai as genai
-        try:
-            from google.generativeai.types import HarmCategory, HarmBlockThreshold
-            # SafetySetting might not be available in newer versions, try to import it
-            try:
-                from google.generativeai.types import SafetySetting
-                use_safety_settings = True
-            except ImportError:
-                SafetySetting = None
-                use_safety_settings = False
-        except ImportError:
-            # Fallback if types module is not available
-            HarmCategory = None
-            HarmBlockThreshold = None
-            SafetySetting = None
-            use_safety_settings = False
-            
-        if not self.gemini_client:
-            self.logger.error("Gemini client not initialized.")
-            raise ValueError("Gemini client not initialized. Please set your API key.")
-
-        try:
-            if not model or not model.startswith("gemini"):
-                model = self.gemini_model
-                self.logger.info(f"Using default Gemini model: {model}")
-
-            system_instruction = None
-            gemini_messages = []
-            for msg in messages:
-                role, content = msg.get("role"), msg.get("content")
-                if not content:  # Skip empty messages
+    def _fallback_to_available_provider(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None
+    ) -> TokenUsage:
+        """Attempt to fallback to another available provider if the current one fails."""
+        self.logger.info("Attempting to fallback to another available provider.")
+        fallback_providers = [p for p in self.providers.keys() if p != self.current_provider]
+        for provider in fallback_providers:
+            if provider in self.providers and self.providers[provider].is_available():
+                self.logger.info(f"Falling back to provider: {provider}")
+                try:
+                    response_data = self.providers[provider].chat(messages, tools, model, max_tokens)
+                    token_usage = TokenUsage(
+                        response_text=response_data.get("content", ""),
+                        tool_calls=response_data.get("tool_calls"),
+                        prompt_tokens=response_data.get("prompt_tokens", 0),
+                        completion_tokens=response_data.get("completion_tokens", 0),
+                        total_tokens=response_data.get("total_tokens", 0),
+                    )
+                    self.token_tracker.add_usage(token_usage)
+                    # Update current provider to the one that worked
+                    self.current_provider = provider
+                    self.logger.info(f"Successfully fell back to provider: {provider}")
+                    return token_usage
+                except Exception as e:
+                    self.logger.error(f"Fallback to {provider} failed: {e}", exc_info=True)
                     continue
-                    
-                if role == "system":
-                    system_instruction = content
-                    continue
-                    
-                gemini_role = "model" if role == "assistant" else "user"
-                # Ensure content is a non-empty string
-                if isinstance(content, str) and content.strip():
-                    gemini_messages.append({"role": gemini_role, "parts": [{"text": content.strip()}]})
-            
-            # Ensure we have at least one valid message
-            if not gemini_messages:
-                raise ValueError("No valid messages to send to Gemini")
-
-            model_instance = genai.GenerativeModel(model_name=model)
-            # Set system instruction if available
-            if system_instruction:
-                model_instance = genai.GenerativeModel(
-                    model_name=model,
-                    system_instruction=system_instruction,
-                    tools=tools
-                )
-            
-            # Prepare generation config with max_tokens if specified
-            generation_config = {}
-            if max_tokens:
-                generation_config["max_output_tokens"] = max_tokens
-            
-            # Only use safety settings if they're available
-            if use_safety_settings and HarmCategory and HarmBlockThreshold and SafetySetting:
-                safety_settings = [
-                    SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_NONE),
-                    SafetySetting(category=HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=HarmBlockThreshold.BLOCK_NONE),
-                    SafetySetting(category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
-                    SafetySetting(category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE)
-                ]
-                response = model_instance.generate_content(
-                    gemini_messages, 
-                    safety_settings=safety_settings,
-                    generation_config=generation_config
-                )  # type: ignore[arg-type, return-value]
-            else:
-                # Use default safety settings if SafetySetting is not available
-                response = model_instance.generate_content(
-                    gemini_messages,
-                    generation_config=generation_config
-                )  # type: ignore[arg-type, return-value]
-                
-            response_text, tool_calls = "", None
-            if response.candidates and response.candidates[0].content.parts:
-                for part in response.candidates[0].content.parts:
-                    if hasattr(part, 'text') and part.text:
-                        response_text += part.text
-                    if hasattr(part, 'function_call'):
-                        fc = part.function_call  
-                        tool_calls = [{"id": f"call_{fc.name}", "function": {"name": fc.name, "arguments": json.dumps(dict(fc.args or {}))}}]
-
-            if not response_text and not tool_calls:
-                self.logger.warning(f"Gemini response was empty. Raw response: {response}")
-                response_text = "No valid response received from Gemini."
-
-            prompt_tokens = model_instance.count_tokens(gemini_messages).total_tokens if gemini_messages else 0
-            completion_tokens = model_instance.count_tokens(response.candidates[0].content).total_tokens if response.candidates else 0
-            
-            token_usage = TokenUsage(
-                response_text=response_text,
-                tool_calls=tool_calls,
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                total_tokens=prompt_tokens + completion_tokens,
-            )
-            self.token_tracker.add_usage(token_usage)
-            return token_usage
-        except Exception as e:
-            self.logger.error(f"An error occurred during the Gemini call: {e}", exc_info=True)
-            raise
-
-    def _chat_groq(self, messages: List[Dict[str, Any]], model: str, max_tokens: Optional[int] = None) -> TokenUsage:
-        """Handle Groq chat requests via HTTP API."""
-        import requests
-        api_key = self.config_manager.get_setting("groq_api_key", "")
-        if not api_key or not api_key.startswith("gsk_"):
-            raise ValueError("Groq API key is missing or invalid.")
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": model,
-            "messages": messages,
-        }
-        if max_tokens:
-            payload["max_tokens"] = max_tokens
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        if response.status_code != 200:
-            raise ValueError(f"Groq API error: {response.status_code} {response.text}")
-        data = response.json()
-        message = data["choices"][0]["message"]["content"]
-        usage = data.get("usage", {})
-        token_usage = TokenUsage(
-            response_text=message,
-            tool_calls=None,
-            prompt_tokens=usage.get("prompt_tokens", 0),
-            completion_tokens=usage.get("completion_tokens", 0),
-            total_tokens=usage.get("total_tokens", 0),
-        )
-        self.token_tracker.add_usage(token_usage)
-        return token_usage
-
-    def _chat_ollama(self, messages: List[Dict[str, Any]], model: str, max_tokens: Optional[int] = None) -> TokenUsage:
-        """Handle Ollama chat requests via local HTTP API."""
-        import requests
-        url = "http://localhost:11434/api/chat"
-        # Ollama expects a single prompt, so we concatenate all user/assistant messages
-        prompt = "\n".join([msg["content"] for msg in messages if msg["role"] in ("user", "assistant")])
-        payload = {
-            "model": model,
-            "messages": messages,
-        }
-        if max_tokens:
-            payload["options"] = {"num_predict": max_tokens}
-        response = requests.post(url, json=payload, timeout=30)
-        if response.status_code != 200:
-            raise ValueError(f"Ollama API error: {response.status_code} {response.text}")
-        data = response.json()
-        message = data.get("message", {}).get("content", "")
-        token_usage = TokenUsage(
-            response_text=message,
-            tool_calls=None,
-            prompt_tokens=0,
-            completion_tokens=0,
-            total_tokens=0,
-        )
-        self.token_tracker.add_usage(token_usage)
-        return token_usage
+        self.logger.error("No providers available after fallback attempts.")
+        return TokenUsage()
 
     def get_embedding(self, text: str, model: str = "models/embedding-001") -> List[float]:
         """Generates an embedding for the given text."""
-        import google.generativeai as genai
-        try:
-            if self.gemini_client is None and self.config_manager.get_gemini_api_key():
-                self._initialize_gemini()
-
-            if self.gemini_client is None:
-                self.logger.error("Cannot generate embedding, Gemini client not available.")
-                return []
-
-            result = genai.embed_content(model=model, content=text)  # type: ignore[return-value]
-            return result['embedding']  # type: ignore[index]
-        except Exception as e:
-            self.logger.error(f"Failed to generate embedding: {e}", exc_info=True)
+        provider = "gemini"  # Default to Gemini for embeddings
+        if provider not in self.providers:
+            self.logger.error(f"Provider {provider} not found for embedding generation.")
             return []
+
+        provider_instance = self.providers[provider]
+        if not hasattr(provider_instance, 'get_embedding'):
+            self.logger.error(f"Provider {provider} does not support embedding generation.")
+            return []
+
+        if not provider_instance.is_available():
+            self.logger.error(f"Cannot generate embedding, {provider} client not available.")
+            return []
+
+        return provider_instance.get_embedding(text, model)
 
     def update_settings(self):
         """Update LLM manager settings from config."""
@@ -384,10 +209,15 @@ class LLMManager:
                 self.logger.info(f"Updated current provider to: {new_provider}")
                 settings_changed = True
             
-            # Re-initialize clients if settings changed
+            # Re-initialize providers if settings changed
             if settings_changed:
-                self._initialize_clients()
-                self.logger.info("Re-initialized LLM clients with new settings")
+                self.providers = {
+                    "openai": OpenAIProvider(self.config_manager),
+                    "gemini": GeminiProvider(self.config_manager),
+                    "groq": GroqProvider(self.config_manager),
+                    "ollama": OllamaProvider(self.config_manager)
+                }
+                self.logger.info("Re-initialized LLM providers with new settings")
                 
             self.logger.debug("LLM settings updated successfully")
             return True
@@ -397,27 +227,6 @@ class LLMManager:
 
     def is_provider_available(self, provider: str) -> bool:
         """Check if a specific LLM provider is available."""
-        try:
-            if provider == "openai":
-                api_key = self.config_manager.get_openai_api_key()
-                return api_key and api_key.strip() and "placeholder" not in api_key.lower()
-            elif provider == "gemini":
-                return self.gemini_client is not None
-            elif provider == "groq":
-                api_key = self.config_manager.get_setting("groq_api_key", "")
-                return api_key and api_key.startswith("gsk_")
-            elif provider == "ollama":
-                import requests
-                try:
-                    response = requests.get("http://localhost:11434/api/version", timeout=3)
-                    return response.status_code == 200
-                except Exception:
-                    return False
-            elif provider == "anthropic":
-                api_key = self.config_manager.get_setting("anthropic_api_key", "")
-                return api_key and api_key.strip() and "placeholder" not in api_key.lower()
-            else:
-                return False
-        except Exception as e:
-            self.logger.error(f"Error checking provider availability for {provider}: {e}")
-            return False
+        if provider in self.providers:
+            return self.providers[provider].is_available()
+        return False

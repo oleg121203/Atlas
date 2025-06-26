@@ -8,9 +8,9 @@ hierarchical task structure in the Atlas interface.
 from typing import Any, Dict, Optional, Callable
 import customtkinter as ctk
 from datetime import datetime
-import threading
 import queue
 import time
+from core.async_task_manager import AsyncTaskManager
 
 from utils.logger import get_logger
 
@@ -54,7 +54,8 @@ class HierarchicalTaskView(ctk.CTkFrame):
         # Async update queue and state
         self.update_queue = queue.Queue()
         self.is_updating = False
-        self.update_thread = None
+        self.async_manager = AsyncTaskManager()
+        self.async_manager.start()
         
         # Progress indicator
         self.progress_label = None
@@ -112,7 +113,7 @@ class HierarchicalTaskView(ctk.CTkFrame):
         self._show_no_task_selected()
         
     def _start_async_updates(self):
-        """Start the asynchronous update loop."""
+        """Start the asynchronous update loop using AsyncTaskManager."""
         def update_loop():
             while True:
                 try:
@@ -129,10 +130,9 @@ class HierarchicalTaskView(ctk.CTkFrame):
                     self.logger.error(f"Error in update loop: {e}")
                     time.sleep(0.1)
         
-        # Start update thread
-        self.update_thread = threading.Thread(target=update_loop, daemon=True)
-        self.update_thread.start()
-        
+        # Use AsyncTaskManager to run the update loop
+        self.async_manager.submit_task(update_loop)
+
     def _process_ui_update(self, update_data: Dict[str, Any]):
         """Process UI update on main thread."""
         try:
@@ -255,7 +255,7 @@ class HierarchicalTaskView(ctk.CTkFrame):
             self.logger.error(f"Failed to update plan: {e}", exc_info=True)
             
     def _start_async_plan_update(self, plan: Dict[str, Any]):
-        """Start asynchronous plan update process."""
+        """Start asynchronous plan update process using AsyncTaskManager."""
         def async_update():
             try:
                 # Update progress
@@ -268,22 +268,20 @@ class HierarchicalTaskView(ctk.CTkFrame):
                 self.update_queue.put({"type": "clear_tree"})
                 
                 # Build tree structure asynchronously
-                if self.root_task_id and self.root_task_id in self.tasks:
-                    self._build_task_tree_async(self.root_task_id, 0)
-                
-                # Update progress
                 self.update_queue.put({
                     "type": "progress",
-                    "text": f"Loaded {len(self.tasks)} tasks"
+                    "text": "Building task tree..."
                 })
                 
-                # Show plan summary
-                self.after(0, lambda: self._show_plan_summary(plan))
+                # Get root task ID
+                root_task_id = plan.get("root_task_id", "")
+                if not root_task_id:
+                    raise ValueError("No root task ID in plan")
                 
-                # Scroll to bottom
-                self.update_queue.put({"type": "scroll"})
+                # Build task tree starting from root
+                self._build_task_tree_async(root_task_id, 0)
                 
-                # Clear progress after delay
+                # Hide progress after a delay
                 self.after(2000, lambda: self.update_queue.put({
                     "type": "progress",
                     "text": ""
@@ -296,9 +294,9 @@ class HierarchicalTaskView(ctk.CTkFrame):
                     "text": f"Error: {str(e)}"
                 })
         
-        # Start async update in separate thread
-        threading.Thread(target=async_update, daemon=True).start()
-        
+        # Use AsyncTaskManager to run the async update
+        self.async_manager.submit_task(async_update)
+
     def _build_task_tree_async(self, task_id: str, level: int):
         """Build task tree asynchronously."""
         if task_id not in self.tasks:
@@ -355,75 +353,6 @@ class HierarchicalTaskView(ctk.CTkFrame):
                 
         except Exception as e:
             self.logger.error(f"Failed to update task: {e}", exc_info=True)
-            
-    def _build_task_tree(self, task_id: str, level: int):
-        """
-        Build the task tree structure recursively.
-        
-        Args:
-            task_id: ID of the task to add
-            level: Indentation level
-        """
-        if task_id not in self.tasks:
-            return
-            
-        task = self.tasks[task_id]
-        
-        # Create task frame with better spacing
-        task_frame = ctk.CTkFrame(self.task_tree, height=40)
-        task_frame.pack(fill="x", padx=(level * 20, 5), pady=1)
-        task_frame.grid_columnconfigure(1, weight=1)
-        
-        # Status indicator
-        status_color = self._get_status_color(task.get("status", "pending"))
-        status_label = ctk.CTkLabel(task_frame, text="●", text_color=status_color, 
-                                  font=ctk.CTkFont(size=16))
-        status_label.grid(row=0, column=0, padx=(5, 10), pady=5)
-        
-        # Task title with better formatting
-        title_text = task.get("title", "Unknown Task")
-        # Add task ID for better identification
-        if level == 0:  # Strategic level
-            display_text = f"🎯 {title_text}"
-        elif level == 1:  # Tactical level
-            display_text = f"📋 {title_text}"
-        else:  # Operational level
-            display_text = f"⚡ {title_text}"
-            
-        title_label = ctk.CTkLabel(task_frame, text=display_text, 
-                                 font=ctk.CTkFont(size=11, weight="bold"))
-        title_label.grid(row=0, column=1, padx=5, pady=5, sticky="w")
-        
-        # Progress bar with percentage
-        progress = task.get("progress", 0.0)
-        progress_bar = ctk.CTkProgressBar(task_frame, width=80)
-        progress_bar.grid(row=0, column=2, padx=5, pady=5)
-        progress_bar.set(progress)
-        
-        # Progress percentage label
-        progress_text = f"{progress:.0%}"
-        progress_label = ctk.CTkLabel(task_frame, text=progress_text, 
-                                    font=ctk.CTkFont(size=10))
-        progress_label.grid(row=0, column=3, padx=2, pady=5)
-        
-        # Level indicator
-        level_emoji = self._get_level_emoji(task.get("level", "operational"))
-        level_label = ctk.CTkLabel(task_frame, text=level_emoji, 
-                                 font=ctk.CTkFont(size=12))
-        level_label.grid(row=0, column=4, padx=5, pady=5)
-        
-        # Bind click event
-        task_frame.bind("<Button-1>", lambda e, tid=task_id: self._on_task_click(tid))
-        title_label.bind("<Button-1>", lambda e, tid=task_id: self._on_task_click(tid))
-        
-        # Store reference to task frame
-        task_frame.task_id = task_id
-        self.task_frames[task_id] = task_frame
-        
-        # Add children recursively
-        children = task.get("children", [])
-        for child_id in children:
-            self._build_task_tree(child_id, level + 1)
             
     def _update_task_in_tree(self, task_id: str):
         """Update a specific task in the tree display."""

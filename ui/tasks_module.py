@@ -4,6 +4,7 @@ from modules.agents.task_planner_agent import TaskPlannerAgent
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QInputDialog, QMessageBox, QFrame, QAbstractItemView, QTextEdit, QSplitter, QGroupBox
 from PySide6.QtCore import Qt
 from ui.i18n import _
+from core.async_task_manager import AsyncTaskManager
 
 class TasksModule(QWidget):
     """Tasks and Plans management module with cyberpunk styling.
@@ -38,6 +39,8 @@ class TasksModule(QWidget):
         self.task_planner_agent = task_planner_agent
         self.user_id = user_id
         self.tool_widgets: List[QWidget] = []
+        self.async_manager = AsyncTaskManager()
+        self.async_manager.start()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(12)
@@ -119,24 +122,34 @@ class TasksModule(QWidget):
         self.cancel_plan_btn.setText(str(_("Cancel Plan")) or "Cancel Plan")
 
     def update_task_list(self) -> None:
-        """Update the task list from the task manager."""
-        self.task_list.clear()
-        tasks = self.task_manager.get_tasks()
-        for task in tasks:
-            status = "✓" if task.get("completed", False) else " "
-            item_text = f"[{status}] {task.get('description', 'Unnamed Task')}"
-            self.task_list.addItem(item_text)
+        """Update the task list from the task manager asynchronously."""
+        def update_task_list_async():
+            try:
+                tasks = self.task_manager.get_tasks()
+                self.task_list.clear()
+                for task in tasks:
+                    status = "✓" if task.get("completed", False) else " "
+                    item_text = f"[{status}] {task.get('description', 'Unnamed Task')}"
+                    self.task_list.addItem(item_text)
+            except Exception as e:
+                print(f"Error updating task list: {e}")
+
+        self.async_manager.submit_task(update_task_list_async)
 
     def update_plan_list(self) -> None:
-        """Update the plan list from the task planner agent."""
-        self.plan_list.clear()
-        active_plans = self.task_planner_agent.get_active_plans(self.user_id)
-        for plan in active_plans:
-            progress = int(plan.get("progress", 0.0) * 100)
-            item_text = f"{plan.get('goal', 'Unnamed Plan')} ({progress}%)"
-            item = QListWidgetItem(item_text)
-            item.setData(Qt.UserRole, plan.get("plan_id"))
-            self.plan_list.addItem(item)
+        """Update the plan list from the task planner agent asynchronously."""
+        def update_plan_list_async():
+            try:
+                plans = self.task_planner_agent.get_all_plans()
+                self.plan_list.clear()
+                for plan_id, plan_details in plans.items():
+                    item = QListWidgetItem(plan_details.get("goal", "Unnamed Plan"))
+                    item.setData(Qt.UserRole, plan_id)
+                    self.plan_list.addItem(item)
+            except Exception as e:
+                print(f"Error updating plan list: {e}")
+
+        self.async_manager.submit_task(update_plan_list_async)
 
     def on_plan_selected(self, current, previous) -> None:
         """Handle plan selection change to display plan details.
@@ -219,27 +232,30 @@ class TasksModule(QWidget):
             )
 
     def create_plan(self) -> None:
-        """Create a new plan based on user goal input."""
+        """Create a new plan based on user goal input asynchronously."""
         goal, ok = QInputDialog.getText(
             self,
             str(_("Create Plan")) or "Create Plan",
             str(_("Goal or objective:")) or "Goal or objective:"
         )
         if ok and goal:
-            try:
-                plan_id = self.task_planner_agent.create_task_plan(self.user_id, goal)
-                self.update_plan_list()
-                QMessageBox.information(
-                    self,
-                    str(_("Plan Created")) or "Plan Created",
-                    f"{str(_('Plan created with ID:')) or 'Plan created with ID:'} {plan_id}"
-                )
-            except Exception as e:
-                QMessageBox.warning(
-                    self,
-                    str(_("Error")) or "Error",
-                    f"{str(_('Failed to create plan:')) or 'Failed to create plan:'} {str(e)}"
-                )
+            def create_plan_async():
+                try:
+                    plan_id = self.task_planner_agent.create_task_plan(self.user_id, goal)
+                    self.update_plan_list()
+                    QMessageBox.information(
+                        self,
+                        str(_("Plan Created")) or "Plan Created",
+                        f"{str(_('Plan created with ID:')) or 'Plan created with ID:'} {plan_id}"
+                    )
+                except Exception as e:
+                    QMessageBox.warning(
+                        self,
+                        str(_("Error")) or "Error",
+                        f"{str(_('Failed to create plan:')) or 'Failed to create plan:'} {str(e)}"
+                    )
+
+            self.async_manager.submit_task(create_plan_async)
 
     def cancel_plan(self) -> None:
         """Cancel the selected plan."""

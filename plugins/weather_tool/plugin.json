@@ -1,7 +1,0 @@
-{
-    "name": "Weather Tool",
-    "version": "0.1.0",
-    "author": "Atlas Team",
-    "description": "A simple plugin that provides a tool to get the weather forecast.",
-    "entry_point": "plugin.py"
-}

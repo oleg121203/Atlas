@@ -29,6 +29,9 @@ from core.network_client import NetworkClient
 from security.rbac import get_rbac_manager, RBACManager, Role
 from core.feature_flags import FeatureFlagManager, get_feature_flag_manager
 from core.ai_integration import AIModelManager, get_ai_model_manager
+from core.self_healing import initialize_self_healing, SelfHealingManager
+from core.workflow_manager import WorkflowManager
+from core.async_task_manager import AsyncTaskManager
 
 logger = get_logger("AtlasApplication")
 
@@ -54,13 +57,16 @@ class AtlasApplication:
         self.rbac_manager = None
         self.feature_flags = None
         self.ai_manager = None
+        self.self_healing_manager: Optional[SelfHealingManager] = None
+        self.workflow_manager: Optional[WorkflowManager] = None
+        self.async_task_manager: Optional[AsyncTaskManager] = None
+        self.initialized = False
         
         # Check environment security
         if not check_environment_security():
             logger.warning("Environment security checks failed, proceeding with caution")
             raise_alert("security", "Environment security check failed", 
-                       "Some security requirements are not met in the current environment", 
-                       data={"component": "AtlasApplication"})
+                       "Some security requirements are not met in the current environment")
         
         logger.info("Initializing Atlas application: %s v%s", app_name, version)
     
@@ -71,79 +77,146 @@ class AtlasApplication:
         Returns:
             bool: True if initialization successful
         """
-        logger.info("Initializing core systems")
+        if self.initialized:
+            logger.info(f"{self.app_name} is already initialized")
+            return True
+
+        logger.info(f"Initializing {self.app_name} version {self.version}...")
         
-        # Initialize logging
-        log_config = self.config.get("logging", {})
-        setup_logging(log_config.get("level", "INFO"), 
-                     log_config.get("file", f"{self.app_name}.log"))
+        try:
+            # Initialize logging
+            log_config = self.config.get("logging", {})
+            setup_logging(log_config.get("level", "INFO"), 
+                         log_config.get("file", f"{self.app_name}.log"))
+            logger.info("Logging initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize logging: %s", str(e))
+            raise_alert("error", "Logging Initialization Failed", "Logging system could not be initialized. Using default logging settings.")
         
-        # Initialize alerting
-        alert_config = self.config.get("alerting", {})
-        initialize_alerting({
-            "enabled": alert_config.get("enabled", True),
-            "channels": alert_config.get("channels", ["qt", "desktop"]),
-            "default_severity": alert_config.get("default_severity", "warning")
-        })
-        logger.info("Alerting system initialized")
+        try:
+            # Initialize alerting
+            alert_config = self.config.get("alerting", {})
+            initialize_alerting({
+                "enabled": alert_config.get("enabled", True),
+                "channels": alert_config.get("channels", ["qt", "desktop"]),
+                "qt_handler": None
+            })
+            logger.info("Alerting system initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize alerting: %s", str(e))
+            raise_alert("error", "Alerting Initialization Failed", "Alerting system could not be initialized. Alerts may not be displayed.")
         
-        # Initialize network client
-        self.network_client = NetworkClient()
-        logger.info("Network client initialized for secure communications")
+        try:
+            # Initialize monitoring if available
+            monitoring_config = self.config.get("monitoring", {})
+            if monitoring_config.get("enabled", False):
+                start_monitoring(monitoring_config.get("interval", 60))
+                logger.info("Monitoring initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize monitoring: %s", str(e))
+            raise_alert("error", "Monitoring Initialization Failed", "Monitoring system could not be initialized. Performance metrics may not be available.")
         
-        # Initialize RBAC manager
-        self.rbac_manager = get_rbac_manager()
-        # Assign default admin user if configured
-        admin_user = self.config.get("security", {}).get("default_admin_user")
-        if admin_user and admin_user not in self.rbac_manager.user_roles:
-            self.rbac_manager.assign_user_role(admin_user, Role.ADMIN)
-            logger.info("Assigned ADMIN role to default user: %s", admin_user)
-        logger.info("RBAC manager initialized for access control")
+        try:
+            # Initialize network client
+            network_config = self.config.get("network", {})
+            self.network_client = NetworkClient({
+                "base_url": network_config.get("base_url", ""),
+                "api_key": network_config.get("api_key", ""),
+                "timeout": network_config.get("timeout", 30)
+            })
+            logger.info("Network client initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize network client: %s", str(e))
+            raise_alert("error", "Network Initialization Failed", "Network client could not be initialized. Online features may be unavailable.")
         
-        # Initialize feature flags
-        self.feature_flags = get_feature_flag_manager()
-        flags = self.feature_flags.list_flags()
-        logger.info("Feature flags loaded: %s", flags)
+        try:
+            # Initialize RBAC manager
+            self.rbac_manager = get_rbac_manager()
+            logger.info("RBAC manager initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize RBAC manager: %s", str(e))
+            raise_alert("error", "RBAC Initialization Failed", "Role-based access control could not be initialized. Default permissions will be used.")
         
-        # Initialize AI model manager
-        self.ai_manager = get_ai_model_manager()
-        logger.info("AI model manager initialized with models: %s", list(self.ai_manager.models.keys()))
+        try:
+            # Initialize feature flags
+            self.feature_flags = get_feature_flag_manager()
+            logger.info("Feature flags initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize feature flags: %s", str(e))
+            raise_alert("error", "Feature Flags Initialization Failed", "Feature flags could not be initialized. Default feature settings will be used.")
         
-        # Start performance monitoring
-        monitoring_config = self.config.get("monitoring", {})
-        if monitoring_config.get("enabled", True):
-            start_monitoring(
-                interval=monitoring_config.get("interval", 60.0),
-                cpu_threshold=monitoring_config.get("cpu_threshold", 80.0),
-                memory_threshold=monitoring_config.get("memory_threshold", 80.0)
-            )
-            logger.info("Performance monitoring started")
-        else:
-            logger.info("Performance monitoring is disabled")
+        try:
+            # Initialize AI model manager
+            self.ai_manager = get_ai_model_manager()
+            logger.info("AI model manager initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize AI model manager: %s", str(e))
+            raise_alert("error", "AI Model Manager Initialization Failed", "AI model manager could not be initialized. AI features may be unavailable.")
         
-        # Load modules
-        self.load_modules()
-        logger.info("Core systems initialized")
+        try:
+            # Initialize self-healing system
+            self.self_healing_manager = initialize_self_healing({"plugin_registry": self.plugin_registry})
+            logger.info("Self-healing system initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize self-healing system: {str(e)}")
+            raise_alert("Self-Healing Initialization Failed", f"Error: {str(e)}", "error")
+
+        try:
+            # Initialize workflow manager
+            self.workflow_manager = WorkflowManager()
+            logger.info("Workflow manager initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize workflow manager: {str(e)}")
+            raise_alert("Workflow Manager Initialization Failed", f"Error: {str(e)}", "error")
+
+        try:
+            # Initialize async task manager for UI responsiveness
+            self.async_task_manager = AsyncTaskManager()
+            self.async_task_manager.start()
+            logger.info("Async task manager initialized and started")
+        except Exception as e:
+            logger.error(f"Failed to initialize async task manager: {str(e)}")
+            raise_alert("Async Task Manager Initialization Failed", f"Error: {str(e)}", "error")
+
+        try:
+            # Run diagnostics and attempt auto-healing if issues are found
+            if self.self_healing_manager:
+                diagnostics = self.self_healing_manager.diagnose_system()
+                issues_detected = any(not status for component in diagnostics.values() for status in component.values())
+                if issues_detected:
+                    logger.warning("System issues detected during initialization")
+                    raise_alert("System Issues Detected", "Running auto-healing procedures", "warning")
+                    healing_results = self.self_healing_manager.auto_heal()
+                    for component_type, component_name, success in healing_results:
+                        if success:
+                            logger.info(f"Successfully healed {component_type}: {component_name}")
+                            raise_alert(f"Healed {component_type}", f"Successfully restored {component_name}", "info")
+                        else:
+                            logger.error(f"Failed to heal {component_type}: {component_name}")
+                            raise_alert(f"Failed to Heal {component_type}", f"Could not restore {component_name}", "error")
+        except Exception as e:
+            logger.error(f"Error during system diagnostics and healing: {str(e)}")
+            raise_alert("Diagnostics Error", f"Error during diagnostics: {str(e)}", "error")
+
+        try:
+            # Initialize security utilities
+            security_config = self.config.get("security", {})
+            if not initialize_security(security_config):
+                logger.warning("Security initialization failed, proceeding without security features")
+                raise_alert(
+                    "error", "Security Initialization Failed",
+                    "Security utilities could not be initialized. Encryption and other security features may be unavailable."
+                )
+            else:
+                logger.info("Security utilities initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize security utilities: %s", str(e))
+            raise_alert("error", "Security Initialization Failed", "Security utilities could not be initialized due to an error.")
         
-        # Initialize configuration
-        self.config_manager.load_config()
-        
-        # Initialize monitoring
-        if not start_monitoring():
-            logger.warning("Monitoring system failed to initialize")
-        
-        # Initialize alerting
-        if not initialize_alerting():
-            logger.warning("Alerting system failed to initialize")
-        
-        # Initialize security
-        if not initialize_security():
-            logger.warning("Security system failed to initialize")
-            raise_alert(
-                "Security Initialization Failed",
-                "Security utilities could not be initialized. Encryption and other security features may be unavailable.",
-                "error"
-            )
+        # Initialize UI application
+        if not self.app:
+            self.app = QApplication(sys.argv)
+            logger.info("QApplication initialized successfully")
         
         # Set application context for plugins
         app_context = {
@@ -155,6 +228,7 @@ class AtlasApplication:
         self.plugin_registry.set_application_context(app_context)
         
         logger.info("Application initialization completed")
+        self.initialized = True
         return True
     
     def start(self) -> bool:
@@ -166,22 +240,18 @@ class AtlasApplication:
         """
         logger.info("Starting %s application...", self.app_name)
         try:
-            # Create Qt Application if not already created
-            if self.app is None:
-                self.app = QApplication([])
-            
             # Register core modules
             self._register_modules()
+            logger.info("Core modules registered successfully")
             
             # Discover and load plugins
             self.plugin_registry.discover_plugins()
             plugin_config = get_config().get("plugins", {})
-            loaded_plugins = self.plugin_registry.load_all_plugins(plugin_config)
+            loaded_plugins = self.plugin_registry.load_plugins(plugin_config.get("enabled", []))
             logger.info("Loaded plugins: %s", ", ".join(loaded_plugins) if loaded_plugins else "None")
             raise_alert(
-                "Plugins Loaded",
-                f"Loaded {len(loaded_plugins)} plugin(s): {', '.join(loaded_plugins) if loaded_plugins else 'None'}",
-                "info"
+                "info", "Plugins Loaded",
+                f"Loaded {len(loaded_plugins)} plugin(s): {', '.join(loaded_plugins) if loaded_plugins else 'None'}"
             )
             
             # Start plugins
@@ -193,6 +263,7 @@ class AtlasApplication:
             return True
         except Exception as e:
             logger.error("Startup failed: %s", str(e))
+            raise_alert("error", "Application Startup Failed", f"Failed to start {self.app_name} due to: {str(e)}")
             return False
 
     def _register_modules(self) -> None:
@@ -226,10 +297,12 @@ class AtlasApplication:
                 if module_instance:
                     self.module_registry.register_module(module_name, module_instance)
                     logger.info("Module loaded: %s", module_name)
+                else:
+                    logger.warning("Module initialization returned None: %s", module_name)
+                    raise_alert("warning", f"Module Initialization Issue: {module_name}", "Module initialized but returned None, possible configuration issue.")
             except Exception as e:
                 logger.error("Failed to load module %s: %s", module_name, str(e), exc_info=True)
-                raise_alert("error", f"Module Load Failure: {module_name}", str(e), 
-                           data={"module": module_name})
+                raise_alert("error", f"Module Load Failure: {module_name}", str(e))
     
     def run(self) -> int:
         """Run the application main loop.
@@ -300,5 +373,12 @@ class AtlasApplication:
             self.rbac_manager.save_config()
             logger.info("RBAC configuration saved")
         
+        try:
+            if self.async_task_manager:
+                self.async_task_manager.stop()
+                logger.info("Async task manager stopped")
+        except Exception as e:
+            logger.error(f"Error stopping async task manager: {str(e)}")
+
         logger.info("%s application shutdown complete", self.app_name)
         return True
