@@ -472,10 +472,11 @@ class GoalHistoryWindow:
         self.status_label.configure(text=goal["status"])
 
         # Duration
-        if goal.get("execution_time"):
-            duration_text = f"{goal['execution_time']:.2f} seconds"
-        else:
-            duration_text = "Unknown"
+        duration_text = (
+            f"{goal['execution_time']:.2f} seconds"
+            if goal.get("execution_time")
+            else "Unknown"
+        )
         self.duration_label.configure(text=duration_text)
 
         # Steps

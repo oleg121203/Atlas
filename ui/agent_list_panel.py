@@ -1,47 +1,135 @@
-import customtkinter as ctk
+"""
+Panel for displaying and managing agents.
+"""
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
 
 
-class AgentListPanel(ctk.CTkFrame):
+class AgentListPanel(QWidget):
+    """PySide6 implementation of agent list panel."""
+
     def __init__(
-        self, master, agents, on_start_agent=None, on_stop_agent=None, **kwargs
+        self, parent=None, agents=None, on_start_agent=None, on_stop_agent=None
     ):
-        super().__init__(master, **kwargs)
-        self.agents = agents
+        """Initialize the panel.
+
+        Args:
+            parent: Parent widget
+            agents: Dictionary of agents
+            on_start_agent: Callback for starting an agent
+            on_stop_agent: Callback for stopping an agent
+        """
+        super().__init__(parent)
+        self.agents = agents or {}
         self.on_start_agent = on_start_agent
         self.on_stop_agent = on_stop_agent
-        self._build_ui()
+        self.setup_ui()
 
-    def _build_ui(self):
-        self.grid_columnconfigure(0, weight=1)
-        header = ctk.CTkLabel(self, text="Agents", font=ctk.CTkFont(weight="bold"))
-        header.grid(row=0, column=0, sticky="w", padx=10, pady=(10, 5))
-        self.scroll_frame = ctk.CTkScrollableFrame(self, label_text="Agent List")
-        self.scroll_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
-        self.grid_rowconfigure(1, weight=1)
-        self._populate_agents()
+    def setup_ui(self):
+        """Set up the user interface."""
+        layout = QVBoxLayout(self)
+        self.setLayout(layout)
 
-    def _populate_agents(self):
-        for widget in self.scroll_frame.winfo_children():
-            widget.destroy()
+        # Header
+        header = QLabel("Agents")
+        header.setStyleSheet("font-weight: bold;")
+        layout.addWidget(header)
+
+        # Scroll area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        # Container for agents
+        self.agents_container = QWidget()
+        self.agents_layout = QVBoxLayout(self.agents_container)
+        scroll.setWidget(self.agents_container)
+
+        layout.addWidget(scroll)
+        self.populate_agents()
+
+    def populate_agents(self):
+        """Populate the list with agents."""
+        # Clear existing widgets
+        while self.agents_layout.count():
+            child = self.agents_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+        # Add agents
         for agent_id, agent in self.agents.items():
-            frame = ctk.CTkFrame(self.scroll_frame)
-            frame.pack(fill="x", padx=5, pady=3)
-            ctk.CTkLabel(
-                frame, text=agent_id, font=ctk.CTkFont(size=12, weight="bold")
-            ).pack(side="left", padx=5)
+            frame = QFrame()
+            frame.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Raised)
+
+            frame_layout = QHBoxLayout(frame)
+            frame_layout.setContentsMargins(5, 5, 5, 5)
+
+            # Agent ID
+            id_label = QLabel(agent_id)
+            id_label.setStyleSheet("font-weight: bold; font-size: 12px;")
+            frame_layout.addWidget(id_label)
+
+            # Status
             status = getattr(agent, "status", "Unknown")
-            ctk.CTkLabel(frame, text=f"Status: {status}").pack(side="left", padx=5)
-            if callable(self.on_start_agent):
-                ctk.CTkButton(
-                    frame,
-                    text="Start",
-                    width=60,
-                    command=lambda aid=agent_id: self.on_start_agent(aid),
-                ).pack(side="right", padx=2)
-            if callable(self.on_stop_agent):
-                ctk.CTkButton(
-                    frame,
-                    text="Stop",
-                    width=60,
-                    command=lambda aid=agent_id: self.on_stop_agent(aid),
-                ).pack(side="right", padx=2)
+            status_label = QLabel(f"Status: {status}")
+            frame_layout.addWidget(status_label)
+
+            frame_layout.addStretch()
+
+            # Control buttons            # Control buttons
+            if self.on_stop_agent is not None:
+                stop_btn = QPushButton("Stop")
+                stop_btn.setFixedWidth(60)
+                stop_btn.clicked.connect(
+                    lambda checked, aid=agent_id: self._on_stop_agent(aid)
+                )
+                frame_layout.addWidget(stop_btn)
+
+            if self.on_start_agent is not None:
+                start_btn = QPushButton("Start")
+                start_btn.setFixedWidth(60)
+                start_btn.clicked.connect(
+                    lambda checked, aid=agent_id: self._on_start_agent(aid)
+                )
+                frame_layout.addWidget(start_btn)
+
+            self.agents_layout.addWidget(frame)
+
+        # Add stretch at the end to push all items to the top
+        self.agents_layout.addStretch()
+
+    def update_agents(self, agents):
+        """Update the agents dictionary and refresh the display.
+
+        Args:
+            agents: New dictionary of agents
+        """
+        self.agents = agents
+        self.populate_agents()
+
+    def _on_start_agent(self, agent_id):
+        """Handle start agent button click.
+
+        Args:
+            agent_id: ID of the agent to start
+        """
+        if self.on_start_agent is not None:
+            self.on_start_agent(agent_id)
+
+    def _on_stop_agent(self, agent_id):
+        """Handle stop agent button click.
+
+        Args:
+            agent_id: ID of the agent to stop
+        """
+        if self.on_stop_agent is not None:
+            self.on_stop_agent(agent_id)

@@ -1,121 +1,179 @@
-import tkinter as tk
+"""
+Chat input panel with message entry, send button, and voice input.
+"""
 
-import customtkinter as ctk
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QKeySequence
+from PySide6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLineEdit,
+    QMenu,
+    QPushButton,
+    QWidget,
+)
 
 
-class ChatInputPanel(ctk.CTkFrame):
-    """Панель вводу чату з кнопкою Send, мікрофоном, гарячими клавішами та контекстним меню."""
+class ChatInputPanel(QWidget):
+    """PySide6 implementation of chat input panel."""
 
-    def __init__(self, master, on_send_callback, **kwargs):
-        super().__init__(master, **kwargs)
+    # Signal emitted when a message is sent
+    message_sent = Signal(str)
+
+    def __init__(self, parent=None, on_send_callback=None):
+        """Initialize the chat input panel.
+
+        Args:
+            parent: Parent widget
+            on_send_callback: Callback function for when messages are sent
+        """
+        super().__init__(parent)
         self.on_send_callback = on_send_callback
-        self.grid_columnconfigure(1, weight=1)
+        self.setup_ui()
+        self.setup_shortcuts()
 
-        # Voice input button (left)
-        self.voice_button = ctk.CTkButton(
-            self,
-            text="🎤",
-            width=35,
-            height=35,
-            font=ctk.CTkFont(size=16),
-            fg_color="#e0e0e0",
-            text_color="black",
-            hover_color="#b0b0b0",
-            command=self._on_voice_input,
-        )
-        self.voice_button.grid(row=0, column=0, padx=4, pady=2)
+    def setup_ui(self):
+        """Set up the user interface."""
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(4, 2, 4, 2)
+        layout.setSpacing(4)
+        self.setLayout(layout)
+
+        # Voice input button
+        self.voice_button = QPushButton("🎤")
+        self.voice_button.setFixedSize(35, 35)
+        self.voice_button.setStyleSheet("""
+            QPushButton {
+                background-color: #e0e0e0;
+                color: black;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #b0b0b0;
+            }
+        """)
+        self.voice_button.clicked.connect(self._on_voice_input)
+        layout.addWidget(self.voice_button)
 
         # Message entry field
-        self.message_entry = ctk.CTkEntry(self, font=("Helvetica", 13))
-        self.message_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
+        self.message_entry = QLineEdit()
+        self.message_entry.setPlaceholderText("Type your message here...")
+        self.message_entry.setFont(QApplication.font())
+        self.message_entry.returnPressed.connect(self._on_send_message)
+        layout.addWidget(self.message_entry, 1)  # Give it stretch factor
 
-        # Send button (right)
-        self.send_button = ctk.CTkButton(
-            self,
-            text="Send",
-            width=50,
-            height=35,
-            font=ctk.CTkFont(size=13),
-            fg_color="#00A0E0",
-            text_color="white",
-            hover_color="#0077b6",
-            command=self._on_send_message,
-        )
-        self.send_button.grid(row=0, column=2, padx=4, pady=2)
+        # Send button
+        self.send_button = QPushButton("Send")
+        self.send_button.setFixedSize(50, 35)
+        self.send_button.setStyleSheet("""
+            QPushButton {
+                background-color: #00A0E0;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 13px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #0077b6;
+            }
+            QPushButton:pressed {
+                background-color: #005577;
+            }
+        """)
+        self.send_button.clicked.connect(self._on_send_message)
+        layout.addWidget(self.send_button)
 
-        # Bind Enter/Shift+Enter/Ctrl+Enter
-        self.message_entry.bind("<Return>", self._on_enter)
-        self.message_entry.bind("<Shift-Return>", self._on_shift_enter)
-        self.message_entry.bind("<Control-Return>", self._on_ctrl_enter)
-        # Mac hotkeys
-        self.message_entry.bind(
-            "<Command-c>", lambda e: self.message_entry.event_generate("<<Copy>>")
-        )
-        self.message_entry.bind(
-            "<Command-v>", lambda e: self.message_entry.event_generate("<<Paste>>")
-        )
-        self.message_entry.bind(
-            "<Command-x>", lambda e: self.message_entry.event_generate("<<Cut>>")
-        )
-        self.message_entry.bind(
-            "<Command-a>", lambda e: self.message_entry.event_generate("<<SelectAll>>")
-        )
-        # Win/Linux hotkeys
-        self.message_entry.bind(
-            "<Control-c>", lambda e: self.message_entry.event_generate("<<Copy>>")
-        )
-        self.message_entry.bind(
-            "<Control-v>", lambda e: self.message_entry.event_generate("<<Paste>>")
-        )
-        self.message_entry.bind(
-            "<Control-x>", lambda e: self.message_entry.event_generate("<<Cut>>")
-        )
-        self.message_entry.bind(
-            "<Control-a>", lambda e: self.message_entry.event_generate("<<SelectAll>>")
-        )
-        # Context menu
-        self._setup_entry_context_menu(self.message_entry)
+        # Setup context menu
+        self.setup_context_menu()
 
-    def _on_send_message(self, event=None):
-        text = self.message_entry.get().strip()
-        if text:
-            self.on_send_callback(text)
-            self.message_entry.delete(0, "end")
-        return "break"
-
-    def _on_enter(self, event):
-        return self._on_send_message(event)
-
-    def _on_shift_enter(self, event):
-        # Додає новий рядок, якщо Entry багаторядковий (CTkEntry — ні, але для розширення)
-        return None
-
-    def _on_ctrl_enter(self, event):
-        # Додає новий рядок, якщо Entry багаторядковий (CTkEntry — ні, але для розширення)
-        return None
-
-    def _on_voice_input(self):
-        # TODO: інтеграція з voice_assistant, як у chat_history_view
+    def setup_shortcuts(self):
+        """Set up keyboard shortcuts."""
+        # Enter sends message (already connected via returnPressed)
+        # Note: Shift+Enter and Ctrl+Enter would need QTextEdit for multiline support
         pass
 
-    def _setup_entry_context_menu(self, entry):
-        menu = tk.Menu(entry, tearoff=0)
-        menu.add_command(label="Cut", command=lambda: entry.event_generate("<<Cut>>"))
-        menu.add_command(label="Copy", command=lambda: entry.event_generate("<<Copy>>"))
-        menu.add_command(
-            label="Paste", command=lambda: entry.event_generate("<<Paste>>")
-        )
-        menu.add_separator()
-        menu.add_command(
-            label="Select All", command=lambda: entry.event_generate("<<SelectAll>>")
-        )
+    def setup_context_menu(self):
+        """Set up context menu for the message entry."""
+        self.message_entry.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.message_entry.customContextMenuRequested.connect(self._show_context_menu)
 
-        def show_menu(event):
-            menu.tk_popup(event.x_root, event.y_root)
+    def _show_context_menu(self, position):
+        """Show context menu at the given position.
 
-        entry.bind("<Button-3>", show_menu)
-        # Mac: Control+Click
-        import platform
+        Args:
+            position: Position where to show the menu
+        """
+        menu = QMenu(self)
 
-        if platform.system() == "Darwin":
-            entry.bind("<Control-Button-1>", show_menu)
+        # Standard edit actions
+        cut_action = menu.addAction("Cut")
+        cut_action.setShortcut(QKeySequence.StandardKey.Cut)
+        cut_action.triggered.connect(self.message_entry.cut)
+        cut_action.setEnabled(self.message_entry.hasSelectedText())
+
+        copy_action = menu.addAction("Copy")
+        copy_action.setShortcut(QKeySequence.StandardKey.Copy)
+        copy_action.triggered.connect(self.message_entry.copy)
+        copy_action.setEnabled(self.message_entry.hasSelectedText())
+
+        paste_action = menu.addAction("Paste")
+        paste_action.setShortcut(QKeySequence.StandardKey.Paste)
+        paste_action.triggered.connect(self.message_entry.paste)
+
+        menu.addSeparator()
+
+        select_all_action = menu.addAction("Select All")
+        select_all_action.setShortcut(QKeySequence.StandardKey.SelectAll)
+        select_all_action.triggered.connect(self.message_entry.selectAll)
+        select_all_action.setEnabled(len(self.message_entry.text()) > 0)
+
+        # Show menu at the cursor position
+        global_pos = self.message_entry.mapToGlobal(position)
+        menu.exec(global_pos)
+
+    def _on_send_message(self):
+        """Handle send button click or Enter key press."""
+        text = self.message_entry.text().strip()
+        if text:
+            # Emit signal
+            self.message_sent.emit(text)
+
+            # Call callback if provided
+            if self.on_send_callback is not None:
+                self.on_send_callback(text)
+
+            # Clear the input field
+            self.message_entry.clear()
+
+    def _on_voice_input(self):
+        """Handle voice input button click."""
+        # TODO: Integrate with voice assistant
+        # For now, just show a placeholder message
+        self.message_entry.setPlaceholderText("Voice input not implemented yet...")
+
+    def get_text(self):
+        """Get the current text in the input field.
+
+        Returns:
+            str: Current text in the input field
+        """
+        return self.message_entry.text()
+
+    def set_text(self, text):
+        """Set the text in the input field.
+
+        Args:
+            text: Text to set
+        """
+        self.message_entry.setText(text)
+
+    def clear(self):
+        """Clear the input field."""
+        self.message_entry.clear()
+
+    def focus_input(self):
+        """Set focus to the input field."""
+        self.message_entry.setFocus()

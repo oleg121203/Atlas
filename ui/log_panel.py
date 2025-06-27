@@ -1,36 +1,105 @@
-import customtkinter as ctk
+"""
+Panel for displaying log messages.
+"""
+
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QTextCursor
+from PySide6.QtWidgets import (
+    QApplication,
+    QFrame,
+    QHBoxLayout,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 
-class LogPanel(ctk.CTkFrame):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-        self.log_textbox = ctk.CTkTextbox(
-            self, font=("monospace", 12), state="disabled"
-        )
-        self.log_textbox.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        # Кнопки для копіювання та очищення
-        btn_frame = ctk.CTkFrame(self)
-        btn_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
-        ctk.CTkButton(btn_frame, text="Copy All", command=self.copy_all).pack(
-            side="left", padx=5
-        )
-        ctk.CTkButton(btn_frame, text="Clear", command=self.clear).pack(
-            side="left", padx=5
-        )
+class LogPanel(QWidget):
+    """PySide6 implementation of log panel."""
+
+    def __init__(self, parent=None):
+        """Initialize the log panel.
+
+        Args:
+            parent: Parent widget
+        """
+        super().__init__(parent)
+        self.setup_ui()
+
+    def setup_ui(self):
+        """Set up the user interface."""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+        self.setLayout(layout)
+
+        # Log text area
+        self.log_textbox = QTextEdit()
+        self.log_textbox.setFont(QFont("monospace", 12))
+        self.log_textbox.setReadOnly(True)
+        layout.addWidget(self.log_textbox)
+
+        # Button frame
+        btn_frame = QFrame()
+        btn_layout = QHBoxLayout(btn_frame)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(5)
+
+        # Copy button
+        copy_btn = QPushButton("Copy All")
+        copy_btn.clicked.connect(self.copy_all)
+        btn_layout.addWidget(copy_btn)
+
+        # Clear button
+        clear_btn = QPushButton("Clear")
+        clear_btn.clicked.connect(self.clear)
+        btn_layout.addWidget(clear_btn)
+
+        # Add stretch to push buttons to the left
+        btn_layout.addStretch()
+
+        layout.addWidget(btn_frame)
 
     def add_log(self, text):
-        self.log_textbox.configure(state="normal")
-        self.log_textbox.insert("end", text + "\n")
-        self.log_textbox.see("end")
-        self.log_textbox.configure(state="disabled")
+        """Add a log message to the text area.
+
+        Args:
+            text: The log message to add
+        """
+        cursor = self.log_textbox.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        self.log_textbox.setTextCursor(cursor)
+        self.log_textbox.insertPlainText(text + "\n")
+        self.log_textbox.ensureCursorVisible()
 
     def clear(self):
-        self.log_textbox.configure(state="normal")
-        self.log_textbox.delete("1.0", "end")
-        self.log_textbox.configure(state="disabled")
+        """Clear all log messages."""
+        self.log_textbox.clear()
 
     def copy_all(self):
-        self.clipboard_clear()
-        self.clipboard_append(self.log_textbox.get("1.0", "end"))
+        """Copy all log messages to clipboard."""
+        clipboard = QApplication.clipboard()
+        clipboard.setText(self.log_textbox.toPlainText())
+
+    def get_logs(self):
+        """Get all log messages.
+
+        Returns:
+            str: All log messages
+        """
+        return self.log_textbox.toPlainText()
+
+    def set_font(self, font_name=None, font_size=None):
+        """Set the font for the log text area.
+
+        Args:
+            font_name: Name of the font
+            font_size: Size of the font
+        """
+        font = self.log_textbox.font()
+        if font_name is not None:
+            font.setFamily(font_name)
+        if font_size is not None:
+            font.setPointSize(font_size)
+        self.log_textbox.setFont(font)

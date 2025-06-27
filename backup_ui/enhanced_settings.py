@@ -585,11 +585,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
                                     text_color="red",
                                 ),
                             )
-                    except Exception as e:
+                    except Exception as conn_error:
                         self.after(
                             0,
-                            lambda captured_e=e: self.connection_status_label.configure(
-                                text=f"Status: ❌ Ollama error: {str(captured_e)[:50]}",
+                            lambda conn_error=conn_error: self.connection_status_label.configure(
+                                text=f"Status: ❌ Ollama error: {str(conn_error)[:50]}",
                                 text_color="red",
                             ),
                         )
@@ -773,11 +773,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
                                 text_color="red",
                             ),
                         )
-                except Exception as ex:
+                except Exception as api_error:
                     self.after(
                         0,
-                        lambda captured_ex=ex: self.ollama_status_label.configure(
-                            text=f"Ollama: Error - {str(captured_ex)[:30]}...",
+                        lambda api_error=api_error: self.ollama_status_label.configure(
+                            text=f"Ollama: Error - {str(api_error)[:30]}...",
                             text_color="red",
                         ),
                     )
@@ -1164,10 +1164,11 @@ class EnhancedSettingsView(ctk.CTkFrame):
         if self.config_manager:
             try:
                 # Load the full configuration
-                if hasattr(self.config_manager, "load"):
-                    config = self.config_manager.load()
-                else:
-                    config = {}
+                config = (
+                    self.config_manager.load()
+                    if hasattr(self.config_manager, "load")
+                    else {}
+                )
 
                 print(f"🔍 Loading settings from config: {list(config.keys())}")
 

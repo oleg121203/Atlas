@@ -33,6 +33,16 @@ Atlas — сучасна модульна AI-платформа з кіберп�
    python main.py
    ```
 
+## 🚀 Windsurf Development Commands
+Для швидкого продовження розробки в Windsurf Chat використовуй команди з файлу:
+**[WINDSURF_COMMANDS.md](WINDSURF_COMMANDS.md)** - Всі команди для автоматичного виконання DEV_PLAN.md
+
+### Швидкий старт:
+```
+ATLAS_AUTO_EXECUTE
+```
+Ця команда автоматично продовжить розробку з поточного етапу згідно з протоколами.
+
 ## Розширення
 - Додавай нові плагіни у `plugins/` (метод get_widget для тулса)
 - Плагіни автоматично зʼявляються у відповідних модулях після активації
@@ -73,6 +83,16 @@ Atlas is a modern modular AI platform with cyberpunk design, extensibility throu
    ```bash
    python main.py
    ```
+
+## 🚀 Windsurf Development Commands
+For quick development continuation in Windsurf Chat, use commands from:
+**[WINDSURF_COMMANDS.md](WINDSURF_COMMANDS.md)** - All commands for automatic DEV_PLAN.md execution
+
+### Quick Start:
+```
+ATLAS_AUTO_EXECUTE
+```
+This command automatically continues development from current stage following protocols.
 
 ## Extension
 - Add new plugins in `plugins/` (get_widget method for tools)
