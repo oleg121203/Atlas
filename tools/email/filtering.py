@@ -3,11 +3,12 @@
 This module provides functionality for filtering emails based on rules and criteria.
 """
 
-from typing import Dict, List, Optional
 import logging
+from typing import Dict
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
 
 class EmailFilter:
     """Class for filtering emails based on predefined rules and criteria."""

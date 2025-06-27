@@ -5,23 +5,28 @@ multi-factor authentication, and enhanced audit logging for compliance
 for multi-user workspace implementation (ENT-003).
 """
 
-from typing import Dict, Optional
-import os
 import json
+import os
 from datetime import datetime
-from flask import Flask, request, jsonify, make_response
-import jwt
+from typing import Dict, Optional
+
 import bcrypt
+import jwt
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from flask import Flask, jsonify, make_response, request
+
 
 class SecurityEnhancements:
-    def __init__(self, app: Flask, key_file: str = 'encryption_key.key', audit_file: str = 'audit_logs.json'):
+    def __init__(
+        self,
+        app: Flask,
+        key_file: str = "encryption_key.key",
+        audit_file: str = "audit_logs.json",
+    ):
         self.app = app
         self.key_file = key_file
         self.audit_file = audit_file
-        self.secret_key = os.environ.get('JWT_SECRET_KEY', 'mysecretkey')
+        self.secret_key = os.environ.get("JWT_SECRET_KEY", "mysecretkey")
         self.encryption_key = self.load_or_generate_key()
         self.cipher_suite = Fernet(self.encryption_key)
         self.audit_logs: Dict[str, list] = {}
@@ -32,11 +37,11 @@ class SecurityEnhancements:
     def load_or_generate_key(self) -> bytes:
         """Load encryption key from file or generate a new one."""
         if os.path.exists(self.key_file):
-            with open(self.key_file, 'rb') as f:
+            with open(self.key_file, "rb") as f:
                 return f.read()
         else:
             key = Fernet.generate_key()
-            with open(self.key_file, 'wb') as f:
+            with open(self.key_file, "wb") as f:
                 f.write(key)
             return key
 
@@ -76,11 +81,11 @@ class SecurityEnhancements:
         """Log an audit event for compliance and monitoring."""
         if user_id not in self.audit_logs:
             self.audit_logs[user_id] = []
-        
+
         event = {
-            'event_type': event_type,
-            'details': details,
-            'timestamp': datetime.utcnow().isoformat()
+            "event_type": event_type,
+            "details": details,
+            "timestamp": datetime.utcnow().isoformat(),
         }
         self.audit_logs[user_id].append(event)
         self.save_audit_logs()
@@ -89,7 +94,7 @@ class SecurityEnhancements:
         """Load audit logs from file."""
         try:
             if os.path.exists(self.audit_file):
-                with open(self.audit_file, 'r') as f:
+                with open(self.audit_file, "r") as f:
                     self.audit_logs = json.load(f)
         except Exception as e:
             print(f"Error loading audit logs: {e}")
@@ -98,23 +103,31 @@ class SecurityEnhancements:
     def save_audit_logs(self) -> None:
         """Save audit logs to file."""
         try:
-            with open(self.audit_file, 'w') as f:
+            with open(self.audit_file, "w") as f:
                 json.dump(self.audit_logs, f, indent=2)
         except Exception as e:
             print(f"Error saving audit logs: {e}")
 
-    def get_audit_logs(self, user_id: Optional[str] = None, event_type: Optional[str] = None) -> Dict[str, list]:
+    def get_audit_logs(
+        self, user_id: Optional[str] = None, event_type: Optional[str] = None
+    ) -> Dict[str, list]:
         """Get audit logs, optionally filtered by user or event type."""
         if user_id and event_type:
             if user_id in self.audit_logs:
-                return {user_id: [log for log in self.audit_logs[user_id] if log['event_type'] == event_type]}
+                return {
+                    user_id: [
+                        log
+                        for log in self.audit_logs[user_id]
+                        if log["event_type"] == event_type
+                    ]
+                }
             return {user_id: []}
         elif user_id:
             return {user_id: self.audit_logs.get(user_id, [])}
         elif event_type:
             filtered_logs = {}
             for uid, logs in self.audit_logs.items():
-                matching_logs = [log for log in logs if log['event_type'] == event_type]
+                matching_logs = [log for log in logs if log["event_type"] == event_type]
                 if matching_logs:
                     filtered_logs[uid] = matching_logs
             return filtered_logs
@@ -122,132 +135,166 @@ class SecurityEnhancements:
 
     def setup_routes(self):
         """Setup Flask routes for security enhancements."""
-        @self.app.route('/api/security/encrypt', methods=['POST'])
+
+        @self.app.route("/api/security/encrypt", methods=["POST"])
         def encrypt_data_route():
-            auth_header = request.headers.get('Authorization', '')
+            auth_header = request.headers.get("Authorization", "")
             if not auth_header:
-                return make_response(jsonify({'error': 'Authorization required'}), 401)
-            
+                return make_response(jsonify({"error": "Authorization required"}), 401)
+
             try:
-                token = auth_header.split('Bearer ')[1]
-                jwt.decode(token, self.secret_key, algorithms=['HS256'])
+                token = auth_header.split("Bearer ")[1]
+                jwt.decode(token, self.secret_key, algorithms=["HS256"])
                 data = request.get_json() if request.is_json else {}
-                content = data.get('content')
+                content = data.get("content")
                 if not content:
-                    return make_response(jsonify({'error': 'Missing content field'}), 400)
-                
+                    return make_response(
+                        jsonify({"error": "Missing content field"}), 400
+                    )
+
                 encrypted = self.encrypt_data(content)
-                return jsonify({'encrypted_data': encrypted.decode()})
+                return jsonify({"encrypted_data": encrypted.decode()})
             except Exception as e:
-                return make_response(jsonify({'error': f'Invalid token: {str(e)}'}), 401)
+                return make_response(
+                    jsonify({"error": f"Invalid token: {str(e)}"}), 401
+                )
 
-        @self.app.route('/api/security/decrypt', methods=['POST'])
+        @self.app.route("/api/security/decrypt", methods=["POST"])
         def decrypt_data_route():
-            auth_header = request.headers.get('Authorization', '')
+            auth_header = request.headers.get("Authorization", "")
             if not auth_header:
-                return make_response(jsonify({'error': 'Authorization required'}), 401)
-            
+                return make_response(jsonify({"error": "Authorization required"}), 401)
+
             try:
-                token = auth_header.split('Bearer ')[1]
-                jwt.decode(token, self.secret_key, algorithms=['HS256'])
+                token = auth_header.split("Bearer ")[1]
+                jwt.decode(token, self.secret_key, algorithms=["HS256"])
                 data = request.get_json() if request.is_json else {}
-                encrypted_data = data.get('encrypted_data')
+                encrypted_data = data.get("encrypted_data")
                 if not encrypted_data:
-                    return make_response(jsonify({'error': 'Missing encrypted_data field'}), 400)
-                
+                    return make_response(
+                        jsonify({"error": "Missing encrypted_data field"}), 400
+                    )
+
                 decrypted = self.decrypt_data(encrypted_data.encode())
-                return jsonify({'decrypted_data': decrypted})
+                return jsonify({"decrypted_data": decrypted})
             except Exception as e:
-                return make_response(jsonify({'error': f'Invalid token or data: {str(e)}'}), 401)
+                return make_response(
+                    jsonify({"error": f"Invalid token or data: {str(e)}"}), 401
+                )
 
-        @self.app.route('/api/security/mfa/setup', methods=['POST'])
+        @self.app.route("/api/security/mfa/setup", methods=["POST"])
         def setup_mfa_route():
-            auth_header = request.headers.get('Authorization', '')
+            auth_header = request.headers.get("Authorization", "")
             if not auth_header:
-                return make_response(jsonify({'error': 'Authorization required'}), 401)
-            
+                return make_response(jsonify({"error": "Authorization required"}), 401)
+
             try:
-                token = auth_header.split('Bearer ')[1]
-                decoded = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-                user_id = decoded.get('user')
+                token = auth_header.split("Bearer ")[1]
+                decoded = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+                user_id = decoded.get("user")
                 if not user_id:
-                    return make_response(jsonify({'error': 'Invalid token payload'}), 401)
+                    return make_response(
+                        jsonify({"error": "Invalid token payload"}), 401
+                    )
 
                 data = request.get_json() if request.is_json else {}
-                secret = data.get('secret')
+                secret = data.get("secret")
                 if not secret:
-                    return make_response(jsonify({'error': 'Missing secret field'}), 400)
-                
+                    return make_response(
+                        jsonify({"error": "Missing secret field"}), 400
+                    )
+
                 if self.setup_mfa(user_id, secret):
-                    return jsonify({'message': f'MFA setup for user {user_id}'})
-                return make_response(jsonify({'error': f'MFA already setup for user {user_id}'}), 409)
+                    return jsonify({"message": f"MFA setup for user {user_id}"})
+                return make_response(
+                    jsonify({"error": f"MFA already setup for user {user_id}"}), 409
+                )
             except Exception as e:
-                return make_response(jsonify({'error': f'Invalid token: {str(e)}'}), 401)
+                return make_response(
+                    jsonify({"error": f"Invalid token: {str(e)}"}), 401
+                )
 
-        @self.app.route('/api/security/mfa/verify', methods=['POST'])
+        @self.app.route("/api/security/mfa/verify", methods=["POST"])
         def verify_mfa_route():
-            auth_header = request.headers.get('Authorization', '')
+            auth_header = request.headers.get("Authorization", "")
             if not auth_header:
-                return make_response(jsonify({'error': 'Authorization required'}), 401)
-            
+                return make_response(jsonify({"error": "Authorization required"}), 401)
+
             try:
-                token = auth_header.split('Bearer ')[1]
-                decoded = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-                user_id = decoded.get('user')
+                token = auth_header.split("Bearer ")[1]
+                decoded = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+                user_id = decoded.get("user")
                 if not user_id:
-                    return make_response(jsonify({'error': 'Invalid token payload'}), 401)
+                    return make_response(
+                        jsonify({"error": "Invalid token payload"}), 401
+                    )
 
                 data = request.get_json() if request.is_json else {}
-                code = data.get('code')
+                code = data.get("code")
                 if not code:
-                    return make_response(jsonify({'error': 'Missing code field'}), 400)
-                
-                if self.verify_mfa(user_id, code):
-                    return jsonify({'message': 'MFA verified', 'verified': True})
-                return make_response(jsonify({'message': 'MFA verification failed', 'verified': False}), 403)
-            except Exception as e:
-                return make_response(jsonify({'error': f'Invalid token: {str(e)}'}), 401)
+                    return make_response(jsonify({"error": "Missing code field"}), 400)
 
-        @self.app.route('/api/security/audit/log', methods=['POST'])
+                if self.verify_mfa(user_id, code):
+                    return jsonify({"message": "MFA verified", "verified": True})
+                return make_response(
+                    jsonify({"message": "MFA verification failed", "verified": False}),
+                    403,
+                )
+            except Exception as e:
+                return make_response(
+                    jsonify({"error": f"Invalid token: {str(e)}"}), 401
+                )
+
+        @self.app.route("/api/security/audit/log", methods=["POST"])
         def log_audit_event_route():
-            auth_header = request.headers.get('Authorization', '')
+            auth_header = request.headers.get("Authorization", "")
             if not auth_header:
-                return make_response(jsonify({'error': 'Authorization required'}), 401)
-            
+                return make_response(jsonify({"error": "Authorization required"}), 401)
+
             try:
-                token = auth_header.split('Bearer ')[1]
-                decoded = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-                user_id = decoded.get('user')
+                token = auth_header.split("Bearer ")[1]
+                decoded = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+                user_id = decoded.get("user")
                 if not user_id:
-                    return make_response(jsonify({'error': 'Invalid token payload'}), 401)
+                    return make_response(
+                        jsonify({"error": "Invalid token payload"}), 401
+                    )
 
                 data = request.get_json() if request.is_json else {}
-                event_type = data.get('event_type')
-                details = data.get('details', {})
+                event_type = data.get("event_type")
+                details = data.get("details", {})
                 if not event_type:
-                    return make_response(jsonify({'error': 'Missing event_type field'}), 400)
-                
+                    return make_response(
+                        jsonify({"error": "Missing event_type field"}), 400
+                    )
+
                 self.log_audit_event(user_id, event_type, details)
-                return jsonify({'message': f'Audit event logged for user {user_id}'})
+                return jsonify({"message": f"Audit event logged for user {user_id}"})
             except Exception as e:
-                return make_response(jsonify({'error': f'Invalid token: {str(e)}'}), 401)
+                return make_response(
+                    jsonify({"error": f"Invalid token: {str(e)}"}), 401
+                )
 
-        @self.app.route('/api/security/audit/logs', methods=['GET'])
+        @self.app.route("/api/security/audit/logs", methods=["GET"])
         def get_audit_logs_route():
-            auth_header = request.headers.get('Authorization', '')
+            auth_header = request.headers.get("Authorization", "")
             if not auth_header:
-                return make_response(jsonify({'error': 'Authorization required'}), 401)
-            
-            try:
-                token = auth_header.split('Bearer ')[1]
-                decoded = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-                user_role = decoded.get('role')
-                if user_role != 'admin':
-                    return make_response(jsonify({'error': 'Admin access required'}), 403)
+                return make_response(jsonify({"error": "Authorization required"}), 401)
 
-                user_id = request.args.get('user_id')
-                event_type = request.args.get('event_type')
+            try:
+                token = auth_header.split("Bearer ")[1]
+                decoded = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+                user_role = decoded.get("role")
+                if user_role != "admin":
+                    return make_response(
+                        jsonify({"error": "Admin access required"}), 403
+                    )
+
+                user_id = request.args.get("user_id")
+                event_type = request.args.get("event_type")
                 logs = self.get_audit_logs(user_id, event_type)
                 return jsonify(logs)
             except Exception as e:
-                return make_response(jsonify({'error': f'Invalid token: {str(e)}'}), 401)
+                return make_response(
+                    jsonify({"error": f"Invalid token: {str(e)}"}), 401
+                )

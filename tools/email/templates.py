@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.warning("Using placeholder for EmailTemplateManager module")
 
+
 class EmailTemplateManager:
     def __init__(self, *args, **kwargs):
         logger.info("Initialized placeholder EmailTemplateManager")
@@ -17,6 +18,9 @@ class EmailTemplateManager:
 
     def __getattr__(self, name):
         def method(*args, **kwargs):
-            logger.warning(f"Called unimplemented method {name} on placeholder EmailTemplateManager")
+            logger.warning(
+                f"Called unimplemented method {name} on placeholder EmailTemplateManager"
+            )
             return None
+
         return method

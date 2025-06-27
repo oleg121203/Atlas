@@ -1,10 +1,28 @@
-from typing import Optional, List, Dict
-from modules.tasks.task_manager import TaskManager
+from typing import Dict, List, Optional
+
 from modules.agents.task_planner_agent import TaskPlannerAgent
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QInputDialog, QMessageBox, QFrame, QAbstractItemView, QTextEdit, QSplitter, QGroupBox
+from modules.tasks.task_manager import TaskManager
 from PySide6.QtCore import Qt
-from ui.i18n import _
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPushButton,
+    QSplitter,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
 from core.async_task_manager import AsyncTaskManager
+from ui.i18n import _
+
 
 class TasksModule(QWidget):
     """Tasks and Plans management module with cyberpunk styling.
@@ -24,7 +42,13 @@ class TasksModule(QWidget):
         title: QLabel for module title
     """
 
-    def __init__(self, task_manager: TaskManager, task_planner_agent: TaskPlannerAgent, user_id: str, parent: Optional[QWidget] = None):
+    def __init__(
+        self,
+        task_manager: TaskManager,
+        task_planner_agent: TaskPlannerAgent,
+        user_id: str,
+        parent: Optional[QWidget] = None,
+    ):
         """Initialize the tasks and plans module.
 
         Args:
@@ -46,7 +70,9 @@ class TasksModule(QWidget):
         layout.setSpacing(12)
 
         self.title = QLabel(_("📋 Tasks & Plans (Cyberpunk)"))
-        self.title.setStyleSheet("color: #ff00a0; font-size: 22px; font-weight: bold; letter-spacing: 1px;")
+        self.title.setStyleSheet(
+            "color: #ff00a0; font-size: 22px; font-weight: bold; letter-spacing: 1px;"
+        )
         layout.addWidget(self.title)
 
         # Create a splitter for tasks and plans
@@ -61,16 +87,22 @@ class TasksModule(QWidget):
         self.task_list.setDragDropMode(QAbstractItemView.InternalMove)
         self.task_list.setDefaultDropAction(Qt.MoveAction)
         self.task_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.task_list.setStyleSheet("background: #181c20; color: #fff; border: 1px solid #ff00a0; border-radius: 8px; font-size: 15px;")
+        self.task_list.setStyleSheet(
+            "background: #181c20; color: #fff; border: 1px solid #ff00a0; border-radius: 8px; font-size: 15px;"
+        )
         tasks_layout.addWidget(self.task_list, stretch=1)
 
         task_btns = QHBoxLayout()
         self.add_task_btn = QPushButton(_("Add Task"))
-        self.add_task_btn.setStyleSheet("background: #ff00a0; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;")
+        self.add_task_btn.setStyleSheet(
+            "background: #ff00a0; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
+        )
         self.add_task_btn.clicked.connect(self.add_task)
         task_btns.addWidget(self.add_task_btn)
         self.del_task_btn = QPushButton(_("Delete Task"))
-        self.del_task_btn.setStyleSheet("background: #23272e; color: #ff00a0; border-radius: 6px; padding: 6px 18px;")
+        self.del_task_btn.setStyleSheet(
+            "background: #23272e; color: #ff00a0; border-radius: 6px; padding: 6px 18px;"
+        )
         self.del_task_btn.clicked.connect(self.delete_task)
         task_btns.addWidget(self.del_task_btn)
         tasks_layout.addLayout(task_btns)
@@ -81,24 +113,32 @@ class TasksModule(QWidget):
         plans_layout = QVBoxLayout(plans_group)
         self.plan_list = QListWidget()
         self.plan_list.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.plan_list.setStyleSheet("background: #181c20; color: #fff; border: 1px solid #00fff7; border-radius: 8px; font-size: 15px;")
+        self.plan_list.setStyleSheet(
+            "background: #181c20; color: #fff; border: 1px solid #00fff7; border-radius: 8px; font-size: 15px;"
+        )
         self.plan_list.currentItemChanged.connect(self.on_plan_selected)
         plans_layout.addWidget(self.plan_list, stretch=1)
 
         plan_btns = QHBoxLayout()
         self.create_plan_btn = QPushButton(_("Create Plan"))
-        self.create_plan_btn.setStyleSheet("background: #00fff7; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;")
+        self.create_plan_btn.setStyleSheet(
+            "background: #00fff7; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
+        )
         self.create_plan_btn.clicked.connect(self.create_plan)
         plan_btns.addWidget(self.create_plan_btn)
         self.cancel_plan_btn = QPushButton(_("Cancel Plan"))
-        self.cancel_plan_btn.setStyleSheet("background: #23272e; color: #00fff7; border-radius: 6px; padding: 6px 18px;")
+        self.cancel_plan_btn.setStyleSheet(
+            "background: #23272e; color: #00fff7; border-radius: 6px; padding: 6px 18px;"
+        )
         self.cancel_plan_btn.clicked.connect(self.cancel_plan)
         plan_btns.addWidget(self.cancel_plan_btn)
         plans_layout.addLayout(plan_btns)
 
         self.plan_details_text = QTextEdit()
         self.plan_details_text.setReadOnly(True)
-        self.plan_details_text.setStyleSheet("background: #181c20; color: #fff; border: 1px solid #00fff7; border-radius: 8px; font-size: 14px;")
+        self.plan_details_text.setStyleSheet(
+            "background: #181c20; color: #fff; border: 1px solid #00fff7; border-radius: 8px; font-size: 14px;"
+        )
         plans_layout.addWidget(self.plan_details_text, stretch=1)
         splitter.addWidget(plans_group)
 
@@ -115,7 +155,9 @@ class TasksModule(QWidget):
 
     def update_ui(self) -> None:
         """Update UI elements with translated text."""
-        self.title.setText(str(_("📋 Tasks & Plans (Cyberpunk)")) or "📋 Tasks & Plans (Cyberpunk)")
+        self.title.setText(
+            str(_("📋 Tasks & Plans (Cyberpunk)")) or "📋 Tasks & Plans (Cyberpunk)"
+        )
         self.add_task_btn.setText(str(_("Add Task")) or "Add Task")
         self.del_task_btn.setText(str(_("Delete Task")) or "Delete Task")
         self.create_plan_btn.setText(str(_("Create Plan")) or "Create Plan")
@@ -123,6 +165,7 @@ class TasksModule(QWidget):
 
     def update_task_list(self) -> None:
         """Update the task list from the task manager asynchronously."""
+
         def update_task_list_async():
             try:
                 tasks = self.task_manager.get_tasks()
@@ -138,6 +181,7 @@ class TasksModule(QWidget):
 
     def update_plan_list(self) -> None:
         """Update the plan list from the task planner agent asynchronously."""
+
         def update_plan_list_async():
             try:
                 plans = self.task_planner_agent.get_all_plans()
@@ -174,7 +218,9 @@ class TasksModule(QWidget):
         """
         details = f"<h3>Plan: {plan_details.get('goal', 'Unnamed Plan')}</h3>"
         details += f"<p><b>Status:</b> {plan_details.get('status', 'Unknown')}</p>"
-        details += f"<p><b>Progress:</b> {int(plan_details.get('progress', 0.0) * 100)}%</p>"
+        details += (
+            f"<p><b>Progress:</b> {int(plan_details.get('progress', 0.0) * 100)}%</p>"
+        )
         details += f"<p><b>Created:</b> {plan_details.get('created_at', 'Unknown')}</p>"
         details += "<h4>Tasks:</h4><ul>"
         for task in plan_details.get("tasks", []):
@@ -190,9 +236,7 @@ class TasksModule(QWidget):
         Opens a dialog to get task name and adds it to the list.
         """
         text, ok = QInputDialog.getText(
-            self,
-            str(_("Add Task")) or "Add Task",
-            str(_("Task name:")) or "Task name:"
+            self, str(_("Add Task")) or "Add Task", str(_("Task name:")) or "Task name:"
         )
         if ok and text:
             try:
@@ -202,7 +246,7 @@ class TasksModule(QWidget):
                 QMessageBox.warning(
                     self,
                     str(_("Error")) or "Error",
-                    f"{ _('Failed to add task:')} {str(e)}"
+                    f"{_('Failed to add task:')} {str(e)}",
                 )
 
     def delete_task(self) -> None:
@@ -222,13 +266,13 @@ class TasksModule(QWidget):
                 QMessageBox.warning(
                     self,
                     str(_("Error")) or "Error",
-                    f"{str( _('Failed to delete task:')) or 'Failed to delete task:'} {str(e)}"
+                    f"{str(_('Failed to delete task:')) or 'Failed to delete task:'} {str(e)}",
                 )
         else:
             QMessageBox.warning(
                 self,
                 str(_("Delete Task")) or "Delete Task",
-                str(_("Select a task to delete.")) or "Select a task to delete."
+                str(_("Select a task to delete.")) or "Select a task to delete.",
             )
 
     def create_plan(self) -> None:
@@ -236,23 +280,26 @@ class TasksModule(QWidget):
         goal, ok = QInputDialog.getText(
             self,
             str(_("Create Plan")) or "Create Plan",
-            str(_("Goal or objective:")) or "Goal or objective:"
+            str(_("Goal or objective:")) or "Goal or objective:",
         )
         if ok and goal:
+
             def create_plan_async():
                 try:
-                    plan_id = self.task_planner_agent.create_task_plan(self.user_id, goal)
+                    plan_id = self.task_planner_agent.create_task_plan(
+                        self.user_id, goal
+                    )
                     self.update_plan_list()
                     QMessageBox.information(
                         self,
                         str(_("Plan Created")) or "Plan Created",
-                        f"{str(_('Plan created with ID:')) or 'Plan created with ID:'} {plan_id}"
+                        f"{str(_('Plan created with ID:')) or 'Plan created with ID:'} {plan_id}",
                     )
                 except Exception as e:
                     QMessageBox.warning(
                         self,
                         str(_("Error")) or "Error",
-                        f"{str(_('Failed to create plan:')) or 'Failed to create plan:'} {str(e)}"
+                        f"{str(_('Failed to create plan:')) or 'Failed to create plan:'} {str(e)}",
                     )
 
             self.async_manager.submit_task(create_plan_async)
@@ -268,19 +315,19 @@ class TasksModule(QWidget):
                 QMessageBox.information(
                     self,
                     str(_("Plan Cancelled")) or "Plan Cancelled",
-                    f"{str(_('Plan cancelled:')) or 'Plan cancelled:'} {plan_id}"
+                    f"{str(_('Plan cancelled:')) or 'Plan cancelled:'} {plan_id}",
                 )
             else:
                 QMessageBox.warning(
                     self,
                     str(_("Error")) or "Error",
-                    str(_("Failed to cancel plan.")) or "Failed to cancel plan."
+                    str(_("Failed to cancel plan.")) or "Failed to cancel plan.",
                 )
         else:
             QMessageBox.warning(
                 self,
                 str(_("Cancel Plan")) or "Cancel Plan",
-                str(_("Select a plan to cancel.")) or "Select a plan to cancel."
+                str(_("Select a plan to cancel.")) or "Select a plan to cancel.",
             )
 
     def search(self, query: str) -> List[Dict[str, str]]:
@@ -297,10 +344,7 @@ class TasksModule(QWidget):
             try:
                 text = self.task_list.item(i).text()
                 if query.lower() in text.lower():
-                    results.append({
-                        'label': text,
-                        'key': text
-                    })
+                    results.append({"label": text, "key": text})
             except Exception as e:
                 print(f"Error searching task {i}: {e}")
                 continue

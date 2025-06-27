@@ -1,11 +1,13 @@
-import time
-import psutil
 import logging
+import time
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 import pandas as pd
+import psutil
 
 logger = logging.getLogger(__name__)
+
 
 class SystemMonitor:
     def __init__(self, interval: int = 60):
@@ -52,20 +54,20 @@ class SystemMonitor:
             timestamp = datetime.now().isoformat()
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             net = psutil.net_io_counters()
 
             metric = {
-                'timestamp': timestamp,
-                'cpu_percent': cpu_percent,
-                'memory_used': memory.used,
-                'memory_total': memory.total,
-                'memory_percent': memory.percent,
-                'disk_used': disk.used,
-                'disk_total': disk.total,
-                'disk_percent': disk.percent,
-                'network_bytes_sent': net.bytes_sent,
-                'network_bytes_recv': net.bytes_recv
+                "timestamp": timestamp,
+                "cpu_percent": cpu_percent,
+                "memory_used": memory.used,
+                "memory_total": memory.total,
+                "memory_percent": memory.percent,
+                "disk_used": disk.used,
+                "disk_total": disk.total,
+                "disk_percent": disk.percent,
+                "network_bytes_sent": net.bytes_sent,
+                "network_bytes_recv": net.bytes_recv,
             }
             self.metrics.append(metric)
             self.logger.info(f"Collected system metrics at {timestamp}")
@@ -95,21 +97,38 @@ class SystemMonitor:
             Dict[str, Any]: Health status of critical system components.
         """
         try:
-            latest_metrics = self.metrics[-1] if self.metrics else self.collect_metrics()
+            latest_metrics = (
+                self.metrics[-1] if self.metrics else self.collect_metrics()
+            )
             health_status = {
-                'timestamp': latest_metrics.get('timestamp', datetime.now().isoformat()),
-                'cpu_status': 'Healthy' if latest_metrics.get('cpu_percent', 100) < 80 else 'Critical',
-                'memory_status': 'Healthy' if latest_metrics.get('memory_percent', 100) < 80 else 'Critical',
-                'disk_status': 'Healthy' if latest_metrics.get('disk_percent', 100) < 80 else 'Critical',
-                'overall_status': 'Healthy'
+                "timestamp": latest_metrics.get(
+                    "timestamp", datetime.now().isoformat()
+                ),
+                "cpu_status": "Healthy"
+                if latest_metrics.get("cpu_percent", 100) < 80
+                else "Critical",
+                "memory_status": "Healthy"
+                if latest_metrics.get("memory_percent", 100) < 80
+                else "Critical",
+                "disk_status": "Healthy"
+                if latest_metrics.get("disk_percent", 100) < 80
+                else "Critical",
+                "overall_status": "Healthy",
             }
-            if any(status == 'Critical' for status in [health_status['cpu_status'], health_status['memory_status'], health_status['disk_status']]):
-                health_status['overall_status'] = 'Critical'
+            if any(
+                status == "Critical"
+                for status in [
+                    health_status["cpu_status"],
+                    health_status["memory_status"],
+                    health_status["disk_status"],
+                ]
+            ):
+                health_status["overall_status"] = "Critical"
             self.logger.info(f"System health check: {health_status['overall_status']}")
             return health_status
         except Exception as e:
             self.logger.error(f"Error checking system health: {e}")
-            return {'overall_status': 'Unknown', 'error': str(e)}
+            return {"overall_status": "Unknown", "error": str(e)}
 
     def alert_on_threshold(self, thresholds: Dict[str, float]) -> List[str]:
         """
@@ -123,7 +142,9 @@ class SystemMonitor:
         """
         try:
             alerts = []
-            latest_metrics = self.metrics[-1] if self.metrics else self.collect_metrics()
+            latest_metrics = (
+                self.metrics[-1] if self.metrics else self.collect_metrics()
+            )
             for metric, threshold in thresholds.items():
                 if metric in latest_metrics and latest_metrics[metric] > threshold:
                     alert_msg = f"Alert: {metric} exceeded threshold of {threshold}. Current value: {latest_metrics[metric]}"

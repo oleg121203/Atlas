@@ -5,15 +5,16 @@ including caching, cleanup, and monitoring of memory usage to handle large
 datasets and long-running operations.
 """
 
-import os
-import psutil
 import gc
-from typing import Any, Dict, Optional, List, Tuple
-from datetime import datetime, timedelta
 import logging
+import os
 import threading
 import time
 from collections import defaultdict
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import psutil
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -22,7 +23,12 @@ logger = logging.getLogger(__name__)
 class MemoryManager:
     """A class to manage memory operations for Atlas, including caching and interaction storage."""
 
-    def __init__(self, cache_size_limit: int = 1000, ttl_seconds: int = 3600, cleanup_interval: int = 300):
+    def __init__(
+        self,
+        cache_size_limit: int = 1000,
+        ttl_seconds: int = 3600,
+        cleanup_interval: int = 300,
+    ):
         """Initialize the MemoryManager with specified limits and intervals.
 
         Args:
@@ -34,10 +40,18 @@ class MemoryManager:
         self.ttl_seconds = ttl_seconds
         self.cleanup_interval = cleanup_interval
         self.cache: Dict[str, Tuple[Any, float]] = {}  # Tuple of (value, timestamp)
-        self.interactions: Dict[str, List[Dict[str, Any]]] = defaultdict(list)  # User interactions storage
-        self.feedback: Dict[str, List[Dict[str, Any]]] = defaultdict(list)  # User feedback storage
+        self.interactions: Dict[str, List[Dict[str, Any]]] = defaultdict(
+            list
+        )  # User interactions storage
+        self.feedback: Dict[str, List[Dict[str, Any]]] = defaultdict(
+            list
+        )  # User feedback storage
         self._lock = threading.Lock()
-        logger.info("MemoryManager initialized with cache size limit %d and TTL %d seconds", cache_size_limit, ttl_seconds)
+        logger.info(
+            "MemoryManager initialized with cache size limit %d and TTL %d seconds",
+            cache_size_limit,
+            ttl_seconds,
+        )
 
     def get_memory_usage(self) -> float:
         """Get current memory usage of the application in megabytes.
@@ -50,7 +64,9 @@ class MemoryManager:
         logger.debug("Current memory usage: %.2f MB", usage_mb)
         return usage_mb
 
-    def add_to_cache(self, key: str, value: Any, size_estimate: Optional[int] = None) -> bool:
+    def add_to_cache(
+        self, key: str, value: Any, size_estimate: Optional[int] = None
+    ) -> bool:
         """Add an item to the cache with expiration.
 
         Args:
@@ -76,8 +92,12 @@ class MemoryManager:
         # Add to cache with timestamp
         with self._lock:
             self.cache[key] = (value, time.time())
-        logger.debug("Added to cache: %s, size: %d bytes, total cache size: %d items",
-                     key, size_estimate, len(self.cache))
+        logger.debug(
+            "Added to cache: %s, size: %d bytes, total cache size: %d items",
+            key,
+            size_estimate,
+            len(self.cache),
+        )
         return True
 
     def get_from_cache(self, key: str) -> Optional[Any]:
@@ -141,12 +161,20 @@ class MemoryManager:
         # based on specific data types used in Atlas
         try:
             import sys
+
             return sys.getsizeof(obj)
         except Exception as e:
             logger.warning("Could not estimate size for object: %s", e)
             return 0
 
-    def store_interaction(self, user_id: str, query: str, response: str, rating: Optional[float] = None, timestamp: str = None) -> None:
+    def store_interaction(
+        self,
+        user_id: str,
+        query: str,
+        response: str,
+        rating: Optional[float] = None,
+        timestamp: str = None,
+    ) -> None:
         """Store a user interaction for future learning and reference.
 
         Args:
@@ -162,7 +190,7 @@ class MemoryManager:
             "query": query,
             "response": response,
             "rating": rating,
-            "timestamp": timestamp
+            "timestamp": timestamp,
         }
         with self._lock:
             self.interactions[user_id].append(interaction)
@@ -171,7 +199,9 @@ class MemoryManager:
                 self.interactions[user_id] = self.interactions[user_id][-100:]
         logger.debug(f"Stored interaction for user {user_id} at {timestamp}")
 
-    def store_feedback(self, user_id: str, response_id: str, rating: float, timestamp: str = None) -> None:
+    def store_feedback(
+        self, user_id: str, response_id: str, rating: float, timestamp: str = None
+    ) -> None:
         """Store user feedback for a specific response.
 
         Args:
@@ -185,16 +215,20 @@ class MemoryManager:
         feedback = {
             "response_id": response_id,
             "rating": rating,
-            "timestamp": timestamp
+            "timestamp": timestamp,
         }
         with self._lock:
             self.feedback[user_id].append(feedback)
             # Limit to last 100 feedback entries per user to manage memory
             if len(self.feedback[user_id]) > 100:
                 self.feedback[user_id] = self.feedback[user_id][-100:]
-        logger.debug(f"Stored feedback for user {user_id} on response {response_id} with rating {rating}")
+        logger.debug(
+            f"Stored feedback for user {user_id} on response {response_id} with rating {rating}"
+        )
 
-    def get_user_interactions(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_user_interactions(
+        self, user_id: str, limit: int = 50
+    ) -> List[Dict[str, Any]]:
         """Retrieve a user's interaction history.
 
         Args:
@@ -250,15 +284,21 @@ class MemoryManager:
         self._evict_cache()
         # Force garbage collection
         gc.collect()
-        logger.info("Memory cleanup performed, current usage: %.2f MB", self.get_memory_usage())
+        logger.info(
+            "Memory cleanup performed, current usage: %.2f MB", self.get_memory_usage()
+        )
 
     def log_memory_stats(self) -> None:
         """Log detailed memory usage statistics for debugging."""
         mem_usage = self.get_memory_usage()
         cache_items = len(self.cache)
         cache_size_mb = self.cache_size_limit / 1024 / 1024
-        logger.info("Memory Stats: Usage=%.2f MB, Cache Items=%d, Cache Size=%.2f MB",
-                    mem_usage, cache_items, cache_size_mb)
+        logger.info(
+            "Memory Stats: Usage=%.2f MB, Cache Items=%d, Cache Size=%.2f MB",
+            mem_usage,
+            cache_items,
+            cache_size_mb,
+        )
 
 
 # Singleton instance for global memory management

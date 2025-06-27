@@ -1,8 +1,11 @@
-import customtkinter as ctk
 import tkinter as tk
+
+import customtkinter as ctk
+
 
 class ChatInputPanel(ctk.CTkFrame):
     """Панель вводу чату з кнопкою Send, мікрофоном, гарячими клавішами та контекстним меню."""
+
     def __init__(self, master, on_send_callback, **kwargs):
         super().__init__(master, **kwargs)
         self.on_send_callback = on_send_callback
@@ -18,7 +21,7 @@ class ChatInputPanel(ctk.CTkFrame):
             fg_color="#e0e0e0",
             text_color="black",
             hover_color="#b0b0b0",
-            command=self._on_voice_input
+            command=self._on_voice_input,
         )
         self.voice_button.grid(row=0, column=0, padx=4, pady=2)
 
@@ -36,7 +39,7 @@ class ChatInputPanel(ctk.CTkFrame):
             fg_color="#00A0E0",
             text_color="white",
             hover_color="#0077b6",
-            command=self._on_send_message
+            command=self._on_send_message,
         )
         self.send_button.grid(row=0, column=2, padx=4, pady=2)
 
@@ -45,15 +48,31 @@ class ChatInputPanel(ctk.CTkFrame):
         self.message_entry.bind("<Shift-Return>", self._on_shift_enter)
         self.message_entry.bind("<Control-Return>", self._on_ctrl_enter)
         # Mac hotkeys
-        self.message_entry.bind("<Command-c>", lambda e: self.message_entry.event_generate("<<Copy>>"))
-        self.message_entry.bind("<Command-v>", lambda e: self.message_entry.event_generate("<<Paste>>"))
-        self.message_entry.bind("<Command-x>", lambda e: self.message_entry.event_generate("<<Cut>>"))
-        self.message_entry.bind("<Command-a>", lambda e: self.message_entry.event_generate("<<SelectAll>>"))
+        self.message_entry.bind(
+            "<Command-c>", lambda e: self.message_entry.event_generate("<<Copy>>")
+        )
+        self.message_entry.bind(
+            "<Command-v>", lambda e: self.message_entry.event_generate("<<Paste>>")
+        )
+        self.message_entry.bind(
+            "<Command-x>", lambda e: self.message_entry.event_generate("<<Cut>>")
+        )
+        self.message_entry.bind(
+            "<Command-a>", lambda e: self.message_entry.event_generate("<<SelectAll>>")
+        )
         # Win/Linux hotkeys
-        self.message_entry.bind("<Control-c>", lambda e: self.message_entry.event_generate("<<Copy>>"))
-        self.message_entry.bind("<Control-v>", lambda e: self.message_entry.event_generate("<<Paste>>"))
-        self.message_entry.bind("<Control-x>", lambda e: self.message_entry.event_generate("<<Cut>>"))
-        self.message_entry.bind("<Control-a>", lambda e: self.message_entry.event_generate("<<SelectAll>>"))
+        self.message_entry.bind(
+            "<Control-c>", lambda e: self.message_entry.event_generate("<<Copy>>")
+        )
+        self.message_entry.bind(
+            "<Control-v>", lambda e: self.message_entry.event_generate("<<Paste>>")
+        )
+        self.message_entry.bind(
+            "<Control-x>", lambda e: self.message_entry.event_generate("<<Cut>>")
+        )
+        self.message_entry.bind(
+            "<Control-a>", lambda e: self.message_entry.event_generate("<<SelectAll>>")
+        )
         # Context menu
         self._setup_entry_context_menu(self.message_entry)
 
@@ -83,13 +102,20 @@ class ChatInputPanel(ctk.CTkFrame):
         menu = tk.Menu(entry, tearoff=0)
         menu.add_command(label="Cut", command=lambda: entry.event_generate("<<Cut>>"))
         menu.add_command(label="Copy", command=lambda: entry.event_generate("<<Copy>>"))
-        menu.add_command(label="Paste", command=lambda: entry.event_generate("<<Paste>>"))
+        menu.add_command(
+            label="Paste", command=lambda: entry.event_generate("<<Paste>>")
+        )
         menu.add_separator()
-        menu.add_command(label="Select All", command=lambda: entry.event_generate("<<SelectAll>>"))
+        menu.add_command(
+            label="Select All", command=lambda: entry.event_generate("<<SelectAll>>")
+        )
+
         def show_menu(event):
             menu.tk_popup(event.x_root, event.y_root)
+
         entry.bind("<Button-3>", show_menu)
         # Mac: Control+Click
         import platform
+
         if platform.system() == "Darwin":
             entry.bind("<Control-Button-1>", show_menu)

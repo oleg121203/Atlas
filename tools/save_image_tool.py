@@ -1,8 +1,10 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
 try:
     from PIL import Image
 except ImportError:
     Image = None
+
 
 def save_image(image, file_path: str) -> Dict[str, Any]:
     """
@@ -20,4 +22,4 @@ def save_image(image, file_path: str) -> Dict[str, Any]:
         image.save(file_path)
         return {"status": "success", "file_path": file_path}
     except Exception as e:
-        return {"status": "error", "error": str(e)} 
+        return {"status": "error", "error": str(e)}

@@ -14,36 +14,36 @@ class AuditTargets:
 
     def __init__(self):
         self.targets = {
-            'initialization': {
-                'description': 'Application startup and initialization sequence',
-                'module_path': 'main.py',
-                'function': 'main',
-                'priority': 'High'
+            "initialization": {
+                "description": "Application startup and initialization sequence",
+                "module_path": "main.py",
+                "function": "main",
+                "priority": "High",
             },
-            'ui_rendering': {
-                'description': 'UI rendering and updates, especially for complex components',
-                'module_path': 'ui/main_window.py',
-                'function': 'AtlasMainWindow.setup_ui',
-                'priority': 'High'
+            "ui_rendering": {
+                "description": "UI rendering and updates, especially for complex components",
+                "module_path": "ui/main_window.py",
+                "function": "AtlasMainWindow.setup_ui",
+                "priority": "High",
             },
-            'ai_inference': {
-                'description': 'AI model inference for suggestions and automation',
-                'module_path': 'core/ai_context.py',
-                'function': 'AIContextManager.generate_suggestions',
-                'priority': 'Medium'
+            "ai_inference": {
+                "description": "AI model inference for suggestions and automation",
+                "module_path": "core/ai_context.py",
+                "function": "AIContextManager.generate_suggestions",
+                "priority": "Medium",
             },
-            'cloud_sync': {
-                'description': 'Cloud synchronization operations',
-                'module_path': 'core/cloud_sync.py',
-                'function': 'CloudSyncManager.sync_data',
-                'priority': 'Medium'
+            "cloud_sync": {
+                "description": "Cloud synchronization operations",
+                "module_path": "core/cloud_sync.py",
+                "function": "CloudSyncManager.sync_data",
+                "priority": "Medium",
             },
-            'task_management': {
-                'description': 'Task creation, update, and retrieval operations',
-                'module_path': 'core/task_manager.py',
-                'function': 'TaskManager.create_task',
-                'priority': 'Medium'
-            }
+            "task_management": {
+                "description": "Task creation, update, and retrieval operations",
+                "module_path": "core/task_manager.py",
+                "function": "TaskManager.create_task",
+                "priority": "Medium",
+            },
         }
         logger.info("Audit targets initialized for performance profiling")
 
@@ -66,7 +66,7 @@ class AuditTargets:
         """
         return self.targets
 
-    def add_target(self, name, description, module_path, function, priority='Low'):
+    def add_target(self, name, description, module_path, function, priority="Low"):
         """Add a new audit target for profiling.
 
         Args:
@@ -77,9 +77,9 @@ class AuditTargets:
             priority (str): Priority level (High, Medium, Low).
         """
         self.targets[name] = {
-            'description': description,
-            'module_path': module_path,
-            'function': function,
-            'priority': priority
+            "description": description,
+            "module_path": module_path,
+            "function": function,
+            "priority": priority,
         }
         logger.info(f"Added new audit target: {name} with priority {priority}")

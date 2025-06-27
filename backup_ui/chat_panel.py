@@ -1,5 +1,7 @@
 import customtkinter as ctk
+
 from ui.chat_input_panel import ChatInputPanel
+
 
 class ChatPanel(ctk.CTkFrame):
     def __init__(self, master, chat_history_view, chat_input_panel=None):
@@ -8,7 +10,7 @@ class ChatPanel(ctk.CTkFrame):
         if chat_input_panel is None:
             self.chat_input_panel = ChatInputPanel(self, self._on_send_message)
         else:
-        self.chat_input_panel = chat_input_panel
+            self.chat_input_panel = chat_input_panel
         self._build_ui()
 
     def _build_ui(self):
@@ -23,4 +25,4 @@ class ChatPanel(ctk.CTkFrame):
             self.chat_history_view.add_message("user", text)
 
     def grid(self, *args, **kwargs):
-        super().grid(*args, **kwargs) 
+        super().grid(*args, **kwargs)

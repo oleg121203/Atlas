@@ -14,7 +14,7 @@ def clear_atlas_data():
     """Очистити всі data Atlas"""
     print("🧹 Очищення даних Atlas...")
 
-    #Можливі шляхи до конфігурації
+    # Можливі шляхи до конфігурації
     atlas_paths = [
         Path.home() / ".atlas",
         Path("/Users/dev/.atlas"),
@@ -27,8 +27,8 @@ def clear_atlas_data():
             print(f"  🗑️  Видалення {path}")
             shutil.rmtree(path, ignore_errors=True)
 
-    #Видалити векторну базу
-    chroma_paths = [
+    # Видалити векторну базу
+    [
         Path("chroma.db"),
         Path("memory"),
         Path("*.db"),
@@ -36,12 +36,14 @@ def clear_atlas_data():
 
     for pattern in ["chroma*", "*.db", "memory"]:
         import glob
+
         for file in glob.glob(pattern):
             print(f"  🗑️  Видалення {file}")
             if os.path.isdir(file):
                 shutil.rmtree(file, ignore_errors=True)
             else:
                 os.remove(file)
+
 
 def create_clean_config():
     """Створити чисту конфігурацію"""
@@ -64,7 +66,10 @@ def create_clean_config():
             "Browser Agent": {"provider": "gemini", "model": "gemini-1.5-flash"},
             "Screen Agent": {"provider": "gemini", "model": "gemini-1.5-flash"},
             "Text Agent": {"provider": "gemini", "model": "gemini-1.5-flash"},
-            "System Interaction Agent": {"provider": "gemini", "model": "gemini-1.5-flash"},
+            "System Interaction Agent": {
+                "provider": "gemini",
+                "model": "gemini-1.5-flash",
+            },
         },
         "security": {
             "destructive_op_threshold": 80,
@@ -80,6 +85,7 @@ def create_clean_config():
 
     print(f"✅ Конфігурація створена: {config_file}")
 
+
 def check_env_variables():
     """Перевірити змінні середовища та .env файл"""
     print("🔍 Перевірка змінних середовища та .env файлу...")
@@ -91,11 +97,12 @@ def check_env_variables():
         "MISTRAL_API_KEY",
     ]
 
-    #Перевірити .env файл
+    # Перевірити .env файл
     env_file = Path(".env")
     if env_file.exists():
         print(f"  ✅ Знайдено .env файл: {env_file.absolute()}")
         from dotenv import load_dotenv
+
         load_dotenv()
     else:
         print("  ❌ .env файл не знайдено")
@@ -103,25 +110,33 @@ def check_env_variables():
     found_keys = []
     for var in env_vars:
         value = os.getenv(var)
-        if value and value != "your_real_gemini_key_here" and value != "your_real_mistral_key_here" and value != "your_real_groq_key_here":
-            print(f"  ✅ {var}: {'*' * max(1, len(value) - 8)}{value[-8:] if len(value) > 8 else value[-4:]}")
+        if (
+            value
+            and value != "your_real_gemini_key_here"
+            and value != "your_real_mistral_key_here"
+            and value != "your_real_groq_key_here"
+        ):
+            print(
+                f"  ✅ {var}: {'*' * max(1, len(value) - 8)}{value[-8:] if len(value) > 8 else value[-4:]}"
+            )
             found_keys.append(var)
         else:
             print(f"  ❌ {var}: не знайдено або є тестовим значенням")
 
     return found_keys
 
+
 def main():
     print("🔧 Atlas API Keys Fix Script")
     print("=" * 50)
 
-    #1. Очистити старі data
+    # 1. Очистити старі data
     clear_atlas_data()
 
-    #2. Створити чисту конфігурацію
+    # 2. Створити чисту конфігурацію
     create_clean_config()
 
-    #3. Перевірити змінні середовища
+    # 3. Перевірити змінні середовища
     found_keys = check_env_variables()
 
     print("\n" + "=" * 50)
@@ -141,6 +156,7 @@ def main():
 
     print("\n💡 Пріоритет ключів: .env файл → змінні середовища → GUI конфігурація")
     print("🚀 Тепер перезапустіть Atlas!")
+
 
 if __name__ == "__main__":
     main()

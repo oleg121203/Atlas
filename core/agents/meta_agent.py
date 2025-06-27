@@ -1,4 +1,5 @@
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 
 class MetaAgent:
     def __init__(self, config: Optional[Dict[str, Any]] = None):

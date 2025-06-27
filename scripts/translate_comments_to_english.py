@@ -7,9 +7,9 @@ Following Atlas development standards for cross-platform compatibility
 import re
 from pathlib import Path
 
-#Translation dictionary for common Ukrainian programming terms
+# Translation dictionary for common Ukrainian programming terms
 TRANSLATIONS = {
-    #System terms
+    # System terms
     "Система": "System",
     "система": "system",
     "Ініціалізація": "Initialization",
@@ -22,8 +22,7 @@ TRANSLATIONS = {
     "управління": "management",
     "Обробка": "Processing",
     "обробка": "processing",
-
-    #Authentication terms
+    # Authentication terms
     "Аутентифікація": "Authentication",
     "аутентифікація": "authentication",
     "Ідентифікація": "Identification",
@@ -38,8 +37,7 @@ TRANSLATIONS = {
     "відповідь": "response",
     "Сесія": "Session",
     "сесія": "session",
-
-    #Security terms
+    # Security terms
     "Безпека": "Security",
     "безпека": "security",
     "Шифрування": "Encryption",
@@ -52,8 +50,7 @@ TRANSLATIONS = {
     "доступ": "access",
     "Привілеї": "Privileges",
     "привілеї": "privileges",
-
-    #Data terms
+    # Data terms
     "Дані": "Data",
     "дані": "data",
     "Кеш": "Cache",
@@ -64,8 +61,7 @@ TRANSLATIONS = {
     "збереження": "storage",
     "Завантаження": "Loading",
     "завантаження": "loading",
-
-    #Action terms
+    # Action terms
     "Створення": "Creation",
     "створення": "creation",
     "Видалення": "Deletion",
@@ -76,8 +72,7 @@ TRANSLATIONS = {
     "отримання": "getting",
     "Генерація": "Generation",
     "генерація": "generation",
-
-    #Time terms
+    # Time terms
     "Тайм-аут": "Timeout",
     "тайм-аут": "timeout",
     "Час": "Time",
@@ -86,8 +81,7 @@ TRANSLATIONS = {
     "неактивність": "inactivity",
     "Продовження": "Extension",
     "продовження": "extension",
-
-    #Status terms
+    # Status terms
     "Статус": "Status",
     "статус": "status",
     "Стан": "State",
@@ -96,8 +90,7 @@ TRANSLATIONS = {
     "активний": "active",
     "Неактивний": "Inactive",
     "неактивний": "inactive",
-
-    #Common phrases
+    # Common phrases
     "для творця": "for creator",
     "творця": "creator",
     "Творець": "Creator",
@@ -111,14 +104,16 @@ TRANSLATIONS = {
     "Застарілий": "Old",
 }
 
+
 def translate_text(text: str) -> str:
     """Translate Ukrainian text to English using the translation dictionary"""
     result = text
     for uk, en in TRANSLATIONS.items():
-        #Use word boundaries to avoid partial matches
+        # Use word boundaries to avoid partial matches
         pattern = r"\b" + re.escape(uk) + r"\b"
         result = re.sub(pattern, en, result)
     return result
+
 
 def translate_comments_in_file(file_path: Path) -> bool:
     """Translate Ukrainian comments and docstrings in a Python file"""
@@ -128,7 +123,7 @@ def translate_comments_in_file(file_path: Path) -> bool:
 
         original_content = content
 
-        #Translate single-line comments
+        # Translate single-line comments
         def translate_comment(match):
             comment = match.group(1)
             translated = translate_text(comment)
@@ -136,15 +131,19 @@ def translate_comments_in_file(file_path: Path) -> bool:
 
         content = re.sub(r"#\s*(.+)", translate_comment, content)
 
-        #Translate docstrings
+        # Translate docstrings
         def translate_docstring(match):
-            quotes = match.group(1)  #""" or '''
+            quotes = match.group(1)  # """ or '''
             docstring = match.group(2)
             translated = translate_text(docstring)
             return f"{quotes}{translated}{quotes}"
 
-        content = re.sub(r'(""")(.*?)(""")', translate_docstring, content, flags=re.DOTALL)
-        content = re.sub(r"(''')(.*?)(''')", translate_docstring, content, flags=re.DOTALL)
+        content = re.sub(
+            r'(""")(.*?)(""")', translate_docstring, content, flags=re.DOTALL
+        )
+        content = re.sub(
+            r"(''')(.*?)(''')", translate_docstring, content, flags=re.DOTALL
+        )
 
         if content != original_content:
             with open(file_path, "w", encoding="utf-8") as f:
@@ -158,6 +157,7 @@ def translate_comments_in_file(file_path: Path) -> bool:
         print(f"❌ Error processing {file_path}: {e}")
         return False
 
+
 def main():
     """Translate Ukrainian comments in Atlas Python files"""
     print("🌍 ATLAS CODE TRANSLATION TO ENGLISH")
@@ -167,7 +167,7 @@ def main():
 
     root_dir = Path()
 
-    #Directories to process
+    # Directories to process
     dirs_to_process = [
         "agents",
         "tools",
@@ -183,14 +183,14 @@ def main():
     translated_files = 0
     total_files = 0
 
-    #Process root level files
+    # Process root level files
     for py_file in root_dir.glob("*.py"):
         if py_file.name not in ["translate_comments_to_english.py"]:
             total_files += 1
             if translate_comments_in_file(py_file):
                 translated_files += 1
 
-    #Process directories
+    # Process directories
     for dir_name in dirs_to_process:
         dir_path = root_dir / dir_name
         if dir_path.exists():
@@ -205,6 +205,7 @@ def main():
     print(f"   Files unchanged: {total_files - translated_files}")
     print("\n✅ Translation completed!")
     print("🎯 Atlas code now follows English-only development standards")
+
 
 if __name__ == "__main__":
     main()

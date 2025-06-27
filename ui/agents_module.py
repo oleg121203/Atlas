@@ -1,7 +1,19 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QInputDialog, QMessageBox, QFrame
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QAbstractItemView
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QFrame,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QListWidget,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
 from ui.i18n import _
+
 
 class AgentsModule(QWidget):
     def __init__(self, parent=None):
@@ -14,7 +26,9 @@ class AgentsModule(QWidget):
         layout.setSpacing(12)
 
         self.title = QLabel(_("🤖 Agents (Cyberpunk)"))
-        self.title.setStyleSheet("color: #00fff7; font-size: 22px; font-weight: bold; letter-spacing: 1px;")
+        self.title.setStyleSheet(
+            "color: #00fff7; font-size: 22px; font-weight: bold; letter-spacing: 1px;"
+        )
         layout.addWidget(self.title)
 
         self.list = QListWidget()
@@ -22,16 +36,22 @@ class AgentsModule(QWidget):
         self.list.setDragDropMode(QAbstractItemView.InternalMove)
         self.list.setDefaultDropAction(Qt.MoveAction)
         self.list.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.list.setStyleSheet("background: #181c20; color: #fff; border: 1px solid #00fff7; border-radius: 8px; font-size: 15px;")
+        self.list.setStyleSheet(
+            "background: #181c20; color: #fff; border: 1px solid #00fff7; border-radius: 8px; font-size: 15px;"
+        )
         layout.addWidget(self.list, stretch=1)
 
         btns = QHBoxLayout()
         self.add_btn = QPushButton(_("Add Agent"))
-        self.add_btn.setStyleSheet("background: #00fff7; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;")
+        self.add_btn.setStyleSheet(
+            "background: #00fff7; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
+        )
         self.add_btn.clicked.connect(self.add_agent)
         btns.addWidget(self.add_btn)
         self.del_btn = QPushButton(_("Delete Agent"))
-        self.del_btn.setStyleSheet("background: #23272e; color: #00fff7; border-radius: 6px; padding: 6px 18px;")
+        self.del_btn.setStyleSheet(
+            "background: #23272e; color: #00fff7; border-radius: 6px; padding: 6px 18px;"
+        )
         self.del_btn.clicked.connect(self.delete_agent)
         btns.addWidget(self.del_btn)
         layout.addLayout(btns)
@@ -56,15 +76,15 @@ class AgentsModule(QWidget):
         self.tool_widgets.clear()
         if not self.plugin_manager:
             return
-        for name, plugin in self.plugin_manager.plugins.items():
-            if plugin.active and hasattr(plugin, 'get_widget'):
+        for _name, plugin in self.plugin_manager.plugins.items():
+            if plugin.active and hasattr(plugin, "get_widget"):
                 widget = plugin.get_widget(self)
                 if widget:
                     self.tools_layout.addWidget(widget)
                     self.tool_widgets.append(widget)
 
     def add_agent(self):
-        text, ok = QInputDialog.getText(self, _( "Add Agent"), _( "Agent name:"))
+        text, ok = QInputDialog.getText(self, _("Add Agent"), _("Agent name:"))
         if ok and text:
             self.list.addItem(text)
 
@@ -73,7 +93,9 @@ class AgentsModule(QWidget):
         if row >= 0:
             self.list.takeItem(row)
         else:
-            QMessageBox.warning(self, _( "Delete Agent"), _( "Select an agent to delete."))
+            QMessageBox.warning(
+                self, _("Delete Agent"), _("Select an agent to delete.")
+            )
 
     def search(self, query):
         """Повертає список словників: {'label': ім'я агента, 'key': ім'я агента}"""
@@ -81,7 +103,7 @@ class AgentsModule(QWidget):
         for i in range(self.list.count()):
             text = self.list.item(i).text()
             if query.lower() in text.lower():
-                results.append({'label': text, 'key': text})
+                results.append({"label": text, "key": text})
         return results
 
     def select_by_key(self, key):
@@ -89,4 +111,4 @@ class AgentsModule(QWidget):
             if self.list.item(i).text() == key:
                 self.list.setCurrentRow(i)
                 self.list.scrollToItem(self.list.item(i))
-                break 
+                break

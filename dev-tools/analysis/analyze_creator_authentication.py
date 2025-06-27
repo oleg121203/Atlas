@@ -9,6 +9,7 @@ from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+
 def analyze_creator_session_management():
     """Аналіз management сесією creator"""
     print("🔐 АНАЛІЗ СИСТЕМИ АУТЕНТИФІКАЦІЇ ТВОРЦЯ")
@@ -33,15 +34,16 @@ def analyze_creator_session_management():
 
         print("\n📊 2. ПРИВІЛЕЇ ТВОРЦЯ ПІСЛЯ АКТИВАЦІЇ:")
 
-        #Симулюємо активацію для перевірки привілеїв
+        # Симулюємо активацію для перевірки привілеїв
         print("   Симулюємо аутентифікацію...")
         from modules.agents.creator_authentication import CreatorIdentityLevel
+
         auth.current_identity_level = CreatorIdentityLevel.VERIFIED_CREATOR
         auth.is_creator_session_active = True
         auth.current_session_id = "test_session"
         auth.session_start_time = datetime.now()
 
-        #Отримуємо privileges
+        # Отримуємо privileges
         should_execute = auth.should_execute_unconditionally()
         privileges = auth.get_creator_privileges()
 
@@ -51,7 +53,7 @@ def analyze_creator_session_management():
             status = "✅" if enabled else "❌"
             print(f"      {status} {privilege}: {enabled}")
 
-        #Емоційні відповіді
+        # Емоційні відповіді
         emotional_responses = [
             ("greeting", "Вітання"),
             ("gratitude", "Вдячність"),
@@ -64,7 +66,7 @@ def analyze_creator_session_management():
             response = auth.get_creator_emotional_response(context)
             print(f"      • {description}: '{response[:50]}...'")
 
-        #Status сесії
+        # Status сесії
         status = auth.get_authentication_status()
         print("\n   📊 Статус сесії:")
         for key, value in status.items():
@@ -80,6 +82,7 @@ def analyze_creator_session_management():
 
     except Exception as e:
         print(f"\n❌ Помилка при аналізі: {e}")
+
 
 def recommend_improvements():
     """Рекомендації для покращення системи"""
@@ -111,6 +114,7 @@ def recommend_improvements():
     print("   • Налаштування рівня привілеїв")
     print("   • Можливість тимчасового обмеження доступу")
     print("   • Різні рівні автентифікації (повний/обмежений)")
+
 
 def generate_timeout_implementation():
     """Generation коду для реалізації тайм-ауту"""
@@ -159,6 +163,7 @@ def extend_session(self) -> bool:
 
     print(timeout_code)
 
+
 def main():
     """Запуск повного аналізу"""
     analyze_creator_session_management()
@@ -185,6 +190,7 @@ def main():
 
     print("\n💡 РЕКОМЕНДАЦІЯ:")
     print("   Терміново реалізувати автоматичну деактивацію з тайм-аутом!")
+
 
 if __name__ == "__main__":
     main()

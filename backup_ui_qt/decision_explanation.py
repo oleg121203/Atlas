@@ -4,11 +4,22 @@ This module provides a UI for displaying explanations of AI decisions
 to enhance transparency and user trust within the Atlas application.
 """
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit, QPushButton, QMessageBox, QListWidget, QListWidgetItem, QHBoxLayout
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
-from core.ethics.ethical_guidelines import EthicalGuidelines
 import logging
+
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
+from core.ethics.ethical_guidelines import EthicalGuidelines
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +42,9 @@ class DecisionExplanation(QWidget):
         layout.addWidget(title)
 
         # Description
-        desc = QLabel("View detailed explanations of AI decisions, including the rationale and ethical considerations.")
+        desc = QLabel(
+            "View detailed explanations of AI decisions, including the rationale and ethical considerations."
+        )
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
@@ -76,8 +89,8 @@ class DecisionExplanation(QWidget):
                     "audit_log": True,
                     "bias_check": True,
                     "data_protection": True,
-                    "user_benefit": True
-                }
+                    "user_benefit": True,
+                },
             },
             {
                 "id": "DEC002",
@@ -88,19 +101,23 @@ class DecisionExplanation(QWidget):
                     "audit_log": True,
                     "bias_check": True,
                     "data_protection": False,
-                    "user_benefit": True
-                }
-            }
+                    "user_benefit": True,
+                },
+            },
         ]
         for decision in self.decisions:
-            self.decision_list.addItem(QListWidgetItem(f"{decision['id']}: {decision['title']}"))
+            self.decision_list.addItem(
+                QListWidgetItem(f"{decision['id']}: {decision['title']}")
+            )
 
     def show_decision_details(self, item):
         """Show detailed explanation of the selected decision."""
         index = self.decision_list.row(item)
         if index >= 0 and index < len(self.decisions):
             decision = self.decisions[index]
-            is_ethical, scores, explanation = self.ethics.is_action_ethical(decision['action'], decision['context'])
+            is_ethical, scores, explanation = self.ethics.is_action_ethical(
+                decision["action"], decision["context"]
+            )
             self.detail_view.setText(explanation)
 
     def submit_feedback(self, helpful):
@@ -108,7 +125,15 @@ class DecisionExplanation(QWidget):
         current_item = self.decision_list.currentItem()
         if current_item:
             index = self.decision_list.row(current_item)
-            decision_id = self.decisions[index]['id'] if index < len(self.decisions) else "Unknown"
+            decision_id = (
+                self.decisions[index]["id"]
+                if index < len(self.decisions)
+                else "Unknown"
+            )
             feedback_text = "helpful" if helpful else "not helpful"
             logger.info(f"User feedback on decision {decision_id}: {feedback_text}")
-            QMessageBox.information(self, "Feedback Received", "Thank you for your feedback on this AI decision.")
+            QMessageBox.information(
+                self,
+                "Feedback Received",
+                "Thank you for your feedback on this AI decision.",
+            )

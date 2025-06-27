@@ -29,16 +29,24 @@ class PlanView(ctk.CTkScrollableFrame):
 
     def display_plan(self, plan: Dict[str, Any]):
         """Renders the entire plan in the view asynchronously."""
+
         def display_plan_async():
             self.clear_plan()
 
             description = plan.get("description", "No description provided.")
-            desc_label = ctk.CTkLabel(self, text=f"Goal: {description}", font=ctk.CTkFont(weight="bold"), wraplength=400)
+            desc_label = ctk.CTkLabel(
+                self,
+                text=f"Goal: {description}",
+                font=ctk.CTkFont(weight="bold"),
+                wraplength=400,
+            )
             desc_label.pack(anchor="w", padx=10, pady=5)
 
             steps = plan.get("steps", [])
             if not steps:
-                no_steps_label = ctk.CTkLabel(self, text="No steps in this plan.", text_color="gray")
+                no_steps_label = ctk.CTkLabel(
+                    self, text="No steps in this plan.", text_color="gray"
+                )
                 no_steps_label.pack(anchor="w", padx=10, pady=5)
                 return
 
@@ -46,16 +54,21 @@ class PlanView(ctk.CTkScrollableFrame):
                 step_frame = ctk.CTkFrame(self, fg_color="transparent")
                 step_frame.pack(fill="x", padx=5, pady=2)
 
-                status_label = ctk.CTkLabel(step_frame, text="⏳", width=20) #Pending
+                status_label = ctk.CTkLabel(step_frame, text="⏳", width=20)  # Pending
                 status_label.pack(side="left", padx=(5, 10))
 
                 step_desc = step.get("description", "No description for this step.")
-                step_label = ctk.CTkLabel(step_frame, text=f"{i+1}. {step_desc}", wraplength=450, justify="left")
+                step_label = ctk.CTkLabel(
+                    step_frame,
+                    text=f"{i + 1}. {step_desc}",
+                    wraplength=450,
+                    justify="left",
+                )
                 step_label.pack(side="left", fill="x", expand=True)
 
                 self.step_widgets.append(step_frame)
 
-                #Create a container for details, but don't show it yet
+                # Create a container for details, but don't show it yet
                 details_frame = ctk.CTkFrame(self, fg_color="gray20")
                 self.details_frames.append(details_frame)
 
@@ -63,6 +76,7 @@ class PlanView(ctk.CTkScrollableFrame):
 
     def update_step_status(self, index: int, status: str, data: Dict[str, Any]):
         """Updates the visual status of a single step and shows details asynchronously."""
+
         def update_step_status_async():
             if index >= len(self.step_widgets):
                 return
@@ -71,11 +85,11 @@ class PlanView(ctk.CTkScrollableFrame):
             details_frame = self.details_frames[index]
             status_label = step_frame.winfo_children()[0]
 
-            #Clear previous details from the details frame
+            # Clear previous details from the details frame
             for widget in details_frame.winfo_children():
                 widget.destroy()
 
-            #Ensure details frame is visible by packing it if it's not already
+            # Ensure details frame is visible by packing it if it's not already
             if not details_frame.winfo_viewable():
                 details_frame.pack(fill="x", padx=(40, 5), pady=2, after=step_frame)
 
@@ -84,22 +98,41 @@ class PlanView(ctk.CTkScrollableFrame):
             args = step_info.get("arguments", {})
 
             if status == "start":
-                status_label.configure(text="⚙️") #Running
-                tool_label = ctk.CTkLabel(details_frame, text=f"Tool: {tool_name}", font=ctk.CTkFont(slant="italic"))
+                status_label.configure(text="⚙️")  # Running
+                tool_label = ctk.CTkLabel(
+                    details_frame,
+                    text=f"Tool: {tool_name}",
+                    font=ctk.CTkFont(slant="italic"),
+                )
                 tool_label.pack(anchor="w", padx=5)
-                args_label = ctk.CTkLabel(details_frame, text=f"Arguments: {args}", wraplength=400, justify="left")
+                args_label = ctk.CTkLabel(
+                    details_frame,
+                    text=f"Arguments: {args}",
+                    wraplength=400,
+                    justify="left",
+                )
                 args_label.pack(anchor="w", padx=5)
 
             elif status == "end":
                 if data.get("status") == "success":
-                    status_label.configure(text="✅") #Success
+                    status_label.configure(text="✅")  # Success
                     result = data.get("result", "No output.")
-                    result_label = ctk.CTkLabel(details_frame, text=f"Output: {result}", wraplength=400, justify="left")
+                    result_label = ctk.CTkLabel(
+                        details_frame,
+                        text=f"Output: {result}",
+                        wraplength=400,
+                        justify="left",
+                    )
                     result_label.pack(anchor="w", padx=5)
                 else:
-                    status_label.configure(text="❌") #Error
+                    status_label.configure(text="❌")  # Error
                     error_msg = data.get("error", "An unknown error occurred.")
-                    error_label = ctk.CTkLabel(details_frame, text=f"Error: {error_msg}", text_color="#E57373", wraplength=450)
+                    error_label = ctk.CTkLabel(
+                        details_frame,
+                        text=f"Error: {error_msg}",
+                        text_color="#E57373",
+                        wraplength=450,
+                    )
                     error_label.pack(anchor="w", padx=5)
 
         self.async_manager.submit_task(update_step_status_async)

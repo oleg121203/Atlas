@@ -1,7 +1,9 @@
-import os
 import importlib.util
+import os
 import sys
+
 from plugins.base import PluginBase
+
 
 class PluginManager:
     def __init__(self, plugins_dir="plugins"):
@@ -16,14 +18,20 @@ class PluginManager:
                 name = fname[:-3]
                 spec = importlib.util.spec_from_file_location(name, path)
                 if spec is None or spec.loader is None:
-                    print(f"[PluginManager] Failed to load {fname}: spec or loader is None")
+                    print(
+                        f"[PluginManager] Failed to load {fname}: spec or loader is None"
+                    )
                     continue
                 module = importlib.util.module_from_spec(spec)
                 try:
                     spec.loader.exec_module(module)
                     for attr in dir(module):
                         obj = getattr(module, attr)
-                        if isinstance(obj, type) and issubclass(obj, PluginBase) and obj is not PluginBase:
+                        if (
+                            isinstance(obj, type)
+                            and issubclass(obj, PluginBase)
+                            and obj is not PluginBase
+                        ):
                             instance = obj()
                             self.plugins[name] = instance
                 except Exception as e:
@@ -47,7 +55,11 @@ class PluginManager:
             spec.loader.exec_module(module)
             for attr in dir(module):
                 obj = getattr(module, attr)
-                if isinstance(obj, type) and issubclass(obj, PluginBase) and obj is not PluginBase:
+                if (
+                    isinstance(obj, type)
+                    and issubclass(obj, PluginBase)
+                    and obj is not PluginBase
+                ):
                     instance = obj()
                     self.plugins[name] = instance
                     print(f"[PluginManager] Reloaded plugin: {name}")
@@ -73,4 +85,4 @@ class PluginManager:
     def get_plugin_widget(self, name, parent=None):
         if name in self.plugins:
             return self.plugins[name].get_widget(parent)
-        return None 
+        return None

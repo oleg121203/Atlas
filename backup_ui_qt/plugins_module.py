@@ -1,8 +1,21 @@
-from typing import Optional, List, Dict
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QMessageBox, QFrame, QAbstractItemView
+from typing import Dict, List, Optional
+
 from PySide6.QtCore import Qt
-from ui.plugin_manager import PluginManager
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
 from ui.i18n import _
+from ui.plugin_manager import PluginManager
+
 
 class PluginsModule(QWidget):
     """Plugin management module with cyberpunk styling.
@@ -34,7 +47,9 @@ class PluginsModule(QWidget):
         layout.setSpacing(12)
 
         self.title = QLabel(_("🧩 Plugins"))
-        self.title.setStyleSheet("color: #ff00c8; font-size: 22px; font-weight: bold; letter-spacing: 1px;")
+        self.title.setStyleSheet(
+            "color: #ff00c8; font-size: 22px; font-weight: bold; letter-spacing: 1px;"
+        )
         layout.addWidget(self.title)
 
         self.list = QListWidget()
@@ -42,20 +57,28 @@ class PluginsModule(QWidget):
         self.list.setDragDropMode(QAbstractItemView.InternalMove)
         self.list.setDefaultDropAction(Qt.MoveAction)
         self.list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list.setStyleSheet("background: #181c20; color: #fff; border: 1px solid #ff00c8; border-radius: 8px; font-size: 15px;")
+        self.list.setStyleSheet(
+            "background: #181c20; color: #fff; border: 1px solid #ff00c8; border-radius: 8px; font-size: 15px;"
+        )
         layout.addWidget(self.list, stretch=1)
 
         btns = QHBoxLayout()
         self.activate_btn = QPushButton(_("Activate"))
-        self.activate_btn.setStyleSheet("background: #ff00c8; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;")
+        self.activate_btn.setStyleSheet(
+            "background: #ff00c8; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
+        )
         self.activate_btn.clicked.connect(self.activate_plugin)
         btns.addWidget(self.activate_btn)
         self.deactivate_btn = QPushButton(_("Deactivate"))
-        self.deactivate_btn.setStyleSheet("background: #23272e; color: #ff00c8; border-radius: 6px; padding: 6px 18px;")
+        self.deactivate_btn.setStyleSheet(
+            "background: #23272e; color: #ff00c8; border-radius: 6px; padding: 6px 18px;"
+        )
         self.deactivate_btn.clicked.connect(self.deactivate_plugin)
         btns.addWidget(self.deactivate_btn)
         self.reload_btn = QPushButton(_("Reload Plugins"))
-        self.reload_btn.setStyleSheet("background: #23272e; color: #ff00c8; border-radius: 6px; padding: 6px 18px; font-style: italic;")
+        self.reload_btn.setStyleSheet(
+            "background: #23272e; color: #ff00c8; border-radius: 6px; padding: 6px 18px; font-style: italic;"
+        )
         self.reload_btn.clicked.connect(self.reload_plugins)
         btns.addWidget(self.reload_btn)
         layout.addLayout(btns)
@@ -113,14 +136,16 @@ class PluginsModule(QWidget):
 
         # Add tools from active plugins
         for plugin in self.plugin_manager.plugins.values():
-            if plugin.active and hasattr(plugin, 'get_widget'):
+            if plugin.active and hasattr(plugin, "get_widget"):
                 try:
                     widget = plugin.get_widget(self)
                     if widget:
                         self.tools_layout.addWidget(widget)
                         self.tool_widgets.append(widget)
                 except Exception as e:
-                    self.logger.error(f"Error adding widget for plugin {plugin.name}: {e}")
+                    self.logger.error(
+                        f"Error adding widget for plugin {plugin.name}: {e}"
+                    )
                     continue
 
     def activate_plugin(self) -> None:
@@ -138,13 +163,14 @@ class PluginsModule(QWidget):
                 QMessageBox.warning(
                     self,
                     str(_("Error")) or "Error",
-                    f"{str(_('Failed to activate plugin:')) or 'Failed to activate plugin:'} {str(e)}"
+                    f"{str(_('Failed to activate plugin:')) or 'Failed to activate plugin:'} {str(e)}",
                 )
         else:
             QMessageBox.warning(
                 self,
                 str(_("Activate Plugin")) or "Activate Plugin",
-                str(_("Select a plugin to activate.")) or "Select a plugin to activate."
+                str(_("Select a plugin to activate."))
+                or "Select a plugin to activate.",
             )
 
     def deactivate_plugin(self) -> None:
@@ -162,13 +188,14 @@ class PluginsModule(QWidget):
                 QMessageBox.warning(
                     self,
                     str(_("Error")) or "Error",
-                    f"{str(_('Failed to deactivate plugin:')) or 'Failed to deactivate plugin:'} {str(e)}"
+                    f"{str(_('Failed to deactivate plugin:')) or 'Failed to deactivate plugin:'} {str(e)}",
                 )
         else:
             QMessageBox.warning(
                 self,
                 str(_("Deactivate Plugin")) or "Deactivate Plugin",
-                str(_("Select a plugin to deactivate.")) or "Select a plugin to deactivate."
+                str(_("Select a plugin to deactivate."))
+                or "Select a plugin to deactivate.",
             )
 
     def reload_plugins(self) -> None:
@@ -183,13 +210,13 @@ class PluginsModule(QWidget):
                 QMessageBox.information(
                     self,
                     str(_("Reload Plugins")) or "Reload Plugins",
-                    str(_("All plugins reloaded.")) or "All plugins reloaded."
+                    str(_("All plugins reloaded.")) or "All plugins reloaded.",
                 )
             except Exception as e:
                 QMessageBox.warning(
                     self,
                     str(_("Error")) or "Error",
-                    f"{str(_('Failed to reload plugins:')) or 'Failed to reload plugins:'} {str(e)}"
+                    f"{str(_('Failed to reload plugins:')) or 'Failed to reload plugins:'} {str(e)}",
                 )
 
     def search(self, query: str) -> List[Dict[str, str]]:
@@ -208,12 +235,11 @@ class PluginsModule(QWidget):
         try:
             for plugin in self.plugin_manager.plugins.values():
                 info = plugin.info()
-                label = f"{info.get('name', plugin.name)}: {info.get('description', '')}"
+                label = (
+                    f"{info.get('name', plugin.name)}: {info.get('description', '')}"
+                )
                 if query.lower() in label.lower():
-                    results.append({
-                        'label': label,
-                        'key': plugin.name
-                    })
+                    results.append({"label": label, "key": plugin.name})
         except Exception as e:
             self.logger.error(f"Error searching plugins: {e}")
         return results

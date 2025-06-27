@@ -28,6 +28,7 @@ def extract_docstrings(file_path: str) -> Dict[str, Any]:
 
     return docstrings
 
+
 def generate_module_docs(module_path: Path) -> str:
     """Generate documentation for a Python module."""
     docs = []
@@ -62,6 +63,7 @@ def generate_module_docs(module_path: Path) -> str:
 
     return "\n".join(docs)
 
+
 def main():
     """Generate documentation for Atlas project."""
     root_dir = Path()
@@ -92,6 +94,7 @@ def main():
 
     print("Documentation generation completed!")
     print(f"Generated documentation in: {docs_dir}")
+
 
 if __name__ == "__main__":
     main()

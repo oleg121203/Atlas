@@ -5,16 +5,18 @@ This module provides the core functionality for executing workflows in Atlas.
 It implements transactional execution, error handling, logging, and state persistence.
 """
 
-import logging
 import json
-from typing import Dict, List, Any, Optional
-from datetime import datetime
+import logging
 import sqlite3
-import os
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class WorkflowEngine:
     def __init__(self, db_path: str = "workflow_state.db"):
@@ -57,10 +59,13 @@ class WorkflowEngine:
         try:
             cursor = self.conn.cursor()
             state_json = json.dumps(initial_state)
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT OR REPLACE INTO workflow_state (workflow_id, state, last_updated)
                 VALUES (?, ?, ?)
-            """, (workflow_id, state_json, datetime.now()))
+            """,
+                (workflow_id, state_json, datetime.now()),
+            )
             self.conn.commit()
             logger.info(f"Started workflow {workflow_id} with initial state.")
         except sqlite3.Error as e:
@@ -87,7 +92,9 @@ class WorkflowEngine:
 
         try:
             result = action(*args, **kwargs)
-            logger.info(f"Successfully executed action in workflow {self.current_workflow_id}")
+            logger.info(
+                f"Successfully executed action in workflow {self.current_workflow_id}"
+            )
             return result
         except Exception as e:
             logger.error(f"Action failed in workflow {self.current_workflow_id}: {e}")
@@ -106,15 +113,20 @@ class WorkflowEngine:
         try:
             cursor = self.conn.cursor()
             state_json = json.dumps(new_state)
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE workflow_state
                 SET state = ?, last_updated = ?
                 WHERE workflow_id = ?
-            """, (state_json, datetime.now(), self.current_workflow_id))
+            """,
+                (state_json, datetime.now(), self.current_workflow_id),
+            )
             self.conn.commit()
             logger.info(f"Updated state for workflow {self.current_workflow_id}")
         except sqlite3.Error as e:
-            logger.error(f"Failed to update state for workflow {self.current_workflow_id}: {e}")
+            logger.error(
+                f"Failed to update state for workflow {self.current_workflow_id}: {e}"
+            )
             self.conn.rollback()
             raise
 
@@ -129,7 +141,9 @@ class WorkflowEngine:
         """
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT state FROM workflow_state WHERE workflow_id = ?", (workflow_id,))
+            cursor.execute(
+                "SELECT state FROM workflow_state WHERE workflow_id = ?", (workflow_id,)
+            )
             result = cursor.fetchone()
             if result:
                 state = json.loads(result[0])
@@ -149,7 +163,10 @@ class WorkflowEngine:
 
         try:
             cursor = self.conn.cursor()
-            cursor.execute("DELETE FROM workflow_state WHERE workflow_id = ?", (self.current_workflow_id,))
+            cursor.execute(
+                "DELETE FROM workflow_state WHERE workflow_id = ?",
+                (self.current_workflow_id,),
+            )
             self.conn.commit()
             logger.info(f"Completed and cleaned up workflow {self.current_workflow_id}")
             self.current_workflow_id = None

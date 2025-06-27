@@ -6,10 +6,13 @@ This module initializes Sentry SDK for monitoring application crashes and errors
 import sentry_sdk
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 
-def init_sentry(dsn: str, environment: str = "production", release: str = "atlas@1.0.0") -> None:
+
+def init_sentry(
+    dsn: str, environment: str = "production", release: str = "atlas@1.0.0"
+) -> None:
     """
     Initialize Sentry SDK with the provided DSN and configuration.
-    
+
     Args:
         dsn (str): Data Source Name for Sentry project.
         environment (str): Deployment environment (e.g., production, staging).
@@ -27,6 +30,7 @@ def init_sentry(dsn: str, environment: str = "production", release: str = "atlas
         profiles_sample_rate=1.0,
     )
     print("Sentry SDK initialized successfully.")
+
 
 # Example usage in main application
 if __name__ == "__main__":

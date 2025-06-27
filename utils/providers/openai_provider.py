@@ -9,9 +9,11 @@ from typing import Any, Dict, List, Optional
 
 try:
     from openai import OpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
+
 
 class OpenAIProvider:
     """Manages interactions with OpenAI API."""
@@ -26,12 +28,16 @@ class OpenAIProvider:
     def _initialize_client(self):
         """Initializes the OpenAI client using the API key from the config."""
         if not OPENAI_AVAILABLE:
-            self.logger.warning("OpenAI library not installed. OpenAI client is not available.")
+            self.logger.warning(
+                "OpenAI library not installed. OpenAI client is not available."
+            )
             return
 
         api_key = self.config_manager.get_openai_api_key()
         if not api_key or not api_key.strip() or "placeholder" in api_key.lower():
-            self.logger.warning("OpenAI API key not found or invalid. OpenAI client is not available.")
+            self.logger.warning(
+                "OpenAI API key not found or invalid. OpenAI client is not available."
+            )
             return
 
         try:
@@ -45,7 +51,13 @@ class OpenAIProvider:
         """Check if OpenAI provider is available."""
         return self.client is not None
 
-    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, max_tokens: Optional[int] = None) -> Dict[str, Any]:
+    def chat(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """Handle OpenAI chat requests."""
         if not self.is_available():
             raise ValueError("OpenAI client is not initialized.")
@@ -68,13 +80,21 @@ class OpenAIProvider:
                 "tool_calls": message.tool_calls,
                 "prompt_tokens": response.usage.prompt_tokens,
                 "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens
+                "total_tokens": response.usage.total_tokens,
             }
         except Exception as e:
             self.logger.error(f"OpenAI API error: {e}", exc_info=True)
-            return {"content": "", "tool_calls": None, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+            return {
+                "content": "",
+                "tool_calls": None,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            }
 
-    def get_embedding(self, text: str, model: str = "text-embedding-ada-002") -> List[float]:
+    def get_embedding(
+        self, text: str, model: str = "text-embedding-ada-002"
+    ) -> List[float]:
         """Generates an embedding for the given text using OpenAI API."""
         if not self.is_available():
             self.logger.error("Cannot generate embedding, OpenAI client not available.")

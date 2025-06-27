@@ -1,5 +1,6 @@
 from typing import Callable, Dict, List
 
+
 class EventBus:
     def __init__(self):
         self._listeners: Dict[str, List[Callable]] = {}

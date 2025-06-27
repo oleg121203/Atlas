@@ -5,8 +5,8 @@ This module implements strategies to optimize memory usage in the Atlas applicat
 
 import gc
 import logging
-from collections import deque
 import weakref
+from collections import deque
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ class MemoryOptimizer:
             list: A page of data.
         """
         for i in range(0, len(data_list), page_size):
-            yield data_list[i:i + page_size]
+            yield data_list[i : i + page_size]
             logger.info(f"Yielded page of data, index {i}")
 
     def clear_cache(self, data_id: str = None):

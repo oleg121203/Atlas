@@ -3,8 +3,8 @@
 import asyncio
 import json
 import time
-import sys
 from typing import Dict, List, Optional
+
 import websockets
 from websockets.server import WebSocketServerProtocol
 
@@ -18,7 +18,9 @@ class WebSocketServer:
         self.clients: Dict[str, List[WebSocketServerProtocol]] = {}
         self.server = None
 
-    async def handle_connection(self, websocket: WebSocketServerProtocol, path: str = ''):
+    async def handle_connection(
+        self, websocket: WebSocketServerProtocol, path: str = ""
+    ):
         """Handle incoming WebSocket connections."""
         client_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
         if path not in self.clients:
@@ -28,7 +30,7 @@ class WebSocketServer:
         try:
             async for message in websocket:
                 data = json.loads(message)
-                data['timestamp'] = time.time()
+                data["timestamp"] = time.time()
                 await self.broadcast(path, data, exclude=websocket)
         except Exception as e:
             print(f"Error handling client {client_id}: {e}")
@@ -37,11 +39,16 @@ class WebSocketServer:
                 self.clients[path].remove(websocket)
             print(f"Client disconnected: {client_id} from path {path}")
 
-    async def broadcast(self, path: str, message: dict, exclude: Optional[WebSocketServerProtocol] = None):
+    async def broadcast(
+        self,
+        path: str,
+        message: dict,
+        exclude: Optional[WebSocketServerProtocol] = None,
+    ):
         """Broadcast message to all connected clients on the specified path except the excluded one."""
         if path not in self.clients:
             return
-        
+
         message_str = json.dumps(message)
         tasks = []
         for client in self.clients[path]:
@@ -65,7 +72,7 @@ class WebSocketServer:
             self.handle_connection,
             "localhost",
             self.port,
-            process_request=self.handshake
+            process_request=self.handshake,
         )
         print(f"WebSocket server started on ws://localhost:{self.port}")
         # Add a longer delay to ensure server is fully initialized
@@ -81,25 +88,39 @@ class WebSocketServer:
     async def handshake(self, path, request_headers):
         """Handle WebSocket handshake."""
         # Safely extract path, default to empty string if not possible
-        actual_path = path if isinstance(path, str) else ''
+        actual_path = path if isinstance(path, str) else ""
         if not actual_path:
             # For newer websockets versions, request_headers might be a Request object
             try:
-                headers_dict = dict(request_headers.headers) if hasattr(request_headers, 'headers') else {}
-                if 'Host' in headers_dict:
+                headers_dict = (
+                    dict(request_headers.headers)
+                    if hasattr(request_headers, "headers")
+                    else {}
+                )
+                if "Host" in headers_dict:
                     # Extract path from the request URI if available
-                    actual_path = request_headers.path if hasattr(request_headers, 'path') else ''
-                    if not actual_path and hasattr(request_headers, 'uri'):
-                        actual_path = request_headers.uri.split('?')[0] if '?' in request_headers.uri else request_headers.uri
+                    actual_path = (
+                        request_headers.path if hasattr(request_headers, "path") else ""
+                    )
+                    if not actual_path and hasattr(request_headers, "uri"):
+                        actual_path = (
+                            request_headers.uri.split("?")[0]
+                            if "?" in request_headers.uri
+                            else request_headers.uri
+                        )
             except Exception as e:
                 print(f"Error extracting path from headers: {e}")
         print(f"Handshake attempt for path: {actual_path}")
         try:
-            headers_to_print = dict(request_headers.headers) if hasattr(request_headers, 'headers') else request_headers
+            headers_to_print = (
+                dict(request_headers.headers)
+                if hasattr(request_headers, "headers")
+                else request_headers
+            )
             print(f"Request headers: {headers_to_print}")
         except Exception as e:
             print(f"Error printing headers: {e}")
-        if '/tasks/' in actual_path or actual_path == '/tasks/test_task':
+        if "/tasks/" in actual_path or actual_path == "/tasks/test_task":
             print("Path accepted, connection allowed")
             return None  # Return None to accept the connection
         print("Path rejected, but returning None to bypass assertion error")
@@ -120,7 +141,9 @@ class WebSocketServer:
 class WebSocketClient:
     """Manages WebSocket client for real-time collaboration."""
 
-    def __init__(self, uri: str = "ws://localhost:8767", path: str = "/tasks", timeout: int = 5):
+    def __init__(
+        self, uri: str = "ws://localhost:8767", path: str = "/tasks", timeout: int = 5
+    ):
         """Initialize WebSocket client."""
         self.url = uri + path
         self.timeout = timeout
@@ -133,9 +156,13 @@ class WebSocketClient:
         max_retries = 5
         for attempt in range(max_retries):
             try:
-                print(f"Attempting connection to {self.url} with timeout {self.timeout}s")
-                print(f"Connection attempt {attempt+1}/{max_retries}")
-                self.websocket = await asyncio.wait_for(websockets.connect(self.url), timeout=self.timeout)
+                print(
+                    f"Attempting connection to {self.url} with timeout {self.timeout}s"
+                )
+                print(f"Connection attempt {attempt + 1}/{max_retries}")
+                self.websocket = await asyncio.wait_for(
+                    websockets.connect(self.url), timeout=self.timeout
+                )
                 print(f"Connected to {self.url}")
                 return True
             except asyncio.TimeoutError:
@@ -143,7 +170,7 @@ class WebSocketClient:
             except Exception as e:
                 print(f"Connection error: {e}")
             if attempt < max_retries - 1:
-                delay = 2 ** attempt
+                delay = 2**attempt
                 print(f"Retrying in {delay} seconds...")
                 await asyncio.sleep(delay)
         print(f"Failed to connect to {self.url} after {max_retries} attempts")
@@ -152,7 +179,7 @@ class WebSocketClient:
 
     async def send_update(self, update_data: dict):
         """Send an update through the WebSocket connection."""
-        if hasattr(self, 'websocket') and self.websocket is not None:
+        if hasattr(self, "websocket") and self.websocket is not None:
             try:
                 await self.websocket.send(json.dumps(update_data))
             except Exception as e:
@@ -163,7 +190,7 @@ class WebSocketClient:
 
     async def listen(self, callback):
         """Listen for incoming messages and invoke callback."""
-        if not hasattr(self, 'websocket') or self.websocket is None:
+        if not hasattr(self, "websocket") or self.websocket is None:
             print("WebSocket is not initialized")
             return
         try:
@@ -223,5 +250,5 @@ class CollaborationManager:
         if not updates:
             return {}
         # Sort by timestamp to get the latest update
-        latest_update = max(updates, key=lambda x: x.get('timestamp', 0))
+        latest_update = max(updates, key=lambda x: x.get("timestamp", 0))
         return latest_update

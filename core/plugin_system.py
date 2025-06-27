@@ -4,39 +4,49 @@ Standardized plugin architecture for Atlas.
 This module defines the core plugin system, including plugin discovery,
 loading, lifecycle management, and integration with the application.
 """
-import os
+
 import importlib
 import logging
-from typing import Dict, List, Type, Optional
+import os
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class PluginMetadata:
     """Metadata describing a plugin"""
-    
-    def __init__(self, name: str, version: str, description: str, author: str,
-                 category: str, dependencies: Optional[List[str]] = None):
+
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        description: str,
+        author: str,
+        category: str,
+        dependencies: Optional[List[str]] = None,
+    ):
         self.name = name
         self.version = version
         self.description = description
         self.author = author
         self.category = category
         self.dependencies = dependencies or []
-    
+
     def to_dict(self) -> Dict[str, str]:
         """Convert metadata to dictionary
-        
+
         Returns:
             Dict[str, str]: Dictionary representation of the metadata
         """
         return {
-            'name': self.name,
-            'version': self.version,
-            'description': self.description,
-            'author': self.author,
-            'category': self.category,
-            'dependencies': self.dependencies
+            "name": self.name,
+            "version": self.version,
+            "description": self.description,
+            "author": self.author,
+            "category": self.category,
+            "dependencies": self.dependencies,
         }
+
 
 class PluginBase:
     """Base class for all Atlas plugins."""
@@ -62,8 +72,9 @@ class PluginBase:
         return {
             "name": self.name,
             "version": self.version,
-            "status": "active" if self.is_active else "inactive"
+            "status": "active" if self.is_active else "inactive",
         }
+
 
 class PluginRegistry:
     """Manages plugin discovery, loading, and lifecycle."""
@@ -76,16 +87,20 @@ class PluginRegistry:
     def discover_plugins(self) -> List[str]:
         """Discover available plugins in the plugin directory."""
         plugin_names = []
-        plugin_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', self.plugin_dir)
-        
+        plugin_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", self.plugin_dir
+        )
+
         if not os.path.exists(plugin_path):
             logger.warning(f"Plugin directory not found: {plugin_path}")
             return plugin_names
 
         for entry in os.listdir(plugin_path):
-            if os.path.isdir(os.path.join(plugin_path, entry)) and not entry.startswith('__'):
+            if os.path.isdir(os.path.join(plugin_path, entry)) and not entry.startswith(
+                "__"
+            ):
                 plugin_names.append(entry)
-            elif entry.endswith('.py') and not entry.startswith('__'):
+            elif entry.endswith(".py") and not entry.startswith("__"):
                 plugin_names.append(entry[:-3])
 
         logger.info(f"Discovered plugins: {plugin_names}")
@@ -139,6 +154,7 @@ class PluginRegistry:
     def get_all_plugins(self) -> Dict[str, PluginBase]:
         """Get all loaded plugins."""
         return self.plugins
+
 
 # Global plugin registry instance
 PLUGIN_REGISTRY = PluginRegistry()

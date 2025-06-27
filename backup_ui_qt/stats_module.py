@@ -1,5 +1,7 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+
 from ui.i18n import _
+
 
 class StatsModule(QWidget):
     def __init__(self, parent=None):
@@ -10,7 +12,9 @@ class StatsModule(QWidget):
         layout.setSpacing(12)
 
         self.title = QLabel(_("📊 Stats"))
-        self.title.setStyleSheet("color: #ffea00; font-size: 22px; font-weight: bold; letter-spacing: 1px;")
+        self.title.setStyleSheet(
+            "color: #ffea00; font-size: 22px; font-weight: bold; letter-spacing: 1px;"
+        )
         layout.addWidget(self.title)
 
         self.stats_label = QLabel(_("No stats available yet."))
@@ -19,4 +23,4 @@ class StatsModule(QWidget):
 
     def update_ui(self):
         self.title.setText(_("📊 Stats"))
-        self.stats_label.setText(_("No stats available yet.")) 
+        self.stats_label.setText(_("No stats available yet."))

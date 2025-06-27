@@ -1,8 +1,20 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QSlider, QHBoxLayout, QVBoxLayout, QStatusBar, QMessageBox
-from PySide6.QtCore import Qt
 import logging
 
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QSlider,
+    QStatusBar,
+    QVBoxLayout,
+    QWidget,
+)
+
 logger = logging.getLogger(__name__)
+
 
 class SystemControlModule(QWidget):
     def __init__(self, parent=None):
@@ -95,20 +107,25 @@ class SystemControlModule(QWidget):
         layout.addWidget(self.status_bar)
 
     def _show_help(self):
-        QMessageBox.information(self, "System Control Help",
+        QMessageBox.information(
+            self,
+            "System Control Help",
             "• Mute/Unmute: Control system audio.\n"
             "• Sleep Mac: Put your Mac to sleep.\n"
             "• Open App: Launch any app by name (e.g., Safari, Zoom.us).\n"
             "• Set Volume: Adjust system volume with the slider.\n"
             "• Refresh: Update current volume or running apps.\n"
             "• Status bar: See last action/result.\n"
-            "\nTip: Hover over any button for a tooltip.")
+            "\nTip: Hover over any button for a tooltip.",
+        )
 
     def _mute(self):
-        if hasattr(self, 'agent_manager') and self.agent_manager:
+        if hasattr(self, "agent_manager") and self.agent_manager:
             try:
-                if hasattr(self.agent_manager, 'execute_tool'):
-                    result = self.agent_manager.execute_tool("system_event", {"event": "mute"})
+                if hasattr(self.agent_manager, "execute_tool"):
+                    result = self.agent_manager.execute_tool(
+                        "system_event", {"event": "mute"}
+                    )
                     self._show_feedback(result)
                     self._refresh_volume()
                     self._set_status("Muted system audio.")
@@ -120,10 +137,12 @@ class SystemControlModule(QWidget):
             logger.warning("Agent manager not set, skipping mute")
 
     def _unmute(self):
-        if hasattr(self, 'agent_manager') and self.agent_manager:
+        if hasattr(self, "agent_manager") and self.agent_manager:
             try:
-                if hasattr(self.agent_manager, 'execute_tool'):
-                    result = self.agent_manager.execute_tool("system_event", {"event": "unmute"})
+                if hasattr(self.agent_manager, "execute_tool"):
+                    result = self.agent_manager.execute_tool(
+                        "system_event", {"event": "unmute"}
+                    )
                     self._show_feedback(result)
                     self._refresh_volume()
                     self._set_status("Unmuted system audio.")
@@ -135,10 +154,12 @@ class SystemControlModule(QWidget):
             logger.warning("Agent manager not set, skipping unmute")
 
     def _sleep(self):
-        if hasattr(self, 'agent_manager') and self.agent_manager:
+        if hasattr(self, "agent_manager") and self.agent_manager:
             try:
-                if hasattr(self.agent_manager, 'execute_tool'):
-                    result = self.agent_manager.execute_tool("system_event", {"event": "sleep"})
+                if hasattr(self.agent_manager, "execute_tool"):
+                    result = self.agent_manager.execute_tool(
+                        "system_event", {"event": "sleep"}
+                    )
                     self._show_feedback(result)
                     self._set_status("Put Mac to sleep.")
                 else:
@@ -149,35 +170,53 @@ class SystemControlModule(QWidget):
             logger.warning("Agent manager not set, skipping sleep")
 
     def _open_app(self):
-        if hasattr(self, 'agent_manager') and self.agent_manager:
+        if hasattr(self, "agent_manager") and self.agent_manager:
             try:
-                if hasattr(self.agent_manager, 'execute_tool'):
+                if hasattr(self.agent_manager, "execute_tool"):
                     app = self.app_entry.text().strip()
                     if app:
-                        result = self.agent_manager.execute_tool("system_event", {"event": "open_app", "app_name": app})
+                        result = self.agent_manager.execute_tool(
+                            "system_event", {"event": "open_app", "app_name": app}
+                        )
                         self._show_feedback(result)
                         self._set_status(f"Opened {app}.")
                         self.app_entry.clear()
                     else:
-                        self._show_feedback({"status": "error", "error": "Please enter an app name."})
+                        self._show_feedback(
+                            {"status": "error", "error": "Please enter an app name."}
+                        )
                         self._set_status("No app name entered.")
                 else:
-                    self._execute_tool_fallback("system_event", {"event": "open_app", "app_name": self.app_entry.text().strip()})
+                    self._execute_tool_fallback(
+                        "system_event",
+                        {
+                            "event": "open_app",
+                            "app_name": self.app_entry.text().strip(),
+                        },
+                    )
             except Exception as e:
                 logger.error(f"Error during open app: {e}")
         else:
             logger.warning("Agent manager not set, skipping open app")
 
     def _set_volume(self):
-        if hasattr(self, 'agent_manager') and self.agent_manager:
+        if hasattr(self, "agent_manager") and self.agent_manager:
             try:
-                if hasattr(self.agent_manager, 'execute_tool'):
+                if hasattr(self.agent_manager, "execute_tool"):
                     vol = int(self.volume_slider.value())
-                    result = self.agent_manager.execute_tool("system_event", {"event": "set_volume", "value": vol})
+                    result = self.agent_manager.execute_tool(
+                        "system_event", {"event": "set_volume", "value": vol}
+                    )
                     self._show_feedback(result)
                     self._set_status(f"Set volume to {vol}%.")
                 else:
-                    self._execute_tool_fallback("system_event", {"event": "set_volume", "value": int(self.volume_slider.value())})
+                    self._execute_tool_fallback(
+                        "system_event",
+                        {
+                            "event": "set_volume",
+                            "value": int(self.volume_slider.value()),
+                        },
+                    )
             except Exception as e:
                 logger.error(f"Error during set volume: {e}")
         else:
@@ -185,10 +224,12 @@ class SystemControlModule(QWidget):
 
     def _refresh_volume(self):
         """Refresh the current volume level."""
-        if hasattr(self, 'agent_manager') and self.agent_manager:
+        if hasattr(self, "agent_manager") and self.agent_manager:
             try:
-                if hasattr(self.agent_manager, 'execute_tool'):
-                    result = self.agent_manager.execute_tool("system_event", {"event": "get_volume"})
+                if hasattr(self.agent_manager, "execute_tool"):
+                    result = self.agent_manager.execute_tool(
+                        "system_event", {"event": "get_volume"}
+                    )
                     if result and "volume" in result:
                         self.volume_slider.setValue(int(result["volume"]))
                         self.volume_label.setText(f"Volume: {result['volume']}%")
@@ -200,10 +241,12 @@ class SystemControlModule(QWidget):
             logger.warning("Agent manager not set, skipping volume refresh")
 
     def _refresh_apps(self):
-        if hasattr(self, 'agent_manager') and self.agent_manager:
+        if hasattr(self, "agent_manager") and self.agent_manager:
             try:
-                if hasattr(self.agent_manager, 'execute_tool'):
-                    result = self.agent_manager.execute_tool("system_event", {"event": "get_running_apps"})
+                if hasattr(self.agent_manager, "execute_tool"):
+                    result = self.agent_manager.execute_tool(
+                        "system_event", {"event": "get_running_apps"}
+                    )
                     if result.get("status") == "success":
                         self.apps_label.setText(f"Running Apps: {result.get('output')}")
                         self._set_status("Updated running apps.")
@@ -211,15 +254,21 @@ class SystemControlModule(QWidget):
                         self.apps_label.setText("Running Apps: ?")
                         self._set_status("Could not get running apps.")
                 else:
-                    self._execute_tool_fallback("system_event", {"event": "get_running_apps"})
+                    self._execute_tool_fallback(
+                        "system_event", {"event": "get_running_apps"}
+                    )
             except Exception as e:
                 logger.error(f"Error during refresh apps: {e}")
         else:
             logger.warning("Agent manager not set, skipping refresh apps")
 
     def _execute_tool_fallback(self, tool_name, params):
-        logger.warning(f"Agent manager does not have execute_tool method, skipping {tool_name}")
-        self._set_status(f"Error: Agent manager does not have execute_tool method for {tool_name}")
+        logger.warning(
+            f"Agent manager does not have execute_tool method, skipping {tool_name}"
+        )
+        self._set_status(
+            f"Error: Agent manager does not have execute_tool method for {tool_name}"
+        )
 
     def _show_feedback(self, result):
         if result.get("status") == "success":

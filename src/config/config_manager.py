@@ -1,8 +1,9 @@
-from pydantic import BaseModel, validator
-from typing import Dict, Any, Optional
-import yaml
-import os
 from pathlib import Path
+from typing import Any, Dict, Optional
+
+import yaml
+from pydantic import BaseModel, validator
+
 
 class DatabaseConfig(BaseModel):
     host: str = "localhost"
@@ -12,20 +13,18 @@ class DatabaseConfig(BaseModel):
     password: str
     pool_size: int = 10
 
-    @validator('port')
+    @validator("port")
     def validate_port(cls, v):
         if not 1 <= v <= 65535:
-            raise ValueError('Port must be between 1 and 65535')
+            raise ValueError("Port must be between 1 and 65535")
         return v
+
 
 class MonitoringConfig(BaseModel):
     enabled: bool = True
     metrics_interval: int = 30
-    alert_thresholds: Dict[str, float] = {
-        "cpu": 80.0,
-        "memory": 85.0,
-        "disk": 90.0
-    }
+    alert_thresholds: Dict[str, float] = {"cpu": 80.0, "memory": 85.0, "disk": 90.0}
+
 
 class AtlasConfig(BaseModel):
     debug: bool = False
@@ -38,6 +37,7 @@ class AtlasConfig(BaseModel):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
+
 class ConfigManager:
     def __init__(self, config_path: str = "config.yaml"):
         self.config_path = Path(config_path)
@@ -49,7 +49,7 @@ class ConfigManager:
         if not self.config_path.exists():
             raise FileNotFoundError(f"Config file not found: {self.config_path}")
 
-        with open(self.config_path, 'r', encoding='utf-8') as f:
+        with open(self.config_path, "r", encoding="utf-8") as f:
             config_data = yaml.safe_load(f)
 
         self.config = AtlasConfig(**config_data)
@@ -60,7 +60,7 @@ class ConfigManager:
 
     def get(self, key: str, default: Any = None):
         """Отримує значення конфігурації"""
-        keys = key.split('.')
+        keys = key.split(".")
         value = self.config.dict()
 
         for k in keys:

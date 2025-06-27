@@ -112,5 +112,6 @@ class MetricsManager:
         self.plan_generation_latencies.clear()
         self.plan_execution_latencies.clear()
 
+
 # Singleton instance to be used across the application
 metrics_manager: MetricsManager = MetricsManager()

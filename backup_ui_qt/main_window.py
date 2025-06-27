@@ -1,47 +1,100 @@
-from typing import Optional, Any, Dict
-from PySide6.QtWidgets import QMainWindow, QApplication, QDockWidget, QWidget, QTabWidget, QMessageBox, QVBoxLayout, QPushButton, QLabel, QStatusBar, QToolBar, QStackedWidget, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QMenuBar, QMenu, QFrame, QCheckBox
-from PySide6.QtCore import Qt, QSize, QTimer, Signal, Slot, QThreadPool, QRunnable, QObject
-from PySide6.QtGui import QIcon, QFont, QTextCharFormat, QColor, QAction
-
-import sys
-import os
-import json
 import logging
-import traceback
-import threading
 import time
+import traceback
+from typing import Any, Dict, Optional
 
 # Import Atlas modules
 from modules.agents.context_analyzer import ContextAnalyzer
-from modules.agents.task_planner_agent import TaskPlannerAgent
 from modules.agents.self_learning_agent import SelfLearningAgent
-from modules.chat.chat_logic import ChatProcessor
+from modules.agents.task_planner_agent import TaskPlannerAgent
+from PySide6.QtCore import (
+    QObject,
+    QRunnable,
+    QSize,
+    Qt,
+    QThreadPool,
+    QTimer,
+    Signal,
+    Slot,
+)
+from PySide6.QtGui import QAction, QColor, QFont, QIcon, QTextCharFormat
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDockWidget,
+    QFrame,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
+    QMenu,
+    QMenuBar,
+    QMessageBox,
+    QPushButton,
+    QStackedWidget,
+    QStatusBar,
+    QTabWidget,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+
+from core.event_bus import EventBus
 from ui.chat_module import ChatModule
-from ui.tasks_module import TasksModule
-from ui.plugins_module import PluginsModule
-from ui.settings_module import SettingsModule
-from ui.stats_module import StatsModule
-from ui.plugin_manager import PluginManager
-from ui.i18n import _, set_language
-from ui.system_control_module import SystemControlModule
-from ui.self_improvement_center import SelfImprovementCenter
-from ui.plugin_marketplace_module import PluginMarketplace
 from ui.consent_manager import ConsentManager
 from ui.decision_explanation import DecisionExplanation
+from ui.i18n import _, set_language
+from ui.plugin_manager import PluginManager
+from ui.plugin_marketplace_module import PluginMarketplace
+from ui.plugins_module import PluginsModule
+from ui.self_improvement_center import SelfImprovementCenter
+from ui.settings_module import SettingsModule
+from ui.stats_module import StatsModule
+from ui.system_control_module import SystemControlModule
+from ui.tasks_module import TasksModule
 from utils.logger import get_logger
 from utils.memory_management import MemoryManager
-from utils.event_bus import EventBus
-from ui.module_communication import EVENT_BUS, register_module_events, publish_module_event
-from core.event_bus import EventBus
-from core.agents.meta_agent import MetaAgent
 
 logger = get_logger()
 
 print("DEBUG: Importing modules for main_window")
 try:
-    from PySide6.QtWidgets import QMainWindow, QApplication, QDockWidget, QWidget, QTabWidget, QMessageBox, QVBoxLayout, QPushButton, QLabel, QStatusBar, QToolBar, QStackedWidget, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QMenuBar, QMenu, QFrame, QCheckBox
-    from PySide6.QtCore import Qt, QSize, QTimer, Signal, Slot, QThreadPool, QRunnable, QObject
-    from PySide6.QtGui import QIcon, QFont, QTextCharFormat, QColor
+    from PySide6.QtCore import (
+        QObject,
+        QRunnable,
+        QSize,
+        Qt,
+        QThreadPool,
+        QTimer,
+        Signal,
+        Slot,
+    )
+    from PySide6.QtGui import QColor, QFont, QIcon, QTextCharFormat
+    from PySide6.QtWidgets import (
+        QApplication,
+        QCheckBox,
+        QComboBox,
+        QDockWidget,
+        QFrame,
+        QLabel,
+        QLineEdit,
+        QListWidget,
+        QListWidgetItem,
+        QMainWindow,
+        QMenu,
+        QMenuBar,
+        QMessageBox,
+        QPushButton,
+        QStackedWidget,
+        QStatusBar,
+        QTabWidget,
+        QToolBar,
+        QVBoxLayout,
+        QWidget,
+    )
+
     QT_AVAILABLE = True
 except ImportError as e:
     QT_AVAILABLE = False
@@ -49,69 +102,94 @@ except ImportError as e:
 
 # Workaround for potential module misplacement
 try:
-    from PySide6.QtWidgets import QMainWindow, QApplication, QDockWidget, QWidget, QTabWidget, QMessageBox, QVBoxLayout, QPushButton, QLabel, QStatusBar, QToolBar, QStackedWidget, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QMenuBar, QMenu, QFrame, QCheckBox
-    from PySide6.QtCore import Qt, QSize, QTimer, Signal, Slot, QThreadPool, QRunnable, QObject
-    from PySide6.QtGui import QIcon, QFont, QTextCharFormat, QColor
+    from PySide6.QtCore import (
+        QObject,
+        QRunnable,
+        QSize,
+        Qt,
+        QThreadPool,
+        QTimer,
+        Signal,
+        Slot,
+    )
+    from PySide6.QtGui import QColor, QFont, QIcon, QTextCharFormat
+    from PySide6.QtWidgets import (
+        QApplication,
+        QCheckBox,
+        QComboBox,
+        QDockWidget,
+        QFrame,
+        QLabel,
+        QLineEdit,
+        QListWidget,
+        QListWidgetItem,
+        QMainWindow,
+        QMenu,
+        QMenuBar,
+        QMessageBox,
+        QPushButton,
+        QStackedWidget,
+        QStatusBar,
+        QTabWidget,
+        QToolBar,
+        QVBoxLayout,
+        QWidget,
+    )
+
     QT_AVAILABLE = True
 except ImportError as e:
     QT_AVAILABLE = False
     print(f"Failed to import Qt dependencies: {e}")
 
 # Use absolute imports based on project structure
-from modules.chat.chat_logic import ChatProcessor
-from modules.agents.context_analyzer import ContextAnalyzer
-from modules.agents.task_planner_agent import TaskPlannerAgent
-from modules.agents.self_learning_agent import SelfLearningAgent
-from ui.chat_module import ChatModule
-from ui.tasks_module import TasksModule
-from ui.plugins_module import PluginsModule
-from ui.settings_module import SettingsModule
-from ui.stats_module import StatsModule
-from ui.plugin_manager import PluginManager
-from ui.system_control_module import SystemControlModule
-from ui.self_improvement_center import SelfImprovementCenter
-from ui.consent_manager import ConsentManager
-from ui.decision_explanation import DecisionExplanation
 
-from utils.logger import get_logger
-from utils.memory_management import MemoryManager
 from utils.event_bus import EventBus
+from utils.logger import get_logger
 
-from core.event_bus import EventBus
-from core.agents.meta_agent import MetaAgent
-
-import logging
 logger = logging.getLogger(__name__)
 
 print("DEBUG: Importing modules for main_window")
 try:
     from ui.chat_module import ChatModule
+
     print("DEBUG: Imported ChatModule")
     from ui.tasks_module import TasksModule
+
     print("DEBUG: Imported TasksModule")
     from ui.plugins_module import PluginsModule
+
     print("DEBUG: Imported PluginsModule")
     from ui.settings_module import SettingsModule
+
     print("DEBUG: Imported SettingsModule")
     from ui.stats_module import StatsModule
+
     print("DEBUG: Imported StatsModule")
     from ui.plugin_manager import PluginManager
+
     print("DEBUG: Imported PluginManager")
     from ui.i18n import _, set_language
+
     print("DEBUG: Imported i18n")
     from ui.system_control_module import SystemControlModule
+
     print("DEBUG: Imported SystemControlModule")
     from ui.self_improvement_center import SelfImprovementCenter
+
     print("DEBUG: Imported SelfImprovementCenter")
     from ui.plugin_marketplace_module import PluginMarketplace
+
     print("DEBUG: Imported PluginMarketplace")
     from ui.consent_manager import ConsentManager
+
     print("DEBUG: Imported ConsentManager")
     from ui.decision_explanation import DecisionExplanation
+
     print("DEBUG: Imported DecisionExplanation")
 except ImportError as e:
     print(f"DEBUG: Import error: {e}")
     traceback.print_exc()
+
 
 class AtlasMainWindow(QMainWindow):
     """Main window for Atlas application with cyberpunk styling.
@@ -133,7 +211,9 @@ class AtlasMainWindow(QMainWindow):
         context_analyzer (ContextAnalyzer): Context analyzer instance
     """
 
-    def __init__(self, meta_agent: Optional[Any] = None, parent: Optional[QWidget] = None):
+    def __init__(
+        self, meta_agent: Optional[Any] = None, parent: Optional[QWidget] = None
+    ):
         print("DEBUG: Starting AtlasMainWindow initialization")
         super().__init__(parent)
         logger.debug("Starting AtlasMainWindow initialization")
@@ -208,7 +288,9 @@ class AtlasMainWindow(QMainWindow):
         tools_menu.addAction(consent_manager_action)
 
         decision_explanation_action = QAction("AI Decision Explanation", self)
-        decision_explanation_action.triggered.connect(lambda: self.show_module("DecisionExplanation"))
+        decision_explanation_action.triggered.connect(
+            lambda: self.show_module("DecisionExplanation")
+        )
         tools_menu.addAction(decision_explanation_action)
 
         # Settings Menu
@@ -234,7 +316,11 @@ class AtlasMainWindow(QMainWindow):
 
     def show_about_dialog(self):
         """Show the About dialog with application information."""
-        QMessageBox.about(self, "About Atlas", "Atlas - Autonomous Task Planning Application\nVersion 1.0\n 2025 Atlas Team")
+        QMessageBox.about(
+            self,
+            "About Atlas",
+            "Atlas - Autonomous Task Planning Application\nVersion 1.0\n 2025 Atlas Team",
+        )
 
     def show_module(self, module_name: str) -> None:
         """Show the specified module in the central widget.
@@ -259,7 +345,7 @@ class AtlasMainWindow(QMainWindow):
             Result of the tool execution or a default dictionary if not available.
         """
         logger.debug(f"Executing tool: {tool_name} with params: {params}")
-        if hasattr(self.meta_agent, 'execute_tool'):
+        if hasattr(self.meta_agent, "execute_tool"):
             return self.meta_agent.execute_tool(tool_name, params)
         else:
             logger.warning("meta_agent does not have execute_tool method")
@@ -270,11 +356,11 @@ class AtlasMainWindow(QMainWindow):
         logger.debug("Starting modules initialization")
         # Load Chat and Tasks modules to debug segmentation fault
         logger.debug("Loading Chat and Tasks modules for debugging")
-        
+
         # Initialize modules dictionary if not already defined
-        if not hasattr(self, 'modules'):
+        if not hasattr(self, "modules"):
             self.modules = {}
-        
+
         module_names = ["chat", "tasks"]
         for module_name in module_names:
             logger.debug(f"Loading module: {module_name}")
@@ -287,11 +373,11 @@ class AtlasMainWindow(QMainWindow):
                     self.central.setCurrentWidget(module)
             else:
                 logger.warning(f"Module not loaded: {module_name}")
-        
+
         # Keep other modules disabled for now
         logger.info("Other modules remain disabled for debugging")
         return
-        
+
         # Original module loading logic commented out
         # module_load_order = [
         #     "chat",
@@ -304,7 +390,7 @@ class AtlasMainWindow(QMainWindow):
         #     "consent_manager",
         #     "decision_explanation"
         # ]
-        # 
+        #
         # for module_name in module_load_order:
         #     logger.debug(f"Loading module: {module_name}")
         #     module = self._load_module(module_name)
@@ -314,7 +400,7 @@ class AtlasMainWindow(QMainWindow):
         #         self.modules[module_name] = module
         #     else:
         #         logger.warning(f"Module not loaded: {module_name}")
-        # 
+        #
         # if self.modules:
         #     self.central.setCurrentWidget(list(self.modules.values())[0])
 
@@ -325,42 +411,57 @@ class AtlasMainWindow(QMainWindow):
             return None
         if module_name in self._module_load_times:
             return getattr(self, f"_{module_name}_module")
-        
+
         self._module_loading_in_progress = True
         start_time = time.time()
         logger.debug(f"Loading module: {module_name}")
         try:
             if module_name == "chat":
                 from ui.chat_module import ChatModule
+
                 self._chat_module = ChatModule(self)
             elif module_name == "tasks":
                 from ui.tasks_module import TasksModule
-                self._tasks_module = TasksModule(self.task_planner_agent, self.task_planner_agent, user_id="default_user", parent=self)
+
+                self._tasks_module = TasksModule(
+                    self.task_planner_agent,
+                    self.task_planner_agent,
+                    user_id="default_user",
+                    parent=self,
+                )
             elif module_name == "plugins":
                 from ui.plugins_module import PluginsModule
+
                 self._plugins_module = PluginsModule(self)
             elif module_name == "settings":
                 from ui.settings_module import SettingsModule
+
                 self._settings_module = SettingsModule(self)
             elif module_name == "stats":
                 from ui.stats_module import StatsModule
+
                 self._stats_module = StatsModule(self)
             elif module_name == "system_control":
                 from ui.system_control_module import SystemControlModule
+
                 self._system_control_module = SystemControlModule(self)
             elif module_name == "self_improvement":
                 from ui.self_improvement_center import SelfImprovementCenter
+
                 self._self_improvement_center_module = SelfImprovementCenter(self)
             elif module_name == "plugin_marketplace":
                 from ui.plugin_marketplace_module import PluginMarketplace
+
                 self._plugin_marketplace_module = PluginMarketplace(self)
             elif module_name == "consent_manager":
                 from ui.consent_manager import ConsentManager
+
                 self._consent_manager_module = ConsentManager(self)
             elif module_name == "decision_explanation":
                 from ui.decision_explanation import DecisionExplanation
+
                 self._decision_explanation_module = DecisionExplanation(self)
-            
+
             load_time = time.time() - start_time
             self._module_load_times[module_name] = load_time
             logger.info(f"Loaded module {module_name} in {load_time:.2f} seconds")
@@ -395,7 +496,9 @@ class AtlasMainWindow(QMainWindow):
         sidebar_layout.addWidget(system_btn)
 
         self_improvement_btn = QPushButton("Self Improvement")
-        self_improvement_btn.clicked.connect(lambda: self.show_module("SelfImprovement"))
+        self_improvement_btn.clicked.connect(
+            lambda: self.show_module("SelfImprovement")
+        )
         sidebar_layout.addWidget(self_improvement_btn)
 
         consent_btn = QPushButton("Consent Manager")
@@ -414,7 +517,7 @@ class AtlasMainWindow(QMainWindow):
         """Setup periodic memory management tasks using a timer."""
         # Log initial memory stats
         self.memory_manager.log_memory_stats()
-        
+
         # Setup a timer to log memory stats and perform cleanup every 5 minutes
         memory_timer = QTimer(self)
         memory_timer.timeout.connect(self._memory_management_task)
@@ -427,16 +530,20 @@ class AtlasMainWindow(QMainWindow):
         current_usage = self.memory_manager.get_memory_usage()
         # Perform cleanup if memory usage is high (e.g., over 500MB)
         if current_usage > 500:
-            print(f"DEBUG: High memory usage detected ({current_usage:.2f} MB), performing cleanup")
+            print(
+                f"DEBUG: High memory usage detected ({current_usage:.2f} MB), performing cleanup"
+            )
             self.memory_manager.perform_cleanup()
         else:
-            print(f"DEBUG: Memory usage normal ({current_usage:.2f} MB), no cleanup needed")
+            print(
+                f"DEBUG: Memory usage normal ({current_usage:.2f} MB), no cleanup needed"
+            )
 
     def _switch_module(self, module_name):
         """Switch to a different module with lazy loading."""
         if self._active_module_name == module_name:
             return
-        
+
         module = self._load_module(module_name)
         if module:
             self.central.setCurrentWidget(module)

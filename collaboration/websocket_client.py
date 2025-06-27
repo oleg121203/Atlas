@@ -5,19 +5,24 @@ This module implements a WebSocket client to receive real-time task updates in t
 
 import asyncio
 import json
-import websockets
-import threading
-import time
 import logging
+import threading
+from typing import Any, Callable, Dict, Optional
 
-from typing import Dict, Any, Optional, Callable
+import websockets
 
 logger = logging.getLogger(__name__)
+
 
 class WebSocketClient:
     """WebSocket client for receiving real-time updates in Atlas."""
 
-    def __init__(self, server_url: str, team_id: str, on_message_callback: Callable[[Dict[str, Any]], None]):
+    def __init__(
+        self,
+        server_url: str,
+        team_id: str,
+        on_message_callback: Callable[[Dict[str, Any]], None],
+    ):
         self.server_url = f"{server_url}/{team_id}"
         self.team_id = team_id
         self.on_message_callback = on_message_callback
@@ -30,7 +35,7 @@ class WebSocketClient:
     async def connect(self, max_attempts=5):
         """
         Connect to the WebSocket server.
-        
+
         Args:
             max_attempts (int): Maximum number of connection attempts before giving up.
         """
@@ -48,7 +53,9 @@ class WebSocketClient:
                 attempt += 1
                 logger.error(f"Connection attempt {attempt}/{max_attempts} failed: {e}")
                 if attempt == max_attempts:
-                    logger.error(f"Failed to connect to WebSocket server after {max_attempts} attempts")
+                    logger.error(
+                        f"Failed to connect to WebSocket server after {max_attempts} attempts"
+                    )
                     raise
                 await asyncio.sleep(2 * attempt)  # Exponential backoff
 
@@ -96,6 +103,7 @@ class WebSocketClient:
 
     def send_message_sync(self, message):
         """Synchronous wrapper for sending messages."""
+
         def send_async():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -105,6 +113,7 @@ class WebSocketClient:
                 logger.error(f"Error in sync send: {e}")
             finally:
                 loop.close()
+
         threading.Thread(target=send_async, daemon=True).start()
 
     def start(self):
@@ -115,6 +124,7 @@ class WebSocketClient:
         if self.running:
             return
         self.running = True
+
         def run_async_connect():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -124,12 +134,14 @@ class WebSocketClient:
                 logger.error(f"Error in async connect: {e}")
             finally:
                 loop.close()
+
         threading.Thread(target=run_async_connect, daemon=True).start()
 
     def stop(self):
         """Stop the WebSocket client connection."""
         self.running = False
         if self.ws:
+
             def close_async():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
@@ -139,13 +151,16 @@ class WebSocketClient:
                     logger.error(f"Error closing WebSocket: {e}")
                 finally:
                     loop.close()
+
             threading.Thread(target=close_async, daemon=True).start()
+
 
 # Example usage in Atlas app
 def example_callback(data: Dict[str, Any]):
     """Example callback to process incoming WebSocket messages."""
     print(f"Received update: {data}")
     # Update UI or task data based on the message
+
 
 if __name__ == "__main__":
     client = WebSocketClient("ws://localhost:8765", "test_team", example_callback)

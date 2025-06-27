@@ -1,8 +1,7 @@
-import inspect
-import time
 import threading
-import sys
-from typing import Dict, List, Any, Optional
+import time
+from typing import Any, Dict, List, Optional
+
 
 class WorkflowDebugger:
     """A comprehensive debugger for workflow execution with step-through, breakpoints, and profiling."""
@@ -72,12 +71,16 @@ class WorkflowDebugger:
         with self.lock:
             if self.current_workflow_id:
                 print(f"Debug session ended for workflow {self.current_workflow_id}")
-                print(f"Profiling data: Total execution time = {self.profiling_data.get(self.current_workflow_id, 0.0):.2f} seconds")
+                print(
+                    f"Profiling data: Total execution time = {self.profiling_data.get(self.current_workflow_id, 0.0):.2f} seconds"
+                )
                 self.current_workflow_id = None
                 self.paused = False
                 self.step_mode = False
 
-    def before_step(self, workflow_id: str, step_id: str, step_func: callable, *args, **kwargs) -> None:
+    def before_step(
+        self, workflow_id: str, step_id: str, step_func: callable, *args, **kwargs
+    ) -> None:
         """Called before each step execution to check for breakpoints or step mode.
 
         Args:
@@ -104,8 +107,8 @@ class WorkflowDebugger:
         # Record execution time
         with self.lock:
             self.execution_state[breakpoint_key] = {
-                'start_time': start_time,
-                'completed': False
+                "start_time": start_time,
+                "completed": False,
             }
 
     def after_step(self, workflow_id: str, step_id: str, result: Any) -> None:
@@ -123,44 +126,52 @@ class WorkflowDebugger:
         breakpoint_key = f"{workflow_id}:{step_id}"
         with self.lock:
             if breakpoint_key in self.execution_state:
-                start_time = self.execution_state[breakpoint_key]['start_time']
+                start_time = self.execution_state[breakpoint_key]["start_time"]
                 duration = end_time - start_time
-                self.execution_state[breakpoint_key]['completed'] = True
-                self.execution_state[breakpoint_key]['duration'] = duration
-                self.execution_state[breakpoint_key]['result'] = result
+                self.execution_state[breakpoint_key]["completed"] = True
+                self.execution_state[breakpoint_key]["duration"] = duration
+                self.execution_state[breakpoint_key]["result"] = result
                 self.profiling_data[workflow_id] += duration
-                print(f"Step {breakpoint_key} completed in {duration:.2f} seconds with result: {result}")
+                print(
+                    f"Step {breakpoint_key} completed in {duration:.2f} seconds with result: {result}"
+                )
 
     def _handle_user_input(self) -> None:
         """Handle user input during a paused debug session."""
         while self.paused:
-            print("Debug options: (c)ontinue, (s)tep, (w)atch variable, (b)reakpoint, (p)rofile, (q)uit debug")
+            print(
+                "Debug options: (c)ontinue, (s)tep, (w)atch variable, (b)reakpoint, (p)rofile, (q)uit debug"
+            )
             choice = input("Enter choice: ").lower()
-            if choice == 'c':
+            if choice == "c":
                 self.paused = False
                 self.step_mode = False
-            elif choice == 's':
+            elif choice == "s":
                 self.paused = False
                 self.step_mode = True
-            elif choice == 'w':
+            elif choice == "w":
                 var_name = input("Enter variable name to watch: ")
                 var_value = input("Enter current value or leave blank to placeholder: ")
-                self.watch_variable(var_name, var_value if var_value else "<placeholder>")
-            elif choice == 'b':
+                self.watch_variable(
+                    var_name, var_value if var_value else "<placeholder>"
+                )
+            elif choice == "b":
                 action = input("(a)dd or (r)emove breakpoint? ").lower()
                 workflow_id = input("Workflow ID: ")
                 step_id = input("Step ID: ")
-                if action == 'a':
+                if action == "a":
                     self.set_breakpoint(workflow_id, step_id)
-                elif action == 'r':
+                elif action == "r":
                     self.remove_breakpoint(workflow_id, step_id)
-            elif choice == 'p':
+            elif choice == "p":
                 if self.current_workflow_id:
-                    print(f"Current profiling for {self.current_workflow_id}: {self.profiling_data.get(self.current_workflow_id, 0.0):.2f} seconds")
+                    print(
+                        f"Current profiling for {self.current_workflow_id}: {self.profiling_data.get(self.current_workflow_id, 0.0):.2f} seconds"
+                    )
                     for key, state in self.execution_state.items():
-                        if state['completed']:
+                        if state["completed"]:
                             print(f"  {key}: {state['duration']:.2f} seconds")
-            elif choice == 'q':
+            elif choice == "q":
                 self.end_debug_session()
                 self.paused = False
                 self.step_mode = False
@@ -187,10 +198,11 @@ class WorkflowDebugger:
         output += "Execution State:\n"
         for key, state in self.execution_state.items():
             if key.startswith(workflow_id):
-                status = "Completed" if state['completed'] else "Running"
-                duration = state.get('duration', 0.0)
+                status = "Completed" if state["completed"] else "Running"
+                duration = state.get("duration", 0.0)
                 output += f"  - {key}: {status} ({duration:.2f} seconds)\n"
         return output
+
 
 if __name__ == "__main__":
     # Example usage

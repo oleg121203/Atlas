@@ -5,13 +5,15 @@ This module provides functionality for developing predictive models
 for user behavior using machine learning techniques.
 """
 
-from typing import Dict, List, Any
+from datetime import datetime
+from typing import Any, Dict
+
+import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
-import numpy as np
-from datetime import datetime
+from sklearn.model_selection import train_test_split
+
 
 class PredictiveAnalytics:
     def __init__(self, data_source: str):
@@ -37,14 +39,18 @@ class PredictiveAnalytics:
             pd.DataFrame: DataFrame containing loaded data.
         """
         # Placeholder for actual data loading logic
-        date_range = pd.date_range(start=start_date, end=end_date, freq='h')
-        self.data = pd.DataFrame({
-            'timestamp': date_range,
-            'user_id': np.random.randint(1, 100, len(date_range)),
-            'action_type': np.random.choice(['login', 'edit', 'task_update'], len(date_range)),
-            'time_spent': np.random.normal(300, 100, len(date_range)),
-            'will_return': np.random.choice([0, 1], len(date_range), p=[0.3, 0.7])
-        })
+        date_range = pd.date_range(start=start_date, end=end_date, freq="h")
+        self.data = pd.DataFrame(
+            {
+                "timestamp": date_range,
+                "user_id": np.random.randint(1, 100, len(date_range)),
+                "action_type": np.random.choice(
+                    ["login", "edit", "task_update"], len(date_range)
+                ),
+                "time_spent": np.random.normal(300, 100, len(date_range)),
+                "will_return": np.random.choice([0, 1], len(date_range), p=[0.3, 0.7]),
+            }
+        )
         return self.data
 
     def preprocess_data(self) -> pd.DataFrame:
@@ -58,10 +64,10 @@ class PredictiveAnalytics:
             return pd.DataFrame()
 
         # Convert categorical variables to numeric
-        self.data['action_type'] = pd.Categorical(self.data['action_type']).codes
+        self.data["action_type"] = pd.Categorical(self.data["action_type"]).codes
         # Extract time features
-        self.data['hour'] = self.data['timestamp'].dt.hour
-        self.data['day_of_week'] = self.data['timestamp'].dt.dayofweek
+        self.data["hour"] = self.data["timestamp"].dt.hour
+        self.data["day_of_week"] = self.data["timestamp"].dt.dayofweek
         return self.data
 
     def train_model(self) -> float:
@@ -75,12 +81,14 @@ class PredictiveAnalytics:
             return 0.0
 
         # Prepare features and target
-        features = ['user_id', 'action_type', 'time_spent', 'hour', 'day_of_week']
+        features = ["user_id", "action_type", "time_spent", "hour", "day_of_week"]
         X = self.data[features]
-        y = self.data['will_return']
+        y = self.data["will_return"]
 
         # Split data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
         # Train model
         self.model = LogisticRegression(random_state=42)
@@ -109,7 +117,7 @@ class PredictiveAnalytics:
 
         # Prepare input data
         input_df = pd.DataFrame([user_data])
-        features = ['user_id', 'action_type', 'time_spent', 'hour', 'day_of_week']
+        features = ["user_id", "action_type", "time_spent", "hour", "day_of_week"]
         X = input_df[features]
 
         # Predict probability

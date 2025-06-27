@@ -6,7 +6,6 @@ Compares current branch performance against main branch baseline.
 
 import json
 import sys
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 
@@ -42,16 +41,17 @@ def extract_benchmark_metrics(data: Dict[str, Any]) -> Dict[str, float]:
     return metrics
 
 
-def compare_benchmarks(baseline: Dict[str, float], current: Dict[str, float],
-                      threshold: float = 0.10) -> Tuple[List[str], List[str], List[str]]:
+def compare_benchmarks(
+    baseline: Dict[str, float], current: Dict[str, float], threshold: float = 0.10
+) -> Tuple[List[str], List[str], List[str]]:
     """
     Compare current benchmarks against baseline.
-    
+
     Args:
         baseline: Baseline benchmark metrics (main branch)
         current: Current benchmark metrics (PR branch)
         threshold: Regression threshold (10% = 0.10)
-    
+
     Returns:
         Tuple of (regressions, improvements, new_tests)
     """
@@ -112,12 +112,16 @@ def main():
         print("⚠️  No benchmark metrics found. Skipping performance analysis.")
         return
 
-    print(f"📊 Found {len(baseline_metrics)} baseline tests, {len(current_metrics)} current tests")
+    print(
+        f"📊 Found {len(baseline_metrics)} baseline tests, {len(current_metrics)} current tests"
+    )
     print()
 
     # Compare benchmarks
     regressions, improvements, new_tests = compare_benchmarks(
-        baseline_metrics, current_metrics, threshold=0.10,
+        baseline_metrics,
+        current_metrics,
+        threshold=0.10,
     )
 
     # Report results

@@ -4,10 +4,12 @@ Centralized event handling system for Atlas.
 This module provides a unified event bus for inter-module communication,
 allowing different components to publish and subscribe to events.
 """
+
 import logging
-from typing import Callable, Dict, List, Any
+from typing import Any, Callable, Dict, List
 
 logger = logging.getLogger(__name__)
+
 
 class EventBus:
     """Central event bus for publishing and subscribing to events."""
@@ -25,7 +27,10 @@ class EventBus:
 
     def unsubscribe(self, event_type: str, callback: Callable[..., None]) -> None:
         """Unsubscribe a callback function from a specific event type."""
-        if event_type in self._subscribers and callback in self._subscribers[event_type]:
+        if (
+            event_type in self._subscribers
+            and callback in self._subscribers[event_type]
+        ):
             self._subscribers[event_type].remove(callback)
             logger.debug(f"Unsubscribed from event: {event_type}")
 
@@ -39,8 +44,10 @@ class EventBus:
                     logger.error(f"Error in callback for event {event_type}: {e}")
         logger.debug(f"Published event: {event_type}")
 
+
 # Global event bus instance
 EVENT_BUS = EventBus()
+
 
 def register_module_events(module_name: str, events: List[str]) -> None:
     """Register events for a specific module."""
@@ -48,7 +55,10 @@ def register_module_events(module_name: str, events: List[str]) -> None:
     for event in events:
         logger.debug(f"Event registered: {event} for module: {module_name}")
 
-def publish_module_event(module_name: str, event_type: str, *args: Any, **kwargs: Any) -> None:
+
+def publish_module_event(
+    module_name: str, event_type: str, *args: Any, **kwargs: Any
+) -> None:
     """Publish an event for a specific module."""
     full_event_type = f"{module_name}.{event_type}"
     EVENT_BUS.publish(full_event_type, *args, **kwargs)

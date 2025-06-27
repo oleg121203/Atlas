@@ -1,14 +1,16 @@
-import asyncio
-import pickle
-from enum import Enum
-from typing import Dict, Any, Callable
 import hashlib
+import pickle
+import time
+from enum import Enum
+from typing import Any, Callable, Dict
+
 
 class RecoveryStrategy(Enum):
     RESTART = "restart"
     ROLLBACK = "rollback"
     FAILOVER = "failover"
     GRACEFUL_DEGRADATION = "graceful_degradation"
+
 
 class StateManager:
     def __init__(self, checkpoint_interval: int = 300):  # 5 хвилин
@@ -21,7 +23,7 @@ class StateManager:
         checkpoint = {
             "timestamp": time.time(),
             "state": state,
-            "hash": hashlib.md5(pickle.dumps(state)).hexdigest()
+            "hash": hashlib.md5(pickle.dumps(state)).hexdigest(),
         }
 
         # Зберігаємо тільки останні 10 чекпоінтів
@@ -40,6 +42,7 @@ class StateManager:
 
         checkpoint = self.state_history[checkpoint_index]
         return checkpoint["state"]
+
 
 class CircuitBreaker:
     def __init__(self, failure_threshold: int = 5, recovery_timeout: int = 60):

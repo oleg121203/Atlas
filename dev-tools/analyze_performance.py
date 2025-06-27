@@ -38,6 +38,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class AtlasPerformanceAnalyzer:
     """Comprehensive performance analyzer for Atlas components."""
 
@@ -118,7 +119,9 @@ class AtlasPerformanceAnalyzer:
             with profile_operation("operational_planning", {"goal": goal}):
                 if "operational" in self.planners:
                     try:
-                        await self.planners["operational"].create_operational_plan(goal, [])
+                        await self.planners["operational"].create_operational_plan(
+                            goal, []
+                        )
                     except Exception as e:
                         logger.warning(f"Operational planning failed: {e}")
                         await asyncio.sleep(0.02)  # Simulate planning time
@@ -161,7 +164,9 @@ class AtlasPerformanceAnalyzer:
         for scenario in test_scenarios:
             logger.info(f"Profiling scenario: {scenario['name']}")
 
-            with profile_operation(f"master_agent_execution_{scenario['name']}", scenario):
+            with profile_operation(
+                f"master_agent_execution_{scenario['name']}", scenario
+            ):
                 if self.master_agent:
                     try:
                         # This would be the actual execution
@@ -186,12 +191,12 @@ class AtlasPerformanceAnalyzer:
 
         # Simulate tool operations
         tool_operations = {
-            "screen_capture": 80,      # ms
-            "text_input": 50,          # ms
-            "mouse_click": 30,         # ms
-            "keyboard_shortcut": 40,   # ms
-            "file_operation": 120,     # ms
-            "system_query": 60,        # ms
+            "screen_capture": 80,  # ms
+            "text_input": 50,  # ms
+            "mouse_click": 30,  # ms
+            "keyboard_shortcut": 40,  # ms
+            "file_operation": 120,  # ms
+            "system_query": 60,  # ms
         }
 
         latencies = {}
@@ -201,7 +206,9 @@ class AtlasPerformanceAnalyzer:
                 # Simulate tool execution
                 await asyncio.sleep(expected_ms / 1000)
 
-            latencies[tool_name] = self.profiler._get_latest_duration(f"tool_{tool_name}")
+            latencies[tool_name] = self.profiler._get_latest_duration(
+                f"tool_{tool_name}"
+            )
 
         return latencies
 
@@ -222,7 +229,9 @@ class AtlasPerformanceAnalyzer:
         with profile_operation("stress_concurrent_planning_total"):
             await asyncio.gather(*concurrent_tasks)
 
-        stress_results["concurrent_planning"] = self.profiler._analyze_results("stress_concurrent")
+        stress_results["concurrent_planning"] = self.profiler._analyze_results(
+            "stress_concurrent"
+        )
 
         # Memory pressure test
         with profile_operation("stress_memory_pressure"):
@@ -233,7 +242,9 @@ class AtlasPerformanceAnalyzer:
                 await asyncio.sleep(0.01)
             del data_blocks  # Clean up
 
-        stress_results["memory_pressure"] = self.profiler._analyze_results("stress_memory_pressure")
+        stress_results["memory_pressure"] = self.profiler._analyze_results(
+            "stress_memory_pressure"
+        )
 
         return stress_results
 
@@ -255,37 +266,49 @@ class AtlasPerformanceAnalyzer:
         for metric in all_metrics:
             target = self.profiler._get_target_latency(metric.operation)
             if target and metric.duration_ms > target * 2:
-                recommendations["critical"].append({
-                    "operation": metric.operation,
-                    "current_ms": metric.duration_ms,
-                    "target_ms": target,
-                    "suggestion": f"Urgent optimization needed - {metric.duration_ms/target:.1f}x over target",
-                })
+                recommendations["critical"].append(
+                    {
+                        "operation": metric.operation,
+                        "current_ms": metric.duration_ms,
+                        "target_ms": target,
+                        "suggestion": f"Urgent optimization needed - {metric.duration_ms / target:.1f}x over target",
+                    }
+                )
             elif target and metric.duration_ms > target * 1.5:
-                recommendations["high"].append({
-                    "operation": metric.operation,
-                    "current_ms": metric.duration_ms,
-                    "target_ms": target,
-                    "suggestion": f"Optimization recommended - {metric.duration_ms/target:.1f}x over target",
-                })
+                recommendations["high"].append(
+                    {
+                        "operation": metric.operation,
+                        "current_ms": metric.duration_ms,
+                        "target_ms": target,
+                        "suggestion": f"Optimization recommended - {metric.duration_ms / target:.1f}x over target",
+                    }
+                )
 
         # Memory usage recommendations
         high_memory_ops = [m for m in all_metrics if m.memory_delta_mb > 100]
         for metric in high_memory_ops:
-            recommendations["high"].append({
-                "operation": metric.operation,
-                "memory_mb": metric.memory_delta_mb,
-                "suggestion": f"High memory usage ({metric.memory_delta_mb:.1f}MB) - optimize data structures",
-            })
+            recommendations["high"].append(
+                {
+                    "operation": metric.operation,
+                    "memory_mb": metric.memory_delta_mb,
+                    "suggestion": f"High memory usage ({metric.memory_delta_mb:.1f}MB) - optimize data structures",
+                }
+            )
 
         # General performance recommendations
-        avg_duration = sum(m.duration_ms for m in all_metrics) / len(all_metrics) if all_metrics else 0
+        avg_duration = (
+            sum(m.duration_ms for m in all_metrics) / len(all_metrics)
+            if all_metrics
+            else 0
+        )
         if avg_duration > 300:
-            recommendations["medium"].append({
-                "metric": "overall_performance",
-                "current_avg": avg_duration,
-                "suggestion": "Overall performance could benefit from caching and async optimization",
-            })
+            recommendations["medium"].append(
+                {
+                    "metric": "overall_performance",
+                    "current_avg": avg_duration,
+                    "suggestion": "Overall performance could benefit from caching and async optimization",
+                }
+            )
 
         return recommendations
 
@@ -318,7 +341,9 @@ class AtlasPerformanceAnalyzer:
 
             # 5. Generate recommendations
             logger.info("💡 Generating optimization recommendations...")
-            results["recommendations"] = await self.generate_optimization_recommendations()
+            results[
+                "recommendations"
+            ] = await self.generate_optimization_recommendations()
 
             # 6. Generate comprehensive report
             results["report"] = self.profiler.generate_performance_report()
@@ -336,9 +361,9 @@ class AtlasPerformanceAnalyzer:
 
     def print_summary_report(self, results: Dict[str, Any]):
         """Print a formatted summary report."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("🎯 ATLAS PERFORMANCE ANALYSIS SUMMARY")
-        print("="*60)
+        print("=" * 60)
 
         if "error" in results:
             print(f"❌ Analysis failed: {results['error']}")
@@ -348,7 +373,9 @@ class AtlasPerformanceAnalyzer:
         if "planning" in results:
             print("\n📋 PLANNING PERFORMANCE:")
             for layer, result in results["planning"].items():
-                print(f"  {layer.upper()}: {result.avg_time_ms:.2f}ms avg ({result.call_count} calls)")
+                print(
+                    f"  {layer.upper()}: {result.avg_time_ms:.2f}ms avg ({result.call_count} calls)"
+                )
 
         # Tool latencies summary
         if "tools" in results:
@@ -364,14 +391,18 @@ class AtlasPerformanceAnalyzer:
             if critical:
                 print("\n🚨 CRITICAL OPTIMIZATIONS NEEDED:")
                 for rec in critical[:3]:  # Show top 3
-                    print(f"  • {rec.get('operation', rec.get('metric', 'Unknown'))}: {rec['suggestion']}")
+                    print(
+                        f"  • {rec.get('operation', rec.get('metric', 'Unknown'))}: {rec['suggestion']}"
+                    )
 
         # Overall status
         total_metrics = len(self.profiler.metrics)
         print(f"\n📊 TOTAL OPERATIONS ANALYZED: {total_metrics}")
 
         if total_metrics > 0:
-            avg_duration = sum(m.duration_ms for m in self.profiler.metrics) / total_metrics
+            avg_duration = (
+                sum(m.duration_ms for m in self.profiler.metrics) / total_metrics
+            )
             print(f"⏱️  AVERAGE OPERATION TIME: {avg_duration:.2f}ms")
 
             # Performance grade
@@ -389,7 +420,8 @@ class AtlasPerformanceAnalyzer:
             print(f"🏆 PERFORMANCE GRADE: {grade}")
 
         print("\n📄 Detailed metrics exported to: data/atlas_performance_analysis.json")
-        print("="*60)
+        print("=" * 60)
+
 
 async def main():
     """Main analysis function."""
@@ -404,6 +436,7 @@ async def main():
     # Print detailed report if available
     if "report" in results:
         print("\n" + results["report"])
+
 
 if __name__ == "__main__":
     asyncio.run(main())

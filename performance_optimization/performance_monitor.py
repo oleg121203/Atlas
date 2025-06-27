@@ -1,11 +1,12 @@
-import time
-import psutil
 import logging
+import time
 from datetime import datetime
-from typing import Dict, List, Any
-import pandas as pd
+from typing import Any, Dict, List
+
+import psutil
 
 logger = logging.getLogger(__name__)
+
 
 class PerformanceMonitor:
     def __init__(self):
@@ -20,8 +21,8 @@ class PerformanceMonitor:
         """
         try:
             self.start_time = time.time()
-            self.metrics['start_cpu_percent'] = psutil.cpu_percent(interval=1)
-            self.metrics['start_memory'] = psutil.virtual_memory().used
+            self.metrics["start_cpu_percent"] = psutil.cpu_percent(interval=1)
+            self.metrics["start_memory"] = psutil.virtual_memory().used
             self.logger.info("Started performance monitoring")
         except Exception as e:
             self.logger.error(f"Error starting performance monitoring: {e}")
@@ -35,9 +36,11 @@ class PerformanceMonitor:
         """
         try:
             self.end_time = time.time()
-            self.metrics['end_cpu_percent'] = psutil.cpu_percent(interval=1)
-            self.metrics['end_memory'] = psutil.virtual_memory().used
-            self.metrics['duration'] = self.end_time - self.start_time if self.start_time else 0
+            self.metrics["end_cpu_percent"] = psutil.cpu_percent(interval=1)
+            self.metrics["end_memory"] = psutil.virtual_memory().used
+            self.metrics["duration"] = (
+                self.end_time - self.start_time if self.start_time else 0
+            )
             self.logger.info("Stopped performance monitoring")
             return self.metrics
         except Exception as e:
@@ -53,10 +56,12 @@ class PerformanceMonitor:
             execution_time (float): Time taken to execute the function in seconds.
         """
         try:
-            if 'response_times' not in self.metrics:
-                self.metrics['response_times'] = {}
-            self.metrics['response_times'][function_name] = execution_time
-            self.logger.info(f"Response time for {function_name}: {execution_time} seconds")
+            if "response_times" not in self.metrics:
+                self.metrics["response_times"] = {}
+            self.metrics["response_times"][function_name] = execution_time
+            self.logger.info(
+                f"Response time for {function_name}: {execution_time} seconds"
+            )
         except Exception as e:
             self.logger.error(f"Error measuring response time: {e}")
 
@@ -69,24 +74,29 @@ class PerformanceMonitor:
         """
         try:
             report = {
-                'date_generated': datetime.now().isoformat(),
-                'cpu_usage': {
-                    'start': self.metrics.get('start_cpu_percent', 0),
-                    'end': self.metrics.get('end_cpu_percent', 0),
-                    'average': (self.metrics.get('start_cpu_percent', 0) + self.metrics.get('end_cpu_percent', 0)) / 2
+                "date_generated": datetime.now().isoformat(),
+                "cpu_usage": {
+                    "start": self.metrics.get("start_cpu_percent", 0),
+                    "end": self.metrics.get("end_cpu_percent", 0),
+                    "average": (
+                        self.metrics.get("start_cpu_percent", 0)
+                        + self.metrics.get("end_cpu_percent", 0)
+                    )
+                    / 2,
                 },
-                'memory_usage': {
-                    'start': self.metrics.get('start_memory', 0),
-                    'end': self.metrics.get('end_memory', 0),
-                    'difference': self.metrics.get('end_memory', 0) - self.metrics.get('start_memory', 0)
+                "memory_usage": {
+                    "start": self.metrics.get("start_memory", 0),
+                    "end": self.metrics.get("end_memory", 0),
+                    "difference": self.metrics.get("end_memory", 0)
+                    - self.metrics.get("start_memory", 0),
                 },
-                'duration': self.metrics.get('duration', 0),
-                'response_times': self.metrics.get('response_times', {})
+                "duration": self.metrics.get("duration", 0),
+                "response_times": self.metrics.get("response_times", {}),
             }
             return report
         except Exception as e:
             self.logger.error(f"Error generating performance report: {e}")
-            return {'error': 'Failed to generate report'}
+            return {"error": "Failed to generate report"}
 
     def identify_bottlenecks(self, threshold: float = 0.1) -> List[str]:
         """
@@ -100,7 +110,7 @@ class PerformanceMonitor:
         """
         try:
             bottlenecks = []
-            for func, time in self.metrics.get('response_times', {}).items():
+            for func, time in self.metrics.get("response_times", {}).items():
                 if time > threshold:
                     bottlenecks.append(f"{func}: {time} seconds")
             return bottlenecks
@@ -121,13 +131,13 @@ class PerformanceMonitor:
         try:
             optimizations = {}
             for bottleneck in bottlenecks:
-                func_name = bottleneck.split(':')[0].strip()
+                func_name = bottleneck.split(":")[0].strip()
                 optimizations[func_name] = {
-                    'suggestion': f"Review and optimize {func_name} for better performance.",
-                    'potential_impact': 'Medium',
-                    'implementation_difficulty': 'Medium'
+                    "suggestion": f"Review and optimize {func_name} for better performance.",
+                    "potential_impact": "Medium",
+                    "implementation_difficulty": "Medium",
                 }
             return optimizations
         except Exception as e:
             self.logger.error(f"Error suggesting optimizations: {e}")
-            return {'error': 'Failed to suggest optimizations'}
+            return {"error": "Failed to suggest optimizations"}

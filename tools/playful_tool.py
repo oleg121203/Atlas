@@ -1,12 +1,15 @@
 import asyncio
-from typing import Dict, Any
+from typing import Any, Dict
+
 from .base_tool import BaseTool
+
 
 class PlayfulTool(BaseTool):
     """
     A tool that gamifies routine tasks or adds creative, playful outputs.
     Example: 'Inbox Zero Challenge' for email cleanup.
     """
+
     name = "playful_tool"
     description = "Gamifies routine tasks or adds creative, playful outputs."
     capabilities = ["gamify_tasks", "creative_outputs"]
@@ -26,6 +29,10 @@ class PlayfulTool(BaseTool):
         self.log_usage("gamify", {"task_type": task_type})
         await asyncio.sleep(1)  # Simulate game logic
         if task_type == "inbox_cleanup":
-            return {"status": "success", "game": "Inbox Zero Challenge", "message": "You cleaned your inbox! 🎉"}
+            return {
+                "status": "success",
+                "game": "Inbox Zero Challenge",
+                "message": "You cleaned your inbox! 🎉",
+            }
         else:
-            return {"status": "success", "game": "Unknown", "message": "Task gamified!"} 
+            return {"status": "success", "game": "Unknown", "message": "Task gamified!"}

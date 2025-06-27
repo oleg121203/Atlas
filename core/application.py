@@ -4,17 +4,23 @@ Main application class for Atlas.
 This module defines the central application logic, orchestrating the initialization
 and lifecycle management of core systems, modules, and plugins.
 """
-import sys
+
 import logging
-from PySide6.QtWidgets import QApplication
-from ui.main_window import AtlasMainWindow
-from modules.agents.token_tracker import TokenTracker
-from utils.llm_manager import LLMManager
+import sys
+
 from modules.agents.master_agent import MasterAgent
+from modules.agents.token_tracker import TokenTracker
+from PySide6.QtWidgets import QApplication
+
+from ui.main_window import AtlasMainWindow
+from utils.llm_manager import LLMManager
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class AtlasApplication:
     """Central application class for Atlas."""
@@ -24,21 +30,22 @@ class AtlasApplication:
         logger.info("Initializing Atlas Application")
         # Use existing QApplication instance if already created
         self.app = QApplication.instance() or QApplication(sys.argv)
-        
+
         # Initialize core systems
         self.token_tracker = TokenTracker()
         self.llm_manager = LLMManager(self.token_tracker)
         self.master_agent = MasterAgent(self.llm_manager)
         self.meta_agent = self.master_agent  # For compatibility
-        
+
         # Initialize main window
         self.main_window = AtlasMainWindow(meta_agent=self.meta_agent)
-        
+
     def run(self):
         """Start the application event loop."""
         logger.info("Starting Atlas Application")
         self.main_window.show()
         return self.app.exec()
+
 
 if __name__ == "__main__":
     app = AtlasApplication()

@@ -5,11 +5,8 @@ Comprehensive latency analysis and bottleneck detection
 """
 
 import asyncio
-import cProfile
 import functools
-import io
 import logging
-import pstats
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -18,9 +15,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class PerformanceMetric:
     """Performance measurement data."""
+
     operation: str
     duration_ms: float
     memory_delta_mb: float
@@ -29,9 +28,11 @@ class PerformanceMetric:
     call_count: int = 1
     metadata: Optional[Dict[str, Any]] = None
 
+
 @dataclass
 class ProfileResult:
     """Results of performance profiling."""
+
     operation: str
     total_time_ms: float
     avg_time_ms: float
@@ -41,6 +42,7 @@ class ProfileResult:
     bottlenecks: List[str]
     recommendations: List[str]
 
+
 class AtlasPerformanceProfiler:
     """Advanced performance profiler for Atlas components."""
 
@@ -48,10 +50,10 @@ class AtlasPerformanceProfiler:
         self.metrics: List[PerformanceMetric] = []
         self.targets = {
             "screen_tools": 100,  # ms
-            "input_tools": 100,   # ms
-            "planning": 500,      # ms
-            "execution": 1000,    # ms
-            "memory_search": 200, # ms
+            "input_tools": 100,  # ms
+            "planning": 500,  # ms
+            "execution": 1000,  # ms
+            "memory_search": 200,  # ms
         }
         self.profiler_enabled = True
 
@@ -95,19 +97,24 @@ class AtlasPerformanceProfiler:
 
     def profile_function(self, operation_name: str = None):
         """Decorator for profiling functions."""
+
         def decorator(func: Callable):
             op_name = operation_name or f"{func.__module__}.{func.__name__}"
 
             if asyncio.iscoroutinefunction(func):
+
                 @functools.wraps(func)
                 async def async_wrapper(*args, **kwargs):
                     with self.profile_operation(op_name):
                         return await func(*args, **kwargs)
+
                 return async_wrapper
+
             @functools.wraps(func)
             def sync_wrapper(*args, **kwargs):
                 with self.profile_operation(op_name):
                     return func(*args, **kwargs)
+
             return sync_wrapper
 
         return decorator
@@ -122,8 +129,6 @@ class AtlasPerformanceProfiler:
             ("complex_goal", "Analyze the current screen and create a detailed report"),
             ("multi_step", "Open a text editor, write some text, and save the file"),
         ]
-
-        results = []
 
         for scenario_name, goal in test_scenarios:
             logger.info(f"Profiling scenario: {scenario_name}")
@@ -241,9 +246,13 @@ class AtlasPerformanceProfiler:
 
         # Target compliance
         for category, target_ms in self.targets.items():
-            category_metrics = [m for m in self.metrics if category in m.operation.lower()]
+            category_metrics = [
+                m for m in self.metrics if category in m.operation.lower()
+            ]
             if category_metrics:
-                avg_cat_duration = sum(m.duration_ms for m in category_metrics) / len(category_metrics)
+                avg_cat_duration = sum(m.duration_ms for m in category_metrics) / len(
+                    category_metrics
+                )
                 status = "✅ PASS" if avg_cat_duration <= target_ms else "❌ FAIL"
                 report_sections.append(
                     f"  {category}: {avg_cat_duration:.2f}ms (target: {target_ms}ms) {status}",
@@ -301,6 +310,7 @@ class AtlasPerformanceProfiler:
         """Get current memory usage in MB."""
         try:
             import psutil
+
             process = psutil.Process()
             return process.memory_info().rss / 1024 / 1024  # MB
         except ImportError:
@@ -310,6 +320,7 @@ class AtlasPerformanceProfiler:
         """Get current CPU usage percentage."""
         try:
             import psutil
+
             return psutil.cpu_percent(interval=None)
         except ImportError:
             return 0.0
@@ -328,7 +339,9 @@ class AtlasPerformanceProfiler:
 
     def _analyze_results(self, operation_prefix: str) -> ProfileResult:
         """Analyze results for operations with given prefix."""
-        matching_metrics = [m for m in self.metrics if m.operation.startswith(operation_prefix)]
+        matching_metrics = [
+            m for m in self.metrics if m.operation.startswith(operation_prefix)
+        ]
 
         if not matching_metrics:
             return ProfileResult(
@@ -365,10 +378,14 @@ class AtlasPerformanceProfiler:
             if target and metric.duration_ms > target * 1.5:
                 bottlenecks.append(
                     f"  • {metric.operation}: {metric.duration_ms:.2f}ms "
-                    f"({(metric.duration_ms/target-1)*100:.0f}% over target)",
+                    f"({(metric.duration_ms / target - 1) * 100:.0f}% over target)",
                 )
 
-        return "\n".join(bottlenecks) if bottlenecks else "  No significant bottlenecks detected."
+        return (
+            "\n".join(bottlenecks)
+            if bottlenecks
+            else "  No significant bottlenecks detected."
+        )
 
     def _generate_recommendations(self) -> str:
         """Generate optimization recommendations."""
@@ -377,23 +394,31 @@ class AtlasPerformanceProfiler:
         # Memory usage recommendations
         high_memory_ops = [m for m in self.metrics if m.memory_delta_mb > 50]
         if high_memory_ops:
-            recommendations.append("  • Optimize memory usage in high-consumption operations")
+            recommendations.append(
+                "  • Optimize memory usage in high-consumption operations"
+            )
 
         # Slow operations recommendations
         slow_ops = [m for m in self.metrics if m.duration_ms > 1000]
         if slow_ops:
-            recommendations.append("  • Consider breaking down slow operations into smaller chunks")
+            recommendations.append(
+                "  • Consider breaking down slow operations into smaller chunks"
+            )
 
         # General recommendations
-        recommendations.extend([
-            "  • Implement caching for frequently accessed data",
-            "  • Consider async processing for I/O bound operations",
-            "  • Profile individual functions for micro-optimizations",
-        ])
+        recommendations.extend(
+            [
+                "  • Implement caching for frequently accessed data",
+                "  • Consider async processing for I/O bound operations",
+                "  • Profile individual functions for micro-optimizations",
+            ]
+        )
 
         return "\n".join(recommendations)
 
-    def _identify_operation_bottlenecks(self, metrics: List[PerformanceMetric]) -> List[str]:
+    def _identify_operation_bottlenecks(
+        self, metrics: List[PerformanceMetric]
+    ) -> List[str]:
         """Identify bottlenecks for specific operation."""
         bottlenecks = []
         avg_duration = sum(m.duration_ms for m in metrics) / len(metrics)
@@ -406,7 +431,9 @@ class AtlasPerformanceProfiler:
 
         return bottlenecks
 
-    def _generate_operation_recommendations(self, metrics: List[PerformanceMetric]) -> List[str]:
+    def _generate_operation_recommendations(
+        self, metrics: List[PerformanceMetric]
+    ) -> List[str]:
         """Generate recommendations for specific operation."""
         recommendations = []
         avg_duration = sum(m.duration_ms for m in metrics) / len(metrics)
@@ -430,25 +457,31 @@ class AtlasPerformanceProfiler:
 
         return f"{duration:.1f} seconds"
 
+
 # Global profiler instance
 profiler = AtlasPerformanceProfiler()
+
 
 # Convenience functions
 def profile_operation(name: str, metadata: Dict = None):
     """Convenience function for profiling operations."""
     return profiler.profile_operation(name, metadata)
 
+
 def profile_function(name: str = None):
     """Convenience decorator for profiling functions."""
     return profiler.profile_function(name)
+
 
 def generate_report() -> str:
     """Generate performance report."""
     return profiler.generate_performance_report()
 
+
 def export_metrics(filepath: str) -> None:
     """Export metrics to file."""
     profiler.export_metrics(Path(filepath))
+
 
 # Example usage for MasterAgent profiling
 async def profile_master_agent_comprehensive():
@@ -456,7 +489,9 @@ async def profile_master_agent_comprehensive():
     logger.info("Starting comprehensive MasterAgent performance analysis...")
 
     # Profile different aspects
-    master_agent_result = profiler.profile_master_agent(None)  # Would pass actual instance
+    master_agent_result = profiler.profile_master_agent(
+        None
+    )  # Would pass actual instance
     planning_results = profiler.profile_planning_layers()
     memory_result = profiler.profile_memory_operations()
     latency_measurements = profiler.conduct_latency_measurements()
@@ -474,6 +509,7 @@ async def profile_master_agent_comprehensive():
         "memory_operations": memory_result,
         "latency_measurements": latency_measurements,
     }
+
 
 if __name__ == "__main__":
     # Run standalone profiling

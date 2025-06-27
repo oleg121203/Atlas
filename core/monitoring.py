@@ -5,13 +5,13 @@ This module provides functionality to monitor critical components, track perform
 and detect anomalies or performance regressions in the application.
 """
 
-import time
-from typing import Dict, List, Optional, Callable
-from threading import Thread
-import psutil
 import os
+import time
 from collections import deque
-import logging
+from threading import Thread
+from typing import Callable, Dict, List, Optional
+
+import psutil
 
 from core.config import get_config
 from core.logging import get_logger
@@ -27,7 +27,7 @@ METRICS_MAX_SIZE = 100
 PERFORMANCE_THRESHOLDS: Dict[str, float] = {
     "screen_tools": 100.0,  # Screen/input tools should be <100ms
     "planning_ops": 500.0,  # Planning operations should be <500ms
-    "memory_ops": 200.0,    # Memory operations should be <200ms
+    "memory_ops": 200.0,  # Memory operations should be <200ms
 }
 
 # Alert handlers
@@ -41,21 +41,21 @@ _monitoring_active = False
 def initialize_monitoring() -> bool:
     """
     Initialize the monitoring system and start background monitoring thread.
-    
+
     Returns:
         bool: True if initialization successful
     """
     global _monitoring_thread, _monitoring_active
     if _monitoring_thread is not None:
         return True
-    
+
     try:
         config = get_config()
         monitoring_enabled = config.get("monitoring_enabled", True)
         if not monitoring_enabled:
             logger.info("Monitoring system disabled by configuration")
             return False
-            
+
         _monitoring_active = True
         _monitoring_thread = Thread(target=__monitoring_loop, daemon=True)
         _monitoring_thread.start()
@@ -73,11 +73,12 @@ def start_monitoring():
     return True
 
 
-def track_performance(component: str, category: str, duration_ms: float, 
-                     details: Optional[dict] = None) -> None:
+def track_performance(
+    component: str, category: str, duration_ms: float, details: Optional[dict] = None
+) -> None:
     """
     Track performance metrics for a component operation.
-    
+
     Args:
         component (str): Name of the component
         category (str): Category of operation (screen_tools, planning_ops, memory_ops)
@@ -86,40 +87,42 @@ def track_performance(component: str, category: str, duration_ms: float,
     """
     if component not in PERFORMANCE_METRICS:
         PERFORMANCE_METRICS[component] = deque(maxlen=METRICS_MAX_SIZE)
-    
+
     metric = {
         "timestamp": time.time(),
         "category": category,
         "duration_ms": duration_ms,
-        "details": details or {}
+        "details": details or {},
     }
     PERFORMANCE_METRICS[component].append(metric)
-    
+
     # Check if operation exceeds performance threshold
     threshold = PERFORMANCE_THRESHOLDS.get(category, 1000.0)
     if duration_ms > threshold:
         alert(
             f"Performance Warning: {component}",
             f"Operation in category {category} exceeded threshold: {duration_ms:.2f}ms > {threshold:.2f}ms",
-            metric
+            metric,
         )
-    
-    logger.debug("Performance tracked for %s (%s): %.2fms", component, category, duration_ms)
+
+    logger.debug(
+        "Performance tracked for %s (%s): %.2fms", component, category, duration_ms
+    )
 
 
 def get_performance_stats(component: str) -> Optional[dict]:
     """
     Get performance statistics for a component.
-    
+
     Args:
         component (str): Name of component to get stats for
-        
+
     Returns:
         dict: Statistics including average, min, max duration, and count of measurements
     """
     if component not in PERFORMANCE_METRICS or not PERFORMANCE_METRICS[component]:
         return None
-    
+
     durations = [m["duration_ms"] for m in PERFORMANCE_METRICS[component]]
     return {
         "component": component,
@@ -127,25 +130,27 @@ def get_performance_stats(component: str) -> Optional[dict]:
         "average_ms": sum(durations) / len(durations),
         "min_ms": min(durations),
         "max_ms": max(durations),
-        "last_10_measurements": list(PERFORMANCE_METRICS[component])[-10:]
+        "last_10_measurements": list(PERFORMANCE_METRICS[component])[-10:],
     }
 
 
 def register_alert_handler(handler: Callable[[str, str, dict], None]) -> None:
     """
     Register a handler for alerts.
-    
+
     Args:
         handler: Function that takes title, message, and data dict as arguments
     """
     _alert_handlers.append(handler)
-    logger.debug("New alert handler registered, total handlers: %d", len(_alert_handlers))
+    logger.debug(
+        "New alert handler registered, total handlers: %d", len(_alert_handlers)
+    )
 
 
 def alert(title: str, message: str, data: Optional[dict] = None) -> None:
     """
     Raise an alert to all registered handlers and log it.
-    
+
     Args:
         title (str): Alert title
         message (str): Alert message
@@ -159,6 +164,43 @@ def alert(title: str, message: str, data: Optional[dict] = None) -> None:
             logger.error("Error in alert handler: %s", str(e))
 
 
+def __monitoring_loop():
+    """
+    Background thread function that performs periodic system monitoring.
+    Checks system resources, application components, and other metrics.
+    """
+    global _monitoring_active
+    logger.info("Monitoring background thread started")
+
+    try:
+        while _monitoring_active:
+            # Check system resources
+            cpu_percent = psutil.cpu_percent(interval=1)
+            memory_info = psutil.virtual_memory()
+
+            # Check if system resources are overloaded
+            if cpu_percent > 90:
+                alert(
+                    "System Warning",
+                    f"High CPU usage detected: {cpu_percent}%",
+                    {"cpu": cpu_percent},
+                )
+
+            if memory_info.percent > 90:
+                alert(
+                    "System Warning",
+                    f"High memory usage detected: {memory_info.percent}%",
+                    {"memory_percent": memory_info.percent},
+                )
+
+            # Sleep for monitoring interval
+            time.sleep(10)  # Check every 10 seconds
+    except Exception as e:
+        logger.error(f"Error in monitoring thread: {str(e)}")
+
+    logger.info("Monitoring background thread stopped")
+
+
 def system_monitoring_loop() -> None:
     """
     Background thread loop to monitor system resources and application health.
@@ -166,7 +208,7 @@ def system_monitoring_loop() -> None:
     global _monitoring_active
     check_interval = 300  # Check every 5 minutes
     process = psutil.Process(os.getpid())
-    
+
     logger.info("System monitoring loop started")
     while _monitoring_active:
         try:
@@ -177,31 +219,32 @@ def system_monitoring_loop() -> None:
                 alert(
                     "High Memory Usage",
                     f"Atlas is using {memory_mb:.2f}MB of memory",
-                    {"memory_mb": memory_mb, "memory_info": str(mem_info)}
+                    {"memory_mb": memory_mb, "memory_info": str(mem_info)},
                 )
-            
+
             # Monitor CPU usage
             cpu_percent = process.cpu_percent(interval=1)
             if cpu_percent > 80:
                 alert(
                     "High CPU Usage",
                     f"Atlas CPU usage at {cpu_percent:.1f}%",
-                    {"cpu_percent": cpu_percent}
+                    {"cpu_percent": cpu_percent},
                 )
-            
+
             # Check performance metrics for anomalies
             for component, metrics in PERFORMANCE_METRICS.items():
                 if not metrics:
                     continue
                 stats = get_performance_stats(component)
                 if stats and stats["average_ms"] > PERFORMANCE_THRESHOLDS.get(
-                        stats["last_10_measurements"][0]["category"], 1000.0):
+                    stats["last_10_measurements"][0]["category"], 1000.0
+                ):
                     alert(
                         f"Performance Degradation: {component}",
                         f"Average operation time {stats['average_ms']:.2f}ms exceeds threshold",
-                        stats
+                        stats,
                     )
-            
+
             time.sleep(check_interval)
         except Exception as e:
             logger.error("Error in system monitoring loop: %s", str(e))

@@ -6,17 +6,21 @@ with enterprise systems like ERP, CRM, and external APIs.
 """
 
 import logging
-import requests
-from typing import Dict, Any, Optional, Callable
-import json
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
+
+import requests
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class IntegrationAdapter(ABC):
     """Abstract base class for integration adapters to enterprise systems."""
+
     def __init__(self, config: Dict[str, Any]):
         """Initialize the integration adapter with configuration.
 
@@ -41,7 +45,9 @@ class IntegrationAdapter(ABC):
         pass
 
     @abstractmethod
-    def send_data(self, data: Dict[str, Any], endpoint: Optional[str] = None) -> Dict[str, Any]:
+    def send_data(
+        self, data: Dict[str, Any], endpoint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Send data to the enterprise system.
 
         Args:
@@ -54,7 +60,9 @@ class IntegrationAdapter(ABC):
         pass
 
     @abstractmethod
-    def receive_data(self, query: Optional[str] = None, endpoint: Optional[str] = None) -> Dict[str, Any]:
+    def receive_data(
+        self, query: Optional[str] = None, endpoint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Receive or fetch data from the enterprise system.
 
         Args:
@@ -66,8 +74,10 @@ class IntegrationAdapter(ABC):
         """
         pass
 
+
 class RESTApiAdapter(IntegrationAdapter):
     """Adapter for integrating with RESTful APIs."""
+
     def __init__(self, config: Dict[str, Any]):
         """Initialize the REST API adapter.
 
@@ -75,11 +85,11 @@ class RESTApiAdapter(IntegrationAdapter):
             config (Dict[str, Any]): Configuration including base_url, api_key, etc.
         """
         super().__init__(config)
-        self.base_url = config.get('base_url', '')
-        self.api_key = config.get('api_key', '')
+        self.base_url = config.get("base_url", "")
+        self.api_key = config.get("api_key", "")
         self.headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {self.api_key}' if self.api_key else ''
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}" if self.api_key else "",
         }
         self.session = requests.Session()
 
@@ -90,13 +100,17 @@ class RESTApiAdapter(IntegrationAdapter):
             bool: True if connection test is successful, False otherwise.
         """
         try:
-            response = self.session.get(f"{self.base_url}/health", headers=self.headers, timeout=5)
+            response = self.session.get(
+                f"{self.base_url}/health", headers=self.headers, timeout=5
+            )
             if response.status_code == 200:
                 self.is_connected = True
                 logger.info(f"Connected to REST API at {self.base_url}")
                 return True
             else:
-                logger.error(f"Failed to connect to REST API at {self.base_url}: Status {response.status_code}")
+                logger.error(
+                    f"Failed to connect to REST API at {self.base_url}: Status {response.status_code}"
+                )
                 return False
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to connect to REST API at {self.base_url}: {str(e)}")
@@ -108,7 +122,9 @@ class RESTApiAdapter(IntegrationAdapter):
         self.is_connected = False
         logger.info(f"Disconnected from REST API at {self.base_url}")
 
-    def send_data(self, data: Dict[str, Any], endpoint: Optional[str] = None) -> Dict[str, Any]:
+    def send_data(
+        self, data: Dict[str, Any], endpoint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Send data to the REST API.
 
         Args:
@@ -123,7 +139,9 @@ class RESTApiAdapter(IntegrationAdapter):
 
         target_url = f"{self.base_url}/{endpoint}" if endpoint else self.base_url
         try:
-            response = self.session.post(target_url, json=data, headers=self.headers, timeout=10)
+            response = self.session.post(
+                target_url, json=data, headers=self.headers, timeout=10
+            )
             response.raise_for_status()
             logger.info(f"Data sent to {target_url} successfully")
             return response.json() if response.text else {}
@@ -131,7 +149,9 @@ class RESTApiAdapter(IntegrationAdapter):
             logger.error(f"Failed to send data to {target_url}: {str(e)}")
             raise
 
-    def receive_data(self, query: Optional[str] = None, endpoint: Optional[str] = None) -> Dict[str, Any]:
+    def receive_data(
+        self, query: Optional[str] = None, endpoint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Fetch data from the REST API.
 
         Args:
@@ -146,7 +166,11 @@ class RESTApiAdapter(IntegrationAdapter):
 
         target_url = f"{self.base_url}/{endpoint}" if endpoint else self.base_url
         if query:
-            target_url = f"{target_url}?{query}" if '?' not in target_url else f"{target_url}&{query}"
+            target_url = (
+                f"{target_url}?{query}"
+                if "?" not in target_url
+                else f"{target_url}&{query}"
+            )
         try:
             response = self.session.get(target_url, headers=self.headers, timeout=10)
             response.raise_for_status()
@@ -156,8 +180,10 @@ class RESTApiAdapter(IntegrationAdapter):
             logger.error(f"Failed to receive data from {target_url}: {str(e)}")
             raise
 
+
 class WorkflowIntegrator:
     """Manages integration of workflows with external enterprise systems."""
+
     def __init__(self):
         """Initialize the Workflow Integrator."""
         self.adapters: Dict[str, IntegrationAdapter] = {}
@@ -200,7 +226,9 @@ class WorkflowIntegrator:
         else:
             logger.warning(f"No adapter found for system {system_id} to disconnect")
 
-    def send_to_system(self, system_id: str, data: Dict[str, Any], endpoint: Optional[str] = None) -> Dict[str, Any]:
+    def send_to_system(
+        self, system_id: str, data: Dict[str, Any], endpoint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Send data to a specific enterprise system.
 
         Args:
@@ -216,7 +244,12 @@ class WorkflowIntegrator:
 
         return self.adapters[system_id].send_data(data, endpoint)
 
-    def receive_from_system(self, system_id: str, query: Optional[str] = None, endpoint: Optional[str] = None) -> Dict[str, Any]:
+    def receive_from_system(
+        self,
+        system_id: str,
+        query: Optional[str] = None,
+        endpoint: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Receive or fetch data from a specific enterprise system.
 
         Args:
@@ -232,7 +265,13 @@ class WorkflowIntegrator:
 
         return self.adapters[system_id].receive_data(query, endpoint)
 
-    def execute_workflow_with_integration(self, workflow_engine, workflow_id: str, initial_state: Dict[str, Any], integrations: Dict[str, Dict[str, Any]]) -> None:
+    def execute_workflow_with_integration(
+        self,
+        workflow_engine,
+        workflow_id: str,
+        initial_state: Dict[str, Any],
+        integrations: Dict[str, Dict[str, Any]],
+    ) -> None:
         """Execute a workflow with integrated actions to external systems.
 
         Args:
@@ -245,23 +284,33 @@ class WorkflowIntegrator:
         logger.info(f"Starting workflow {workflow_id} with integrations")
 
         for action_name, integration_info in integrations.items():
-            system_id = integration_info.get('system_id')
-            action_type = integration_info.get('action_type', 'send')
-            endpoint = integration_info.get('endpoint')
-            data_func = integration_info.get('data_func')
+            system_id = integration_info.get("system_id")
+            action_type = integration_info.get("action_type", "send")
+            endpoint = integration_info.get("endpoint")
+            data_func = integration_info.get("data_func")
 
             try:
-                if action_type == 'send':
+                if action_type == "send":
                     data = data_func() if callable(data_func) else data_func
                     response = self.send_to_system(system_id, data, endpoint)
-                    workflow_engine.execute_action(lambda: response, action_name)
-                    logger.info(f"Integrated send action {action_name} to system {system_id} in workflow {workflow_id}")
+                    workflow_engine.execute_action(
+                        lambda response=response: response, action_name
+                    )
+                    logger.info(
+                        f"Integrated send action {action_name} to system {system_id} in workflow {workflow_id}"
+                    )
                 else:  # receive
                     response = self.receive_from_system(system_id, endpoint=endpoint)
-                    workflow_engine.execute_action(lambda: response, action_name)
-                    logger.info(f"Integrated receive action {action_name} from system {system_id} in workflow {workflow_id}")
+                    workflow_engine.execute_action(
+                        lambda response=response: response, action_name
+                    )
+                    logger.info(
+                        f"Integrated receive action {action_name} from system {system_id} in workflow {workflow_id}"
+                    )
             except Exception as e:
-                logger.error(f"Integration action {action_name} failed for system {system_id}: {str(e)}")
+                logger.error(
+                    f"Integration action {action_name} failed for system {system_id}: {str(e)}"
+                )
                 raise
 
         workflow_engine.complete_workflow()

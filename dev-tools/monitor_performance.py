@@ -9,7 +9,7 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent
@@ -21,15 +21,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class AtlasPerformanceMonitor:
     """Monitors Atlas performance and implements recovery strategies."""
 
     PERFORMANCE_TARGETS = {
-        "screen_tools": 100,    # ms
-        "input_tools": 100,     # ms
-        "planning": 500,        # ms
-        "execution": 1000,      # ms
-        "memory_search": 200,   # ms
+        "screen_tools": 100,  # ms
+        "input_tools": 100,  # ms
+        "planning": 500,  # ms
+        "execution": 1000,  # ms
+        "memory_search": 200,  # ms
     }
 
     def __init__(self):
@@ -52,21 +53,25 @@ class AtlasPerformanceMonitor:
                 target = result.get("target_ms")
 
                 if duration > (target * 2):  # Critical performance issue
-                    issues.append({
-                        "operation": operation,
-                        "severity": "critical",
-                        "duration": duration,
-                        "target": target,
-                        "ratio": duration / target
-                    })
+                    issues.append(
+                        {
+                            "operation": operation,
+                            "severity": "critical",
+                            "duration": duration,
+                            "target": target,
+                            "ratio": duration / target,
+                        }
+                    )
                 elif duration > (target * 1.5):  # Warning level
-                    issues.append({
-                        "operation": operation,
-                        "severity": "warning",
-                        "duration": duration,
-                        "target": target,
-                        "ratio": duration / target
-                    })
+                    issues.append(
+                        {
+                            "operation": operation,
+                            "severity": "warning",
+                            "duration": duration,
+                            "target": target,
+                            "ratio": duration / target,
+                        }
+                    )
 
             return issues
         except Exception as e:
@@ -112,7 +117,9 @@ class AtlasPerformanceMonitor:
 
         else:
             # Final attempt: Disable feature temporarily
-            logger.warning(f"Disabling {operation} temporarily due to performance issues")
+            logger.warning(
+                f"Disabling {operation} temporarily due to performance issues"
+            )
             self._disable_feature(operation)
 
     def _handle_warning_issue(self, operation: str, issue: Dict) -> None:
@@ -162,26 +169,29 @@ class AtlasPerformanceMonitor:
             except Exception as e:
                 logger.error(f"Error updating DEV_PLAN.md: {e}")
 
-    def _update_config(self, config_file: Path, section: str, key: str, value: str) -> None:
+    def _update_config(
+        self, config_file: Path, section: str, key: str, value: str
+    ) -> None:
         """Update a configuration value."""
         import configparser
+
         config = configparser.ConfigParser()
-        
+
         if config_file.exists():
             config.read(config_file)
-            
+
             if section not in config:
                 config[section] = {}
-            
+
             config[section][key] = value
-            
+
             with open(config_file, "w") as f:
                 config.write(f)
 
     def monitor_continuously(self, check_interval: int = 600) -> None:
         """Continuously monitor performance and implement recovery strategies."""
         logger.info("Starting continuous performance monitoring")
-        
+
         while True:
             try:
                 current_time = time.time()
@@ -190,12 +200,13 @@ class AtlasPerformanceMonitor:
                     if issues:
                         self.implement_recovery(issues)
                     self.last_check = current_time
-                
+
                 time.sleep(60)  # Check every minute if it's time for full analysis
-                
+
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")
                 time.sleep(300)  # Wait 5 minutes on error before retrying
+
 
 if __name__ == "__main__":
     monitor = AtlasPerformanceMonitor()

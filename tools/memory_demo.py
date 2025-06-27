@@ -10,6 +10,7 @@ from modules.agents.enhanced_memory_manager import (
     MemoryScope,
     MemoryType,
 )
+
 from utils.config_manager import ConfigManager
 from utils.llm_manager import LLMManager
 
@@ -19,18 +20,18 @@ def demo_enhanced_memory():
     print("🧠 Atlas Enhanced Memory Manager Demo")
     print("=" * 40)
 
-    #Initialize managers
+    # Initialize managers
     config_manager = ConfigManager()
     llm_manager = LLMManager(config_manager)
     memory_manager = EnhancedMemoryManager(llm_manager, config_manager)
 
     print("✅ Managers initialized")
 
-    #Demo 1: Agent-specific memory storage
+    # Demo 1: Agent-specific memory storage
     print("\n📝 Demo 1: Agent-specific Memory Storage")
     print("-" * 40)
 
-    #Master Agent storing plans
+    # Master Agent storing plans
     memory_manager.add_memory_for_agent(
         agent_type=MemoryScope.MASTER_AGENT,
         memory_type=MemoryType.PLAN,
@@ -39,7 +40,7 @@ def demo_enhanced_memory():
     )
     print("✅ Master Agent plan stored")
 
-    #Screen Agent storing observations
+    # Screen Agent storing observations
     memory_manager.add_memory_for_agent(
         agent_type=MemoryScope.SCREEN_AGENT,
         memory_type=MemoryType.OBSERVATION,
@@ -48,7 +49,7 @@ def demo_enhanced_memory():
     )
     print("✅ Screen Agent observation stored")
 
-    #Security Agent storing events
+    # Security Agent storing events
     memory_manager.add_memory_for_agent(
         agent_type=MemoryScope.SECURITY_AGENT,
         memory_type=MemoryType.OBSERVATION,
@@ -57,7 +58,7 @@ def demo_enhanced_memory():
     )
     print("✅ Security Agent event stored")
 
-    #User feedback
+    # User feedback
     memory_manager.add_memory_for_agent(
         agent_type=MemoryScope.USER_DATA,
         memory_type=MemoryType.FEEDBACK,
@@ -66,11 +67,11 @@ def demo_enhanced_memory():
     )
     print("✅ User feedback stored")
 
-    #Demo 2: Agent-specific memory search
+    # Demo 2: Agent-specific memory search
     print("\n🔍 Demo 2: Agent-specific Memory Search")
     print("-" * 40)
 
-    #Search Master Agent plans
+    # Search Master Agent plans
     plans = memory_manager.search_memories_for_agent(
         agent_type=MemoryScope.MASTER_AGENT,
         query="screenshot",
@@ -79,7 +80,7 @@ def demo_enhanced_memory():
     )
     print(f"📋 Found {len(plans)} Master Agent plans about screenshots")
 
-    #Search Screen Agent observations
+    # Search Screen Agent observations
     observations = memory_manager.search_memories_for_agent(
         agent_type=MemoryScope.SCREEN_AGENT,
         query="desktop",
@@ -88,7 +89,7 @@ def demo_enhanced_memory():
     )
     print(f"👁️  Found {len(observations)} Screen Agent observations about desktop")
 
-    #Search user feedback
+    # Search user feedback
     feedback = memory_manager.search_memories_for_agent(
         agent_type=MemoryScope.USER_DATA,
         query="task",
@@ -97,7 +98,7 @@ def demo_enhanced_memory():
     )
     print(f"💬 Found {len(feedback)} user feedback about tasks")
 
-    #Demo 3: Memory statistics
+    # Demo 3: Memory statistics
     print("\n📊 Demo 3: Memory Statistics")
     print("-" * 40)
 
@@ -113,11 +114,11 @@ def demo_enhanced_memory():
     for mem_type, count in stats.get("memory_by_type", {}).items():
         print(f"  {mem_type}: {count}")
 
-    #Demo 4: TTL and cleanup demonstration
+    # Demo 4: TTL and cleanup demonstration
     print("\n🧹 Demo 4: TTL and Cleanup")
     print("-" * 40)
 
-    #Add temporary memory with short TTL
+    # Add temporary memory with short TTL
     memory_manager.add_memory(
         content="Temporary action: mouse click at (100, 200)",
         collection_name="current_session",
@@ -125,18 +126,18 @@ def demo_enhanced_memory():
     )
     print("✅ Temporary memory added")
 
-    #Check cleanup
+    # Check cleanup
     cleaned = memory_manager.cleanup_all_expired()
     print(f"🗑️  Cleaned up {cleaned} expired memories")
 
-    #Demo 5: Cross-agent search
+    # Demo 5: Cross-agent search
     print("\n🔄 Demo 5: Cross-agent Search")
     print("-" * 40)
 
     all_results = memory_manager.search_memories("screenshot", n_results=10)
     print(f"🔍 Cross-agent search found {len(all_results)} memories about screenshots")
 
-    for result in all_results[:3]:  #Show first 3
+    for result in all_results[:3]:  # Show first 3
         collection = result.get("collection", "unknown")
         relevance = result.get("relevance", 0)
         print(f"  📄 {collection}: {relevance:.2f} relevance")

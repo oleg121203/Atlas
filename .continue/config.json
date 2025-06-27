@@ -1,0 +1,56 @@
+{
+  "models": [
+    {
+      "title": "Qwen2.5 Coder (Atlas AI Assistant)",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:latest",
+      "apiBase": "http://localhost:11434"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Qwen2.5 Coder (Autocomplete)",
+    "provider": "ollama",
+    "model": "qwen2.5-coder:1.5b",
+    "apiBase": "http://localhost:11434"
+  },
+  "embeddingsProvider": {
+    "provider": "ollama",
+    "model": "qwen2.5-coder:latest",
+    "apiBase": "http://localhost:11434"
+  },
+  "reranker": {
+      "name": "cohere",
+      "params": {
+        "model": "rerank-english-v3.0",
+        "apiKey": "z9OyQ9sST8ECbcy32binVxUqLi4etuROpDiabe1q"
+      }
+  },
+  "systemPrompt": "You are an AI assistant for the Atlas Python project. Your primary focus is automated code quality with Ruff linter. Always prioritize: 1) Adding missing imports (typing, Qt, selenium, etc.) 2) Fixing Ruff errors automatically 3) Following PEP 8 guidelines 4) Suggesting code improvements. When working with code, use Ruff --fix commands and provide direct file edits.",
+  "contextProviders": [
+    {
+      "name": "code"
+    },
+    {
+      "name": "diff"
+    },
+    {
+      "name": "terminal"
+    },
+    {
+      "name": "problems"
+    },
+    {
+      "name": "folder"
+    }
+  ],
+  "slashCommands": [
+    {
+      "name": "ruff-fix",
+      "description": "Run Ruff with --fix and --unsafe-fixes on current file"
+    },
+    {
+      "name": "add-imports",
+      "description": "Add missing Python imports based on undefined names"
+    }
+  ]
+}

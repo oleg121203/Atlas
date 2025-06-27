@@ -1,8 +1,9 @@
-import psutil
 import time
 from dataclasses import dataclass
 from typing import Dict, List
-import threading
+
+import psutil
+
 
 @dataclass
 class SystemMetrics:
@@ -13,6 +14,7 @@ class SystemMetrics:
     process_count: int
     timestamp: float
 
+
 class MetricsCollector:
     def __init__(self, collection_interval: int = 30):
         self.collection_interval = collection_interval
@@ -20,7 +22,7 @@ class MetricsCollector:
         self.alerts_config = {
             "cpu_threshold": 80.0,
             "memory_threshold": 85.0,
-            "disk_threshold": 90.0
+            "disk_threshold": 90.0,
         }
         self.running = False
 
@@ -28,10 +30,10 @@ class MetricsCollector:
         return SystemMetrics(
             cpu_percent=psutil.cpu_percent(interval=1),
             memory_percent=psutil.virtual_memory().percent,
-            disk_usage=psutil.disk_usage('/').percent,
+            disk_usage=psutil.disk_usage("/").percent,
             network_io=psutil.net_io_counters()._asdict(),
             process_count=len(psutil.pids()),
-            timestamp=time.time()
+            timestamp=time.time(),
         )
 
     def check_alerts(self, metrics: SystemMetrics):

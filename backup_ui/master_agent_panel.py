@@ -1,5 +1,6 @@
 import customtkinter as ctk
 
+
 class MasterAgentPanel(ctk.CTkFrame):
     def __init__(
         self,
@@ -18,7 +19,8 @@ class MasterAgentPanel(ctk.CTkFrame):
         progress_bar,
         preview_label,
         update_preview_callback,
-        *args, **kwargs
+        *args,
+        **kwargs,
     ):
         super().__init__(master, *args, **kwargs)
         self.on_run = on_run
@@ -46,9 +48,21 @@ class MasterAgentPanel(ctk.CTkFrame):
         goal_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
         goal_frame.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(goal_frame, text="Goal").pack(side="left")
-        ctk.CTkButton(goal_frame, text="Goal History", width=100, command=self.on_open_goal_history).pack(side="right", padx=(5, 0))
-        ctk.CTkButton(goal_frame, text="Plugin Manager", width=120, command=self.on_open_plugin_manager).pack(side="right", padx=(5, 0))
-        ctk.CTkButton(goal_frame, text="Clear", width=60, command=self.on_clear_goal).pack(side="right", padx=(5, 0))
+        ctk.CTkButton(
+            goal_frame,
+            text="Goal History",
+            width=100,
+            command=self.on_open_goal_history,
+        ).pack(side="right", padx=(5, 0))
+        ctk.CTkButton(
+            goal_frame,
+            text="Plugin Manager",
+            width=120,
+            command=self.on_open_plugin_manager,
+        ).pack(side="right", padx=(5, 0))
+        ctk.CTkButton(
+            goal_frame, text="Clear", width=60, command=self.on_clear_goal
+        ).pack(side="right", padx=(5, 0))
 
         # Goal Textbox
         self.goal_text = ctk.CTkTextbox(self, height=120)
@@ -60,28 +74,44 @@ class MasterAgentPanel(ctk.CTkFrame):
         controls_frame = ctk.CTkFrame(self)
         controls_frame.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
         controls_frame.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(controls_frame, text="Master Prompt").grid(row=0, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="w")
+        ctk.CTkLabel(controls_frame, text="Master Prompt").grid(
+            row=0, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="w"
+        )
         self.prompt_text = ctk.CTkTextbox(controls_frame, height=80)
-        self.prompt_text.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
+        self.prompt_text.grid(
+            row=1, column=0, columnspan=2, padx=10, pady=5, sticky="ew"
+        )
         if self.prompt_text_var is not None:
             self.prompt_text.insert("1.0", self.prompt_text_var.get())
 
         # Execution options
         options_frame = ctk.CTkFrame(controls_frame)
         options_frame.grid(row=2, column=0, padx=10, pady=5, sticky="w")
-        ctk.CTkCheckBox(options_frame, text="Goal List", variable=self.goal_list_var).pack(side="left", padx=5)
-        ctk.CTkCheckBox(options_frame, text="Cyclic Mode", variable=self.cyclic_var).pack(side="left", padx=5)
+        ctk.CTkCheckBox(
+            options_frame, text="Goal List", variable=self.goal_list_var
+        ).pack(side="left", padx=5)
+        ctk.CTkCheckBox(
+            options_frame, text="Cyclic Mode", variable=self.cyclic_var
+        ).pack(side="left", padx=5)
 
         # Control buttons
         btn_frame = ctk.CTkFrame(controls_frame)
         btn_frame.grid(row=2, column=1, padx=10, pady=5, sticky="e")
-        ctk.CTkButton(btn_frame, text="Run", command=self.on_run).pack(side="left", padx=5)
-        ctk.CTkButton(btn_frame, text="Pause", command=self.on_pause).pack(side="left", padx=5)
-        ctk.CTkButton(btn_frame, text="Stop", command=self.on_stop).pack(side="left", padx=5)
+        ctk.CTkButton(btn_frame, text="Run", command=self.on_run).pack(
+            side="left", padx=5
+        )
+        ctk.CTkButton(btn_frame, text="Pause", command=self.on_pause).pack(
+            side="left", padx=5
+        )
+        ctk.CTkButton(btn_frame, text="Stop", command=self.on_stop).pack(
+            side="left", padx=5
+        )
 
         # Progress Bar
         if self.progress_bar is not None:
-            self.progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
+            self.progress_bar.grid(
+                row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew"
+            )
 
         # Plan View
         if self.plan_view is not None:
@@ -98,4 +128,4 @@ class MasterAgentPanel(ctk.CTkFrame):
             self.update_preview_callback()
 
     def grid(self, *args, **kwargs):
-        super().grid(*args, **kwargs) 
+        super().grid(*args, **kwargs)

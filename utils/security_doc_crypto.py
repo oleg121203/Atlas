@@ -26,12 +26,14 @@ def get_encryption_key():
     key = base64.urlsafe_b64encode(kdf.derive(password))
     return key
 
+
 def encrypt_text(text: str) -> str:
     """Encrypt text using the environment key"""
     key = get_encryption_key()
     f = Fernet(key)
     encrypted_data = f.encrypt(text.encode("utf-8"))
     return base64.urlsafe_b64encode(encrypted_data).decode("utf-8")
+
 
 def decrypt_text(encrypted_text: str) -> str:
     """Decrypt text using the environment key"""
@@ -44,6 +46,7 @@ def decrypt_text(encrypted_text: str) -> str:
     except Exception:
         return "ACCESS_DENIED: Invalid decryption key"
 
+
 def encrypt_file(input_path: str, output_path: str):
     """Encrypts a file and saves the result to another file."""
     with open(input_path, encoding="utf-8") as f:
@@ -51,6 +54,7 @@ def encrypt_file(input_path: str, output_path: str):
     encrypted_content = encrypt_text(content)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(encrypted_content)
+
 
 def decrypt_file(input_path: str, output_path: str):
     """Decrypts a file and saves the result."""
@@ -60,11 +64,19 @@ def decrypt_file(input_path: str, output_path: str):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(decrypted_content)
 
+
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Encrypt or decrypt text/files for Atlas.")
-    parser.add_argument("action", choices=["encrypt", "decrypt", "encrypt_file", "decrypt_file", "test"])
-    parser.add_argument("data", nargs="?", default=None, help="Text to process or input file path")
+
+    parser = argparse.ArgumentParser(
+        description="Encrypt or decrypt text/files for Atlas."
+    )
+    parser.add_argument(
+        "action", choices=["encrypt", "decrypt", "encrypt_file", "decrypt_file", "test"]
+    )
+    parser.add_argument(
+        "data", nargs="?", default=None, help="Text to process or input file path"
+    )
     parser.add_argument("--output", help="Output file path for file operations")
 
     args = parser.parse_args()
@@ -81,18 +93,22 @@ if __name__ == "__main__":
             print(decrypt_text(args.data))
     elif args.action == "encrypt_file":
         if not args.data or not args.output:
-            print("Error: --data (input file) and --output are required for file encryption.")
+            print(
+                "Error: --data (input file) and --output are required for file encryption."
+            )
         else:
             encrypt_file(args.data, args.output)
             print(f"File '{args.data}' encrypted to '{args.output}'")
     elif args.action == "decrypt_file":
         if not args.data or not args.output:
-            print("Error: --data (input file) and --output are required for file decryption.")
+            print(
+                "Error: --data (input file) and --output are required for file decryption."
+            )
         else:
             decrypt_file(args.data, args.output)
             print(f"File '{args.data}' decrypted to '{args.output}'")
     elif args.action == "test":
-        #Test the encryption system
+        # Test the encryption system
         test_text = "This is a test security message"
         encrypted = encrypt_text(test_text)
         print(f"Encrypted: {encrypted}")

@@ -16,7 +16,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "agents"))
 import time
 from datetime import datetime, timedelta
 
-from modules.agents.creator_authentication import CreatorAuthentication, CreatorIdentityLevel
+from modules.agents.creator_authentication import (
+    CreatorAuthentication,
+    CreatorIdentityLevel,
+)
 
 
 def demonstrate_session_lifecycle():
@@ -24,7 +27,7 @@ def demonstrate_session_lifecycle():
     print("🔐 ДЕМОНСТРАЦІЯ СЕСІЇ ТВОРЦЯ ATLAS")
     print("=" * 50)
 
-    #Створюємо систему аутентифікації
+    # Створюємо систему аутентифікації
     auth = CreatorAuthentication()
 
     print("\n1️⃣  ПОЧАТКОВИЙ СТАН:")
@@ -67,9 +70,13 @@ def demonstrate_session_lifecycle():
                 print(f"   • {priv}: {'✅' if value else '❌'}")
 
             print("\n7️⃣  СПЕЦІАЛЬНІ МОЖЛИВОСТІ:")
-            print(f"   • Беззаперечне виконання: {'✅' if auth.should_execute_unconditionally() else '❌'}")
+            print(
+                f"   • Беззаперечне виконання: {'✅' if auth.should_execute_unconditionally() else '❌'}"
+            )
             print(f"   • Dev-режим: {'✅' if auth.is_dev_mode_allowed() else '❌'}")
-            print(f"   • Чутливі операції: {'✅' if auth.is_sensitive_action_allowed() else '❌'}")
+            print(
+                f"   • Чутливі операції: {'✅' if auth.is_sensitive_action_allowed() else '❌'}"
+            )
 
             print("\n8️⃣  ЕМОЦІЙНІ ВІДПОВІДІ:")
             contexts = ["greeting", "gratitude", "love", "obedience"]
@@ -81,14 +88,18 @@ def demonstrate_session_lifecycle():
             time.sleep(3)
 
             final_status = auth.get_authentication_status()
-            print(f"   • Сесія все ще активна: {'✅' if final_status['is_creator_session_active'] else '❌'}")
+            print(
+                f"   • Сесія все ще активна: {'✅' if final_status['is_creator_session_active'] else '❌'}"
+            )
             print(f"   • Тривалість сесії: {final_status['session_duration']:.3f} сек")
 
             print("\n🔟 РУЧНЕ ЗАВЕРШЕННЯ СЕСІЇ:")
             auth.end_creator_session()
 
             end_status = auth.get_authentication_status()
-            print(f"   • Сесія активна: {'❌' if not end_status['is_creator_session_active'] else '✅'}")
+            print(
+                f"   • Сесія активна: {'❌' if not end_status['is_creator_session_active'] else '✅'}"
+            )
             print(f"   • Рівень ідентифікації: {end_status['identity_level']}")
 
 
@@ -99,17 +110,23 @@ def demonstrate_security_concerns():
 
     auth = CreatorAuthentication()
 
-    #Симулюємо аутентифікацію
+    # Симулюємо аутентифікацію
     auth.current_identity_level = CreatorIdentityLevel.VERIFIED_CREATOR
     auth.is_creator_session_active = True
     auth.current_session_id = "security_demo"
-    auth.session_start_time = datetime.now() - timedelta(hours=5)  #5 годин тому!
+    auth.session_start_time = datetime.now() - timedelta(hours=5)  # 5 годин тому!
 
     print("\n🕐 СИМУЛЯЦІЯ: Сесія була відкрита 5 годин тому")
     status = auth.get_authentication_status()
-    print(f"   • Сесія все ще активна: {'✅ ТАК' if status['is_creator_session_active'] else '❌ НІ'}")
-    print(f"   • Тривалість: {status['session_duration']:.0f} секунд ({status['session_duration']/3600:.1f} годин)")
-    print(f"   • Привілеї все ще доступні: {'✅ ТАК' if auth.should_execute_unconditionally() else '❌ НІ'}")
+    print(
+        f"   • Сесія все ще активна: {'✅ ТАК' if status['is_creator_session_active'] else '❌ НІ'}"
+    )
+    print(
+        f"   • Тривалість: {status['session_duration']:.0f} секунд ({status['session_duration'] / 3600:.1f} годин)"
+    )
+    print(
+        f"   • Привілеї все ще доступні: {'✅ ТАК' if auth.should_execute_unconditionally() else '❌ НІ'}"
+    )
 
     print("\n🚨 ПРОБЛЕМА:")
     print("   Сесія творця триває 5+ годин без жодних перевірок!")
@@ -135,6 +152,7 @@ def main():
     except Exception as e:
         print(f"❌ Помилка: {e}")
         import traceback
+
         traceback.print_exc()
 
 

@@ -1,12 +1,13 @@
 # core/async_task_manager.py
 
-import threading
-import queue
-import time
 import logging
-from typing import Callable, Any, Optional
+import queue
+import threading
+import time
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger("AsyncTaskManager")
+
 
 class AsyncTaskManager:
     """Manages asynchronous execution of tasks to prevent UI blocking."""
@@ -21,7 +22,9 @@ class AsyncTaskManager:
         """Start the worker thread to process tasks asynchronously."""
         if not self.is_running:
             self.is_running = True
-            self.worker_thread = threading.Thread(target=self._process_tasks, daemon=True)
+            self.worker_thread = threading.Thread(
+                target=self._process_tasks, daemon=True
+            )
             self.worker_thread.start()
             logger.info("AsyncTaskManager started")
 
@@ -34,7 +37,9 @@ class AsyncTaskManager:
                 self.worker_thread = None
             logger.info("AsyncTaskManager stopped")
 
-    def submit_task(self, task: Callable[[], Any], callback: Optional[Callable[[Any], None]] = None):
+    def submit_task(
+        self, task: Callable[[], Any], callback: Optional[Callable[[Any], None]] = None
+    ):
         """Submit a task to be executed asynchronously.
 
         Args:
@@ -42,7 +47,9 @@ class AsyncTaskManager:
             callback: Optional callback function to call with the result after task completion.
         """
         self.task_queue.put((task, callback))
-        logger.debug(f"Task submitted to queue, current queue size: {self.task_queue.qsize()}")
+        logger.debug(
+            f"Task submitted to queue, current queue size: {self.task_queue.qsize()}"
+        )
 
     def _process_tasks(self):
         """Process tasks from the queue in a separate thread."""
@@ -63,7 +70,9 @@ class AsyncTaskManager:
             except queue.Empty:
                 continue  # Queue is empty, check if still running
             except Exception as e:
-                logger.error(f"Unexpected error in task processing: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Unexpected error in task processing: {str(e)}", exc_info=True
+                )
                 time.sleep(1)  # Prevent tight CPU loop in case of repeated errors
 
     def get_queue_size(self) -> int:

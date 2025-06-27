@@ -1,13 +1,18 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from .base_tool import BaseTool
+
 
 class CreativeTool(BaseTool):
     """
     A tool that chains other tools in creative ways to solve complex or open-ended tasks.
     Example: screenshot -> OCR -> translate -> search.
     """
+
     name = "creative_tool"
-    description = "Chains other tools in creative ways to solve complex or open-ended tasks."
+    description = (
+        "Chains other tools in creative ways to solve complex or open-ended tasks."
+    )
     capabilities = ["chain_tools", "creative_workflows"]
     version = "1.0"
 
@@ -31,4 +36,4 @@ class CreativeTool(BaseTool):
             result = await self.chain(tool_name, **args)
             results.append({"tool": tool_name, "result": result})
             last_result = result
-        return {"status": "success", "results": results} 
+        return {"status": "success", "results": results}

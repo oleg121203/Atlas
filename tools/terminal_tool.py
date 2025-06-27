@@ -3,6 +3,7 @@
 Provides secure terminal command execution with proper output handling
 and process management.
 """
+
 from __future__ import annotations
 
 import os
@@ -30,6 +31,7 @@ __all__ = [
 @dataclass
 class TerminalResult:
     """Result object for terminal operations."""
+
     success: bool
     command: str
     stdout: str = ""
@@ -41,14 +43,16 @@ class TerminalResult:
     error: Optional[str] = None
 
 
-def execute_command(command: str,
-                   working_dir: Optional[str] = None,
-                   timeout: float = 30.0,
-                   capture_output: bool = True,
-                   shell: bool = True,
-                   env: Optional[Dict[str, str]] = None) -> TerminalResult:
+def execute_command(
+    command: str,
+    working_dir: Optional[str] = None,
+    timeout: float = 30.0,
+    capture_output: bool = True,
+    shell: bool = True,
+    env: Optional[Dict[str, str]] = None,
+) -> TerminalResult:
     """Execute a terminal command.
-    
+
     Args:
         command: Command to execute
         working_dir: Working directory for command execution
@@ -56,33 +60,36 @@ def execute_command(command: str,
         capture_output: Whether to capture stdout/stderr
         shell: Whether to run command through shell
         env: Environment variables to set
-        
+
     Returns:
         TerminalResult with execution details
     """
     start_time = time.time()
 
     try:
-        #Prepare environment
+        # Prepare environment
         exec_env = os.environ.copy()
         if env:
             exec_env.update(env)
 
-        #Change working directory if specified
+        # Change working directory if specified
         if working_dir:
             working_dir = str(Path(working_dir).expanduser().resolve())
             if not os.path.exists(working_dir):
-                raise FileNotFoundError(f"Working directory does not exist: {working_dir}")
+                raise FileNotFoundError(
+                    f"Working directory does not exist: {working_dir}"
+                )
 
         logger.info(f"Executing command: {command}")
         if working_dir:
             logger.info(f"Working directory: {working_dir}")
 
-        #Execute command
+        # Execute command
         if capture_output:
             result = subprocess.run(
                 command,
-                check=False, shell=shell,
+                check=False,
+                shell=shell,
                 cwd=working_dir,
                 env=exec_env,
                 capture_output=True,
@@ -95,7 +102,7 @@ def execute_command(command: str,
             return_code = result.returncode
             process_id = None
         else:
-            #For non-capturing execution (fire and forget)
+            # For non-capturing execution (fire and forget)
             process = subprocess.Popen(
                 command,
                 shell=shell,
@@ -113,7 +120,9 @@ def execute_command(command: str,
         if success:
             logger.info(f"Command completed successfully in {execution_time:.3f}s")
         else:
-            logger.warning(f"Command failed with return code {return_code} in {execution_time:.3f}s")
+            logger.warning(
+                f"Command failed with return code {return_code} in {execution_time:.3f}s"
+            )
 
         return TerminalResult(
             success=success,
@@ -153,20 +162,22 @@ def execute_command(command: str,
         )
 
 
-def execute_script(script_path: str,
-                  args: Optional[List[str]] = None,
-                  working_dir: Optional[str] = None,
-                  timeout: float = 30.0,
-                  interpreter: Optional[str] = None) -> TerminalResult:
+def execute_script(
+    script_path: str,
+    args: Optional[List[str]] = None,
+    working_dir: Optional[str] = None,
+    timeout: float = 30.0,
+    interpreter: Optional[str] = None,
+) -> TerminalResult:
     """Execute a script file.
-    
+
     Args:
         script_path: Path to the script file
         args: Arguments to pass to the script
         working_dir: Working directory for script execution
         timeout: Maximum execution time in seconds
         interpreter: Script interpreter (e.g., 'python3', 'bash')
-        
+
     Returns:
         TerminalResult with execution details
     """
@@ -179,11 +190,8 @@ def execute_script(script_path: str,
             error=f"Script file does not exist: {script_path}",
         )
 
-    #Build command
-    if interpreter:
-        command = [interpreter, script_path]
-    else:
-        command = [script_path]
+    # Build command
+    command = [interpreter, script_path] if interpreter else [script_path]
 
     if args:
         command.extend(args)
@@ -200,7 +208,7 @@ def execute_script(script_path: str,
 
 def get_environment() -> TerminalResult:
     """Get current environment variables.
-    
+
     Returns:
         TerminalResult with environment variables in stdout
     """
@@ -209,10 +217,10 @@ def get_environment() -> TerminalResult:
 
 def change_directory(path: str) -> TerminalResult:
     """Change current working directory.
-    
+
     Args:
         path: Target directory path
-        
+
     Returns:
         TerminalResult with operation status
     """
@@ -255,11 +263,11 @@ def change_directory(path: str) -> TerminalResult:
 
 def kill_process(process_id: int, force: bool = False) -> TerminalResult:
     """Kill a process by PID.
-    
+
     Args:
         process_id: Process ID to kill
         force: Whether to force kill (SIGKILL vs SIGTERM)
-        
+
     Returns:
         TerminalResult with operation status
     """

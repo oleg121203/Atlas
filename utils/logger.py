@@ -1,4 +1,5 @@
 """Simple structured logger for Atlas."""
+
 from __future__ import annotations
 
 import json
@@ -12,6 +13,7 @@ LOG_DIR = Path.home() / ".atlas" / "logs"
 LOG_FILE_PATH = LOG_DIR / "atlas.log.jsonl"
 
 _logger_initialized = False
+
 
 class JsonLFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:

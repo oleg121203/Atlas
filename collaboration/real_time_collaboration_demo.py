@@ -1,7 +1,5 @@
 import asyncio
 import time
-import threading
-import json
 
 from real_time_collaboration import RealTimeCollaboration
 
@@ -23,30 +21,27 @@ if __name__ == "__main__":
     print("Sending test updates from clients...")
     # Simulate workflow updates from different users
     asyncio.run_coroutine_threadsafe(
-        client1.send_update('workflow_update', {
-            'user': 'User1',
-            'workflow_id': 'WF001',
-            'change': 'Updated step 1'
-        }),
-        client1.loop
+        client1.send_update(
+            "workflow_update",
+            {"user": "User1", "workflow_id": "WF001", "change": "Updated step 1"},
+        ),
+        client1.loop,
     )
 
     asyncio.run_coroutine_threadsafe(
-        client2.send_update('workflow_update', {
-            'user': 'User2',
-            'workflow_id': 'WF001',
-            'change': 'Updated step 2'
-        }),
-        client2.loop
+        client2.send_update(
+            "workflow_update",
+            {"user": "User2", "workflow_id": "WF001", "change": "Updated step 2"},
+        ),
+        client2.loop,
     )
 
     # Simulate presence updates
     asyncio.run_coroutine_threadsafe(
-        client1.send_update('presence_update', {
-            'user': 'User1',
-            'status': 'editing WF001'
-        }),
-        client1.loop
+        client1.send_update(
+            "presence_update", {"user": "User1", "status": "editing WF001"}
+        ),
+        client1.loop,
     )
 
     # Keep the demo running to observe real-time updates

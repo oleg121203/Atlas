@@ -4,10 +4,10 @@ This module implements strategies to reduce response times in the Atlas applicat
 """
 
 import asyncio
-import threading
-from functools import lru_cache
 import logging
-from PySide6.QtCore import QThread, Signal, QObject
+from functools import wraps
+
+from PySide6.QtCore import QObject, QThread, Signal
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class AsyncTaskWorker(QObject):
     """A worker to run blocking tasks asynchronously in a separate thread."""
+
     taskCompleted = Signal(object, str)  # Result, Task ID
     taskError = Signal(str, str)  # Error message, Task ID
 
@@ -87,11 +88,25 @@ class CacheManager:
         self._cache = {}
         logger.info(f"CacheManager initialized with TTL {ttl_seconds} seconds")
 
-    @lru_cache(maxsize=128)
     def cached_function(self, func):
         """Decorator for caching function results."""
+        # Використовуємо власний кеш замість lru_cache для уникнення витоків пам'яті
+        cache = {}
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Створюємо хешований ключ з аргументів
+            key = str(args) + str(sorted(kwargs.items()))
+            if key not in cache:
+                cache[key] = func(*args, **kwargs)
+                # Перевіряємо розмір кешу і видаляємо старі записи при потребі
+                if len(cache) > 128:
+                    # Видаляємо перший (найстаріший) елемент
+                    cache.pop(next(iter(cache)))
+            return cache[key]
+
         logger.info(f"Applied cache to function {func.__name__}")
-        return func
+        return wrapper
 
     def get(self, key: str):
         """Get a value from the cache.
@@ -105,6 +120,7 @@ class CacheManager:
         if key in self._cache:
             value, timestamp = self._cache[key]
             import time
+
             if time.time() - timestamp < self.ttl:
                 logger.info(f"Cache hit for key: {key}")
                 return value
@@ -121,6 +137,7 @@ class CacheManager:
             value: Value to cache.
         """
         import time
+
         self._cache[key] = (value, time.time())
         logger.info(f"Cache set for key: {key}")
 

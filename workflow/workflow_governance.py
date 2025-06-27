@@ -1,8 +1,9 @@
-from typing import Dict, List, Optional, Any
-from datetime import datetime
 import json
 import os
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 
 class ComplianceStandard(Enum):
     GDPR = "GDPR"
@@ -10,11 +11,13 @@ class ComplianceStandard(Enum):
     ISO27001 = "ISO27001"
     SOC2 = "SOC2"
 
+
 class AccessRole(Enum):
     ADMIN = "Administrator"
     EDITOR = "Editor"
     VIEWER = "Viewer"
     EXECUTOR = "Executor"
+
 
 class WorkflowGovernance:
     def __init__(self):
@@ -28,7 +31,9 @@ class WorkflowGovernance:
         self.role_access: Dict[str, Dict[str, List[str]]] = {}
         self.user_roles: Dict[str, List[str]] = {}
 
-    def version_workflow(self, workflow_id: str, version_data: Dict[str, Any], version: str) -> None:
+    def version_workflow(
+        self, workflow_id: str, version_data: Dict[str, Any], version: str
+    ) -> None:
         """
         Version control for workflow definitions.
 
@@ -39,17 +44,23 @@ class WorkflowGovernance:
         """
         if workflow_id not in self.workflow_versions:
             self.workflow_versions[workflow_id] = []
-        
+
         version_info = {
             "version": version,
             "data": version_data,
             "timestamp": datetime.now().isoformat(),
-            "changes": version_data.get("changes", "")
+            "changes": version_data.get("changes", ""),
         }
         self.workflow_versions[workflow_id].append(version_info)
         self._log_audit_event(workflow_id, "version_created", {"version": version})
 
-    def request_approval(self, workflow_id: str, version: str, requester: str, notes: Optional[str] = None) -> bool:
+    def request_approval(
+        self,
+        workflow_id: str,
+        version: str,
+        requester: str,
+        notes: Optional[str] = None,
+    ) -> bool:
         """
         Request approval for a workflow version to be deployed to production.
 
@@ -64,19 +75,30 @@ class WorkflowGovernance:
         """
         if workflow_id not in self.approval_records:
             self.approval_records[workflow_id] = []
-        
+
         approval_request = {
             "version": version,
             "requester": requester,
             "status": "pending",
             "notes": notes or "",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         self.approval_records[workflow_id].append(approval_request)
-        self._log_audit_event(workflow_id, "approval_requested", {"version": version, "requester": requester})
+        self._log_audit_event(
+            workflow_id,
+            "approval_requested",
+            {"version": version, "requester": requester},
+        )
         return True
 
-    def approve_workflow(self, workflow_id: str, version: str, approver: str, decision: str, comments: Optional[str] = None) -> bool:
+    def approve_workflow(
+        self,
+        workflow_id: str,
+        version: str,
+        approver: str,
+        decision: str,
+        comments: Optional[str] = None,
+    ) -> bool:
         """
         Record an approval or rejection for a workflow deployment.
 
@@ -97,12 +119,17 @@ class WorkflowGovernance:
                     record["approver"] = approver
                     record["comments"] = comments or ""
                     record["decision_timestamp"] = datetime.now().isoformat()
-                    self._log_audit_event(workflow_id, f"approval_{decision}", 
-                                        {"version": version, "approver": approver})
+                    self._log_audit_event(
+                        workflow_id,
+                        f"approval_{decision}",
+                        {"version": version, "approver": approver},
+                    )
                     return True
         return False
 
-    def _log_audit_event(self, workflow_id: str, event_type: str, details: Dict[str, Any]) -> None:
+    def _log_audit_event(
+        self, workflow_id: str, event_type: str, details: Dict[str, Any]
+    ) -> None:
         """
         Log an event to the audit trail for tracking changes and executions.
 
@@ -113,16 +140,20 @@ class WorkflowGovernance:
         """
         if workflow_id not in self.audit_trail:
             self.audit_trail[workflow_id] = []
-        
+
         event = {
             "event_type": event_type,
             "timestamp": datetime.now().isoformat(),
-            "details": details
+            "details": details,
         }
         self.audit_trail[workflow_id].append(event)
 
-    def run_compliance_check(self, workflow_id: str, standard: ComplianceStandard, 
-                           workflow_data: Dict[str, Any]) -> Dict[str, Any]:
+    def run_compliance_check(
+        self,
+        workflow_id: str,
+        standard: ComplianceStandard,
+        workflow_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """
         Run compliance checks against specified industry standards.
 
@@ -140,30 +171,42 @@ class WorkflowGovernance:
             "timestamp": datetime.now().isoformat(),
             "compliant": True,
             "issues": [],
-            "checked_by": "system"
+            "checked_by": "system",
         }
-        
+
         # Sample checks based on standard
-        if standard == ComplianceStandard.GDPR:
-            if "personal_data" in str(workflow_data).lower():
-                if not workflow_data.get("data_protection", {}).get("encryption"):
-                    check_result["compliant"] = False
-                    check_result["issues"].append("Personal data processing without encryption specified.")
-        elif standard == ComplianceStandard.HIPAA:
-            if "health_data" in str(workflow_data).lower():
-                if not workflow_data.get("data_protection", {}).get("access_logs"):
-                    check_result["compliant"] = False
-                    check_result["issues"].append("Health data processing without access logging specified.")
-        
+        if (
+            standard == ComplianceStandard.GDPR
+            and "personal_data" in str(workflow_data).lower()
+            and not workflow_data.get("data_protection", {}).get("encryption")
+        ):
+            check_result["compliant"] = False
+            check_result["issues"].append(
+                "Personal data processing without encryption specified."
+            )
+        elif (
+            standard == ComplianceStandard.HIPAA
+            and "health_data" in str(workflow_data).lower()
+            and not workflow_data.get("data_protection", {}).get("access_logs")
+        ):
+            check_result["compliant"] = False
+            check_result["issues"].append(
+                "Health data processing without access logging specified."
+            )
+
         if workflow_id not in self.compliance_checks:
             self.compliance_checks[workflow_id] = {}
         self.compliance_checks[workflow_id][standard.value] = check_result
-        self._log_audit_event(workflow_id, "compliance_check", 
-                            {"standard": standard.value, "compliant": check_result["compliant"]})
+        self._log_audit_event(
+            workflow_id,
+            "compliance_check",
+            {"standard": standard.value, "compliant": check_result["compliant"]},
+        )
         return check_result
 
-    def configure_role_access(self, workflow_id: str, role: AccessRole, 
-                            permissions: List[str]) -> None:
+    def configure_role_access(
+        self, workflow_id: str, role: AccessRole, permissions: List[str]
+    ) -> None:
         """
         Configure role-based access control for workflow management.
 
@@ -175,10 +218,15 @@ class WorkflowGovernance:
         if workflow_id not in self.role_access:
             self.role_access[workflow_id] = {}
         self.role_access[workflow_id][role.value] = permissions
-        self._log_audit_event(workflow_id, "role_access_configured", 
-                            {"role": role.value, "permissions": permissions})
+        self._log_audit_event(
+            workflow_id,
+            "role_access_configured",
+            {"role": role.value, "permissions": permissions},
+        )
 
-    def assign_user_role(self, user_id: str, workflow_id: str, role: AccessRole) -> None:
+    def assign_user_role(
+        self, user_id: str, workflow_id: str, role: AccessRole
+    ) -> None:
         """
         Assign a role to a user for a specific workflow.
 
@@ -191,10 +239,13 @@ class WorkflowGovernance:
             self.user_roles[user_id] = []
         if role.value not in self.user_roles[user_id]:
             self.user_roles[user_id].append(role.value)
-        self._log_audit_event(workflow_id, "user_role_assigned", 
-                            {"user_id": user_id, "role": role.value})
+        self._log_audit_event(
+            workflow_id, "user_role_assigned", {"user_id": user_id, "role": role.value}
+        )
 
-    def check_user_access(self, user_id: str, workflow_id: str, permission: str) -> bool:
+    def check_user_access(
+        self, user_id: str, workflow_id: str, permission: str
+    ) -> bool:
         """
         Check if a user has a specific permission for a workflow based on their role.
 
@@ -208,19 +259,25 @@ class WorkflowGovernance:
         """
         if user_id not in self.user_roles:
             return False
-        
+
         user_roles = self.user_roles[user_id]
         if workflow_id not in self.role_access:
             return False
-        
+
         for role in user_roles:
-            if role in self.role_access[workflow_id]:
-                if permission in self.role_access[workflow_id][role]:
-                    return True
+            if (
+                role in self.role_access[workflow_id]
+                and permission in self.role_access[workflow_id][role]
+            ):
+                return True
         return False
 
-    def get_audit_trail(self, workflow_id: str, start_date: Optional[str] = None, 
-                       end_date: Optional[str] = None) -> List[Dict]:
+    def get_audit_trail(
+        self,
+        workflow_id: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+    ) -> List[Dict]:
         """
         Retrieve the audit trail for a workflow, optionally filtered by date range.
 
@@ -234,7 +291,7 @@ class WorkflowGovernance:
         """
         if workflow_id not in self.audit_trail:
             return []
-        
+
         events = self.audit_trail[workflow_id]
         if start_date or end_date:
             filtered_events = []
@@ -261,11 +318,11 @@ class WorkflowGovernance:
             "audit_trail": self.audit_trail,
             "compliance_checks": self.compliance_checks,
             "role_access": self.role_access,
-            "user_roles": self.user_roles
+            "user_roles": self.user_roles,
         }
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             json.dump(data, f, indent=2)
-        
+
     def load_governance_data(self, file_path: str) -> None:
         """
         Load governance data from a file.
@@ -274,7 +331,7 @@ class WorkflowGovernance:
             file_path (str): Path to load the governance data from.
         """
         if os.path.exists(file_path):
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 data = json.load(f)
                 self.workflow_versions = data.get("workflow_versions", {})
                 self.approval_records = data.get("approval_records", {})

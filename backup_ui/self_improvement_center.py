@@ -1,7 +1,15 @@
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QListWidget, QPushButton, QTextEdit, QHBoxLayout, QLabel, QInputDialog
-)
 from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QListWidget,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
 
 class SelfImprovementCenter(QWidget):
     def __init__(self, meta_agent, parent=None):
@@ -9,11 +17,13 @@ class SelfImprovementCenter(QWidget):
         self.meta_agent = meta_agent
         layout = QVBoxLayout(self)
         self.log_view = QListWidget()
-        self.stats_label = QLabel("Stats: (success/failure per tool will be shown here)")
+        self.stats_label = QLabel(
+            "Stats: (success/failure per tool will be shown here)"
+        )
         self.patch_view = QTextEdit()
-        self.confirm_button = QPushButton('Confirm Patch')
-        self.reject_button = QPushButton('Reject Patch')
-        self.suggest_button = QPushButton('Suggest Your Own')
+        self.confirm_button = QPushButton("Confirm Patch")
+        self.reject_button = QPushButton("Reject Patch")
+        self.suggest_button = QPushButton("Suggest Your Own")
         layout.addWidget(QLabel("Live Reasoning Log:"))
         layout.addWidget(self.log_view)
         layout.addWidget(self.stats_label)
@@ -38,12 +48,14 @@ class SelfImprovementCenter(QWidget):
     def update_log(self):
         self.log_view.clear()
         for entry in self.meta_agent.get_reasoning_log_for_ui():
-            self.log_view.addItem(entry['message'])
+            self.log_view.addItem(entry["message"])
         # (Optional) Update stats_label with aggregated stats from meta_agent
 
     def confirm_patch(self):
         patch = self.patch_view.toPlainText()
-        file_path, ok = QInputDialog.getText(self, "File to Patch", "Enter file path to patch:")
+        file_path, ok = QInputDialog.getText(
+            self, "File to Patch", "Enter file path to patch:"
+        )
         if ok and patch and file_path:
             self.meta_agent.apply_patch(file_path, patch)
             self.log_view.addItem(f"Patch applied to {file_path}.")
@@ -53,7 +65,9 @@ class SelfImprovementCenter(QWidget):
         self.log_view.addItem("Patch rejected by user.")
 
     def suggest_patch(self):
-        suggestion, ok = QInputDialog.getMultiLineText(self, "Suggest Your Own Patch/Strategy", "Enter your suggestion:")
+        suggestion, ok = QInputDialog.getMultiLineText(
+            self, "Suggest Your Own Patch/Strategy", "Enter your suggestion:"
+        )
         if ok and suggestion:
             self.meta_agent.save_user_feedback("User suggestion", suggestion)
-            self.log_view.addItem(f"User suggested: {suggestion}") 
+            self.log_view.addItem(f"User suggested: {suggestion}")

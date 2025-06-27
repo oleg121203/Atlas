@@ -1,7 +1,20 @@
 from typing import Optional
-from ui.plugin_manager import PluginManager
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QInputDialog, QMessageBox, QFormLayout, QComboBox, QFrame
+
+from PySide6.QtWidgets import (
+    QComboBox,
+    QFormLayout,
+    QFrame,
+    QInputDialog,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
 from ui.i18n import _
+from ui.plugin_manager import PluginManager
+
 
 class SettingsModule(QWidget):
     """Settings management module with cyberpunk styling.
@@ -32,7 +45,9 @@ class SettingsModule(QWidget):
         layout.setSpacing(12)
 
         self.title = QLabel(_("⚙️ Settings"))
-        self.title.setStyleSheet("color: #00ff7f; font-size: 22px; font-weight: bold; letter-spacing: 1px;")
+        self.title.setStyleSheet(
+            "color: #00ff7f; font-size: 22px; font-weight: bold; letter-spacing: 1px;"
+        )
         layout.addWidget(self.title)
 
         self.form = QFormLayout()
@@ -44,11 +59,15 @@ class SettingsModule(QWidget):
         layout.addLayout(self.form)
 
         self.save_btn = QPushButton(_("Save Settings"))
-        self.save_btn.setStyleSheet("background: #00ff7f; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;")
+        self.save_btn.setStyleSheet(
+            "background: #00ff7f; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
+        )
         layout.addWidget(self.save_btn)
 
         self.plugins_title = QLabel(_("Plugin Settings"))
-        self.plugins_title.setStyleSheet("color: #00ff7f; font-size: 18px; font-weight: bold; margin-top: 18px;")
+        self.plugins_title.setStyleSheet(
+            "color: #00ff7f; font-size: 18px; font-weight: bold; margin-top: 18px;"
+        )
         layout.addWidget(self.plugins_title)
 
         self.plugins_frame = QFrame()
@@ -89,10 +108,14 @@ class SettingsModule(QWidget):
                         self.plugins_layout.addWidget(widget)
                     else:
                         info = plugin.info()
-                        label = QLabel(f"{info.get('name', plugin.name)}: {str(_('No settings available')) or 'No settings available'}")
+                        label = QLabel(
+                            f"{info.get('name', plugin.name)}: {str(_('No settings available')) or 'No settings available'}"
+                        )
                         self.plugins_layout.addWidget(label)
                 except Exception as e:
-                    self.logger.error(f"Error adding settings for plugin {plugin.name}: {e}")
+                    self.logger.error(
+                        f"Error adding settings for plugin {plugin.name}: {e}"
+                    )
                     continue
 
     def update_ui(self) -> None:
@@ -117,7 +140,7 @@ class SettingsModule(QWidget):
                 value, ok = QInputDialog.getText(
                     self,
                     str(_("Edit Setting")) or "Edit Setting",
-                    str(_("New value:")) or "New value:"
+                    str(_("New value:")) or "New value:",
                 )
                 if ok:
                     self.list.item(row).setText(value)
@@ -125,13 +148,13 @@ class SettingsModule(QWidget):
                 QMessageBox.warning(
                     self,
                     str(_("Error")) or "Error",
-                    f"{str(_('Failed to edit setting:')) or 'Failed to edit setting:'} {str(e)}"
+                    f"{str(_('Failed to edit setting:')) or 'Failed to edit setting:'} {str(e)}",
                 )
         else:
             QMessageBox.warning(
                 self,
                 str(_("Edit Setting")) or "Edit Setting",
-                str(_("Select a setting to edit.")) or "Select a setting to edit."
+                str(_("Select a setting to edit.")) or "Select a setting to edit.",
             )
 
     def save_settings(self) -> None:
@@ -144,11 +167,12 @@ class SettingsModule(QWidget):
             QMessageBox.information(
                 self,
                 str(_("Save Settings")) or "Save Settings",
-                str(_("Settings saved successfully.")) or "Settings saved successfully."
+                str(_("Settings saved successfully."))
+                or "Settings saved successfully.",
             )
         except Exception as e:
             QMessageBox.warning(
                 self,
                 str(_("Error")) or "Error",
-                f"{str(_('Failed to save settings:')) or 'Failed to save settings:'} {str(e)}"
-            ) 
+                f"{str(_('Failed to save settings:')) or 'Failed to save settings:'} {str(e)}",
+            )

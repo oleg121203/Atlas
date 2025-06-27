@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.warning("Using placeholder for EmailSignatureManager module")
 
+
 class EmailSignatureManager:
     def __init__(self, *args, **kwargs):
         logger.info("Initialized placeholder EmailSignatureManager")
@@ -17,6 +18,9 @@ class EmailSignatureManager:
 
     def __getattr__(self, name):
         def method(*args, **kwargs):
-            logger.warning(f"Called unimplemented method {name} on placeholder EmailSignatureManager")
+            logger.warning(
+                f"Called unimplemented method {name} on placeholder EmailSignatureManager"
+            )
             return None
+
         return method

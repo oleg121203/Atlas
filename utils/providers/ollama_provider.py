@@ -5,8 +5,10 @@ It handles client initialization and chat functionality.
 """
 
 import logging
-import requests
 from typing import Any, Dict, List, Optional
+
+import requests
+
 
 class OllamaProvider:
     """Manages interactions with Ollama local API."""
@@ -24,18 +26,20 @@ class OllamaProvider:
         except Exception:
             return False
 
-    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, model: Optional[str] = None, max_tokens: Optional[int] = None) -> Dict[str, Any]:
+    def chat(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """Handle Ollama chat requests via local HTTP API."""
         if not self.is_available():
             raise ValueError("Ollama server is not running or not accessible.")
 
         model_to_use = model or self.model
         url = "http://localhost:11434/api/chat"
-        payload = {
-            "model": model_to_use,
-            "messages": messages,
-            "stream": False
-        }
+        payload = {"model": model_to_use, "messages": messages, "stream": False}
         if max_tokens is not None:
             payload["options"] = {"num_predict": max_tokens}
 
@@ -45,7 +49,9 @@ class OllamaProvider:
         try:
             response = requests.post(url, json=payload, timeout=30)
             if response.status_code != 200:
-                raise ValueError(f"Ollama API error: {response.status_code} {response.text}")
+                raise ValueError(
+                    f"Ollama API error: {response.status_code} {response.text}"
+                )
             data = response.json()
             message = data.get("message", {}).get("content", "")
             return {
@@ -53,13 +59,21 @@ class OllamaProvider:
                 "tool_calls": None,
                 "prompt_tokens": 0,
                 "completion_tokens": 0,
-                "total_tokens": 0
+                "total_tokens": 0,
             }
         except Exception as e:
             self.logger.error(f"Ollama API error: {e}", exc_info=True)
-            return {"content": "", "tool_calls": None, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+            return {
+                "content": "",
+                "tool_calls": None,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            }
 
-    def get_embedding(self, text: str, model: str = "models/embedding-001") -> List[float]:
+    def get_embedding(
+        self, text: str, model: str = "models/embedding-001"
+    ) -> List[float]:
         """Embedding generation is not supported by Ollama API by default."""
         self.logger.warning("Embedding generation is not supported by Ollama API")
         return []

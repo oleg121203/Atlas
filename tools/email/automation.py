@@ -3,11 +3,12 @@
 This module provides functionality for automating email sending based on triggers and templates.
 """
 
-from typing import Dict, List, Optional
 import logging
+from typing import Dict, List
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
 
 class EmailAutomation:
     """Class for automating email campaigns based on triggers and templates."""
@@ -62,7 +63,9 @@ class EmailAutomation:
             else:
                 logger.debug(f"Trigger {trigger_name} condition not met")
 
-    def send_automated_email(self, recipients: List[str], template_name: str, context: Dict[str, any]):
+    def send_automated_email(
+        self, recipients: List[str], template_name: str, context: Dict[str, any]
+    ):
         """
         Send an automated email using a template and context data.
 

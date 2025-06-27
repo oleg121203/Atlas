@@ -1,9 +1,11 @@
 import os
-from typing import Dict, Any
+from typing import Any, Dict
+
 try:
     import PyPDF2
 except ImportError:
     PyPDF2 = None
+
 
 def extract_pdf_text(file_path: str) -> Dict[str, Any]:
     """
@@ -24,4 +26,4 @@ def extract_pdf_text(file_path: str) -> Dict[str, Any]:
             text = "\n".join(page.extract_text() or "" for page in reader.pages)
         return {"status": "success", "text": text}
     except Exception as e:
-        return {"status": "error", "error": str(e)} 
+        return {"status": "error", "error": str(e)}

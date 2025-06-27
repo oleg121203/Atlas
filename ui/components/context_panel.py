@@ -3,9 +3,9 @@
 This module defines the context-aware side panel for the Atlas application as part of the UI enhancements under ASC-024. The panel provides dynamic actions and details based on the selected item or current view, following the design specifications in ui_design_specifications.md.
 """
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
-from PySide6.QtCore import Qt
 import logging
+
+from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -24,14 +24,14 @@ class ContextPanel(QWidget):
         """Setup the UI elements for the context panel."""
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        
+
         # Resize handle placeholder (for draggable resizing)
         self.resize_handle = QPushButton()
         self.resize_handle.setObjectName("contextResizeHandle")
         self.resize_handle.setFixedWidth(5)
         # TODO: Connect resize handle to resizing logic
         self.layout.addWidget(self.resize_handle)
-        
+
         # Section header placeholder
         self.section_header = QWidget()
         self.section_header.setObjectName("contextSectionHeader")
@@ -40,7 +40,7 @@ class ContextPanel(QWidget):
         self.section_header.setLayout(self.section_header.layout)
         self.section_header.layout.addWidget(self.section_header_label)
         self.layout.addWidget(self.section_header)
-        
+
         # Action buttons placeholder
         self.actions = []
         for action in ["Edit", "Assign", "Comment"]:
@@ -49,9 +49,9 @@ class ContextPanel(QWidget):
             btn.clicked.connect(lambda checked, a=action: self.on_action_clicked(a))
             self.actions.append(btn)
             self.layout.addWidget(btn)
-        
+
         self.layout.addStretch()
-        
+
         # Set initial width as per design specs
         self.setFixedWidth(300)
         logger.info("ContextPanel UI setup completed")
@@ -64,8 +64,10 @@ class ContextPanel(QWidget):
             context_data (dict): Data defining the context, e.g., selected item type and actions.
         """
         # Placeholder for updating content based on context
-        if context_data and 'title' in context_data:
-            self.section_header_label.setText(context_data.get('title', 'Context Actions'))
+        if context_data and "title" in context_data:
+            self.section_header_label.setText(
+                context_data.get("title", "Context Actions")
+            )
         logger.info(f"ContextPanel updated with data: {context_data}")
         # TODO: Dynamically update actions based on context_data
 

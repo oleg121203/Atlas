@@ -3,23 +3,31 @@ Data Cache Module for Atlas.
 This module integrates caching to store frequently accessed data, reducing database load and improving response times.
 """
 
-from typing import Any, Optional
 import asyncio
-import sys
 import os
+import sys
+from typing import Optional
 
 # Ensure utils path is correctly referenced
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from utils.cache_manager import CacheManager
+
 
 class DataCache:
     """
     A class to handle caching of frequently accessed data in Atlas.
     """
-    def __init__(self, cache_ttl: int = 300, host: str = "localhost", port: int = 6379, db: int = 0):
+
+    def __init__(
+        self,
+        cache_ttl: int = 300,
+        host: str = "localhost",
+        port: int = 6379,
+        db: int = 0,
+    ):
         """
         Initialize the DataCache with a CacheManager instance.
-        
+
         Args:
             cache_ttl (int): Default time-to-live for cached items in seconds.
             host (str): Redis server host.
@@ -54,10 +62,10 @@ class DataCache:
     async def get_user_data(self, user_id: str) -> Optional[dict]:
         """
         Retrieve user data from cache.
-        
+
         Args:
             user_id (str): Unique identifier for the user.
-        
+
         Returns:
             Optional[dict]: Cached user data if found, None otherwise.
         """
@@ -72,15 +80,17 @@ class DataCache:
             print(f"Cache hit for user data: {user_id}")
         return data
 
-    async def set_user_data(self, user_id: str, data: dict, ttl: Optional[int] = None) -> bool:
+    async def set_user_data(
+        self, user_id: str, data: dict, ttl: Optional[int] = None
+    ) -> bool:
         """
         Cache user data with a specified TTL.
-        
+
         Args:
             user_id (str): Unique identifier for the user.
             data (dict): User data to cache.
             ttl (int, optional): Time to live in seconds. Defaults to class TTL.
-        
+
         Returns:
             bool: True if caching was successful, False otherwise.
         """
@@ -95,11 +105,11 @@ class DataCache:
     async def get_task_list(self, user_id: str, list_id: str) -> Optional[list]:
         """
         Retrieve a user's task list from cache.
-        
+
         Args:
             user_id (str): Unique identifier for the user.
             list_id (str): Unique identifier for the task list.
-        
+
         Returns:
             Optional[list]: Cached task list if found, None otherwise.
         """
@@ -114,16 +124,18 @@ class DataCache:
             print(f"Cache hit for task list: {user_id}/{list_id}")
         return data
 
-    async def set_task_list(self, user_id: str, list_id: str, tasks: list, ttl: Optional[int] = None) -> bool:
+    async def set_task_list(
+        self, user_id: str, list_id: str, tasks: list, ttl: Optional[int] = None
+    ) -> bool:
         """
         Cache a user's task list with a specified TTL.
-        
+
         Args:
             user_id (str): Unique identifier for the user.
             list_id (str): Unique identifier for the task list.
             tasks (list): List of tasks to cache.
             ttl (int, optional): Time to live in seconds. Defaults to class TTL.
-        
+
         Returns:
             bool: True if caching was successful, False otherwise.
         """
@@ -138,10 +150,10 @@ class DataCache:
     async def invalidate_user_cache(self, user_id: str) -> bool:
         """
         Invalidate all cached data for a specific user.
-        
+
         Args:
             user_id (str): Unique identifier for the user.
-        
+
         Returns:
             bool: True if cache invalidation was successful, False otherwise.
         """
@@ -152,13 +164,10 @@ class DataCache:
 
         # This is a simplified approach. In a real scenario, you'd use Redis SCAN or KEYS
         # to delete all keys matching a pattern. For now, we'll delete known key patterns.
-        keys_to_delete = [
-            f"user:{user_id}:data",
-            f"user:{user_id}:tasks:*"
-        ]
+        keys_to_delete = [f"user:{user_id}:data", f"user:{user_id}:tasks:*"]
         success = True
         for key in keys_to_delete:
-            if '*' in key:
+            if "*" in key:
                 # Would need a more complex pattern matching in real Redis setup
                 continue
             if not await self.cache_manager.delete(key):
@@ -166,8 +175,10 @@ class DataCache:
         print(f"Cache invalidated for user: {user_id}")
         return success
 
+
 # Example usage
 if __name__ == "__main__":
+
     async def demo_cache():
         cache = DataCache(cache_ttl=60)
         await cache.initialize()
@@ -183,7 +194,7 @@ if __name__ == "__main__":
         # Cache a task list
         task_list = [
             {"id": 1, "title": "Task 1", "completed": False},
-            {"id": 2, "title": "Task 2", "completed": True}
+            {"id": 2, "title": "Task 2", "completed": True},
         ]
         await cache.set_task_list("123", "default", task_list)
 

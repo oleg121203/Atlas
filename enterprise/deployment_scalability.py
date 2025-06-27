@@ -1,11 +1,12 @@
 """Deployment and Scalability module for enterprise features (ENT-004)."""
 
-from flask import Flask, request, jsonify
-import os
+import logging
+
 import docker
 import kubernetes.client
 import kubernetes.config
-import logging
+from flask import Flask, jsonify, request
+
 
 class DeploymentScalability:
     def __init__(self, app: Flask, docker_config: dict = None, k8s_config: dict = None):
@@ -41,145 +42,176 @@ class DeploymentScalability:
 
     def setup_routes(self):
         """Setup Flask routes for deployment and scalability operations."""
-        @self.app.route('/api/deployment/containerize', methods=['POST'])
+
+        @self.app.route("/api/deployment/containerize", methods=["POST"])
         def containerize_app():
             """API endpoint to containerize the application."""
             if not self.docker_client:
-                return jsonify({'error': 'Docker client not initialized'}), 503
+                return jsonify({"error": "Docker client not initialized"}), 503
 
             try:
                 app_config = request.get_json()
-                image_name = app_config.get('image_name', 'atlas-app')
-                tag = app_config.get('tag', 'latest')
-                build_path = app_config.get('build_path', '.')
+                image_name = app_config.get("image_name", "atlas-app")
+                tag = app_config.get("tag", "latest")
+                build_path = app_config.get("build_path", ".")
 
-                self.logger.info(f"Building Docker image {image_name}:{tag} from {build_path}")
-                image, build_logs = self.docker_client.images.build(
-                    path=build_path,
-                    tag=f"{image_name}:{tag}",
-                    rm=True
+                self.logger.info(
+                    f"Building Docker image {image_name}:{tag} from {build_path}"
                 )
-                return jsonify({
-                    'status': 'success',
-                    'image': f"{image_name}:{tag}",
-                    'logs': build_logs
-                }), 200
+                image, build_logs = self.docker_client.images.build(
+                    path=build_path, tag=f"{image_name}:{tag}", rm=True
+                )
+                return jsonify(
+                    {
+                        "status": "success",
+                        "image": f"{image_name}:{tag}",
+                        "logs": build_logs,
+                    }
+                ), 200
             except Exception as e:
                 self.logger.error(f"Error building Docker image: {str(e)}")
-                return jsonify({'error': str(e)}), 500
+                return jsonify({"error": str(e)}), 500
 
-        @self.app.route('/api/deployment/deploy', methods=['POST'])
+        @self.app.route("/api/deployment/deploy", methods=["POST"])
         def deploy_to_kubernetes():
             """API endpoint to deploy to Kubernetes cluster."""
             if not self.k8s_client:
-                return jsonify({'error': 'Kubernetes client not initialized'}), 503
+                return jsonify({"error": "Kubernetes client not initialized"}), 503
 
             try:
                 deploy_config = request.get_json()
-                namespace = deploy_config.get('namespace', 'default')
-                deployment_name = deploy_config.get('deployment_name', 'atlas-deployment')
-                image = deploy_config.get('image', 'atlas-app:latest')
-                replicas = deploy_config.get('replicas', 3)
+                namespace = deploy_config.get("namespace", "default")
+                deployment_name = deploy_config.get(
+                    "deployment_name", "atlas-deployment"
+                )
+                image = deploy_config.get("image", "atlas-app:latest")
+                replicas = deploy_config.get("replicas", 3)
 
-                self.logger.info(f"Deploying {deployment_name} to namespace {namespace} with image {image}")
+                self.logger.info(
+                    f"Deploying {deployment_name} to namespace {namespace} with image {image}"
+                )
                 # Simplified deployment creation - in real scenario, use full Kubernetes API objects
-                return jsonify({
-                    'status': 'success',
-                    'deployment': deployment_name,
-                    'namespace': namespace,
-                    'image': image,
-                    'replicas': replicas
-                }), 200
+                return jsonify(
+                    {
+                        "status": "success",
+                        "deployment": deployment_name,
+                        "namespace": namespace,
+                        "image": image,
+                        "replicas": replicas,
+                    }
+                ), 200
             except Exception as e:
                 self.logger.error(f"Error deploying to Kubernetes: {str(e)}")
-                return jsonify({'error': str(e)}), 500
+                return jsonify({"error": str(e)}), 500
 
-        @self.app.route('/api/deployment/load_balancer', methods=['POST'])
+        @self.app.route("/api/deployment/load_balancer", methods=["POST"])
         def configure_load_balancer():
             """API endpoint to configure load balancer."""
             try:
                 lb_config = request.get_json()
-                service_name = lb_config.get('service_name', 'atlas-service')
-                namespace = lb_config.get('namespace', 'default')
+                service_name = lb_config.get("service_name", "atlas-service")
+                namespace = lb_config.get("namespace", "default")
 
-                self.logger.info(f"Configuring load balancer for {service_name} in {namespace}")
+                self.logger.info(
+                    f"Configuring load balancer for {service_name} in {namespace}"
+                )
                 # Simplified load balancer configuration
-                return jsonify({
-                    'status': 'success',
-                    'service': service_name,
-                    'namespace': namespace,
-                    'type': 'LoadBalancer'
-                }), 200
+                return jsonify(
+                    {
+                        "status": "success",
+                        "service": service_name,
+                        "namespace": namespace,
+                        "type": "LoadBalancer",
+                    }
+                ), 200
             except Exception as e:
                 self.logger.error(f"Error configuring load balancer: {str(e)}")
-                return jsonify({'error': str(e)}), 500
+                return jsonify({"error": str(e)}), 500
 
-        @self.app.route('/api/deployment/failover', methods=['POST'])
+        @self.app.route("/api/deployment/failover", methods=["POST"])
         def configure_failover():
             """API endpoint to configure failover mechanisms."""
             try:
                 failover_config = request.get_json()
-                primary_region = failover_config.get('primary_region', 'us-west-1')
-                secondary_region = failover_config.get('secondary_region', 'us-east-1')
+                primary_region = failover_config.get("primary_region", "us-west-1")
+                secondary_region = failover_config.get("secondary_region", "us-east-1")
 
-                self.logger.info(f"Configuring failover from {primary_region} to {secondary_region}")
+                self.logger.info(
+                    f"Configuring failover from {primary_region} to {secondary_region}"
+                )
                 # Simplified failover configuration
-                return jsonify({
-                    'status': 'success',
-                    'primary_region': primary_region,
-                    'secondary_region': secondary_region,
-                    'type': 'failover'
-                }), 200
+                return jsonify(
+                    {
+                        "status": "success",
+                        "primary_region": primary_region,
+                        "secondary_region": secondary_region,
+                        "type": "failover",
+                    }
+                ), 200
             except Exception as e:
                 self.logger.error(f"Error configuring failover: {str(e)}")
-                return jsonify({'error': str(e)}), 500
+                return jsonify({"error": str(e)}), 500
 
-    def containerize_application(self, build_path: str, image_name: str, tag: str = 'latest') -> bool:
+    def containerize_application(
+        self, build_path: str, image_name: str, tag: str = "latest"
+    ) -> bool:
         """Containerize the Atlas application using Docker."""
         if not self.docker_client:
             self.logger.error("Docker client not initialized")
             return False
 
         try:
-            self.logger.info(f"Building Docker image {image_name}:{tag} from {build_path}")
+            self.logger.info(
+                f"Building Docker image {image_name}:{tag} from {build_path}"
+            )
             self.docker_client.images.build(
-                path=build_path,
-                tag=f"{image_name}:{tag}",
-                rm=True
+                path=build_path, tag=f"{image_name}:{tag}", rm=True
             )
             return True
         except Exception as e:
             self.logger.error(f"Error building Docker image: {str(e)}")
             return False
 
-    def deploy_to_cluster(self, namespace: str, deployment_name: str, image: str, replicas: int = 3) -> bool:
+    def deploy_to_cluster(
+        self, namespace: str, deployment_name: str, image: str, replicas: int = 3
+    ) -> bool:
         """Deploy containerized application to Kubernetes cluster."""
         if not self.k8s_client:
             self.logger.error("Kubernetes client not initialized")
             return False
 
         try:
-            self.logger.info(f"Deploying {deployment_name} to namespace {namespace} with image {image}")
+            self.logger.info(
+                f"Deploying {deployment_name} to namespace {namespace} with image {image}"
+            )
             # Simplified deployment - in real scenario, use full Kubernetes API objects
             return True
         except Exception as e:
             self.logger.error(f"Error deploying to Kubernetes: {str(e)}")
             return False
 
-    def configure_load_balancing(self, service_name: str, namespace: str = 'default') -> bool:
+    def configure_load_balancing(
+        self, service_name: str, namespace: str = "default"
+    ) -> bool:
         """Configure load balancing for deployed application."""
         try:
-            self.logger.info(f"Configuring load balancer for {service_name} in {namespace}")
+            self.logger.info(
+                f"Configuring load balancer for {service_name} in {namespace}"
+            )
             # Simplified load balancer configuration
             return True
         except Exception as e:
             self.logger.error(f"Error configuring load balancer: {str(e)}")
             return False
 
-    def setup_failover_mechanisms(self, primary_region: str, secondary_region: str) -> bool:
+    def setup_failover_mechanisms(
+        self, primary_region: str, secondary_region: str
+    ) -> bool:
         """Setup failover mechanisms for high availability."""
         try:
-            self.logger.info(f"Configuring failover from {primary_region} to {secondary_region}")
+            self.logger.info(
+                f"Configuring failover from {primary_region} to {secondary_region}"
+            )
             # Simplified failover configuration
             return True
         except Exception as e:
@@ -190,7 +222,7 @@ class DeploymentScalability:
         """Generate documentation for production deployment."""
         try:
             self.logger.info(f"Generating deployment documentation at {output_path}")
-            with open(output_path, 'w') as f:
+            with open(output_path, "w") as f:
                 f.write("# Atlas Enterprise Deployment Guide\n")
                 f.write("## Containerization\n")
                 f.write("- Docker images built with recommended settings\n")

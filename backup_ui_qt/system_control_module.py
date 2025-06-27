@@ -1,5 +1,16 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QSlider, QHBoxLayout, QVBoxLayout, QStatusBar, QMessageBox
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QSlider,
+    QStatusBar,
+    QVBoxLayout,
+    QWidget,
+)
+
 
 class SystemControlModule(QWidget):
     def __init__(self, agent_manager=None, parent=None):
@@ -91,14 +102,17 @@ class SystemControlModule(QWidget):
             self._refresh_apps()
 
     def _show_help(self):
-        QMessageBox.information(self, "System Control Help",
+        QMessageBox.information(
+            self,
+            "System Control Help",
             "• Mute/Unmute: Control system audio.\n"
             "• Sleep Mac: Put your Mac to sleep.\n"
             "• Open App: Launch any app by name (e.g., Safari, Zoom.us).\n"
             "• Set Volume: Adjust system volume with the slider.\n"
             "• Refresh: Update current volume or running apps.\n"
             "• Status bar: See last action/result.\n"
-            "\nTip: Hover over any button for a tooltip.")
+            "\nTip: Hover over any button for a tooltip.",
+        )
 
     def _mute(self):
         if self.agent_manager:
@@ -111,7 +125,9 @@ class SystemControlModule(QWidget):
 
     def _unmute(self):
         if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "unmute"})
+            result = self.agent_manager.execute_tool(
+                "system_event", {"event": "unmute"}
+            )
             self._show_feedback(result)
             self._refresh_volume()
             self._set_status("Unmuted system audio.")
@@ -130,12 +146,16 @@ class SystemControlModule(QWidget):
         if self.agent_manager:
             app = self.app_entry.text().strip()
             if app:
-                result = self.agent_manager.execute_tool("system_event", {"event": "open_app", "app_name": app})
+                result = self.agent_manager.execute_tool(
+                    "system_event", {"event": "open_app", "app_name": app}
+                )
                 self._show_feedback(result)
                 self._refresh_apps()
                 self._set_status(f"Opened app: {app}")
             else:
-                self._show_feedback({"status": "error", "error": "Please enter an app name."})
+                self._show_feedback(
+                    {"status": "error", "error": "Please enter an app name."}
+                )
                 self._set_status("No app name entered.")
         else:
             print("Agent manager not initialized, cannot open app")
@@ -143,7 +163,9 @@ class SystemControlModule(QWidget):
     def _set_volume(self):
         if self.agent_manager:
             vol = int(self.volume_slider.value())
-            result = self.agent_manager.execute_tool("system_event", {"event": "set_volume", "value": vol})
+            result = self.agent_manager.execute_tool(
+                "system_event", {"event": "set_volume", "value": vol}
+            )
             self._show_feedback(result)
             self._refresh_volume()
             self._set_status(f"Set volume to {vol}%.")
@@ -152,7 +174,9 @@ class SystemControlModule(QWidget):
 
     def _refresh_volume(self):
         if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "get_volume"})
+            result = self.agent_manager.execute_tool(
+                "system_event", {"event": "get_volume"}
+            )
             if result.get("status") == "success":
                 self.volume_label.setText(f"Current Volume: {result.get('output')}")
                 self._set_status(f"Current volume: {result.get('output')}")
@@ -164,7 +188,9 @@ class SystemControlModule(QWidget):
 
     def _refresh_apps(self):
         if self.agent_manager:
-            result = self.agent_manager.execute_tool("system_event", {"event": "get_running_apps"})
+            result = self.agent_manager.execute_tool(
+                "system_event", {"event": "get_running_apps"}
+            )
             if result.get("status") == "success":
                 self.apps_label.setText(f"Running Apps: {result.get('output')}")
                 self._set_status("Refreshed running apps.")

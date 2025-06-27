@@ -18,7 +18,9 @@ def generate_final_report():
     print("=" * 50)
     print(f"📅 Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"🖥️  Платформа: {sys.platform}")
-    print(f"🐍 Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print(
+        f"🐍 Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
     print("=" * 50)
 
     report = {
@@ -118,14 +120,18 @@ def generate_final_report():
     print("✨ Користуйтесь Atlas з комфортом!")
     print("=" * 50)
 
+
 def check_configuration():
     """Перевірка статусу конфігурації"""
     return {
         "config.ini існує": os.path.exists("config.ini"),
         ".env існує": os.path.exists(".env"),
         "~/.atlas/config.yaml існує": (Path.home() / ".atlas" / "config.yaml").exists(),
-        "venv-macos активне": "venv-macos" in sys.prefix if hasattr(sys, "prefix") else False,
+        "venv-macos активне": "venv-macos" in sys.prefix
+        if hasattr(sys, "prefix")
+        else False,
     }
+
 
 def check_api_keys():
     """Перевірка API ключів"""
@@ -154,6 +160,7 @@ def check_api_keys():
 
     return status
 
+
 def test_functionality():
     """Тестування основної функціональності"""
     functionality = {}
@@ -161,16 +168,22 @@ def test_functionality():
     try:
         # Тест ConfigManager
         from config_manager import ConfigManager
+
         config_mgr = ConfigManager()
         functionality["ConfigManager import"] = True
-        functionality["ConfigManager.set_llm_provider_and_model"] = hasattr(config_mgr, "set_llm_provider_and_model")
-        functionality["ConfigManager.set_llm_api_key"] = hasattr(config_mgr, "set_llm_api_key")
+        functionality["ConfigManager.set_llm_provider_and_model"] = hasattr(
+            config_mgr, "set_llm_provider_and_model"
+        )
+        functionality["ConfigManager.set_llm_api_key"] = hasattr(
+            config_mgr, "set_llm_api_key"
+        )
     except Exception:
         functionality["ConfigManager"] = False
 
     try:
         # Тест LLMManager
         from modules.agents.token_tracker import TokenTracker
+
         from utils.llm_manager import LLMManager
 
         token_tracker = TokenTracker()
@@ -188,6 +201,7 @@ def test_functionality():
 
     return functionality
 
+
 def main():
     """Головна функція"""
     try:
@@ -200,6 +214,7 @@ def main():
     except Exception as e:
         print(f"❌ Помилка генерації звіту: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

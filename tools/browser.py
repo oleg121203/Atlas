@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.warning("Using placeholder for BrowserTool module")
 
+
 class BrowserTool:
     def __init__(self, *args, **kwargs):
         logger.info("Initialized placeholder BrowserTool")
@@ -17,6 +18,9 @@ class BrowserTool:
 
     def __getattr__(self, name):
         def method(*args, **kwargs):
-            logger.warning(f"Called unimplemented method {name} on placeholder BrowserTool")
+            logger.warning(
+                f"Called unimplemented method {name} on placeholder BrowserTool"
+            )
             return None
+
         return method

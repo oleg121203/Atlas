@@ -30,7 +30,9 @@ class ChatHistoryView(ctk.CTkFrame):
         self.compact_mode = True  # Default to compact mode
         self.max_compact_lines = 10  # Maximum lines to show in compact mode
 
-        self.textbox = ctk.CTkTextbox(self, wrap="word", state="disabled", font=("Helvetica", 13))
+        self.textbox = ctk.CTkTextbox(
+            self, wrap="word", state="disabled", font=("Helvetica", 13)
+        )
         self.textbox.grid(row=1, column=0, sticky="nsew")
 
         # Add bottom copy button frame
@@ -67,7 +69,7 @@ class ChatHistoryView(ctk.CTkFrame):
             fg_color="#e0e0e0",
             text_color="black",
             hover_color="#b0b0b0",
-            command=self._on_voice_input
+            command=self._on_voice_input,
         )
         self.voice_button.grid(row=0, column=0, padx=4, pady=2)
 
@@ -85,71 +87,107 @@ class ChatHistoryView(ctk.CTkFrame):
             fg_color="#00A0E0",
             text_color="white",
             hover_color="#0077b6",
-            command=self._on_send_message
+            command=self._on_send_message,
         )
         self.send_button.grid(row=0, column=2, padx=4, pady=2)
 
         # Add context menu support
         self._setup_context_menu()
 
-        #--- Tag Configurations ---
-        #Note: CustomTkinter doesn't allow font in tag_config, so we use only colors
+        # --- Tag Configurations ---
+        # Note: CustomTkinter doesn't allow font in tag_config, so we use only colors
         self.textbox.tag_config("user_prefix", foreground="#00A0E0")
-        self.textbox.tag_config("agent_prefix", foreground="#FF9500")  # Orange for agent
-        self.textbox.tag_config("system_prefix", foreground="#9E4784")  # Purple for system
+        self.textbox.tag_config(
+            "agent_prefix", foreground="#FF9500"
+        )  # Orange for agent
+        self.textbox.tag_config(
+            "system_prefix", foreground="#9E4784"
+        )  # Purple for system
 
         self.textbox.tag_config("user", foreground="#00A0E0")
-        self.textbox.tag_config("agent", foreground="#FFB84D")  # Lighter orange for agent text
-        self.textbox.tag_config("system", foreground="#B666A3")  # Lighter purple for system text
+        self.textbox.tag_config(
+            "agent", foreground="#FFB84D"
+        )  # Lighter orange for agent text
+        self.textbox.tag_config(
+            "system", foreground="#B666A3"
+        )  # Lighter purple for system text
 
         # System message styling (dimmed and compact)
-        self.textbox.tag_config("system_dim", foreground="#808080", spacing1=1, spacing3=1)  # Gray and minimal spacing
-        self.textbox.tag_config("processing_dim", foreground="#707070", spacing1=1, spacing3=1)  # Even more dimmed
-        self.textbox.tag_config("thinking_dim", foreground="#606060", spacing1=1, spacing3=1)  # Very dimmed for thinking
+        self.textbox.tag_config(
+            "system_dim", foreground="#808080", spacing1=1, spacing3=1
+        )  # Gray and minimal spacing
+        self.textbox.tag_config(
+            "processing_dim", foreground="#707070", spacing1=1, spacing3=1
+        )  # Even more dimmed
+        self.textbox.tag_config(
+            "thinking_dim", foreground="#606060", spacing1=1, spacing3=1
+        )  # Very dimmed for thinking
 
         # Compact mode styling
         self.textbox.tag_config("compact", spacing1=1, spacing3=1)
-        self.textbox.tag_config("compact_user", foreground="#00A0E0", spacing1=1, spacing3=1)
-        self.textbox.tag_config("compact_agent", foreground="#FFB84D", spacing1=1, spacing3=1)
-        self.textbox.tag_config("compact_system", foreground="#B666A3", spacing1=1, spacing3=1)
+        self.textbox.tag_config(
+            "compact_user", foreground="#00A0E0", spacing1=1, spacing3=1
+        )
+        self.textbox.tag_config(
+            "compact_agent", foreground="#FFB84D", spacing1=1, spacing3=1
+        )
+        self.textbox.tag_config(
+            "compact_system", foreground="#B666A3", spacing1=1, spacing3=1
+        )
 
-        #self.textbox.tag_config("title", font=("Helvetica", 14, "bold")) # Font attribute is forbidden by customtkinter
+        # self.textbox.tag_config("title", font=("Helvetica", 14, "bold")) # Font attribute is forbidden by customtkinter
         self.textbox.tag_config("plan_step", lmargin1=20, lmargin2=20)
-        self.textbox.tag_config("step_start", foreground="#A0A0A0", lmargin1=20, lmargin2=20)
-        self.textbox.tag_config("step_end", foreground="#A0A0A0", lmargin1=20, lmargin2=20)
+        self.textbox.tag_config(
+            "step_start", foreground="#A0A0A0", lmargin1=20, lmargin2=20
+        )
+        self.textbox.tag_config(
+            "step_end", foreground="#A0A0A0", lmargin1=20, lmargin2=20
+        )
         self.textbox.tag_config("error", foreground="#E00000")
 
-        #Improved code block styling
-        self.textbox.tag_config("code_block_bg",
-                              background="#1E1E1E",
-                              foreground="#D4D4D4",
-                              lmargin1=20,
-                              lmargin2=20,
-                              rmargin=20,
-                              spacing1=5,
-                              spacing3=5)
+        # Improved code block styling
+        self.textbox.tag_config(
+            "code_block_bg",
+            background="#1E1E1E",
+            foreground="#D4D4D4",
+            lmargin1=20,
+            lmargin2=20,
+            rmargin=20,
+            spacing1=5,
+            spacing3=5,
+        )
 
-        #Inline code styling
-        self.textbox.tag_config("inline_code",
-                              background="#2D2D2D",
-                              foreground="#E1E1E1")
+        # Inline code styling
+        self.textbox.tag_config(
+            "inline_code", background="#2D2D2D", foreground="#E1E1E1"
+        )
 
-        #Improved Pygments syntax highlighting tags with VS Code Dark theme colors
-        self.textbox.tag_config("Token.Keyword", foreground="#569CD6")          # Blue
-        self.textbox.tag_config("Token.Name.Function", foreground="#DCDCAA")    # Yellow
-        self.textbox.tag_config("Token.String", foreground="#CE9178")           # Orange
-        self.textbox.tag_config("Token.Comment", foreground="#6A9955")          # Green
-        self.textbox.tag_config("Token.Operator", foreground="#D4D4D4")         # Light gray
-        self.textbox.tag_config("Token.Number", foreground="#B5CEA8")           # Light green
-        self.textbox.tag_config("Token.Literal.String.Doc", foreground="#6A9955") # Green
-        self.textbox.tag_config("Token.Name.Class", foreground="#4EC9B0")       # Cyan
-        self.textbox.tag_config("Token.Name.Builtin", foreground="#4EC9B0")     # Cyan
-        self.textbox.tag_config("Token.Name.Variable", foreground="#9CDCFE")    # Light blue
-        #Enhanced markdown styling
+        # Improved Pygments syntax highlighting tags with VS Code Dark theme colors
+        self.textbox.tag_config("Token.Keyword", foreground="#569CD6")  # Blue
+        self.textbox.tag_config("Token.Name.Function", foreground="#DCDCAA")  # Yellow
+        self.textbox.tag_config("Token.String", foreground="#CE9178")  # Orange
+        self.textbox.tag_config("Token.Comment", foreground="#6A9955")  # Green
+        self.textbox.tag_config("Token.Operator", foreground="#D4D4D4")  # Light gray
+        self.textbox.tag_config("Token.Number", foreground="#B5CEA8")  # Light green
+        self.textbox.tag_config(
+            "Token.Literal.String.Doc", foreground="#6A9955"
+        )  # Green
+        self.textbox.tag_config("Token.Name.Class", foreground="#4EC9B0")  # Cyan
+        self.textbox.tag_config("Token.Name.Builtin", foreground="#4EC9B0")  # Cyan
+        self.textbox.tag_config(
+            "Token.Name.Variable", foreground="#9CDCFE"
+        )  # Light blue
+        # Enhanced markdown styling
         self.textbox.tag_config("markdown_bold", foreground="#FFFFFF")
-        self.textbox.tag_config("markdown_header", foreground="#FFD700")  # Gold for headers
-        self.textbox.tag_config("markdown_bullet", foreground="#87CEEB")  # Sky blue for bullets
-        self.textbox.tag_config("markdown_emoji", foreground="#FFA500")   # Orange for emojis
+        self.textbox.tag_config(
+            "markdown_header", foreground="#FFD700"
+        )  # Gold for headers
+        self.textbox.tag_config(
+            "markdown_bullet", foreground="#87CEEB"
+        )  # Sky blue for bullets
+        self.textbox.tag_config(
+            "markdown_emoji", foreground="#FFA500"
+        )  # Orange for emojis
 
         # Voice assistant plugin instance (lazy init)
         self.voice_assistant = None
@@ -157,7 +195,7 @@ class ChatHistoryView(ctk.CTkFrame):
     def _toggle_compact_mode(self):
         """Toggle between compact and full view modes."""
         self.compact_mode = not self.compact_mode
-        
+
         if self.compact_mode:
             self._apply_compact_view()
         else:
@@ -167,23 +205,27 @@ class ChatHistoryView(ctk.CTkFrame):
         """Apply compact view showing only recent messages."""
         self.textbox.configure(state="normal")
         self.textbox.delete("1.0", "end")
-        
+
         # Show only the last few messages
-        recent_messages = self.history[-self.max_compact_lines:] if len(self.history) > self.max_compact_lines else self.history
-        
+        recent_messages = (
+            self.history[-self.max_compact_lines :]
+            if len(self.history) > self.max_compact_lines
+            else self.history
+        )
+
         for msg in recent_messages:
             self._add_message_internal(msg["role"], msg["text"], compact=True)
-        
+
         self.textbox.configure(state="disabled")
 
     def _apply_full_view(self):
         """Apply full view showing all messages."""
         self.textbox.configure(state="normal")
         self.textbox.delete("1.0", "end")
-        
+
         for msg in self.history:
             self._add_message_internal(msg["role"], msg["text"], compact=False)
-        
+
         self.textbox.configure(state="disabled")
 
     def add_message(self, role: str, text: str):
@@ -199,18 +241,28 @@ class ChatHistoryView(ctk.CTkFrame):
 
         # Check if this is a system message that should be dimmed
         is_system_dim = self._is_system_message_dim(text)
-        is_processing = text.startswith("Processing your request") or "Detected" in text or "Analyzing" in text
-        is_thinking = "thinking" in text.lower() or "analyzing" in text.lower() or "processing" in text.lower()
+        is_processing = (
+            text.startswith("Processing your request")
+            or "Detected" in text
+            or "Analyzing" in text
+        )
+        is_thinking = (
+            "thinking" in text.lower()
+            or "analyzing" in text.lower()
+            or "processing" in text.lower()
+        )
 
-        #Enhanced prefixes with emojis and better styling
+        # Enhanced prefixes with emojis and better styling
         prefixes = {
             "user": ("👤 You", "user_prefix"),
             "agent": ("🤖 Atlas", "agent_prefix"),
-            "assistant": ("🤖 Atlas", "agent_prefix"),  #Assistant is the same as agent
+            "assistant": ("🤖 Atlas", "agent_prefix"),  # Assistant is the same as agent
             "system": ("⚙️ System", "system_prefix"),
         }
 
-        prefix_text, prefix_tag = prefixes.get(role, ("🤖 Atlas", "agent_prefix"))  #Default to Atlas instead of Unknown
+        prefix_text, prefix_tag = prefixes.get(
+            role, ("🤖 Atlas", "agent_prefix")
+        )  # Default to Atlas instead of Unknown
 
         # Use dimmed styling for certain system messages
         if is_system_dim or is_processing or is_thinking:
@@ -224,17 +276,19 @@ class ChatHistoryView(ctk.CTkFrame):
                 prefix_tag = "system_dim"
                 text_tag = "system_dim"
         else:
-            text_tag = role if role in ["user", "agent", "assistant", "system"] else "agent"
+            text_tag = (
+                role if role in ["user", "agent", "assistant", "system"] else "agent"
+            )
 
         # Apply compact styling if needed
         if compact:
             prefix_tag = f"compact_{prefix_tag.replace('_prefix', '')}"
             text_tag = f"compact_{text_tag}"
 
-        #Add prefix with styling
+        # Add prefix with styling
         self.textbox.insert("end", f"{prefix_text}: ", (prefix_tag,))
 
-        #Apply syntax highlighting and use appropriate text color
+        # Apply syntax highlighting and use appropriate text color
         self._apply_syntax_highlighting(text, text_tag)
 
         # Use shorter spacing for dimmed messages and compact mode
@@ -274,38 +328,40 @@ class ChatHistoryView(ctk.CTkFrame):
 
     def _apply_syntax_highlighting(self, text: str, default_tag: str):
         """Enhanced syntax highlighting for code blocks, inline code, and markdown formatting."""
-        #Process code blocks first, then inline code, then markdown
-        code_block_pattern = r"```(python|bash|sh|javascript|js|html|css|json|yaml|sql)?\n(.*?)\n```"
+        # Process code blocks first, then inline code, then markdown
+        code_block_pattern = (
+            r"```(python|bash|sh|javascript|js|html|css|json|yaml|sql)?\n(.*?)\n```"
+        )
         inline_code_pattern = r"`([^`\n]+)`"
 
-        #Process text in chunks, handling code first to avoid conflicts with markdown
+        # Process text in chunks, handling code first to avoid conflicts with markdown
         processed_ranges = []
 
-        #Find all code blocks
+        # Find all code blocks
         for match in re.finditer(code_block_pattern, text, re.DOTALL):
             processed_ranges.append((match.start(), match.end(), "code_block", match))
 
-        #Find all inline code
+        # Find all inline code
         for match in re.finditer(inline_code_pattern, text):
             processed_ranges.append((match.start(), match.end(), "inline_code", match))
 
-        #Sort by start position
+        # Sort by start position
         processed_ranges.sort(key=lambda x: x[0])
 
-        #Process text in order
+        # Process text in order
         last_end = 0
         for start, end, code_type, match in processed_ranges:
-            #Process text before this code section (apply markdown formatting)
+            # Process text before this code section (apply markdown formatting)
             before_text = text[last_end:start]
             if before_text:
                 self._apply_markdown_formatting(before_text, default_tag)
 
-            #Process the code section
+            # Process the code section
             if code_type == "code_block":
                 lang = match.group(1) or "text"
                 code = match.group(2)
 
-                #Add opening ```
+                # Add opening ```
                 self.textbox.insert("end", f"```{lang}\n", ("code_block_bg",))
 
                 try:
@@ -314,17 +370,17 @@ class ChatHistoryView(ctk.CTkFrame):
                     try:
                         lexer = guess_lexer(code)
                     except Exception:
-                        #Fallback to plain text
+                        # Fallback to plain text
                         self.textbox.insert("end", code, ("code_block_bg",))
                         self.textbox.insert("end", "\n```", ("code_block_bg",))
                         last_end = end
                         continue
 
-                #Highlight the code within the block
+                # Highlight the code within the block
                 for token, content in lex(code, lexer):
                     self.textbox.insert("end", content, (str(token), "code_block_bg"))
 
-                #Add closing ```
+                # Add closing ```
                 self.textbox.insert("end", "\n```", ("code_block_bg",))
 
             elif code_type == "inline_code":
@@ -333,7 +389,7 @@ class ChatHistoryView(ctk.CTkFrame):
 
             last_end = end
 
-        #Process any remaining text after the last code
+        # Process any remaining text after the last code
         remaining_text = text[last_end:]
         if remaining_text:
             self._apply_markdown_formatting(remaining_text, default_tag)
@@ -350,6 +406,7 @@ class ChatHistoryView(ctk.CTkFrame):
         self.textbox.bind("<Button-3>", self._show_context_menu)
         # For macOS, also bind Control+Click
         import platform
+
         if platform.system() == "Darwin":
             self.textbox.bind("<Control-Button-1>", self._show_context_menu)
 
@@ -365,7 +422,9 @@ class ChatHistoryView(ctk.CTkFrame):
                 has_selection = False
 
             # Enable/disable menu items
-            self.context_menu.entryconfig(0, state="normal" if has_selection else "disabled")  # Copy
+            self.context_menu.entryconfig(
+                0, state="normal" if has_selection else "disabled"
+            )  # Copy
             self.context_menu.entryconfig(1, state="normal")  # Copy All
             self.context_menu.entryconfig(3, state="normal")  # Select All
 
@@ -419,6 +478,7 @@ class ChatHistoryView(ctk.CTkFrame):
         if self.voice_assistant is None:
             try:
                 from plugins.voice_assistant.plugin import VoiceAssistantPlugin
+
                 self.voice_assistant = VoiceAssistantPlugin()
                 self.voice_assistant.initialize()
             except Exception as e:
@@ -451,11 +511,22 @@ class ChatHistoryView(ctk.CTkFrame):
                 recognizer.adjust_for_ambient_noise(source, duration=1)
                 print("[VoiceInput] Listening with ambient noise adjustment...")
                 try:
-                    audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=timeout)
-                    text = recognizer.recognize_google(audio, language=self.voice_assistant.language)
-                    return {"success": True, "data": {"text": text}, "message": f"Recognized: {text}"}
+                    audio = recognizer.listen(
+                        source, timeout=timeout, phrase_time_limit=timeout
+                    )
+                    text = recognizer.recognize_google(
+                        audio, language=self.voice_assistant.language
+                    )
+                    return {
+                        "success": True,
+                        "data": {"text": text},
+                        "message": f"Recognized: {text}",
+                    }
                 except Exception as e:
-                    return {"success": False, "error": f"Speech recognition failed: {str(e)}"}
+                    return {
+                        "success": False,
+                        "error": f"Speech recognition failed: {str(e)}",
+                    }
         except Exception as e:
             return {"success": False, "error": str(e)}
 

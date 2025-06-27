@@ -1,5 +1,6 @@
 import subprocess
-from typing import Dict, Any
+from typing import Any, Dict
+
 
 def run_applescript(script: str) -> Dict[str, Any]:
     """
@@ -11,10 +12,15 @@ def run_applescript(script: str) -> Dict[str, Any]:
         A dict with 'status', 'output', and 'error' (if any).
     """
     try:
-        result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            ["osascript", "-e", script], capture_output=True, text=True, check=False
+        )
         if result.returncode == 0:
             return {"status": "success", "output": result.stdout.strip()}
         else:
-            return {"status": "error", "error": result.stderr.strip() or result.stdout.strip()}
+            return {
+                "status": "error",
+                "error": result.stderr.strip() or result.stdout.strip(),
+            }
     except Exception as e:
-        return {"status": "error", "error": str(e)} 
+        return {"status": "error", "error": str(e)}

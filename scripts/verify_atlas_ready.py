@@ -60,6 +60,7 @@ def final_verification():
 
     return False
 
+
 def check_config_files():
     """Verification файлів конфігурації"""
     required_files = ["config.ini", ".env"]
@@ -69,7 +70,7 @@ def check_config_files():
             return False
         print(f"  ✅ {file}")
 
-    #Verification YAML
+    # Verification YAML
     yaml_path = Path.home() / ".atlas" / "config.yaml"
     if yaml_path.exists():
         print("  ✅ ~/.atlas/config.yaml")
@@ -77,6 +78,7 @@ def check_config_files():
         print("  ⚠️  ~/.atlas/config.yaml відсутній")
 
     return True
+
 
 def check_api_keys():
     """Verification API ключів"""
@@ -86,7 +88,7 @@ def check_api_keys():
     config = configparser.ConfigParser()
     config.read("config.ini")
 
-    #Gemini ключ
+    # Gemini ключ
     if config.has_section("Gemini") and config.has_option("Gemini", "api_key"):
         key = config.get("Gemini", "api_key")
         if key and not key.startswith("YOUR_"):
@@ -100,16 +102,23 @@ def check_api_keys():
 
     return True
 
+
 def check_python_env():
     """Verification Python середовища"""
-    #Версія Python
+    # Версія Python
     if sys.version_info < (3, 8):
-        print(f"  ❌ Python {sys.version_info.major}.{sys.version_info.minor} занадто старий")
+        print(
+            f"  ❌ Python {sys.version_info.major}.{sys.version_info.minor} занадто старий"
+        )
         return False
-    print(f"  ✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print(
+        f"  ✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
 
-    #Віртуальне середовище
-    if hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix):
+    # Віртуальне середовище
+    if hasattr(sys, "real_prefix") or (
+        hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
+    ):
         print("  ✅ Віртуальне середовище активне")
         if "venv-macos" in sys.prefix:
             print("  ✅ Використовується venv-macos")
@@ -117,6 +126,7 @@ def check_python_env():
         print("  ⚠️  Віртуальне середовище не активне")
 
     return True
+
 
 def check_dependencies():
     """Verification залежностей"""
@@ -137,11 +147,13 @@ def check_dependencies():
 
     return True
 
+
 def check_config_manager_methods():
     """Verification методів ConfigManager"""
     try:
-        #Основний ConfigManager
+        # Основний ConfigManager
         from config_manager import ConfigManager
+
         config_mgr = ConfigManager()
 
         required_methods = ["set_llm_provider_and_model", "set_llm_api_key"]
@@ -152,8 +164,9 @@ def check_config_manager_methods():
                 print(f"  ❌ ConfigManager.{method} відсутній")
                 return False
 
-        #Utils ConfigManager
+        # Utils ConfigManager
         from utils.config_manager import ConfigManager as UtilsConfigManager
+
         utils_config_mgr = UtilsConfigManager()
 
         for method in required_methods:
@@ -169,10 +182,11 @@ def check_config_manager_methods():
         print(f"  ❌ Помилка імпорту: {e}")
         return False
 
+
 def check_llm_manager_attributes():
     """Verification атрибутів LLMManager"""
     try:
-        #Mock TokenTracker
+        # Mock TokenTracker
         class MockTokenTracker:
             def add_usage(self, usage):
                 pass
@@ -196,22 +210,26 @@ def check_llm_manager_attributes():
         print(f"  ❌ Помилка ініціалізації LLMManager: {e}")
         return False
 
+
 def check_settings_save():
     """Verification storage налаштувань"""
     try:
-        #Тестуємо основний ConfigManager
+        # Тестуємо основний ConfigManager
         from config_manager import ConfigManager
+
         config_mgr = ConfigManager()
 
-        #Тестове storage
-        test_result = config_mgr.set_llm_provider_and_model("gemini", "gemini-1.5-flash")
+        # Тестове storage
+        test_result = config_mgr.set_llm_provider_and_model(
+            "gemini", "gemini-1.5-flash"
+        )
         if test_result:
             print("  ✅ Збереження провайдера/моделі працює")
         else:
             print("  ❌ Збереження провайдера/моделі не працює")
             return False
 
-        #Тестуємо storage API ключа
+        # Тестуємо storage API ключа
         test_key_result = config_mgr.set_llm_api_key("test_provider", "test_key")
         if test_key_result:
             print("  ✅ Збереження API ключа працює")
@@ -225,10 +243,11 @@ def check_settings_save():
         print(f"  ❌ Помилка тестування збереження: {e}")
         return False
 
+
 def main():
     """Головна функція"""
     try:
-        #Перехід до директорії Atlas
+        # Перехід до директорії Atlas
         atlas_dir = Path(__file__).parent
         os.chdir(atlas_dir)
 
@@ -245,6 +264,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Помилка перевірки: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -1,11 +1,13 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
+
 
 class BaseTool:
     """
     Base class for all Atlas tools, providing async support, metadata, chaining, and logging.
     """
+
     name: str = "base_tool"
     description: str = "Base class for Atlas tools."
     capabilities: List[str] = []
@@ -60,4 +62,4 @@ class BaseTool:
     async def example(self) -> Dict[str, Any]:
         self.log_usage("example")
         await asyncio.sleep(0.1)
-        return {"status": "success", "message": "Example method executed."} 
+        return {"status": "success", "message": "Example method executed."}

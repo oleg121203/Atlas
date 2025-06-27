@@ -3,23 +3,25 @@ Performance Audit Tool for Atlas.
 This script analyzes application responsiveness, identifies bottlenecks, and logs performance metrics.
 """
 
+import asyncio
+import os
 import time
 import tracemalloc
-import asyncio
-import psutil
-import os
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
+import psutil
 import sentry_sdk
+
 
 class PerformanceAuditor:
     """
     A class to conduct performance audits on Atlas application, focusing on response times and memory usage.
     """
+
     def __init__(self, log_file: str = "performance_audit.log") -> None:
         """
         Initialize the PerformanceAuditor with a log file for storing results.
-        
+
         Args:
             log_file (str): Path to the log file for audit results.
         """
@@ -31,7 +33,7 @@ class PerformanceAuditor:
     def log(self, message: str) -> None:
         """
         Log a message to the specified log file with timestamp.
-        
+
         Args:
             message (str): Message to log.
         """
@@ -41,7 +43,7 @@ class PerformanceAuditor:
     def measure_cpu_usage(self) -> float:
         """
         Measure current CPU usage of the process.
-        
+
         Returns:
             float: CPU usage percentage.
         """
@@ -50,28 +52,32 @@ class PerformanceAuditor:
     def measure_memory_usage(self) -> Dict[str, float]:
         """
         Measure current memory usage of the process.
-        
+
         Returns:
             Dict[str, float]: Dictionary with memory usage stats in MB.
         """
         mem_info = self.process.memory_info()
         snapshot = tracemalloc.take_snapshot()
-        stats = snapshot.statistics('lineno')
-        
+        stats = snapshot.statistics("lineno")
+
         return {
             "rss": mem_info.rss / 1024 / 1024,  # Resident Set Size in MB
             "vms": mem_info.vms / 1024 / 1024,  # Virtual Memory Size in MB
-            "peak": stats[0].size / 1024 / 1024 if stats else 0.0  # Peak memory from tracemalloc
+            "peak": stats[0].size / 1024 / 1024
+            if stats
+            else 0.0,  # Peak memory from tracemalloc
         }
 
-    async def measure_response_time(self, func: callable, *args, **kwargs) -> Dict[str, Any]:
+    async def measure_response_time(
+        self, func: callable, *args, **kwargs
+    ) -> Dict[str, Any]:
         """
         Measure response time of a given async function.
-        
+
         Args:
             func (callable): Function to measure.
             *args, **kwargs: Arguments to pass to the function.
-        
+
         Returns:
             Dict[str, Any]: Dictionary with execution time and result.
         """
@@ -79,17 +85,23 @@ class PerformanceAuditor:
         result = await func(*args, **kwargs)
         end_time = time.time()
         execution_time = end_time - start_time
-        
+
         return {
             "execution_time": execution_time,
             "result": result,
-            "function": func.__name__
+            "function": func.__name__,
         }
 
-    def report(self, test_name: str, cpu: float, memory: Dict[str, float], response_times: List[Dict[str, Any]]) -> None:
+    def report(
+        self,
+        test_name: str,
+        cpu: float,
+        memory: Dict[str, float],
+        response_times: List[Dict[str, Any]],
+    ) -> None:
         """
         Generate a performance report for the given test.
-        
+
         Args:
             test_name (str): Name of the test being reported.
             cpu (float): CPU usage percentage.
@@ -98,9 +110,13 @@ class PerformanceAuditor:
         """
         self.log(f"=== Performance Report for {test_name} ===")
         self.log(f"CPU Usage: {cpu:.2f}%")
-        self.log(f"Memory Usage - RSS: {memory['rss']:.2f} MB, VMS: {memory['vms']:.2f} MB, Peak: {memory['peak']:.2f} MB")
+        self.log(
+            f"Memory Usage - RSS: {memory['rss']:.2f} MB, VMS: {memory['vms']:.2f} MB, Peak: {memory['peak']:.2f} MB"
+        )
         for rt in response_times:
-            self.log(f"Function {rt['function']} - Execution Time: {rt['execution_time']:.4f} seconds")
+            self.log(
+                f"Function {rt['function']} - Execution Time: {rt['execution_time']:.4f} seconds"
+            )
         self.log(f"=== End of Report for {test_name} ===\n")
 
         # Also send performance data to Sentry if initialized
@@ -111,8 +127,11 @@ class PerformanceAuditor:
                 scope.set_extra("cpu_usage", cpu)
                 scope.set_extra("memory_usage", memory)
                 for rt in response_times:
-                    scope.set_extra(f"response_time_{rt['function']}", rt['execution_time'])
+                    scope.set_extra(
+                        f"response_time_{rt['function']}", rt["execution_time"]
+                    )
                 sentry_sdk.capture_message(f"Performance audit for {test_name}")
+
 
 # Example usage
 if __name__ == "__main__":
@@ -130,11 +149,11 @@ if __name__ == "__main__":
     async def run_audit():
         cpu_usage = auditor.measure_cpu_usage()
         memory_usage = auditor.measure_memory_usage()
-        
+
         response_times = []
         response_times.append(await auditor.measure_response_time(simulate_ui_response))
         response_times.append(await auditor.measure_response_time(simulate_db_query))
-        
+
         auditor.report("Initial App Load", cpu_usage, memory_usage, response_times)
 
     asyncio.run(run_audit())

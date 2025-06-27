@@ -3,7 +3,8 @@
 Minimal test to demonstrate TaskManager concept and answer user question
 """
 
-#Simulate the core TaskManager functionality without complex dependencies
+# Simulate the core TaskManager functionality without complex dependencies
+
 
 class TaskStatus:
     PENDING = "pending"
@@ -11,6 +12,7 @@ class TaskStatus:
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
 
 class MockTask:
     def __init__(self, task_id, goal, memory_scope):
@@ -31,6 +33,7 @@ class MockTask:
     def get_all_memory(self):
         """Get all memory for this task."""
         return self.memory_data
+
 
 class MockTaskManager:
     def __init__(self, max_concurrent=3):
@@ -56,12 +59,12 @@ class MockTaskManager:
         print("\n🧪 Testing Memory Isolation:")
         print("-" * 40)
 
-        #Each task stores different data
+        # Each task stores different data
         for i, (task_id, task) in enumerate(self.tasks.items()):
             test_data = f"Private data for {task_id}"
-            task.store_memory("goal_progress", f"Step {i+1} completed")
+            task.store_memory("goal_progress", f"Step {i + 1} completed")
             task.store_memory("private_info", test_data)
-            task.store_memory("api_calls", [f"call_{j}" for j in range(i+2)])
+            task.store_memory("api_calls", [f"call_{j}" for j in range(i + 2)])
 
             print(f"📝 {task_id}: Stored private memory")
 
@@ -84,7 +87,7 @@ class MockTaskManager:
 
         print("📊 Simulating OpenAI API usage across tasks:")
 
-        #Simulate API usage
+        # Simulate API usage
         api_usage = {
             "provider": "OpenAI GPT-4",
             "rate_limit": "60 requests/minute",
@@ -93,27 +96,34 @@ class MockTaskManager:
         }
 
         for task_id, task in self.tasks.items():
-            #Simulate API calls for each task
-            calls_needed = len(task.goal.split()) // 2 + 1  #Simple heuristic
+            # Simulate API calls for each task
+            calls_needed = len(task.goal.split()) // 2 + 1  # Simple heuristic
 
             if api_usage["current_usage"] + calls_needed <= 60:
                 api_usage["current_usage"] += calls_needed
-                api_usage["tasks_served"].append({
-                    "task_id": task_id,
-                    "calls": calls_needed,
-                    "goal": task.goal[:30] + "...",
-                })
+                api_usage["tasks_served"].append(
+                    {
+                        "task_id": task_id,
+                        "calls": calls_needed,
+                        "goal": task.goal[:30] + "...",
+                    }
+                )
 
                 print(f"   ✅ {task_id}: {calls_needed} API calls - PROCESSED")
             else:
-                print(f"   ⏳ {task_id}: {calls_needed} API calls - QUEUED (rate limit)")
+                print(
+                    f"   ⏳ {task_id}: {calls_needed} API calls - QUEUED (rate limit)"
+                )
 
         print("\n📈 API Usage Summary:")
         print(f"   🔥 Total usage: {api_usage['current_usage']}/60 requests")
         print(f"   ✅ Tasks served: {len(api_usage['tasks_served'])}")
-        print(f"   📊 Efficiency: {(api_usage['current_usage']/60)*100:.1f}% utilization")
+        print(
+            f"   📊 Efficiency: {(api_usage['current_usage'] / 60) * 100:.1f}% utilization"
+        )
 
         print("\n✅ Single API can serve multiple isolated tasks!")
+
 
 def answer_user_question():
     """Answer the specific user question about parallel goals."""
@@ -127,10 +137,10 @@ def answer_user_question():
     print("   Чи будуть незалежні у них пам'яті?")
     print("   Чи зможе так система функціонувати на одному провайдеру і одному API?")
 
-    #Create task manager
+    # Create task manager
     task_manager = MockTaskManager(max_concurrent=3)
 
-    #Create parallel goals
+    # Create parallel goals
     goals = [
         "Зробити скріншот робочого столу і проаналізувати вміст",
         "Перевірити погоду в Києві і створити звіт",
@@ -142,10 +152,10 @@ def answer_user_question():
     for goal in goals:
         task_manager.create_task(goal)
 
-    #Demonstrate memory isolation
+    # Demonstrate memory isolation
     task_manager.demonstrate_memory_isolation()
 
-    #Demonstrate API sharing
+    # Demonstrate API sharing
     task_manager.demonstrate_api_sharing()
 
     print("\n🎯 ПІДСУМОК ВІДПОВІДІ:")
@@ -166,6 +176,7 @@ def answer_user_question():
     print("   • Готовий до інтеграції в основний workflow")
 
     print("\n🚀 ГОТОВНІСТЬ: TaskManager готовий для продакшену!")
+
 
 if __name__ == "__main__":
     answer_user_question()

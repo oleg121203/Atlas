@@ -11,9 +11,13 @@ class ContextAwarenessEngine:
     def __init__(self, project_root: str):
         self.logger = get_logger(self.__class__.__name__)
         if not os.path.isdir(project_root):
-            raise ValueError(f"Project root path does not exist or is not a directory: {project_root}")
+            raise ValueError(
+                f"Project root path does not exist or is not a directory: {project_root}"
+            )
         self.project_root = project_root
-        self.logger.info(f"Context Awareness Engine initialized for project root: {self.project_root}")
+        self.logger.info(
+            f"Context Awareness Engine initialized for project root: {self.project_root}"
+        )
 
     def get_current_context(self) -> Dict[str, Any]:
         """Gathers all available context about the user's environment."""
@@ -43,11 +47,18 @@ class ContextAwarenessEngine:
             self.logger.info(f"Detected current Git branch: {branch_name}")
             return branch_name
         except FileNotFoundError:
-            self.logger.error("Git command not found. Is Git installed and in the system's PATH?")
+            self.logger.error(
+                "Git command not found. Is Git installed and in the system's PATH?"
+            )
             return None
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Failed to determine Git branch. Error: {e.stderr.strip()}")
+            self.logger.error(
+                f"Failed to determine Git branch. Error: {e.stderr.strip()}"
+            )
             return None
         except Exception as e:
-            self.logger.error(f"An unexpected error occurred while getting Git branch: {e}", exc_info=True)
+            self.logger.error(
+                f"An unexpected error occurred while getting Git branch: {e}",
+                exc_info=True,
+            )
             return None

@@ -1,8 +1,9 @@
+import json
 import logging
 import logging.handlers
-from datetime import datetime
-import json
 import traceback
+from datetime import datetime
+
 
 class AtlasLogger:
     def __init__(self, name: str, log_level: str = "INFO"):
@@ -12,12 +13,12 @@ class AtlasLogger:
         # Ротаційні файли логів
         handler = logging.handlers.RotatingFileHandler(
             f"logs/{name}.log",
-            maxBytes=10*1024*1024,  # 10MB
-            backupCount=5
+            maxBytes=10 * 1024 * 1024,  # 10MB
+            backupCount=5,
         )
 
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
@@ -28,6 +29,6 @@ class AtlasLogger:
             "level": level,
             "message": message,
             "context": context or {},
-            "traceback": traceback.format_exc() if level == "ERROR" else None
+            "traceback": traceback.format_exc() if level == "ERROR" else None,
         }
         getattr(self.logger, level.lower())(json.dumps(log_entry))

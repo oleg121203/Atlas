@@ -1,8 +1,9 @@
-from typing import Dict, List, Any, Optional, Tuple
 import copy
 import json
 import os
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
 
 class WorkflowPatternLibrary:
     def __init__(self, library_path: Optional[str] = None):
@@ -17,7 +18,9 @@ class WorkflowPatternLibrary:
         self.tags: Dict[str, List[str]] = {}
         self.library_path = library_path or "workflow_patterns.json"
         self.marketplace_patterns: Dict[str, Dict[str, Any]] = {}
-        self.marketplace_path = os.path.join(os.path.dirname(self.library_path), "marketplace_patterns.json")
+        self.marketplace_path = os.path.join(
+            os.path.dirname(self.library_path), "marketplace_patterns.json"
+        )
         self.load_library()
         self.load_marketplace()
 
@@ -27,7 +30,7 @@ class WorkflowPatternLibrary:
         """
         if os.path.exists(self.library_path):
             try:
-                with open(self.library_path, 'r') as f:
+                with open(self.library_path, "r") as f:
                     data = json.load(f)
                     self.patterns = data.get("patterns", {})
                     self.categories = data.get("categories", {})
@@ -50,19 +53,31 @@ class WorkflowPatternLibrary:
                 "tags": ["ETL", "data", "pipeline"],
                 "structure": {
                     "steps": [
-                        {"id": 1, "name": "Extract", "type": "input", "config": {"source": "configurable"}},
-                        {"id": 2, "name": "Transform", "type": "processing", "config": {"rules": "configurable"}},
-                        {"id": 3, "name": "Load", "type": "output", "config": {"destination": "configurable"}}
+                        {
+                            "id": 1,
+                            "name": "Extract",
+                            "type": "input",
+                            "config": {"source": "configurable"},
+                        },
+                        {
+                            "id": 2,
+                            "name": "Transform",
+                            "type": "processing",
+                            "config": {"rules": "configurable"},
+                        },
+                        {
+                            "id": 3,
+                            "name": "Load",
+                            "type": "output",
+                            "config": {"destination": "configurable"},
+                        },
                     ],
-                    "connections": [
-                        {"from": 1, "to": 2},
-                        {"from": 2, "to": 3}
-                    ]
+                    "connections": [{"from": 1, "to": 2}, {"from": 2, "to": 3}],
                 },
                 "version": "1.0.0",
                 "created": datetime.now().isoformat(),
                 "last_updated": datetime.now().isoformat(),
-                "usage_count": 0
+                "usage_count": 0,
             },
             "ml_training": {
                 "name": "Machine Learning Training Pipeline",
@@ -71,23 +86,48 @@ class WorkflowPatternLibrary:
                 "tags": ["ML", "training", "model"],
                 "structure": {
                     "steps": [
-                        {"id": 1, "name": "Data Ingestion", "type": "input", "config": {"source": "configurable"}},
-                        {"id": 2, "name": "Data Preprocessing", "type": "processing", "config": {"steps": "configurable"}},
-                        {"id": 3, "name": "Model Training", "type": "training", "config": {"algorithm": "configurable"}},
-                        {"id": 4, "name": "Model Evaluation", "type": "evaluation", "config": {"metrics": "configurable"}},
-                        {"id": 5, "name": "Model Deployment", "type": "output", "config": {"target": "configurable"}}
+                        {
+                            "id": 1,
+                            "name": "Data Ingestion",
+                            "type": "input",
+                            "config": {"source": "configurable"},
+                        },
+                        {
+                            "id": 2,
+                            "name": "Data Preprocessing",
+                            "type": "processing",
+                            "config": {"steps": "configurable"},
+                        },
+                        {
+                            "id": 3,
+                            "name": "Model Training",
+                            "type": "training",
+                            "config": {"algorithm": "configurable"},
+                        },
+                        {
+                            "id": 4,
+                            "name": "Model Evaluation",
+                            "type": "evaluation",
+                            "config": {"metrics": "configurable"},
+                        },
+                        {
+                            "id": 5,
+                            "name": "Model Deployment",
+                            "type": "output",
+                            "config": {"target": "configurable"},
+                        },
                     ],
                     "connections": [
                         {"from": 1, "to": 2},
                         {"from": 2, "to": 3},
                         {"from": 3, "to": 4},
-                        {"from": 4, "to": 5}
-                    ]
+                        {"from": 4, "to": 5},
+                    ],
                 },
                 "version": "1.0.0",
                 "created": datetime.now().isoformat(),
                 "last_updated": datetime.now().isoformat(),
-                "usage_count": 0
+                "usage_count": 0,
             },
             "batch_processing": {
                 "name": "Batch Processing Workflow",
@@ -96,22 +136,37 @@ class WorkflowPatternLibrary:
                 "tags": ["batch", "data", "processing"],
                 "structure": {
                     "steps": [
-                        {"id": 1, "name": "Batch Input", "type": "input", "config": {"source": "configurable", "batch_size": "configurable"}},
-                        {"id": 2, "name": "Batch Process", "type": "processing", "config": {"logic": "configurable"}},
-                        {"id": 3, "name": "Batch Output", "type": "output", "config": {"destination": "configurable"}}
+                        {
+                            "id": 1,
+                            "name": "Batch Input",
+                            "type": "input",
+                            "config": {
+                                "source": "configurable",
+                                "batch_size": "configurable",
+                            },
+                        },
+                        {
+                            "id": 2,
+                            "name": "Batch Process",
+                            "type": "processing",
+                            "config": {"logic": "configurable"},
+                        },
+                        {
+                            "id": 3,
+                            "name": "Batch Output",
+                            "type": "output",
+                            "config": {"destination": "configurable"},
+                        },
                     ],
-                    "connections": [
-                        {"from": 1, "to": 2},
-                        {"from": 2, "to": 3}
-                    ]
+                    "connections": [{"from": 1, "to": 2}, {"from": 2, "to": 3}],
                 },
                 "version": "1.0.0",
                 "created": datetime.now().isoformat(),
                 "last_updated": datetime.now().isoformat(),
-                "usage_count": 0
-            }
+                "usage_count": 0,
+            },
         }
-        
+
         # Build categories and tags index
         self.categories = {}
         self.tags = {}
@@ -120,7 +175,7 @@ class WorkflowPatternLibrary:
             if category not in self.categories:
                 self.categories[category] = []
             self.categories[category].append(pattern_id)
-            
+
             for tag in pattern.get("tags", []):
                 if tag not in self.tags:
                     self.tags[tag] = []
@@ -133,16 +188,24 @@ class WorkflowPatternLibrary:
         data = {
             "patterns": self.patterns,
             "categories": self.categories,
-            "tags": self.tags
+            "tags": self.tags,
         }
         try:
-            with open(self.library_path, 'w') as f:
+            with open(self.library_path, "w") as f:
                 json.dump(data, f, indent=2)
         except Exception as e:
             print(f"Error saving library: {e}")
 
-    def add_pattern(self, pattern_id: str, name: str, description: str, category: str, 
-                    tags: List[str], structure: Dict[str, Any], version: str = "1.0.0") -> bool:
+    def add_pattern(
+        self,
+        pattern_id: str,
+        name: str,
+        description: str,
+        category: str,
+        tags: List[str],
+        structure: Dict[str, Any],
+        version: str = "1.0.0",
+    ) -> bool:
         """
         Add a new workflow pattern to the library.
 
@@ -160,7 +223,7 @@ class WorkflowPatternLibrary:
         """
         if pattern_id in self.patterns:
             return False
-        
+
         now = datetime.now().isoformat()
         self.patterns[pattern_id] = {
             "name": name,
@@ -171,25 +234,31 @@ class WorkflowPatternLibrary:
             "version": version,
             "created": now,
             "last_updated": now,
-            "usage_count": 0
+            "usage_count": 0,
         }
-        
+
         if category not in self.categories:
             self.categories[category] = []
         self.categories[category].append(pattern_id)
-        
+
         for tag in tags:
             if tag not in self.tags:
                 self.tags[tag] = []
             self.tags[tag].append(pattern_id)
-        
+
         self.save_library()
         return True
 
-    def update_pattern(self, pattern_id: str, name: Optional[str] = None, 
-                       description: Optional[str] = None, category: Optional[str] = None, 
-                       tags: Optional[List[str]] = None, structure: Optional[Dict[str, Any]] = None, 
-                       version: Optional[str] = None) -> bool:
+    def update_pattern(
+        self,
+        pattern_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        structure: Optional[Dict[str, Any]] = None,
+        version: Optional[str] = None,
+    ) -> bool:
         """
         Update an existing workflow pattern in the library.
 
@@ -207,17 +276,20 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.patterns:
             return False
-        
+
         pattern = self.patterns[pattern_id]
         old_category = pattern["category"]
         old_tags = pattern["tags"]
-        
+
         if name is not None:
             pattern["name"] = name
         if description is not None:
             pattern["description"] = description
         if category is not None:
-            if old_category in self.categories and pattern_id in self.categories[old_category]:
+            if (
+                old_category in self.categories
+                and pattern_id in self.categories[old_category]
+            ):
                 self.categories[old_category].remove(pattern_id)
             if category not in self.categories:
                 self.categories[category] = []
@@ -236,7 +308,7 @@ class WorkflowPatternLibrary:
             pattern["structure"] = structure
         if version is not None:
             pattern["version"] = version
-        
+
         pattern["last_updated"] = datetime.now().isoformat()
         self.save_library()
         return True
@@ -253,22 +325,22 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.patterns:
             return False
-        
+
         pattern = self.patterns[pattern_id]
         category = pattern["category"]
         tags = pattern["tags"]
-        
+
         if category in self.categories and pattern_id in self.categories[category]:
             self.categories[category].remove(pattern_id)
             if not self.categories[category]:
                 del self.categories[category]
-        
+
         for tag in tags:
             if tag in self.tags and pattern_id in self.tags[tag]:
                 self.tags[tag].remove(pattern_id)
                 if not self.tags[tag]:
                     del self.tags[tag]
-        
+
         del self.patterns[pattern_id]
         self.save_library()
         return True
@@ -285,7 +357,9 @@ class WorkflowPatternLibrary:
         """
         return self.patterns.get(pattern_id)
 
-    def list_patterns(self, category: Optional[str] = None, tag: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_patterns(
+        self, category: Optional[str] = None, tag: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         List available workflow patterns, optionally filtered by category or tag.
 
@@ -298,7 +372,7 @@ class WorkflowPatternLibrary:
         """
         pattern_list = []
         pattern_ids = set()
-        
+
         if category and tag:
             if category in self.categories and tag in self.tags:
                 pattern_ids = set(self.categories[category]) & set(self.tags[tag])
@@ -310,20 +384,25 @@ class WorkflowPatternLibrary:
                 pattern_ids = set(self.tags[tag])
         else:
             pattern_ids = set(self.patterns.keys())
-        
+
         for pid in pattern_ids:
             pattern = self.patterns[pid]
-            pattern_list.append({
-                "id": pid,
-                "name": pattern.get("name", "Unnamed Pattern"),
-                "description": pattern.get("description", ""),
-                "category": pattern.get("category", "Uncategorized"),
-                "tags": pattern.get("tags", []),
-                "version": pattern.get("version", "1.0.0"),
-                "usage_count": pattern.get("usage_count", 0),
-                "last_updated": pattern.get("last_updated", pattern.get("updated_at", pattern.get("created_at", "Unknown")))
-            })
-        
+            pattern_list.append(
+                {
+                    "id": pid,
+                    "name": pattern.get("name", "Unnamed Pattern"),
+                    "description": pattern.get("description", ""),
+                    "category": pattern.get("category", "Uncategorized"),
+                    "tags": pattern.get("tags", []),
+                    "version": pattern.get("version", "1.0.0"),
+                    "usage_count": pattern.get("usage_count", 0),
+                    "last_updated": pattern.get(
+                        "last_updated",
+                        pattern.get("updated_at", pattern.get("created_at", "Unknown")),
+                    ),
+                }
+            )
+
         return sorted(pattern_list, key=lambda x: x["usage_count"], reverse=True)
 
     def list_categories(self) -> List[str]:
@@ -333,7 +412,7 @@ class WorkflowPatternLibrary:
         Returns:
             List[str]: Sorted list of category names.
         """
-        return sorted(list(self.categories.keys()))
+        return sorted(self.categories.keys())
 
     def list_tags(self) -> List[str]:
         """
@@ -342,9 +421,11 @@ class WorkflowPatternLibrary:
         Returns:
             List[str]: Sorted list of tag names.
         """
-        return sorted(list(self.tags.keys()))
+        return sorted(self.tags.keys())
 
-    def instantiate_pattern(self, pattern_id: str, custom_config: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def instantiate_pattern(
+        self, pattern_id: str, custom_config: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Instantiate a workflow from a pattern with custom configuration.
 
@@ -357,11 +438,12 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.patterns:
             return None
-        
+
         pattern = self.patterns[pattern_id]
         workflow_structure = pattern["structure"].copy()
-        
+
         if custom_config:
+
             def apply_config(structure, config):
                 for key, value in structure.items():
                     if isinstance(value, dict):
@@ -374,19 +456,19 @@ class WorkflowPatternLibrary:
                     elif key in config:
                         structure[key] = config[key]
                 return structure
-            
+
             workflow_structure = apply_config(workflow_structure, custom_config)
-        
+
         self.patterns[pattern_id]["usage_count"] += 1
         self.patterns[pattern_id]["last_updated"] = datetime.now().isoformat()
         self.save_library()
-        
+
         return {
             "name": pattern["name"],
             "description": pattern["description"],
             "based_on_pattern": pattern_id,
             "structure": workflow_structure,
-            "created": datetime.now().isoformat()
+            "created": datetime.now().isoformat(),
         }
 
     def search_patterns(self, query: str) -> List[Dict[str, Any]]:
@@ -401,23 +483,32 @@ class WorkflowPatternLibrary:
         """
         query_lower = query.lower()
         results = []
-        
+
         for pattern_id, pattern in self.patterns.items():
-            if (query_lower in pattern.get("name", "").lower() or 
-                query_lower in pattern.get("description", "").lower() or 
-                query_lower in pattern.get("category", "").lower() or 
-                any(query_lower in tag.lower() for tag in pattern.get("tags", []))):
-                results.append({
-                    "id": pattern_id,
-                    "name": pattern.get("name", "Unnamed Pattern"),
-                    "description": pattern.get("description", ""),
-                    "category": pattern.get("category", "Uncategorized"),
-                    "tags": pattern.get("tags", []),
-                    "version": pattern.get("version", "1.0.0"),
-                    "usage_count": pattern.get("usage_count", 0),
-                    "last_updated": pattern.get("last_updated", pattern.get("updated_at", pattern.get("created_at", "Unknown")))
-                })
-        
+            if (
+                query_lower in pattern.get("name", "").lower()
+                or query_lower in pattern.get("description", "").lower()
+                or query_lower in pattern.get("category", "").lower()
+                or any(query_lower in tag.lower() for tag in pattern.get("tags", []))
+            ):
+                results.append(
+                    {
+                        "id": pattern_id,
+                        "name": pattern.get("name", "Unnamed Pattern"),
+                        "description": pattern.get("description", ""),
+                        "category": pattern.get("category", "Uncategorized"),
+                        "tags": pattern.get("tags", []),
+                        "version": pattern.get("version", "1.0.0"),
+                        "usage_count": pattern.get("usage_count", 0),
+                        "last_updated": pattern.get(
+                            "last_updated",
+                            pattern.get(
+                                "updated_at", pattern.get("created_at", "Unknown")
+                            ),
+                        ),
+                    }
+                )
+
         return sorted(results, key=lambda x: x["usage_count"], reverse=True)
 
     def load_marketplace(self) -> None:
@@ -426,7 +517,7 @@ class WorkflowPatternLibrary:
         """
         if os.path.exists(self.marketplace_path):
             try:
-                with open(self.marketplace_path, 'r') as f:
+                with open(self.marketplace_path, "r") as f:
                     data = json.load(f)
                     self.marketplace_patterns = data.get("patterns", {})
             except Exception as e:
@@ -439,16 +530,24 @@ class WorkflowPatternLibrary:
         """
         Save the marketplace patterns to a file.
         """
-        data = {
-            "patterns": self.marketplace_patterns
-        }
+        data = {"patterns": self.marketplace_patterns}
         try:
-            with open(self.marketplace_path, 'w') as f:
+            with open(self.marketplace_path, "w") as f:
                 json.dump(data, f, indent=2)
         except Exception as e:
             print(f"Error saving marketplace: {e}")
 
-    def contribute_pattern(self, pattern_id: str, name: str, description: str, category: str, tags: List[str], structure: Dict[str, Any], author: str, license: str = "MIT") -> bool:
+    def contribute_pattern(
+        self,
+        pattern_id: str,
+        name: str,
+        description: str,
+        category: str,
+        tags: List[str],
+        structure: Dict[str, Any],
+        author: str,
+        license: str = "MIT",
+    ) -> bool:
         """
         Contribute a new pattern to the marketplace.
 
@@ -480,15 +579,21 @@ class WorkflowPatternLibrary:
             "rating": 0.0,
             "rating_count": 0,
             "usage_count": 0,
-            "comments": []
+            "comments": [],
         }
         self.save_marketplace()
         return True
 
-    def update_contributed_pattern(self, pattern_id: str, name: Optional[str] = None, 
-                                   description: Optional[str] = None, category: Optional[str] = None, 
-                                   tags: Optional[List[str]] = None, structure: Optional[Dict[str, Any]] = None, 
-                                   version: Optional[str] = None) -> bool:
+    def update_contributed_pattern(
+        self,
+        pattern_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        structure: Optional[Dict[str, Any]] = None,
+        version: Optional[str] = None,
+    ) -> bool:
         """
         Update an existing contributed pattern in the marketplace.
 
@@ -506,9 +611,9 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.marketplace_patterns:
             return False
-        
+
         pattern = self.marketplace_patterns[pattern_id]
-        
+
         if name is not None:
             pattern["name"] = name
         if description is not None:
@@ -521,7 +626,7 @@ class WorkflowPatternLibrary:
             pattern["structure"] = structure
         if version is not None:
             pattern["version"] = version
-        
+
         pattern["updated_at"] = datetime.now().isoformat()
         self.save_marketplace()
         return True
@@ -538,7 +643,7 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.marketplace_patterns:
             return False
-        
+
         del self.marketplace_patterns[pattern_id]
         self.save_marketplace()
         return True
@@ -555,8 +660,13 @@ class WorkflowPatternLibrary:
         """
         return self.marketplace_patterns.get(pattern_id)
 
-    def list_contributed_patterns(self, category: Optional[str] = None, tag: Optional[str] = None, 
-                                  author: Optional[str] = None, sort_by: str = "usage_count") -> List[Dict[str, Any]]:
+    def list_contributed_patterns(
+        self,
+        category: Optional[str] = None,
+        tag: Optional[str] = None,
+        author: Optional[str] = None,
+        sort_by: str = "usage_count",
+    ) -> List[Dict[str, Any]]:
         """
         List available contributed patterns, optionally filtered by category, tag, or author.
 
@@ -570,7 +680,7 @@ class WorkflowPatternLibrary:
             List[Dict[str, Any]]: List of pattern summaries.
         """
         pattern_list = []
-        
+
         for pattern_id, pattern in self.marketplace_patterns.items():
             if category and pattern["category"] != category:
                 continue
@@ -578,20 +688,24 @@ class WorkflowPatternLibrary:
                 continue
             if author and pattern["author"] != author:
                 continue
-            
-            pattern_list.append({
-                "id": pattern_id,
-                "name": pattern["name"],
-                "description": pattern["description"],
-                "author": pattern["author"],
-                "version": pattern.get("version", "1.0.0"),
-                "license": pattern["license"],
-                "usage_count": pattern["usage_count"],
-                "rating": pattern["rating"],
-                "rating_count": pattern["rating_count"],
-                "last_updated": pattern.get("updated_at", pattern.get("created_at", "Unknown"))
-            })
-        
+
+            pattern_list.append(
+                {
+                    "id": pattern_id,
+                    "name": pattern["name"],
+                    "description": pattern["description"],
+                    "author": pattern["author"],
+                    "version": pattern.get("version", "1.0.0"),
+                    "license": pattern["license"],
+                    "usage_count": pattern["usage_count"],
+                    "rating": pattern["rating"],
+                    "rating_count": pattern["rating_count"],
+                    "last_updated": pattern.get(
+                        "updated_at", pattern.get("created_at", "Unknown")
+                    ),
+                }
+            )
+
         return sorted(pattern_list, key=lambda x: x[sort_by], reverse=True)
 
     def search_contributed_patterns(self, query: str) -> List[Dict[str, Any]]:
@@ -606,29 +720,37 @@ class WorkflowPatternLibrary:
         """
         query_lower = query.lower()
         results = []
-        
+
         for pattern_id, pattern in self.marketplace_patterns.items():
-            if (query_lower in pattern["name"].lower() or 
-                query_lower in pattern["description"].lower() or 
-                query_lower in pattern["category"].lower() or 
-                query_lower in pattern["author"].lower() or 
-                any(query_lower in tag.lower() for tag in pattern["tags"])):
-                results.append({
-                    "id": pattern_id,
-                    "name": pattern["name"],
-                    "description": pattern["description"],
-                    "author": pattern["author"],
-                    "version": pattern.get("version", "1.0.0"),
-                    "license": pattern["license"],
-                    "usage_count": pattern["usage_count"],
-                    "rating": pattern["rating"],
-                    "rating_count": pattern["rating_count"],
-                    "last_updated": pattern.get("updated_at", pattern.get("created_at", "Unknown"))
-                })
-        
+            if (
+                query_lower in pattern["name"].lower()
+                or query_lower in pattern["description"].lower()
+                or query_lower in pattern["category"].lower()
+                or query_lower in pattern["author"].lower()
+                or any(query_lower in tag.lower() for tag in pattern["tags"])
+            ):
+                results.append(
+                    {
+                        "id": pattern_id,
+                        "name": pattern["name"],
+                        "description": pattern["description"],
+                        "author": pattern["author"],
+                        "version": pattern.get("version", "1.0.0"),
+                        "license": pattern["license"],
+                        "usage_count": pattern["usage_count"],
+                        "rating": pattern["rating"],
+                        "rating_count": pattern["rating_count"],
+                        "last_updated": pattern.get(
+                            "updated_at", pattern.get("created_at", "Unknown")
+                        ),
+                    }
+                )
+
         return sorted(results, key=lambda x: x["usage_count"], reverse=True)
 
-    def instantiate_contributed_pattern(self, pattern_id: str, custom_config: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def instantiate_contributed_pattern(
+        self, pattern_id: str, custom_config: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Instantiate a workflow from a contributed pattern with custom configuration.
 
@@ -641,11 +763,12 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.marketplace_patterns:
             return None
-        
+
         pattern = self.marketplace_patterns[pattern_id]
         workflow_structure = pattern["structure"].copy()
-        
+
         if custom_config:
+
             def apply_config(structure, config):
                 for key, value in structure.items():
                     if isinstance(value, dict):
@@ -658,13 +781,13 @@ class WorkflowPatternLibrary:
                     elif key in config:
                         structure[key] = config[key]
                 return structure
-            
+
             workflow_structure = apply_config(workflow_structure, custom_config)
-        
+
         self.marketplace_patterns[pattern_id]["usage_count"] += 1
         self.marketplace_patterns[pattern_id]["updated_at"] = datetime.now().isoformat()
         self.save_marketplace()
-        
+
         return {
             "name": pattern["name"],
             "description": pattern["description"],
@@ -672,7 +795,7 @@ class WorkflowPatternLibrary:
             "author": pattern["author"],
             "license": pattern["license"],
             "structure": workflow_structure,
-            "created": datetime.now().isoformat()
+            "created": datetime.now().isoformat(),
         }
 
     def rate_contributed_pattern(self, pattern_id: str, rating: float) -> bool:
@@ -688,21 +811,23 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.marketplace_patterns:
             return False
-        
+
         pattern = self.marketplace_patterns[pattern_id]
         current_rating = pattern["rating"]
         current_count = pattern["rating_count"]
-        
+
         new_count = current_count + 1
         new_rating = ((current_rating * current_count) + rating) / new_count
-        
+
         pattern["rating"] = round(new_rating, 2)
         pattern["rating_count"] = new_count
         pattern["updated_at"] = datetime.now().isoformat()
         self.save_marketplace()
         return True
 
-    def comment_on_contributed_pattern(self, pattern_id: str, comment: str, author: str) -> bool:
+    def comment_on_contributed_pattern(
+        self, pattern_id: str, comment: str, author: str
+    ) -> bool:
         """
         Add a comment to a contributed pattern.
 
@@ -716,18 +841,22 @@ class WorkflowPatternLibrary:
         """
         if pattern_id not in self.marketplace_patterns:
             return False
-        
+
         pattern = self.marketplace_patterns[pattern_id]
-        pattern["comments"].append({
-            "text": comment,
-            "author": author,
-            "timestamp": datetime.now().isoformat()
-        })
+        pattern["comments"].append(
+            {"text": comment, "author": author, "timestamp": datetime.now().isoformat()}
+        )
         pattern["updated_at"] = datetime.now().isoformat()
         self.save_marketplace()
         return True
 
-    def customize_pattern(self, pattern_id: str, customizations: Dict[str, Any], save_as_new: bool = False, new_pattern_id: Optional[str] = None) -> Optional[str]:
+    def customize_pattern(
+        self,
+        pattern_id: str,
+        customizations: Dict[str, Any],
+        save_as_new: bool = False,
+        new_pattern_id: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Customize an existing pattern with specific modifications.
 
@@ -748,14 +877,20 @@ class WorkflowPatternLibrary:
 
         if save_as_new:
             if not new_pattern_id:
-                new_pattern_id = f"custom_{pattern_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                new_pattern_id = (
+                    f"custom_{pattern_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                )
             if new_pattern_id in self.patterns:
-                raise ValueError(f"New pattern ID {new_pattern_id} already exists in library.")
+                raise ValueError(
+                    f"New pattern ID {new_pattern_id} already exists in library."
+                )
 
             self.patterns[new_pattern_id] = pattern
             self.patterns[new_pattern_id]["id"] = new_pattern_id
             self.patterns[new_pattern_id]["name"] = f"Customized {pattern['name']}"
-            self.patterns[new_pattern_id]["description"] = f"Customized version of {pattern['name']} created on {datetime.now().strftime('%Y-%m-%d')}"
+            self.patterns[new_pattern_id]["description"] = (
+                f"Customized version of {pattern['name']} created on {datetime.now().strftime('%Y-%m-%d')}"
+            )
             self.patterns[new_pattern_id]["category"] = f"Custom {pattern['category']}"
             self.patterns[new_pattern_id]["tags"].append("custom")
             self._update_indices(new_pattern_id, self.patterns[new_pattern_id])
@@ -769,7 +904,9 @@ class WorkflowPatternLibrary:
             self.save_library()
             return None
 
-    def share_pattern(self, pattern_id: str, destination: str, format: str = "json") -> bool:
+    def share_pattern(
+        self, pattern_id: str, destination: str, format: str = "json"
+    ) -> bool:
         """
         Share a pattern by exporting it to a specified destination.
 
@@ -791,16 +928,17 @@ class WorkflowPatternLibrary:
             "description": pattern["description"],
             "category": pattern["category"],
             "tags": pattern["tags"],
-            "structure": pattern["structure"]
+            "structure": pattern["structure"],
         }
 
         try:
             if format.lower() == "json":
-                with open(destination, 'w') as f:
+                with open(destination, "w") as f:
                     json.dump(export_data, f, indent=2)
             elif format.lower() == "yaml":
                 import yaml
-                with open(destination, 'w') as f:
+
+                with open(destination, "w") as f:
                     yaml.safe_dump(export_data, f, default_flow_style=False)
             else:
                 raise ValueError(f"Unsupported export format: {format}")
@@ -809,7 +947,9 @@ class WorkflowPatternLibrary:
             print(f"Error sharing pattern: {e}")
             return False
 
-    def import_shared_pattern(self, source: str, format: str = "json", pattern_id: Optional[str] = None) -> str:
+    def import_shared_pattern(
+        self, source: str, format: str = "json", pattern_id: Optional[str] = None
+    ) -> str:
         """
         Import a shared pattern from a specified source.
 
@@ -823,16 +963,19 @@ class WorkflowPatternLibrary:
         """
         try:
             if format.lower() == "json":
-                with open(source, 'r') as f:
+                with open(source, "r") as f:
                     import_data = json.load(f)
             elif format.lower() == "yaml":
                 import yaml
-                with open(source, 'r') as f:
+
+                with open(source, "r") as f:
                     import_data = yaml.safe_load(f)
             else:
                 raise ValueError(f"Unsupported import format: {format}")
 
-            original_id = import_data.get("id", f"imported_{datetime.now().strftime('%Y%m%d%H%M%S')}")
+            original_id = import_data.get(
+                "id", f"imported_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            )
             new_id = pattern_id if pattern_id else original_id
 
             if new_id in self.patterns:
@@ -841,18 +984,24 @@ class WorkflowPatternLibrary:
             self.patterns[new_id] = {
                 "id": new_id,
                 "name": import_data.get("name", "Imported Pattern"),
-                "description": import_data.get("description", "Imported pattern with no description."),
+                "description": import_data.get(
+                    "description", "Imported pattern with no description."
+                ),
                 "category": import_data.get("category", "Imported"),
                 "tags": import_data.get("tags", ["imported"]),
-                "structure": import_data.get("structure", {"steps": [], "connections": []})
+                "structure": import_data.get(
+                    "structure", {"steps": [], "connections": []}
+                ),
             }
             self._update_indices(new_id, self.patterns[new_id])
             self.save_library()
             return new_id
         except Exception as e:
-            raise RuntimeError(f"Error importing pattern: {e}")
+            raise RuntimeError(f"Error importing pattern: {e}") from e
 
-    def _apply_customizations(self, structure: Dict[str, Any], customizations: Dict[str, Any]) -> None:
+    def _apply_customizations(
+        self, structure: Dict[str, Any], customizations: Dict[str, Any]
+    ) -> None:
         """
         Apply customizations to a pattern structure.
 
@@ -889,7 +1038,9 @@ class WorkflowPatternLibrary:
                 self.tags[tag] = []
             self.tags[tag].append(pattern_id)
 
-    def validate_pattern_structure(self, structure: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def validate_pattern_structure(
+        self, structure: Dict[str, Any]
+    ) -> Tuple[bool, List[str]]:
         """
         Validate the structure of a workflow pattern to ensure it meets required criteria.
 
@@ -919,12 +1070,20 @@ class WorkflowPatternLibrary:
                 if "type" not in step or not isinstance(step.get("type"), str):
                     errors.append(f"Step {step_idx} must have a valid 'type' field.")
                 if "config" not in step or not isinstance(step.get("config"), dict):
-                    errors.append(f"Step {step_idx} must have a valid 'config' dictionary.")
+                    errors.append(
+                        f"Step {step_idx} must have a valid 'config' dictionary."
+                    )
 
-        if "connections" not in structure or not isinstance(structure["connections"], list):
+        if "connections" not in structure or not isinstance(
+            structure["connections"], list
+        ):
             errors.append("Pattern structure must contain a 'connections' list.")
         else:
-            step_ids = {step.get("id") for step in structure.get("steps", []) if isinstance(step, dict) and "id" in step}
+            step_ids = {
+                step.get("id")
+                for step in structure.get("steps", [])
+                if isinstance(step, dict) and "id" in step
+            }
             for conn_idx, conn in enumerate(structure["connections"]):
                 if not isinstance(conn, dict):
                     errors.append(f"Connection {conn_idx} is not a dictionary.")
@@ -957,7 +1116,12 @@ class WorkflowPatternLibrary:
 
         return self.validate_pattern_structure(pattern["structure"])
 
-    def test_pattern_execution(self, pattern_id: str, test_config: Optional[Dict[str, Any]] = None, test_data: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    def test_pattern_execution(
+        self,
+        pattern_id: str,
+        test_config: Optional[Dict[str, Any]] = None,
+        test_data: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
         """
         Test the execution of a pattern with provided configuration and test data.
 
@@ -969,16 +1133,19 @@ class WorkflowPatternLibrary:
         Returns:
             Dict[str, Any]: Test results including status, execution log, and any errors.
         """
-        if pattern_id not in self.patterns and pattern_id not in self.marketplace_patterns:
+        if (
+            pattern_id not in self.patterns
+            and pattern_id not in self.marketplace_patterns
+        ):
             raise KeyError(f"Pattern {pattern_id} not found in library or marketplace.")
 
-        pattern = self.patterns.get(pattern_id, self.marketplace_patterns.get(pattern_id))
+        self.patterns.get(pattern_id, self.marketplace_patterns.get(pattern_id))
         is_valid, validation_errors = self.validate_pattern(pattern_id)
         if not is_valid:
             return {
                 "status": "failed",
                 "reason": "validation_failed",
-                "errors": validation_errors
+                "errors": validation_errors,
             }
 
         execution_log = []
@@ -999,15 +1166,13 @@ class WorkflowPatternLibrary:
                         # For now, just log that we attempted execution
                         execution_log.append(f"    - Input: {data_item}")
                         execution_log.append(f"    - Config: {step.get('config', {})}")
-                        execution_log.append(f"    - Result: Simulated success")
+                        execution_log.append("    - Result: Simulated success")
             else:
-                execution_log.append("No test data provided, skipping step execution simulation.")
+                execution_log.append(
+                    "No test data provided, skipping step execution simulation."
+                )
 
-            return {
-                "status": "success",
-                "execution_log": execution_log,
-                "errors": []
-            }
+            return {"status": "success", "execution_log": execution_log, "errors": []}
         except Exception as e:
             errors.append(str(e))
             execution_log.append(f"Execution failed: {e}")
@@ -1015,10 +1180,16 @@ class WorkflowPatternLibrary:
                 "status": "failed",
                 "reason": "execution_error",
                 "execution_log": execution_log,
-                "errors": errors
+                "errors": errors,
             }
 
-    def version_pattern(self, pattern_id: str, change_description: str, updated_structure: Optional[Dict[str, Any]] = None, version_label: Optional[str] = None) -> str:
+    def version_pattern(
+        self,
+        pattern_id: str,
+        change_description: str,
+        updated_structure: Optional[Dict[str, Any]] = None,
+        version_label: Optional[str] = None,
+    ) -> str:
         """
         Create a new version of a pattern with a change description and optional updated structure.
 
@@ -1035,21 +1206,33 @@ class WorkflowPatternLibrary:
             KeyError: If the pattern_id is not found.
             ValueError: If the version_label already exists for the pattern.
         """
-        if pattern_id not in self.patterns and pattern_id not in self.marketplace_patterns:
+        if (
+            pattern_id not in self.patterns
+            and pattern_id not in self.marketplace_patterns
+        ):
             raise KeyError(f"Pattern {pattern_id} not found in library or marketplace.")
-        pattern_source = self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        pattern_source = (
+            self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        )
         current_version = pattern_source[pattern_id].get("version", "1.0.0")
         version_parts = current_version.split(".")
         version_parts[-1] = str(int(version_parts[-1]) + 1)
         new_version = ".".join(version_parts)
-        if "versions" not in pattern_source[pattern_id] or not isinstance(pattern_source[pattern_id]["versions"], dict):
+        if "versions" not in pattern_source[pattern_id] or not isinstance(
+            pattern_source[pattern_id]["versions"], dict
+        ):
             pattern_source[pattern_id]["versions"] = {}
         old_snapshot = copy.deepcopy(pattern_source[pattern_id])
         pattern_source[pattern_id]["versions"][current_version] = {
             "snapshot": old_snapshot,
             "change_description": "Previous version",
-            "timestamp": pattern_source[pattern_id].get("updated_at", pattern_source[pattern_id].get("created_at", datetime.now().isoformat())),
-            "version_label": current_version
+            "timestamp": pattern_source[pattern_id].get(
+                "updated_at",
+                pattern_source[pattern_id].get(
+                    "created_at", datetime.now().isoformat()
+                ),
+            ),
+            "version_label": current_version,
         }
         if updated_structure:
             pattern_source[pattern_id]["structure"] = updated_structure
@@ -1057,8 +1240,13 @@ class WorkflowPatternLibrary:
         pattern_source[pattern_id]["updated_at"] = datetime.now().isoformat()
         if version_label is None:
             version_label = new_version
-        elif any(v.get("version_label", "") == version_label for v in pattern_source[pattern_id]["versions"].values()):
-            raise ValueError(f"Version label {version_label} already exists for pattern {pattern_id}.")
+        elif any(
+            v.get("version_label", "") == version_label
+            for v in pattern_source[pattern_id]["versions"].values()
+        ):
+            raise ValueError(
+                f"Version label {version_label} already exists for pattern {pattern_id}."
+            )
         pattern_source[pattern_id]["versions"][new_version] = {
             "label": f"rollback_to_{version_label}_{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "timestamp": datetime.now().isoformat(),
@@ -1068,8 +1256,8 @@ class WorkflowPatternLibrary:
                 "name": pattern_source[pattern_id]["name"],
                 "description": pattern_source[pattern_id]["description"],
                 "category": pattern_source[pattern_id].get("category", "Uncategorized"),
-                "tags": copy.deepcopy(pattern_source[pattern_id].get("tags", []))
-            }
+                "tags": copy.deepcopy(pattern_source[pattern_id].get("tags", [])),
+            },
         }
 
         if pattern_id in self.patterns:
@@ -1088,13 +1276,20 @@ class WorkflowPatternLibrary:
         Returns:
             List[Dict[str, Any]]: List of version information dictionaries.
         """
-        if pattern_id not in self.patterns and pattern_id not in self.marketplace_patterns:
+        if (
+            pattern_id not in self.patterns
+            and pattern_id not in self.marketplace_patterns
+        ):
             raise KeyError(f"Pattern {pattern_id} not found in library or marketplace.")
 
-        pattern_source = self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        pattern_source = (
+            self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        )
         return pattern_source[pattern_id].get("versions", [])
 
-    def get_pattern_version(self, pattern_id: str, version_label: str) -> Dict[str, Any]:
+    def get_pattern_version(
+        self, pattern_id: str, version_label: str
+    ) -> Dict[str, Any]:
         """
         Retrieve a specific version of a pattern by its label or identifier.
 
@@ -1108,14 +1303,24 @@ class WorkflowPatternLibrary:
         Raises:
             KeyError: If pattern or version is not found.
         """
-        if pattern_id not in self.patterns and pattern_id not in self.marketplace_patterns:
+        if (
+            pattern_id not in self.patterns
+            and pattern_id not in self.marketplace_patterns
+        ):
             raise KeyError(f"Pattern {pattern_id} not found in library or marketplace.")
-        pattern_source = self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        pattern_source = (
+            self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        )
         versions = pattern_source[pattern_id].get("versions", {})
         if not isinstance(versions, dict):
-            raise ValueError(f"Versions for pattern {pattern_id} is not in the expected format.")
+            raise ValueError(
+                f"Versions for pattern {pattern_id} is not in the expected format."
+            )
         for version_id, version_data in versions.items():
-            if version_data.get("version_label", "") == version_label or version_id == version_label:
+            if (
+                version_data.get("version_label", "") == version_label
+                or version_id == version_label
+            ):
                 return version_data
         raise KeyError(f"Version {version_label} not found for pattern {pattern_id}.")
 
@@ -1130,23 +1335,34 @@ class WorkflowPatternLibrary:
         Returns:
             bool: True if rollback was successful, False otherwise.
         """
-        if pattern_id not in self.patterns and pattern_id not in self.marketplace_patterns:
+        if (
+            pattern_id not in self.patterns
+            and pattern_id not in self.marketplace_patterns
+        ):
             raise KeyError(f"Pattern {pattern_id} not found in library or marketplace.")
 
-        pattern_source = self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        pattern_source = (
+            self.patterns if pattern_id in self.patterns else self.marketplace_patterns
+        )
         version_data = self.get_pattern_version(pattern_id, version_label)
 
         # Handle different version data structures
         snapshot = version_data.get("snapshot", version_data)
         metadata = snapshot if "id" in snapshot else version_data.get("metadata", {})
 
-        pattern_source[pattern_id]["structure"] = copy.deepcopy(snapshot.get("structure", {}))
+        pattern_source[pattern_id]["structure"] = copy.deepcopy(
+            snapshot.get("structure", {})
+        )
         pattern_source[pattern_id]["name"] = metadata.get("name", "Unnamed Pattern")
         pattern_source[pattern_id]["description"] = metadata.get("description", "")
-        pattern_source[pattern_id]["category"] = metadata.get("category", "Uncategorized")
+        pattern_source[pattern_id]["category"] = metadata.get(
+            "category", "Uncategorized"
+        )
         pattern_source[pattern_id]["tags"] = copy.deepcopy(metadata.get("tags", []))
         pattern_source[pattern_id]["updated_at"] = datetime.now().isoformat()
-        pattern_source[pattern_id]["versions"][f"rollback_to_{version_label}_{datetime.now().strftime('%Y%m%d%H%M%S')}"] = {
+        pattern_source[pattern_id]["versions"][
+            f"rollback_to_{version_label}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        ] = {
             "label": f"rollback_to_{version_label}_{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "timestamp": datetime.now().isoformat(),
             "changes": f"Rollback to version {version_label}",
@@ -1155,8 +1371,8 @@ class WorkflowPatternLibrary:
                 "name": metadata.get("name", "Unnamed Pattern"),
                 "description": metadata.get("description", ""),
                 "category": metadata.get("category", "Uncategorized"),
-                "tags": copy.deepcopy(metadata.get("tags", []))
-            }
+                "tags": copy.deepcopy(metadata.get("tags", [])),
+            },
         }
 
         if pattern_id in self.patterns:
@@ -1165,7 +1381,9 @@ class WorkflowPatternLibrary:
             self.save_marketplace()
         return True
 
-    def compare_pattern_versions(self, pattern_id: str, version_label1: str, version_label2: str) -> Dict[str, Any]:
+    def compare_pattern_versions(
+        self, pattern_id: str, version_label1: str, version_label2: str
+    ) -> Dict[str, Any]:
         """
         Compare two versions of a pattern to highlight differences.
 
@@ -1193,7 +1411,9 @@ class WorkflowPatternLibrary:
                         differences.extend(deep_compare(obj1[key], obj2[key], new_path))
             elif isinstance(obj1, list) and isinstance(obj2, list):
                 if len(obj1) != len(obj2):
-                    differences.append(f"{path}: Lists have different lengths ({len(obj1)} vs {len(obj2)})")
+                    differences.append(
+                        f"{path}: Lists have different lengths ({len(obj1)} vs {len(obj2)})"
+                    )
                 else:
                     for i in range(len(obj1)):
                         new_path = f"{path}[{i}]"
@@ -1203,8 +1423,12 @@ class WorkflowPatternLibrary:
             return differences
 
         # Handle different version data structures
-        structure1 = version1.get("snapshot", {}).get("structure", version1.get("structure", {}))
-        structure2 = version2.get("snapshot", {}).get("structure", version2.get("structure", {}))
+        structure1 = version1.get("snapshot", {}).get(
+            "structure", version1.get("structure", {})
+        )
+        structure2 = version2.get("snapshot", {}).get(
+            "structure", version2.get("structure", {})
+        )
         metadata1 = version1.get("snapshot", version1.get("metadata", {}))
         metadata2 = version2.get("snapshot", version2.get("metadata", {}))
 
@@ -1219,5 +1443,5 @@ class WorkflowPatternLibrary:
             "timestamp1": version1.get("timestamp", ""),
             "timestamp2": version2.get("timestamp", ""),
             "changes1": version1.get("change_description", version1.get("changes", "")),
-            "changes2": version2.get("change_description", version2.get("changes", ""))
+            "changes2": version2.get("change_description", version2.get("changes", "")),
         }

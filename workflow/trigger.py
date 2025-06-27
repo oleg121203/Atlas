@@ -5,19 +5,24 @@ This module provides functionality for defining and managing triggers
 that initiate workflows based on time, events, or conditions.
 """
 
+import contextlib
 import logging
-import time
-from typing import Callable, Dict, List, Any, Optional
-from datetime import datetime, timedelta
 import sched
 import threading
+import time
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, Optional
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class Trigger:
     """Base class for workflow triggers."""
+
     def __init__(self, trigger_id: str, callback: Callable[[], None]):
         """Initialize a trigger with a unique ID and callback function.
 
@@ -45,9 +50,17 @@ class Trigger:
         """Stop monitoring for the trigger condition."""
         raise NotImplementedError("Trigger must implement stop method.")
 
+
 class TimeBasedTrigger(Trigger):
     """Trigger workflows based on a specific time or interval."""
-    def __init__(self, trigger_id: str, callback: Callable[[], None], trigger_time: datetime, interval: Optional[timedelta] = None):
+
+    def __init__(
+        self,
+        trigger_id: str,
+        callback: Callable[[], None],
+        trigger_time: datetime,
+        interval: Optional[timedelta] = None,
+    ):
         """Initialize a time-based trigger.
 
         Args:
@@ -69,10 +82,11 @@ class TimeBasedTrigger(Trigger):
         Returns:
             bool: True if the configuration is valid, False otherwise.
         """
-        if self.trigger_time < datetime.now():
-            if not self.interval:
-                logger.error(f"Trigger {self.trigger_id} has a past trigger time without an interval.")
-                return False
+        if self.trigger_time < datetime.now() and not self.interval:
+            logger.error(
+                f"Trigger {self.trigger_id} has a past trigger time without an interval."
+            )
+            return False
         if self.interval and self.interval.total_seconds() <= 0:
             logger.error(f"Trigger {self.trigger_id} has a non-positive interval.")
             return False
@@ -82,21 +96,25 @@ class TimeBasedTrigger(Trigger):
         """Start the time-based trigger."""
         if not self.validate():
             raise ValueError(f"Invalid configuration for trigger {self.trigger_id}")
-        
+
         self.active = True
         delay = (self.trigger_time - datetime.now()).total_seconds()
         if delay < 0:
             if self.interval:
                 delay = self.interval.total_seconds()
             else:
-                logger.warning(f"Trigger {self.trigger_id} time is in the past and no interval set. Trigger will not activate.")
+                logger.warning(
+                    f"Trigger {self.trigger_id} time is in the past and no interval set. Trigger will not activate."
+                )
                 return
 
         self.event = self.scheduler.enter(delay, 1, self._activate)
         self.thread = threading.Thread(target=self.scheduler.run)
         self.thread.daemon = True
         self.thread.start()
-        logger.info(f"Started time-based trigger {self.trigger_id} for {self.trigger_time}")
+        logger.info(
+            f"Started time-based trigger {self.trigger_id} for {self.trigger_time}"
+        )
 
     def _activate(self) -> None:
         """Activate the trigger and schedule the next occurrence if interval is set."""
@@ -105,27 +123,39 @@ class TimeBasedTrigger(Trigger):
             try:
                 self.callback()
             except Exception as e:
-                logger.error(f"Error executing callback for trigger {self.trigger_id}: {e}")
+                logger.error(
+                    f"Error executing callback for trigger {self.trigger_id}: {e}"
+                )
 
             if self.interval and self.active:
                 self.trigger_time += self.interval
                 delay = self.interval.total_seconds()
                 self.event = self.scheduler.enter(delay, 1, self._activate)
-                logger.info(f"Scheduled next activation for trigger {self.trigger_id} at {self.trigger_time}")
+                logger.info(
+                    f"Scheduled next activation for trigger {self.trigger_id} at {self.trigger_time}"
+                )
 
     def stop(self) -> None:
         """Stop the time-based trigger."""
         self.active = False
         if self.event:
-            try:
+            with contextlib.suppress(
+                ValueError
+            ):  # Event might have already been executed
                 self.scheduler.cancel(self.event)
-            except ValueError:
-                pass  # Event might have already been executed
         logger.info(f"Stopped time-based trigger {self.trigger_id}")
+
 
 class EventBasedTrigger(Trigger):
     """Trigger workflows based on specific events."""
-    def __init__(self, trigger_id: str, callback: Callable[[], None], event_type: str, condition: Optional[Callable[[Any], bool]] = None):
+
+    def __init__(
+        self,
+        trigger_id: str,
+        callback: Callable[[], None],
+        event_type: str,
+        condition: Optional[Callable[[Any], bool]] = None,
+    ):
         """Initialize an event-based trigger.
 
         Args:
@@ -154,17 +184,21 @@ class EventBasedTrigger(Trigger):
         """Start listening for the specified event."""
         if not self.validate():
             raise ValueError(f"Invalid configuration for trigger {self.trigger_id}")
-        
+
         self.active = True
         # Placeholder for event listener registration
         # In a real implementation, this would register with an event system
-        logger.info(f"Started event-based trigger {self.trigger_id} for event type {self.event_type}")
+        logger.info(
+            f"Started event-based trigger {self.trigger_id} for event type {self.event_type}"
+        )
 
     def stop(self) -> None:
         """Stop listening for the specified event."""
         self.active = False
         # Placeholder for event listener unregistration
-        logger.info(f"Stopped event-based trigger {self.trigger_id} for event type {self.event_type}")
+        logger.info(
+            f"Stopped event-based trigger {self.trigger_id} for event type {self.event_type}"
+        )
 
     def on_event(self, event_data: Any) -> None:
         """Handle incoming events and trigger callback if conditions are met.
@@ -173,15 +207,27 @@ class EventBasedTrigger(Trigger):
             event_data (Any): Data associated with the event.
         """
         if self.active and self.condition(event_data):
-            logger.info(f"Event trigger {self.trigger_id} activated by event {self.event_type}")
+            logger.info(
+                f"Event trigger {self.trigger_id} activated by event {self.event_type}"
+            )
             try:
                 self.callback()
             except Exception as e:
-                logger.error(f"Error executing callback for trigger {self.trigger_id}: {e}")
+                logger.error(
+                    f"Error executing callback for trigger {self.trigger_id}: {e}"
+                )
+
 
 class ConditionBasedTrigger(Trigger):
     """Trigger workflows based on a condition being met."""
-    def __init__(self, trigger_id: str, callback: Callable[[], None], condition: Callable[[], bool], check_interval: float = 60.0):
+
+    def __init__(
+        self,
+        trigger_id: str,
+        callback: Callable[[], None],
+        condition: Callable[[], bool],
+        check_interval: float = 60.0,
+    ):
         """Initialize a condition-based trigger.
 
         Args:
@@ -202,7 +248,9 @@ class ConditionBasedTrigger(Trigger):
             bool: True if the configuration is valid, False otherwise.
         """
         if self.check_interval <= 0:
-            logger.error(f"Trigger {self.trigger_id} has a non-positive check interval.")
+            logger.error(
+                f"Trigger {self.trigger_id} has a non-positive check interval."
+            )
             return False
         return True
 
@@ -210,12 +258,14 @@ class ConditionBasedTrigger(Trigger):
         """Start checking the condition at the specified interval."""
         if not self.validate():
             raise ValueError(f"Invalid configuration for trigger {self.trigger_id}")
-        
+
         self.active = True
         self.thread = threading.Thread(target=self._check_condition_loop)
         self.thread.daemon = True
         self.thread.start()
-        logger.info(f"Started condition-based trigger {self.trigger_id} with check interval {self.check_interval} seconds")
+        logger.info(
+            f"Started condition-based trigger {self.trigger_id} with check interval {self.check_interval} seconds"
+        )
 
     def _check_condition_loop(self) -> None:
         """Continuously check the condition until stopped."""
@@ -228,7 +278,9 @@ class ConditionBasedTrigger(Trigger):
                     self.stop()
                     break
             except Exception as e:
-                logger.error(f"Error checking condition for trigger {self.trigger_id}: {e}")
+                logger.error(
+                    f"Error checking condition for trigger {self.trigger_id}: {e}"
+                )
             time.sleep(self.check_interval)
 
     def stop(self) -> None:
@@ -236,8 +288,10 @@ class ConditionBasedTrigger(Trigger):
         self.active = False
         logger.info(f"Stopped condition-based trigger {self.trigger_id}")
 
+
 class TriggerManager:
     """Manages multiple triggers for workflows."""
+
     def __init__(self):
         self.triggers: Dict[str, Trigger] = {}
 
@@ -285,6 +339,11 @@ class TriggerManager:
             event_data (Any): Data associated with the event.
         """
         for trigger in self.triggers.values():
-            if isinstance(trigger, EventBasedTrigger) and trigger.event_type == event_type:
+            if (
+                isinstance(trigger, EventBasedTrigger)
+                and trigger.event_type == event_type
+            ):
                 trigger.on_event(event_data)
-                logger.info(f"Simulated event {event_type} for trigger {trigger.trigger_id}")
+                logger.info(
+                    f"Simulated event {event_type} for trigger {trigger.trigger_id}"
+                )

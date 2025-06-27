@@ -17,7 +17,7 @@ def diagnose_thinking_module():
 
     issues_found = []
 
-    #1. Verification існування файлів
+    # 1. Verification існування файлів
     print("\n1. Перевірка структури файлів...")
 
     base_dir = Path("/Users/developer/Documents/Atlas")
@@ -34,37 +34,41 @@ def diagnose_thinking_module():
     else:
         print("✅ hybrid_integration.py знайдено")
 
-    #2. Verification імпортів
+    # 2. Verification імпортів
     print("\n2. Перевірка залежностей та імпортів...")
 
-    #Додаємо шляхи для імпорту
+    # Додаємо шляхи для імпорту
     sys.path.insert(0, str(base_dir))
     sys.path.insert(0, str(base_dir / "plugins" / "helper_sync_tell"))
 
     try:
-        #Verification platform_utils
+        # Verification platform_utils
         from utils.platform_utils import IS_HEADLESS, IS_LINUX, IS_MACOS
+
         print("✅ platform_utils доступні")
     except ImportError as e:
         issues_found.append(f"⚠️  platform_utils недоступні: {e}")
 
     try:
-        #Verification memory_manager
+        # Verification memory_manager
         from modules.agents.enhanced_memory_manager import MemoryScope, MemoryType
+
         print("✅ enhanced_memory_manager доступний")
     except ImportError as e:
         issues_found.append(f"⚠️  enhanced_memory_manager недоступний: {e}")
 
-    #3. Verification основного модуля
+    # 3. Verification основного модуля
     print("\n3. Перевірка advanced_thinking модуля...")
 
     try:
-        spec = importlib.util.spec_from_file_location("advanced_thinking", thinking_file)
+        spec = importlib.util.spec_from_file_location(
+            "advanced_thinking", thinking_file
+        )
         advanced_thinking = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(advanced_thinking)
         print("✅ advanced_thinking модуль успішно завантажено")
 
-        #Verification класів
+        # Verification класів
         if hasattr(advanced_thinking, "AdvancedAIThinkingTool"):
             print("✅ AdvancedAIThinkingTool клас знайдено")
         else:
@@ -84,14 +88,14 @@ def diagnose_thinking_module():
         issues_found.append(f"❌ Помилка завантаження advanced_thinking: {e}")
         traceback.print_exc()
 
-    #4. Verification функціональності
+    # 4. Verification функціональності
     print("\n4. Перевірка функціональності...")
 
     try:
         tool = advanced_thinking.AdvancedAIThinkingTool()
         print("✅ AdvancedAIThinkingTool може бути створений")
 
-        #Verification методів
+        # Verification методів
         required_methods = [
             "analyze_query_context",
             "select_thinking_strategy",
@@ -107,9 +111,9 @@ def diagnose_thinking_module():
             else:
                 issues_found.append(f"❌ Метод {method} відсутній")
 
-        #Тест простого запиту
+        # Тест простого запиту
         try:
-            result = tool.process_with_advanced_thinking("Тест запиту")
+            tool.process_with_advanced_thinking("Тест запиту")
             print("✅ Простий запит оброблено успішно")
         except Exception as e:
             issues_found.append(f"⚠️  Помилка обробки запиту: {e}")
@@ -117,7 +121,7 @@ def diagnose_thinking_module():
     except Exception as e:
         issues_found.append(f"❌ Помилка створення інструменту: {e}")
 
-    #5. Verification інтеграції
+    # 5. Verification інтеграції
     print("\n5. Перевірка інтеграції...")
 
     try:
@@ -129,7 +133,7 @@ def diagnose_thinking_module():
     except Exception as e:
         issues_found.append(f"❌ Помилка реєстрації: {e}")
 
-    #6. Аналіз конфігурації
+    # 6. Аналіз конфігурації
     print("\n6. Аналіз конфігурації...")
 
     try:
@@ -137,7 +141,7 @@ def diagnose_thinking_module():
         config = tool.config
         print(f"✅ Конфігурація завантажена: {len(config)} параметрів")
 
-        #Verification ключових параметрів
+        # Verification ключових параметрів
         key_params = ["max_sub_questions", "confidence_threshold", "thinking_timeout"]
         for param in key_params:
             if param in config:
@@ -148,7 +152,7 @@ def diagnose_thinking_module():
     except Exception as e:
         issues_found.append(f"❌ Помилка аналізу конфігурації: {e}")
 
-    #Підсумок
+    # Підсумок
     print("\n" + "=" * 50)
     print("📊 ПІДСУМОК ДІАГНОСТИКИ")
     print("=" * 50)
@@ -160,7 +164,7 @@ def diagnose_thinking_module():
     for i, issue in enumerate(issues_found, 1):
         print(f"{i:2d}. {issue}")
 
-    #Рекомендації
+    # Рекомендації
     print("\n🔧 РЕКОМЕНДАЦІЇ:")
     if any("platform_utils" in issue for issue in issues_found):
         print("• Перевірте наявність utils/platform_utils.py")
@@ -173,16 +177,19 @@ def diagnose_thinking_module():
 
     return False
 
+
 def analyze_algorithm_structure():
     """Аналіз структури алгоритму"""
     print("\n🔍 АНАЛІЗ СТРУКТУРИ АЛГОРИТМУ")
     print("=" * 50)
 
     try:
-        thinking_file = Path("/Users/developer/Documents/Atlas/plugins/helper_sync_tell/advanced_thinking.py")
+        thinking_file = Path(
+            "/Users/developer/Documents/Atlas/plugins/helper_sync_tell/advanced_thinking.py"
+        )
         content = thinking_file.read_text()
 
-        #Аналіз структури
+        # Аналіз структури
         print("\n📋 Структурний аналіз:")
 
         classes = content.count("class ")
@@ -195,7 +202,7 @@ def analyze_algorithm_structure():
         print(f"• Стратегій мислення: {strategies}")
         print(f"• Фаз обробки: {phases}")
 
-        #Аналіз фаз алгоритму
+        # Аналіз фаз алгоритму
         print("\n🔄 Фази алгоритму:")
         if "Phase 1" in content:
             print("✅ Фаза 1: Контекстний аналіз")
@@ -208,7 +215,7 @@ def analyze_algorithm_structure():
         if "Phase 5" in content:
             print("✅ Фаза 5: Мета-статистика")
 
-        #Аналіз стратегій
+        # Аналіз стратегій
         print("\n🎯 Стратегії мислення:")
         strategies_found = []
         if "ANALYTICAL" in content:
@@ -232,6 +239,7 @@ def analyze_algorithm_structure():
     except Exception as e:
         print(f"❌ Помилка аналізу структури: {e}")
         return False
+
 
 if __name__ == "__main__":
     success = diagnose_thinking_module()

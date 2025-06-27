@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.warning("Using placeholder for SelfImprovementCenter module")
 
+
 class SelfImprovementCenter:
     def __init__(self, *args, **kwargs):
         logger.info("Initialized placeholder SelfImprovementCenter")
@@ -17,6 +18,9 @@ class SelfImprovementCenter:
 
     def __getattr__(self, name):
         def method(*args, **kwargs):
-            logger.warning(f"Called unimplemented method {name} on placeholder SelfImprovementCenter")
+            logger.warning(
+                f"Called unimplemented method {name} on placeholder SelfImprovementCenter"
+            )
             return None
+
         return method

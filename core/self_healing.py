@@ -4,16 +4,13 @@ Self-Healing Module for Atlas
 This module implements automated diagnosis and self-regeneration mechanisms to detect and fix issues with missing or corrupted components.
 """
 
-import os
-import logging
 import importlib
-import sys
-from typing import Dict, List, Optional, Tuple
+import os
+from typing import Dict, List, Tuple
 
+from core.alerting import raise_alert
 from core.config import get_config
 from core.logging import get_logger
-from core.alerting import raise_alert
-from core.module_registry import MODULE_REGISTRY
 
 logger = get_logger("SelfHealing")
 
@@ -30,7 +27,7 @@ class SelfHealingManager:
 
     def diagnose_system(self) -> Dict[str, any]:
         """Run diagnostics on critical system components.
-        
+
         Returns:
             Dict[str, any]: Diagnostic results with component status.
         """
@@ -39,20 +36,22 @@ class SelfHealingManager:
             "modules": self._check_modules(),
             "plugins": self._check_plugins(),
             "configurations": self._check_configurations(),
-            "files": self._check_files()
+            "files": self._check_files(),
         }
         logger.info("System diagnostics completed")
         return self.diagnostic_results
 
     def _check_modules(self) -> Dict[str, bool]:
         """Check integrity of registered modules.
-        
+
         Returns:
             Dict[str, bool]: Status of each module.
         """
         module_status = {}
         # Use a predefined list of expected modules or check from app context if available
-        expected_modules = getattr(self.app_context, "expected_modules", ["core", "ui", "network"])
+        expected_modules = getattr(
+            self.app_context, "expected_modules", ["core", "ui", "network"]
+        )
         for module_name in expected_modules:
             try:
                 importlib.import_module(f"modules.{module_name}")
@@ -65,7 +64,7 @@ class SelfHealingManager:
 
     def _check_plugins(self) -> Dict[str, bool]:
         """Check integrity of plugins.
-        
+
         Returns:
             Dict[str, bool]: Status of each plugin.
         """
@@ -80,7 +79,11 @@ class SelfHealingManager:
                     else:
                         plugin_status[plugin_name] = False
                         logger.warning(f"Plugin {plugin_name} not found in registry")
-                        raise_alert("warning", f"Plugin Not Found: {plugin_name}", "Plugin registered but not found")
+                        raise_alert(
+                            "warning",
+                            f"Plugin Not Found: {plugin_name}",
+                            "Plugin registered but not found",
+                        )
                 except Exception as e:
                     logger.error(f"Plugin {plugin_name} check failed: {str(e)}")
                     plugin_status[plugin_name] = False
@@ -89,7 +92,7 @@ class SelfHealingManager:
 
     def _check_configurations(self) -> Dict[str, bool]:
         """Check integrity of configuration files.
-        
+
         Returns:
             Dict[str, bool]: Status of configuration files.
         """
@@ -101,12 +104,16 @@ class SelfHealingManager:
             else:
                 logger.error(f"Configuration file missing: {config_path}")
                 config_status[config_path] = False
-                raise_alert("error", f"Configuration File Missing: {config_path}", "Configuration file not found")
+                raise_alert(
+                    "error",
+                    f"Configuration File Missing: {config_path}",
+                    "Configuration file not found",
+                )
         return config_status
 
     def _check_files(self) -> Dict[str, bool]:
         """Check integrity of critical files.
-        
+
         Returns:
             Dict[str, bool]: Status of critical files.
         """
@@ -118,16 +125,20 @@ class SelfHealingManager:
             else:
                 logger.error(f"Critical file missing: {file_path}")
                 file_status[file_path] = False
-                raise_alert("error", f"Critical File Missing: {file_path}", "Critical file not found")
+                raise_alert(
+                    "error",
+                    f"Critical File Missing: {file_path}",
+                    "Critical file not found",
+                )
         return file_status
 
     def regenerate_component(self, component_type: str, component_name: str) -> bool:
         """Attempt to regenerate a missing or corrupted component.
-        
+
         Args:
             component_type (str): Type of component (module, plugin, configuration, file).
             component_name (str): Name or path of the component to regenerate.
-        
+
         Returns:
             bool: True if regeneration successful, False otherwise.
         """
@@ -137,24 +148,34 @@ class SelfHealingManager:
                 return self._regenerate_module(component_name)
             elif component_type == "plugin" or component_type == "plugins":
                 return self._regenerate_plugin(component_name)
-            elif component_type == "configuration" or component_type == "configurations":
+            elif (
+                component_type == "configuration" or component_type == "configurations"
+            ):
                 return self._regenerate_configuration(component_name)
             elif component_type == "file" or component_type == "files":
                 return self._regenerate_file(component_name)
             else:
-                logger.error(f"Unsupported component type for regeneration: {component_type}")
+                logger.error(
+                    f"Unsupported component type for regeneration: {component_type}"
+                )
                 return False
         except Exception as e:
-            logger.error(f"Failed to regenerate {component_type} {component_name}: {str(e)}")
-            raise_alert("error", f"Regeneration Failed: {component_type} {component_name}", str(e))
+            logger.error(
+                f"Failed to regenerate {component_type} {component_name}: {str(e)}"
+            )
+            raise_alert(
+                "error",
+                f"Regeneration Failed: {component_type} {component_name}",
+                str(e),
+            )
             return False
 
     def _regenerate_module(self, module_name: str) -> bool:
         """Regenerate a missing module.
-        
+
         Args:
             module_name (str): Name of the module to regenerate.
-        
+
         Returns:
             bool: True if regeneration successful.
         """
@@ -173,7 +194,11 @@ class SelfHealingManager:
                 with open(destination_path, "w") as dest_file:
                     dest_file.write(content)
                 logger.info(f"Module {module_name} regenerated from backup")
-                raise_alert("info", f"Module Regenerated: {module_name}", "Module regenerated from backup")
+                raise_alert(
+                    "info",
+                    f"Module Regenerated: {module_name}",
+                    "Module regenerated from backup",
+                )
                 return True
             else:
                 # Generate a basic module template if no backup exists
@@ -191,10 +216,10 @@ class {module_name.capitalize()}Module:
     def __init__(self, app):
         self.app = app
         logger.info("{module_name} module initialized")
-    
+
     def start(self):
         logger.info("{module_name} module started")
-    
+
     def stop(self):
         logger.info("{module_name} module stopped")
 """
@@ -202,7 +227,11 @@ class {module_name.capitalize()}Module:
                 with open(destination_path, "w") as f:
                     f.write(template)
                 logger.info(f"Module {module_name} regenerated with basic template")
-                raise_alert("info", f"Module Template Created: {module_name}", "Module regenerated with basic template")
+                raise_alert(
+                    "info",
+                    f"Module Template Created: {module_name}",
+                    "Module regenerated with basic template",
+                )
                 return True
         except Exception as e:
             logger.error(f"Failed to regenerate module {module_name}: {str(e)}")
@@ -211,10 +240,10 @@ class {module_name.capitalize()}Module:
 
     def _regenerate_plugin(self, plugin_name: str) -> bool:
         """Regenerate a missing plugin.
-        
+
         Args:
             plugin_name (str): Name of the plugin to regenerate.
-        
+
         Returns:
             bool: True if regeneration successful.
         """
@@ -233,7 +262,11 @@ class {module_name.capitalize()}Module:
                 with open(destination_path, "w") as dest_file:
                     dest_file.write(content)
                 logger.info(f"Plugin {plugin_name} regenerated from backup")
-                raise_alert("info", f"Plugin Regenerated: {plugin_name}", "Plugin regenerated from backup")
+                raise_alert(
+                    "info",
+                    f"Plugin Regenerated: {plugin_name}",
+                    "Plugin regenerated from backup",
+                )
                 return True
             else:
                 # Generate a basic plugin template if no backup exists
@@ -253,10 +286,10 @@ class {plugin_name.capitalize()}Plugin(Plugin):
     def __init__(self):
         super().__init__(name="{plugin_name}", version="1.0.0")
         logger.info("{plugin_name} plugin initialized")
-    
+
     def start(self):
         logger.info("{plugin_name} plugin started")
-    
+
     def stop(self):
         logger.info("{plugin_name} plugin stopped")
 """
@@ -264,7 +297,11 @@ class {plugin_name.capitalize()}Plugin(Plugin):
                 with open(destination_path, "w") as f:
                     f.write(template)
                 logger.info(f"Plugin {plugin_name} regenerated with basic template")
-                raise_alert("info", f"Plugin Template Created: {plugin_name}", "Plugin regenerated with basic template")
+                raise_alert(
+                    "info",
+                    f"Plugin Template Created: {plugin_name}",
+                    "Plugin regenerated with basic template",
+                )
                 return True
         except Exception as e:
             logger.error(f"Failed to regenerate plugin {plugin_name}: {str(e)}")
@@ -273,10 +310,10 @@ class {plugin_name.capitalize()}Plugin(Plugin):
 
     def _regenerate_configuration(self, config_path: str) -> bool:
         """Regenerate a missing configuration file.
-        
+
         Args:
             config_path (str): Path to the configuration file.
-        
+
         Returns:
             bool: True if regeneration successful.
         """
@@ -287,21 +324,28 @@ class {plugin_name.capitalize()}Plugin(Plugin):
             os.makedirs(os.path.dirname(config_path), exist_ok=True)
             with open(config_path, "w") as f:
                 import json
+
                 json.dump(default_config, f, indent=2)
             logger.info(f"Successfully regenerated configuration: {config_path}")
-            raise_alert("info", f"Configuration Regenerated: {config_path}", "Configuration file regenerated with default settings")
+            raise_alert(
+                "info",
+                f"Configuration Regenerated: {config_path}",
+                "Configuration file regenerated with default settings",
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to regenerate configuration {config_path}: {str(e)}")
-            raise_alert("error", f"Configuration Regeneration Failed: {config_path}", str(e))
+            raise_alert(
+                "error", f"Configuration Regeneration Failed: {config_path}", str(e)
+            )
             return False
 
     def _regenerate_file(self, file_path: str) -> bool:
         """Regenerate a missing critical file.
-        
+
         Args:
             file_path (str): Path to the critical file.
-        
+
         Returns:
             bool: True if regeneration successful.
         """
@@ -319,15 +363,25 @@ class {plugin_name.capitalize()}Plugin(Plugin):
                 with open(file_path, "w") as dest_file:
                     dest_file.write(content)
                 logger.info(f"File {file_path} regenerated from backup")
-                raise_alert("info", f"File Regenerated: {file_name}", "File regenerated from backup")
+                raise_alert(
+                    "info",
+                    f"File Regenerated: {file_name}",
+                    "File regenerated from backup",
+                )
                 return True
             else:
                 # If no backup, create a placeholder file with a warning
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 with open(file_path, "w") as f:
-                    f.write(f"# Auto-generated placeholder for {file_name}\n# This file was regenerated by the self-healing system as the original was missing.\n# Please replace or update this file with the correct content.\n")
+                    f.write(
+                        f"# Auto-generated placeholder for {file_name}\n# This file was regenerated by the self-healing system as the original was missing.\n# Please replace or update this file with the correct content.\n"
+                    )
                 logger.info(f"Placeholder file created for {file_path}")
-                raise_alert("warning", f"Placeholder File Created: {file_name}", "File regenerated as placeholder, original content missing")
+                raise_alert(
+                    "warning",
+                    f"Placeholder File Created: {file_name}",
+                    "File regenerated as placeholder, original content missing",
+                )
                 return True
         except Exception as e:
             logger.error(f"Failed to regenerate file {file_path}: {str(e)}")
@@ -336,7 +390,7 @@ class {plugin_name.capitalize()}Plugin(Plugin):
 
     def auto_heal(self) -> List[Tuple[str, str, bool]]:
         """Automatically attempt to heal detected issues.
-        
+
         Returns:
             List[Tuple[str, str, bool]]: List of (component_type, component_name, success) for each healing attempt.
         """
@@ -348,24 +402,39 @@ class {plugin_name.capitalize()}Plugin(Plugin):
         for component_type, components in self.diagnostic_results.items():
             for component_name, status in components.items():
                 if not status:
-                    logger.info(f"Attempting to heal {component_type}: {component_name}")
+                    logger.info(
+                        f"Attempting to heal {component_type}: {component_name}"
+                    )
                     success = self.regenerate_component(component_type, component_name)
                     healing_results.append((component_type, component_name, success))
                     if success:
-                        logger.info(f"Successfully healed {component_type}: {component_name}")
-                        raise_alert("info", f"Healed: {component_type} {component_name}", "Component successfully regenerated")
+                        logger.info(
+                            f"Successfully healed {component_type}: {component_name}"
+                        )
+                        raise_alert(
+                            "info",
+                            f"Healed: {component_type} {component_name}",
+                            "Component successfully regenerated",
+                        )
                     else:
-                        logger.error(f"Failed to heal {component_type}: {component_name}")
-                        raise_alert("error", f"Healing Failed: {component_type} {component_name}", "Failed to regenerate component")
+                        logger.error(
+                            f"Failed to heal {component_type}: {component_name}"
+                        )
+                        raise_alert(
+                            "error",
+                            f"Healing Failed: {component_type} {component_name}",
+                            "Failed to regenerate component",
+                        )
         logger.info("Auto-heal process completed")
         return healing_results
 
+
 def initialize_self_healing(app_context: Dict[str, any]) -> SelfHealingManager:
     """Initialize the self-healing system.
-    
+
     Args:
         app_context (Dict[str, any]): Application context dictionary.
-    
+
     Returns:
         SelfHealingManager: Initialized self-healing manager instance.
     """

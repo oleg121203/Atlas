@@ -4,12 +4,13 @@ Unified configuration management for Atlas.
 This module provides a centralized way to manage application settings,
 environment-based configurations, and validation.
 """
-import os
-import json
-from typing import Optional, Any, Dict
-import logging
 
-from jsonschema import validate, ValidationError
+import json
+import logging
+import os
+from typing import Any, Dict, Optional
+
+from jsonschema import ValidationError, validate
 
 # Logger for configuration operations
 logger = logging.getLogger("Config")
@@ -25,10 +26,14 @@ ENV_PREFIX = "ATLAS_"
 # Slack Integration
 SLACK_CLIENT_ID = os.getenv("SLACK_CLIENT_ID", "")
 SLACK_CLIENT_SECRET = os.getenv("SLACK_CLIENT_SECRET", "")
-SLACK_REDIRECT_URI = os.getenv("SLACK_REDIRECT_URI", "http://localhost:5000/slack/callback")
+SLACK_REDIRECT_URI = os.getenv(
+    "SLACK_REDIRECT_URI", "http://localhost:5000/slack/callback"
+)
+
 
 class ConfigManager:
     """Manages application configuration with support for environment-based settings and validation."""
+
     def __init__(self):
         self._config: Dict[str, Any] = {}
         self._schema: Optional[Dict[str, Any]] = None
@@ -52,7 +57,9 @@ class ConfigManager:
                     self._config = json.load(default_file)
                 logger.info("Default configuration loaded")
             else:
-                logger.warning("Default config file not found at %s", DEFAULT_CONFIG_PATH)
+                logger.warning(
+                    "Default config file not found at %s", DEFAULT_CONFIG_PATH
+                )
                 self._config = {}
 
             # Load environment-specific configuration
@@ -61,7 +68,9 @@ class ConfigManager:
                 with open(env_config_path, "r") as env_file:
                     env_config = json.load(env_file)
                     self._deep_update(self._config, env_config)
-                logger.info("Environment configuration loaded for %s", self._current_env)
+                logger.info(
+                    "Environment configuration loaded for %s", self._current_env
+                )
             else:
                 logger.warning("Environment config not found at %s", env_config_path)
 
@@ -80,7 +89,7 @@ class ConfigManager:
         """Apply environment variable overrides to configuration."""
         for key, value in os.environ.items():
             if key.startswith(ENV_PREFIX):
-                config_key = key[len(ENV_PREFIX):].lower().replace("_", ".")
+                config_key = key[len(ENV_PREFIX) :].lower().replace("_", ".")
                 try:
                     # Convert string values to appropriate types if possible
                     if value.lower() == "true":
@@ -109,7 +118,11 @@ class ConfigManager:
     def _deep_update(self, original: Dict, update: Dict) -> None:
         """Recursively update nested dictionaries."""
         for key, value in update.items():
-            if key in original and isinstance(original[key], dict) and isinstance(value, dict):
+            if (
+                key in original
+                and isinstance(original[key], dict)
+                and isinstance(value, dict)
+            ):
                 self._deep_update(original[key], value)
             else:
                 original[key] = value
@@ -117,11 +130,11 @@ class ConfigManager:
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         """
         Get a configuration value by key.
-        
+
         Args:
             key: Configuration key (dot notation for nested keys)
             default: Default value if key not found
-            
+
         Returns:
             Configuration value or default if not found
         """
@@ -140,7 +153,7 @@ class ConfigManager:
     def set(self, key: str, value: Any) -> None:
         """
         Set a configuration value.
-        
+
         Args:
             key: Configuration key (dot notation for nested keys)
             value: Value to set
@@ -170,10 +183,10 @@ class ConfigManager:
     def save(self, environment: Optional[str] = None) -> bool:
         """
         Save configuration to file.
-        
+
         Args:
             environment: Environment to save config for, defaults to current
-            
+
         Returns:
             bool: True if save successful
         """
@@ -181,10 +194,10 @@ class ConfigManager:
             save_env = environment or self._current_env
             save_path = os.path.join(CONFIG_DIR, f"{save_env}.json")
             os.makedirs(CONFIG_DIR, exist_ok=True)
-            
+
             # Create a copy of config without encrypted markers for saving
             save_config = self._prepare_config_for_save(self._config)
-            
+
             with open(save_path, "w") as config_file:
                 json.dump(save_config, config_file, indent=2)
             logger.info("Configuration saved to %s", save_path)
@@ -196,10 +209,10 @@ class ConfigManager:
     def _prepare_config_for_save(self, config: Dict) -> Dict:
         """
         Prepare configuration for saving by handling encrypted data markers.
-        
+
         Args:
             config: Configuration dictionary to process
-            
+
         Returns:
             Dict: Processed configuration dictionary
         """
@@ -217,7 +230,7 @@ class ConfigManager:
     def validate(self) -> bool:
         """
         Validate the configuration against schema.
-        
+
         Returns:
             bool: True if configuration is valid
         """
@@ -235,7 +248,7 @@ class ConfigManager:
     def get_environment(self) -> str:
         """
         Get the current environment.
-        
+
         Returns:
             str: Current environment name
         """
@@ -244,7 +257,7 @@ class ConfigManager:
     def set_environment(self, environment: str) -> None:
         """
         Set the current environment and reload configuration.
-        
+
         Args:
             environment: Environment name to set
         """
@@ -255,41 +268,43 @@ class ConfigManager:
 
 def load_config() -> Dict[str, Any]:
     """Load configuration settings from environment or file.
-    
+
     Returns:
         Dict[str, Any]: Configuration dictionary
     """
     config = {
-        'feature_flags': {
-            'experimental_ui': False,
-            'voice_commands': True,
-            'hotkey_support': True
+        "feature_flags": {
+            "experimental_ui": False,
+            "voice_commands": True,
+            "hotkey_support": True,
         }
     }
-    
-    config_file_path = os.getenv('ATLAS_CONFIG_PATH', 'config.json')
+
+    config_file_path = os.getenv("ATLAS_CONFIG_PATH", "config.json")
     if os.path.exists(config_file_path):
         try:
-            with open(config_file_path, 'r') as config_file:
+            with open(config_file_path, "r") as config_file:
                 file_config = json.load(config_file)
                 config.update(file_config)
         except Exception as e:
             print(f"Error loading config from file: {e}")
-    
+
     return config
+
 
 def get_config() -> Dict[str, Any]:
     """Get the application configuration.
-    
+
     Returns:
         Dict[str, Any]: Configuration dictionary
     """
     return load_config()
 
+
 def get_config_manager() -> ConfigManager:
     """
     Get the global configuration manager instance.
-    
+
     Returns:
         ConfigManager: Configuration manager instance
     """
@@ -298,5 +313,6 @@ def get_config_manager() -> ConfigManager:
         _global_config = ConfigManager()
         _global_config.load_config()
     return _global_config
+
 
 _global_config = None

@@ -3,8 +3,9 @@
 This module handles theme management for the Atlas application as part of the UI enhancements under ASC-024. It manages theme loading, switching, and customization, following the design specifications in ui_design_specifications.md.
 """
 
-import os
 import logging
+import os
+
 from PySide6.QtCore import QObject, Signal
 
 # Setup logging
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ThemeManager(QObject):
     """Manages themes for the Atlas application, including loading and switching between themes."""
-    
+
     themeChanged = Signal(str)
 
     def __init__(self, parent=None):
@@ -32,7 +33,7 @@ class ThemeManager(QObject):
         """
         stylesheet_path = os.path.join(self.theme_path, self.base_stylesheet_file)
         try:
-            with open(stylesheet_path, 'r') as file:
+            with open(stylesheet_path, "r") as file:
                 stylesheet = file.read()
             logger.info(f"Base stylesheet loaded from {stylesheet_path}")
             return stylesheet
@@ -48,7 +49,7 @@ class ThemeManager(QObject):
         """
         self.current_theme = theme_name
         base_stylesheet = self.load_base_stylesheet()
-        
+
         # Placeholder for theme-specific overrides
         # In a real implementation, this would dynamically adjust variables or load additional stylesheets
         if theme_name == "dark":
@@ -59,7 +60,7 @@ class ThemeManager(QObject):
             # TODO: Add high-contrast theme variable replacements or styles
         else:
             logger.info("Applying light theme (default)")
-        
+
         # Emit signal with the stylesheet to be applied
         self.themeChanged.emit(base_stylesheet)
         logger.info(f"Theme applied: {theme_name}")

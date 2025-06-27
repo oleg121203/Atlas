@@ -5,7 +5,18 @@ This module implements strategies to reduce the startup time of the Atlas applic
 
 import importlib
 import logging
-from typing import Callable, Any
+from typing import Any
+
+try:
+    from PySide6.QtCore import Qt
+except ImportError:
+    # Fallback for testing environments where Qt might not be available
+    class QtFallback:
+        AlignCenter = 0x0004
+        TextSingleLine = 0x0100
+        black = 0x000000
+
+    Qt = QtFallback()
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -27,7 +38,9 @@ class LazyLoader:
             import_path (str): Full import path (e.g., 'core.ai_context').
         """
         self._lazy_modules[module_name] = import_path
-        logger.info(f"Registered module {module_name} for lazy loading from {import_path}")
+        logger.info(
+            f"Registered module {module_name} for lazy loading from {import_path}"
+        )
 
     def get_module(self, module_name: str) -> Any:
         """Get a module, loading it only if not already loaded.
@@ -61,7 +74,10 @@ class LazyLoader:
         Args:
             module_name (str): Name of the registered module.
         """
-        if module_name in self._lazy_modules and module_name not in self._loaded_modules:
+        if (
+            module_name in self._lazy_modules
+            and module_name not in self._loaded_modules
+        ):
             self.get_module(module_name)
             logger.info(f"Preloaded module {module_name}")
 
@@ -69,12 +85,12 @@ class LazyLoader:
 def optimize_startup():
     """Optimize startup by setting up lazy loading for heavy modules."""
     lazy_loader = LazyLoader()
-    
+
     # Register heavy modules for lazy loading
-    lazy_loader.register_module('ai_context', 'core.ai_context')
-    lazy_loader.register_module('cloud_sync', 'core.cloud_sync')
-    lazy_loader.register_module('plugins', 'plugins.manager')
-    
+    lazy_loader.register_module("ai_context", "core.ai_context")
+    lazy_loader.register_module("cloud_sync", "core.cloud_sync")
+    lazy_loader.register_module("plugins", "plugins.manager")
+
     logger.info("Startup optimization applied with lazy loading for heavy modules")
     return lazy_loader
 
@@ -88,10 +104,9 @@ class SplashScreenManager:
 
     def show_splash(self):
         """Show the splash screen during startup."""
-        from PySide6.QtWidgets import QSplashScreen
         from PySide6.QtGui import QPixmap
-        from PySide6.QtCore import Qt
-        
+        from PySide6.QtWidgets import QSplashScreen
+
         # Placeholder for splash screen image
         pixmap = QPixmap(400, 300)
         pixmap.fill(Qt.white)
@@ -108,7 +123,11 @@ class SplashScreenManager:
             message (str): Optional message to display.
         """
         if self._splash:
-            self._splash.showMessage(f"Loading... {progress}% {message}", Qt.AlignCenter | Qt.TextSingleLine, Qt.black)
+            self._splash.showMessage(
+                f"Loading... {progress}% {message}",
+                Qt.AlignCenter | Qt.TextSingleLine,
+                Qt.black,
+            )
             logger.info(f"Splash screen updated: {progress}% - {message}")
 
     def close_splash(self):

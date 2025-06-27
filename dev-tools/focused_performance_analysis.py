@@ -10,20 +10,23 @@ import logging
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class PerformanceResult:
     """Performance measurement result."""
+
     operation: str
     duration_ms: float
     memory_delta_mb: float
     target_ms: float
     status: str  # PASS, WARN, FAIL
     recommendations: List[str]
+
 
 class FocusedPerformanceAnalyzer:
     """Focused performance analyzer for Atlas components."""
@@ -40,6 +43,7 @@ class FocusedPerformanceAnalyzer:
 
     def measure_operation(self, operation_name: str, target_category: str):
         """Context manager for measuring operations."""
+
         class MeasureContext:
             def __init__(self, analyzer, op_name, category):
                 self.analyzer = analyzer
@@ -72,12 +76,18 @@ class FocusedPerformanceAnalyzer:
                 # Generate recommendations
                 recommendations = []
                 if status == "FAIL":
-                    recommendations.append(f"Critical: {duration_ms/target_ms:.1f}x over target - immediate optimization needed")
+                    recommendations.append(
+                        f"Critical: {duration_ms / target_ms:.1f}x over target - immediate optimization needed"
+                    )
                 elif status == "WARN":
-                    recommendations.append(f"Consider optimization - {duration_ms/target_ms:.1f}x over target")
+                    recommendations.append(
+                        f"Consider optimization - {duration_ms / target_ms:.1f}x over target"
+                    )
 
                 if memory_delta > 50:
-                    recommendations.append(f"High memory usage: {memory_delta:.1f}MB - optimize data structures")
+                    recommendations.append(
+                        f"High memory usage: {memory_delta:.1f}MB - optimize data structures"
+                    )
 
                 result = PerformanceResult(
                     operation=self.op_name,
@@ -92,11 +102,14 @@ class FocusedPerformanceAnalyzer:
 
                 # Log if exceeds target
                 if status != "PASS":
-                    logger.warning(f"{status}: {self.op_name} took {duration_ms:.2f}ms (target: {target_ms}ms)")
+                    logger.warning(
+                        f"{status}: {self.op_name} took {duration_ms:.2f}ms (target: {target_ms}ms)"
+                    )
 
             def _get_memory_mb(self):
                 try:
                     import psutil
+
                     return psutil.Process().memory_info().rss / 1024 / 1024
                 except ImportError:
                     return 0.0
@@ -115,15 +128,21 @@ class FocusedPerformanceAnalyzer:
 
         for scenario_name, goal in planning_scenarios:
             # Strategic planning simulation
-            with self.measure_operation(f"strategic_planning_{scenario_name}", "planning"):
+            with self.measure_operation(
+                f"strategic_planning_{scenario_name}", "planning"
+            ):
                 await asyncio.sleep(0.05)  # Simulated strategic planning time
 
             # Tactical planning simulation
-            with self.measure_operation(f"tactical_planning_{scenario_name}", "planning"):
+            with self.measure_operation(
+                f"tactical_planning_{scenario_name}", "planning"
+            ):
                 await asyncio.sleep(0.03)  # Simulated tactical planning time
 
             # Operational planning simulation
-            with self.measure_operation(f"operational_planning_{scenario_name}", "planning"):
+            with self.measure_operation(
+                f"operational_planning_{scenario_name}", "planning"
+            ):
                 await asyncio.sleep(0.02)  # Simulated operational planning time
 
     async def analyze_tool_performance(self):
@@ -203,9 +222,9 @@ class FocusedPerformanceAnalyzer:
 ====================================
 📊 SUMMARY STATISTICS:
   Total Operations: {total_operations}
-  ✅ Passed: {pass_count} ({pass_count/total_operations*100:.1f}%)
-  ⚠️  Warnings: {warn_count} ({warn_count/total_operations*100:.1f}%)
-  ❌ Failed: {fail_count} ({fail_count/total_operations*100:.1f}%)
+  ✅ Passed: {pass_count} ({pass_count / total_operations * 100:.1f}%)
+  ⚠️  Warnings: {warn_count} ({warn_count / total_operations * 100:.1f}%)
+  ❌ Failed: {fail_count} ({fail_count / total_operations * 100:.1f}%)
   
 ⏱️  TIMING ANALYSIS:
   Average Duration: {avg_duration:.2f}ms
@@ -234,12 +253,14 @@ class FocusedPerformanceAnalyzer:
 
         for category, cat_results in categories.items():
             target_ms = self.targets.get(category, 1000)
-            avg_cat_duration = sum(r.duration_ms for r in cat_results) / len(cat_results)
+            avg_cat_duration = sum(r.duration_ms for r in cat_results) / len(
+                cat_results
+            )
 
             status_icon = "✅" if avg_cat_duration <= target_ms else "❌"
 
             report += f"""
-{category.upper().replace('_', ' ')} {status_icon}
+{category.upper().replace("_", " ")} {status_icon}
   Target: {target_ms}ms | Average: {avg_cat_duration:.2f}ms
   Operations: {len(cat_results)}
 """
@@ -296,9 +317,17 @@ class FocusedPerformanceAnalyzer:
                 "pass_count": len([r for r in self.results if r.status == "PASS"]),
                 "warn_count": len([r for r in self.results if r.status == "WARN"]),
                 "fail_count": len([r for r in self.results if r.status == "FAIL"]),
-                "avg_duration_ms": sum(r.duration_ms for r in self.results) / len(self.results) if self.results else 0,
-                "performance_score": (len([r for r in self.results if r.status == "PASS"]) * 100 +
-                                    len([r for r in self.results if r.status == "WARN"]) * 60) / len(self.results) if self.results else 0,
+                "avg_duration_ms": sum(r.duration_ms for r in self.results)
+                / len(self.results)
+                if self.results
+                else 0,
+                "performance_score": (
+                    len([r for r in self.results if r.status == "PASS"]) * 100
+                    + len([r for r in self.results if r.status == "WARN"]) * 60
+                )
+                / len(self.results)
+                if self.results
+                else 0,
             },
         }
 
@@ -306,6 +335,7 @@ class FocusedPerformanceAnalyzer:
             json.dump(export_data, f, indent=2)
 
         logger.info(f"Performance results exported to {filepath}")
+
 
 async def main():
     """Run focused performance analysis."""
@@ -334,9 +364,12 @@ async def main():
     if failed_results == 0:
         logger.info("🎉 All performance targets met!")
     else:
-        logger.warning(f"⚠️ {failed_results}/{total_results} operations exceeded targets")
+        logger.warning(
+            f"⚠️ {failed_results}/{total_results} operations exceeded targets"
+        )
 
     return analyzer.results
+
 
 if __name__ == "__main__":
     asyncio.run(main())

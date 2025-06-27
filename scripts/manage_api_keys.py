@@ -16,7 +16,7 @@ def manage_api_keys():
     print("🔑 Atlas API Keys Manager")
     print("=" * 40)
 
-    #Завантажуємо поточну конфігурацію
+    # Завантажуємо поточну конфігурацію
     config = configparser.ConfigParser()
     config_path = "config.ini"
 
@@ -27,10 +27,10 @@ def manage_api_keys():
         print("❌ config.ini не знайдено")
         return False
 
-    #Показуємо current state
+    # Показуємо current state
     show_current_keys(config)
 
-    #Пропонуємо опції
+    # Пропонуємо опції
     while True:
         print("\n📋 Доступні опції:")
         print("1. Налаштувати OpenAI API ключ")
@@ -55,21 +55,26 @@ def manage_api_keys():
         else:
             print("❌ Невірний вибір, спробуйте ще раз")
 
+
 def show_current_keys(config):
     """Показати current state API ключів"""
     print("\n🔍 Поточний стан API ключів:")
 
-    #OpenAI
+    # OpenAI
     if config.has_section("OpenAI") and config.has_option("OpenAI", "api_key"):
         openai_key = config.get("OpenAI", "api_key")
-        if openai_key and not openai_key.startswith("YOUR_") and not openai_key.startswith("sk-your-"):
+        if (
+            openai_key
+            and not openai_key.startswith("YOUR_")
+            and not openai_key.startswith("sk-your-")
+        ):
             print(f"✅ OpenAI: {openai_key[:20]}...")
         else:
             print("⚠️  OpenAI: не налаштовано")
     else:
         print("❌ OpenAI: відсутній")
 
-    #Gemini
+    # Gemini
     if config.has_section("Gemini") and config.has_option("Gemini", "api_key"):
         gemini_key = config.get("Gemini", "api_key")
         if gemini_key and not gemini_key.startswith("YOUR_"):
@@ -79,12 +84,13 @@ def show_current_keys(config):
     else:
         print("❌ Gemini: відсутній")
 
+
 def set_openai_key(config, config_path):
     """Налаштувати OpenAI API ключ"""
     print("\n🔧 Налаштування OpenAI API ключа")
     print("💡 Отримайте ключ на: https://platform.openai.com/account/api-keys")
 
-    #Отримуємо ключ від користувача
+    # Отримуємо ключ від користувача
     api_key = getpass.getpass("🔑 Введіть OpenAI API ключ (sk-...): ").strip()
 
     if not api_key:
@@ -97,7 +103,7 @@ def set_openai_key(config, config_path):
         if confirm != "y":
             return
 
-    #Зберігаємо ключ
+    # Зберігаємо ключ
     if not config.has_section("OpenAI"):
         config.add_section("OpenAI")
 
@@ -107,12 +113,13 @@ def set_openai_key(config, config_path):
     save_config(config, config_path)
     print("✅ OpenAI API ключ збережено")
 
+
 def set_gemini_key(config, config_path):
     """Налаштувати Gemini API ключ"""
     print("\n🔧 Налаштування Gemini API ключа")
     print("💡 Отримайте ключ на: https://makersuite.google.com/app/apikey")
 
-    #Отримуємо ключ від користувача
+    # Отримуємо ключ від користувача
     api_key = getpass.getpass("🔑 Введіть Gemini API ключ (AIza...): ").strip()
 
     if not api_key:
@@ -125,7 +132,7 @@ def set_gemini_key(config, config_path):
         if confirm != "y":
             return
 
-    #Зберігаємо ключ
+    # Зберігаємо ключ
     if not config.has_section("Gemini"):
         config.add_section("Gemini")
 
@@ -134,6 +141,7 @@ def set_gemini_key(config, config_path):
 
     save_config(config, config_path)
     print("✅ Gemini API ключ збережено")
+
 
 def save_config(config, config_path):
     """Зберегти конфігурацію"""
@@ -144,11 +152,12 @@ def save_config(config, config_path):
     except Exception as e:
         print(f"❌ Помилка збереження: {e}")
 
+
 def test_api_keys(config):
     """Тестувати API ключі"""
     print("\n🧪 Тестування API ключів...")
 
-    #Тест Gemini
+    # Тест Gemini
     if config.has_section("Gemini") and config.has_option("Gemini", "api_key"):
         gemini_key = config.get("Gemini", "api_key")
         if gemini_key and not gemini_key.startswith("YOUR_"):
@@ -160,10 +169,14 @@ def test_api_keys(config):
         else:
             print("⚠️  Gemini API ключ не налаштовано")
 
-    #Тест OpenAI
+    # Тест OpenAI
     if config.has_section("OpenAI") and config.has_option("OpenAI", "api_key"):
         openai_key = config.get("OpenAI", "api_key")
-        if openai_key and not openai_key.startswith("YOUR_") and not openai_key.startswith("sk-your-"):
+        if (
+            openai_key
+            and not openai_key.startswith("YOUR_")
+            and not openai_key.startswith("sk-your-")
+        ):
             print("🔍 Тестування OpenAI API...")
             if test_openai_api(openai_key):
                 print("✅ OpenAI API працює")
@@ -172,18 +185,19 @@ def test_api_keys(config):
         else:
             print("⚠️  OpenAI API ключ не налаштовано")
 
+
 def test_gemini_api(api_key):
     """Тестувати Gemini API"""
     try:
         import google.generativeai as genai
 
-        #Конфігуруємо API
+        # Конфігуруємо API
         genai.configure(api_key=api_key)
 
-        #Створюємо модель
+        # Створюємо модель
         model = genai.GenerativeModel("gemini-1.5-flash")
 
-        #Простий тест
+        # Простий тест
         response = model.generate_content("Скажи привіт українською")
 
         return bool(response.text)
@@ -192,15 +206,16 @@ def test_gemini_api(api_key):
         print(f"❌ Помилка Gemini API: {e}")
         return False
 
+
 def test_openai_api(api_key):
     """Тестувати OpenAI API"""
     try:
         import openai
 
-        #Створюємо клієнт
+        # Створюємо клієнт
         client = openai.OpenAI(api_key=api_key)
 
-        #Простий тест
+        # Простий тест
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Скажи привіт"}],
@@ -212,6 +227,7 @@ def test_openai_api(api_key):
     except Exception as e:
         print(f"❌ Помилка OpenAI API: {e}")
         return False
+
 
 def quick_setup():
     """Швидке settings з рекомендаціями"""
@@ -225,12 +241,12 @@ def quick_setup():
 
     print("\n💡 Для нормальної роботи Atlas потрібен принаймні Gemini API ключ")
 
-    #Перевіряємо current state
+    # Перевіряємо current state
     config = configparser.ConfigParser()
     if os.path.exists("config.ini"):
         config.read("config.ini")
 
-        #Перевіряємо Gemini
+        # Перевіряємо Gemini
         if config.has_section("Gemini") and config.has_option("Gemini", "api_key"):
             gemini_key = config.get("Gemini", "api_key")
             if gemini_key and not gemini_key.startswith("YOUR_"):
@@ -245,10 +261,11 @@ def quick_setup():
 
     return False
 
+
 def main():
     """Головна функція"""
     try:
-        #Перехід до директорії Atlas
+        # Перехід до директорії Atlas
         atlas_dir = Path(__file__).parent
         os.chdir(atlas_dir)
 
@@ -263,6 +280,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Помилка: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

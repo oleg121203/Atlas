@@ -1,0 +1,44 @@
+[tool.ruff]
+# Вказуємо цільову версію Python
+# Замініть на вашу версію, наприклад py39
+target-version = "py39"
+
+# Шляхи до коду для аналізу
+src = ["."]
+
+# Виключення непотрібних директорій
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "backup_archive",
+    "backup_ui",
+    "backup_ui_qt",
+]
+
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "SIM", "I"]
+ignore = ["E501"]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

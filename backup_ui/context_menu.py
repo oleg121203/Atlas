@@ -20,28 +20,30 @@ class ContextMenu:
     def add_to_widget(self, widget):
         """Add context menu support to a widget."""
         if isinstance(widget, (ctk.CTkEntry, ctk.CTkTextbox)):
-            #For CTk widgets, we need to access the underlying tkinter widget
+            # For CTk widgets, we need to access the underlying tkinter widget
             if hasattr(widget, "_textbox"):
-                #CTkTextbox case
+                # CTkTextbox case
                 inner_widget = widget._textbox
             elif hasattr(widget, "_entry"):
-                #CTkEntry case
+                # CTkEntry case
                 inner_widget = widget._entry
             else:
-                #Fallback
+                # Fallback
                 inner_widget = widget
 
-            #Bind right-click for all platforms
+            # Bind right-click for all platforms
             inner_widget.bind("<Button-3>", lambda e: self._show_menu(e, widget))
-            #For macOS, also bind Control+Click
+            # For macOS, also bind Control+Click
             if platform.system() == "Darwin":
-                inner_widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
+                inner_widget.bind(
+                    "<Control-Button-1>", lambda e: self._show_menu(e, widget)
+                )
 
             # Add keyboard shortcuts
             self._add_keyboard_shortcuts(inner_widget, widget)
 
         elif isinstance(widget, (tk.Text, tk.Entry)):
-            #Direct tkinter widgets
+            # Direct tkinter widgets
             widget.bind("<Button-3>", lambda e: self._show_menu(e, widget))
             if platform.system() == "Darwin":
                 widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
@@ -58,7 +60,9 @@ class ContextMenu:
         # Ctrl+X - Cut
         inner_widget.bind("<Control-x>", lambda e: self._cut_shortcut(outer_widget))
         # Ctrl+A - Select All
-        inner_widget.bind("<Control-a>", lambda e: self._select_all_shortcut(outer_widget))
+        inner_widget.bind(
+            "<Control-a>", lambda e: self._select_all_shortcut(outer_widget)
+        )
         # Ctrl+Z - Undo (if supported)
         inner_widget.bind("<Control-z>", lambda e: self._undo_shortcut(outer_widget))
 
@@ -98,17 +102,21 @@ class ContextMenu:
         """Show the context menu."""
         self.current_widget = widget
 
-        #Create menu if it doesn't exist
+        # Create menu if it doesn't exist
         if self.menu is None:
             self.menu = tk.Menu(widget, tearoff=0)
             self.menu.add_command(label="Вирізати (Ctrl+X)", command=self._cut)
             self.menu.add_command(label="Копіювати (Ctrl+C)", command=self._copy)
             self.menu.add_command(label="Вставити (Ctrl+V)", command=self._paste)
             self.menu.add_separator()
-            self.menu.add_command(label="Виділити все (Ctrl+A)", command=self._select_all)
-            self.menu.add_command(label="Скасувати (Ctrl+Z)", command=self._undo_shortcut)
+            self.menu.add_command(
+                label="Виділити все (Ctrl+A)", command=self._select_all
+            )
+            self.menu.add_command(
+                label="Скасувати (Ctrl+Z)", command=self._undo_shortcut
+            )
 
-        #Update menu state based on widget content and selection
+        # Update menu state based on widget content and selection
         self._update_menu_state()
 
         try:
@@ -124,7 +132,7 @@ class ContextMenu:
             return
 
         try:
-            #Check if widget has content
+            # Check if widget has content
             has_content = False
             has_selection = False
 
@@ -143,15 +151,21 @@ class ContextMenu:
                 has_content = bool(content.strip())
                 has_selection = bool(self.current_widget.selection_present())
 
-            #Enable/disable menu items
-            self.menu.entryconfig(0, state="normal" if has_selection else "disabled")  #Cut
-            self.menu.entryconfig(1, state="normal" if has_selection else "disabled")  #Copy
-            self.menu.entryconfig(2, state="normal")  #Paste (always enabled)
-            self.menu.entryconfig(4, state="normal" if has_content else "disabled")  #Select All
-            self.menu.entryconfig(5, state="normal")  #Undo (always enabled)
+            # Enable/disable menu items
+            self.menu.entryconfig(
+                0, state="normal" if has_selection else "disabled"
+            )  # Cut
+            self.menu.entryconfig(
+                1, state="normal" if has_selection else "disabled"
+            )  # Copy
+            self.menu.entryconfig(2, state="normal")  # Paste (always enabled)
+            self.menu.entryconfig(
+                4, state="normal" if has_content else "disabled"
+            )  # Select All
+            self.menu.entryconfig(5, state="normal")  # Undo (always enabled)
 
         except (AttributeError, tk.TclError):
-            #Fallback: enable all items
+            # Fallback: enable all items
             for i in [0, 1, 2, 4, 5]:
                 self.menu.entryconfig(i, state="normal")
 
@@ -159,13 +173,15 @@ class ContextMenu:
         """Cut selected text."""
         try:
             if isinstance(self.current_widget, (ctk.CTkTextbox, ctk.CTkEntry)):
-                #First copy, then delete selection
+                # First copy, then delete selection
                 self._copy()
                 if isinstance(self.current_widget, ctk.CTkTextbox):
                     self.current_widget.delete("sel.first", "sel.last")
                 elif isinstance(self.current_widget, ctk.CTkEntry):
-                    self.current_widget.delete(self.current_widget.index("sel.first"),
-                                             self.current_widget.index("sel.last"))
+                    self.current_widget.delete(
+                        self.current_widget.index("sel.first"),
+                        self.current_widget.index("sel.last"),
+                    )
         except (AttributeError, tk.TclError):
             pass
 
@@ -188,10 +204,10 @@ class ContextMenu:
         try:
             clipboard_text = self.current_widget.clipboard_get()
             if isinstance(self.current_widget, ctk.CTkTextbox):
-                #Insert at current cursor position
+                # Insert at current cursor position
                 self.current_widget.insert("insert", clipboard_text)
             elif isinstance(self.current_widget, ctk.CTkEntry):
-                #Replace selection or insert at cursor
+                # Replace selection or insert at cursor
                 if self.current_widget.selection_present():
                     self.current_widget.delete("sel.first", "sel.last")
                 self.current_widget.insert("insert", clipboard_text)
@@ -212,7 +228,7 @@ class ContextMenu:
             pass
 
 
-#Global instance for easy access
+# Global instance for easy access
 context_menu = ContextMenu()
 
 
@@ -223,12 +239,13 @@ def enable_context_menu(widget):
 
 def setup_context_menus_for_container(container):
     """Recursively add context menus to all text widgets in a container."""
+
     def _recursive_setup(widget):
-        #Add context menu to text widgets
+        # Add context menu to text widgets
         if isinstance(widget, (ctk.CTkEntry, ctk.CTkTextbox)):
             enable_context_menu(widget)
 
-        #Recursively process children
+        # Recursively process children
         try:
             for child in widget.winfo_children():
                 _recursive_setup(child)
@@ -249,19 +266,21 @@ class TextFormattingContextMenu:
     def add_to_widget(self, widget):
         """Add formatting context menu to a widget."""
         if isinstance(widget, (ctk.CTkTextbox)):
-            #For CTk widgets, we need to access the underlying tkinter widget
+            # For CTk widgets, we need to access the underlying tkinter widget
             if hasattr(widget, "_textbox"):
-                #CTkTextbox case
+                # CTkTextbox case
                 inner_widget = widget._textbox
             else:
-                #Fallback
+                # Fallback
                 inner_widget = widget
 
-            #Bind right-click for all platforms
+            # Bind right-click for all platforms
             inner_widget.bind("<Button-3>", lambda e: self._show_menu(e, widget))
-            #For macOS, also bind Control+Click
+            # For macOS, also bind Control+Click
             if platform.system() == "Darwin":
-                inner_widget.bind("<Control-Button-1>", lambda e: self._show_menu(e, widget))
+                inner_widget.bind(
+                    "<Control-Button-1>", lambda e: self._show_menu(e, widget)
+                )
 
             # Add keyboard shortcuts
             self._add_keyboard_shortcuts(inner_widget, widget)
@@ -275,7 +294,9 @@ class TextFormattingContextMenu:
         # Ctrl+X - Cut
         inner_widget.bind("<Control-x>", lambda e: self._cut_shortcut(outer_widget))
         # Ctrl+A - Select All
-        inner_widget.bind("<Control-a>", lambda e: self._select_all_shortcut(outer_widget))
+        inner_widget.bind(
+            "<Control-a>", lambda e: self._select_all_shortcut(outer_widget)
+        )
         # Ctrl+Z - Undo
         inner_widget.bind("<Control-z>", lambda e: self._undo_shortcut(outer_widget))
 
@@ -312,20 +333,22 @@ class TextFormattingContextMenu:
         """Show the formatting context menu."""
         self.current_widget = widget
 
-        #Create menu if it doesn't exist
+        # Create menu if it doesn't exist
         if self.menu is None:
             self.menu = tk.Menu(widget, tearoff=0)
-            #Standard edit actions
+            # Standard edit actions
             self.menu.add_command(label="Вирізати (Ctrl+X)", command=self._cut)
             self.menu.add_command(label="Копіювати (Ctrl+C)", command=self._copy)
             self.menu.add_command(label="Вставити (Ctrl+V)", command=self._paste)
             self.menu.add_separator()
 
-            #Text formatting submenu
+            # Text formatting submenu
             format_menu = tk.Menu(self.menu, tearoff=0)
             format_menu.add_command(label="Жирний", command=self._format_bold)
             format_menu.add_command(label="Курсив", command=self._format_italic)
-            format_menu.add_command(label="Підкреслений", command=self._format_underline)
+            format_menu.add_command(
+                label="Підкреслений", command=self._format_underline
+            )
             format_menu.add_separator()
             format_menu.add_command(label="Код", command=self._format_code)
             format_menu.add_command(label="Блок коду", command=self._format_code_block)
@@ -334,10 +357,14 @@ class TextFormattingContextMenu:
             format_menu.add_command(label="Посилання", command=self._format_link)
 
             self.menu.add_cascade(label="Форматування", menu=format_menu)
-            self.menu.add_command(label="Виділити все (Ctrl+A)", command=self._select_all)
-            self.menu.add_command(label="Скасувати (Ctrl+Z)", command=self._undo_shortcut)
+            self.menu.add_command(
+                label="Виділити все (Ctrl+A)", command=self._select_all
+            )
+            self.menu.add_command(
+                label="Скасувати (Ctrl+Z)", command=self._undo_shortcut
+            )
 
-        #Update menu state based on widget content and selection
+        # Update menu state based on widget content and selection
         self._update_menu_state()
 
         try:
@@ -353,7 +380,7 @@ class TextFormattingContextMenu:
             return
 
         try:
-            #Check if widget has content
+            # Check if widget has content
             has_content = False
             has_selection = False
 
@@ -367,16 +394,24 @@ class TextFormattingContextMenu:
                 except tk.TclError:
                     has_selection = False
 
-            #Enable/disable menu items
-            self.menu.entryconfig(0, state="normal" if has_selection else "disabled")  #Cut
-            self.menu.entryconfig(1, state="normal" if has_selection else "disabled")  #Copy
-            self.menu.entryconfig(2, state="normal")  #Paste (always enabled)
-            self.menu.entryconfig(4, state="normal" if has_selection else "disabled")  #Format submenu
-            self.menu.entryconfig(5, state="normal" if has_content else "disabled")  #Select All
-            self.menu.entryconfig(6, state="normal")  #Undo
+            # Enable/disable menu items
+            self.menu.entryconfig(
+                0, state="normal" if has_selection else "disabled"
+            )  # Cut
+            self.menu.entryconfig(
+                1, state="normal" if has_selection else "disabled"
+            )  # Copy
+            self.menu.entryconfig(2, state="normal")  # Paste (always enabled)
+            self.menu.entryconfig(
+                4, state="normal" if has_selection else "disabled"
+            )  # Format submenu
+            self.menu.entryconfig(
+                5, state="normal" if has_content else "disabled"
+            )  # Select All
+            self.menu.entryconfig(6, state="normal")  # Undo
 
         except (AttributeError, tk.TclError):
-            #Fallback: enable all items
+            # Fallback: enable all items
             for i in [0, 1, 2, 4, 5, 6]:
                 self.menu.entryconfig(i, state="normal")
 
@@ -384,7 +419,7 @@ class TextFormattingContextMenu:
         """Cut selected text."""
         try:
             if isinstance(self.current_widget, ctk.CTkTextbox):
-                #First copy, then delete selection
+                # First copy, then delete selection
                 self._copy()
                 self.current_widget.delete("sel.first", "sel.last")
         except (AttributeError, tk.TclError):
@@ -405,7 +440,7 @@ class TextFormattingContextMenu:
         try:
             clipboard_text = self.current_widget._textbox.clipboard_get()
             if isinstance(self.current_widget, ctk.CTkTextbox):
-                #Insert at current cursor position
+                # Insert at current cursor position
                 self.current_widget.insert("insert", clipboard_text)
         except (AttributeError, tk.TclError):
             pass
@@ -438,7 +473,9 @@ class TextFormattingContextMenu:
 
     def _format_code_block(self):
         """Apply code block formatting to selected text."""
-        self._apply_formatting(lambda text: self.chat_context_manager.format_code_block(text))
+        self._apply_formatting(
+            lambda text: self.chat_context_manager.format_code_block(text)
+        )
 
     def _format_quote(self):
         """Apply quote formatting to selected text."""
@@ -446,7 +483,9 @@ class TextFormattingContextMenu:
 
     def _format_link(self):
         """Apply link formatting to selected text."""
-        self._apply_formatting(lambda text: self.chat_context_manager.format_link(text, "URL"))
+        self._apply_formatting(
+            lambda text: self.chat_context_manager.format_link(text, "URL")
+        )
 
     def _apply_formatting(self, format_func):
         """Apply formatting function to selected text."""
@@ -472,6 +511,7 @@ class TextFormattingContextMenu:
 # Formatting context menu global instance
 formatting_context_menu = None
 
+
 def enable_formatting_context_menu(widget, chat_context_manager):
     """Enable formatting context menu for a widget."""
     global formatting_context_menu
@@ -484,12 +524,13 @@ def enable_formatting_context_menu(widget, chat_context_manager):
 
 def setup_formatting_context_menus_for_container(container, chat_context_manager):
     """Recursively add formatting context menus to all text widgets in a container."""
+
     def _recursive_setup(widget):
-        #Add formatting context menu to text widgets
+        # Add formatting context menu to text widgets
         if isinstance(widget, ctk.CTkTextbox):
             enable_formatting_context_menu(widget, chat_context_manager)
 
-        #Recursively process children
+        # Recursively process children
         try:
             for child in widget.winfo_children():
                 _recursive_setup(child)

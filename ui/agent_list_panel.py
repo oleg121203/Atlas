@@ -1,7 +1,10 @@
 import customtkinter as ctk
 
+
 class AgentListPanel(ctk.CTkFrame):
-    def __init__(self, master, agents, on_start_agent=None, on_stop_agent=None, **kwargs):
+    def __init__(
+        self, master, agents, on_start_agent=None, on_stop_agent=None, **kwargs
+    ):
         super().__init__(master, **kwargs)
         self.agents = agents
         self.on_start_agent = on_start_agent
@@ -23,10 +26,22 @@ class AgentListPanel(ctk.CTkFrame):
         for agent_id, agent in self.agents.items():
             frame = ctk.CTkFrame(self.scroll_frame)
             frame.pack(fill="x", padx=5, pady=3)
-            ctk.CTkLabel(frame, text=agent_id, font=ctk.CTkFont(size=12, weight="bold")).pack(side="left", padx=5)
-            status = getattr(agent, 'status', 'Unknown')
+            ctk.CTkLabel(
+                frame, text=agent_id, font=ctk.CTkFont(size=12, weight="bold")
+            ).pack(side="left", padx=5)
+            status = getattr(agent, "status", "Unknown")
             ctk.CTkLabel(frame, text=f"Status: {status}").pack(side="left", padx=5)
             if callable(self.on_start_agent):
-                ctk.CTkButton(frame, text="Start", width=60, command=lambda aid=agent_id: self.on_start_agent(aid)).pack(side="right", padx=2)
+                ctk.CTkButton(
+                    frame,
+                    text="Start",
+                    width=60,
+                    command=lambda aid=agent_id: self.on_start_agent(aid),
+                ).pack(side="right", padx=2)
             if callable(self.on_stop_agent):
-                ctk.CTkButton(frame, text="Stop", width=60, command=lambda aid=agent_id: self.on_stop_agent(aid)).pack(side="right", padx=2) 
+                ctk.CTkButton(
+                    frame,
+                    text="Stop",
+                    width=60,
+                    command=lambda aid=agent_id: self.on_stop_agent(aid),
+                ).pack(side="right", padx=2)

@@ -16,6 +16,7 @@ def is_headless() -> bool:
     """Check if running in headless environment"""
     return not bool(os.environ.get("DISPLAY"))
 
+
 def setup_linux_dev_environment() -> Dict[str, Any]:
     """Setup Linux development environment"""
     env_info = {
@@ -27,14 +28,17 @@ def setup_linux_dev_environment() -> Dict[str, Any]:
 
     return env_info
 
+
 def check_docker_availability() -> bool:
     """Check if Docker is available"""
     try:
-        result = subprocess.run(["docker", "--version"],
-                              check=False, capture_output=True, text=True)
+        result = subprocess.run(
+            ["docker", "--version"], check=False, capture_output=True, text=True
+        )
         return result.returncode == 0
     except FileNotFoundError:
         return False
+
 
 def get_linux_dependencies() -> list:
     """Get Linux-specific dependencies"""
@@ -46,6 +50,7 @@ def get_linux_dependencies() -> list:
         "git",
     ]
 
+
 def configure_headless_operation():
     """Configure for headless operation"""
     if is_headless():
@@ -56,6 +61,7 @@ def configure_headless_operation():
         print("✅ Configured for headless operation")
     else:
         print("ℹ️ GUI environment detected, headless configuration not needed")
+
 
 if __name__ == "__main__":
     print("🐧 Linux Development Utilities")

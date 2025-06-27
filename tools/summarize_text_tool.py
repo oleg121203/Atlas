@@ -1,5 +1,6 @@
 import re
-from typing import Dict, Any
+from typing import Any, Dict
+
 
 def summarize_text(text: str) -> Dict[str, Any]:
     """
@@ -11,8 +12,8 @@ def summarize_text(text: str) -> Dict[str, Any]:
         A dict with 'status', 'summary', and 'error' (if any).
     """
     try:
-        sentences = re.split(r'(?<=[.!?]) +', text)
-        summary = ' '.join(sentences[:3])
+        sentences = re.split(r"(?<=[.!?]) +", text)
+        summary = " ".join(sentences[:3])
         return {"status": "success", "summary": summary}
     except Exception as e:
-        return {"status": "error", "error": str(e)} 
+        return {"status": "error", "error": str(e)}

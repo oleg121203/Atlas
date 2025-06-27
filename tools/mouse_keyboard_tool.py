@@ -1,8 +1,9 @@
 """Mouse and keyboard automation tool for Atlas (macOS).
 
-Provides secure mouse movement, clicking, and keyboard input using PyAutoGUI 
+Provides secure mouse movement, clicking, and keyboard input using PyAutoGUI
 and native macOS Quartz APIs.
 """
+
 from __future__ import annotations
 
 import os
@@ -11,11 +12,12 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Tuple
 
-#Try to import pyautogui safely for headless environments
+# Try to import pyautogui safely for headless environments
 try:
     if "DISPLAY" not in os.environ:
-        os.environ["DISPLAY"] = ":0"  #Fallback display
-    import pyautogui  #type: ignore
+        os.environ["DISPLAY"] = ":0"  # Fallback display
+    import pyautogui  # type: ignore
+
     _PYAUTOGUI_AVAILABLE = True
 except Exception as e:
     _PYAUTOGUI_AVAILABLE = False
@@ -32,6 +34,7 @@ try:
         kCGEventRightMouseUp,
         kCGHIDEventTap,
     )
+
     _QUARTZ_AVAILABLE = True
 except ImportError:
     _QUARTZ_AVAILABLE = False
@@ -40,11 +43,19 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-__all__ = ["MouseButton", "MouseKeyboardResult", "click_at", "move_mouse", "press_key", "type_text"]
+__all__ = [
+    "MouseButton",
+    "MouseKeyboardResult",
+    "click_at",
+    "move_mouse",
+    "press_key",
+    "type_text",
+]
 
 
 class MouseButton(Enum):
     """Mouse button enumeration."""
+
     LEFT = "left"
     RIGHT = "right"
     MIDDLE = "middle"
@@ -53,6 +64,7 @@ class MouseButton(Enum):
 @dataclass
 class MouseKeyboardResult:
     """Result object for mouse/keyboard operations."""
+
     success: bool
     action: str
     coordinates: Optional[Tuple[int, int]] = None
@@ -61,16 +73,17 @@ class MouseKeyboardResult:
     execution_time: float = 0.0
 
 
-def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
-             duration: float = 0.1) -> MouseKeyboardResult:
+def click_at(
+    x: int, y: int, button: MouseButton = MouseButton.LEFT, duration: float = 0.1
+) -> MouseKeyboardResult:
     """Click at specific coordinates.
-    
+
     Args:
         x: X coordinate
-        y: Y coordinate  
+        y: Y coordinate
         button: Mouse button to click
         duration: Duration between mouse down and up events
-        
+
     Returns:
         MouseKeyboardResult with operation details
     """
@@ -78,7 +91,7 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
 
     try:
         if _QUARTZ_AVAILABLE:
-            #Use native macOS Quartz for better performance
+            # Use native macOS Quartz for better performance
             if button == MouseButton.LEFT:
                 down_event = kCGEventLeftMouseDown
                 up_event = kCGEventLeftMouseUp
@@ -86,7 +99,7 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
                 down_event = kCGEventRightMouseDown
                 up_event = kCGEventRightMouseUp
             else:
-                #Fallback to PyAutoGUI for middle click
+                # Fallback to PyAutoGUI for middle click
                 pyautogui.click(x, y, button=button.value, duration=duration)
                 execution_time = time.time() - start_time
                 return MouseKeyboardResult(
@@ -96,7 +109,7 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
                     execution_time=execution_time,
                 )
 
-            #Create and post mouse events
+            # Create and post mouse events
             mouse_down = CGEventCreateMouseEvent(None, down_event, (x, y), 0)
             mouse_up = CGEventCreateMouseEvent(None, up_event, (x, y), 0)
 
@@ -104,12 +117,14 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
             time.sleep(duration)
             CGEventPost(kCGHIDEventTap, mouse_up)
         else:
-            #Fallback to PyAutoGUI
+            # Fallback to PyAutoGUI
             pyautogui.click(x, y, button=button.value, duration=duration)
 
         execution_time = time.time() - start_time
 
-        logger.info(f"Clicked {button.value} button at ({x}, {y}) in {execution_time:.3f}s")
+        logger.info(
+            f"Clicked {button.value} button at ({x}, {y}) in {execution_time:.3f}s"
+        )
 
         return MouseKeyboardResult(
             success=True,
@@ -134,12 +149,12 @@ def click_at(x: int, y: int, button: MouseButton = MouseButton.LEFT,
 
 def move_mouse(x: int, y: int, duration: float = 0.5) -> MouseKeyboardResult:
     """Move mouse to specific coordinates.
-    
+
     Args:
         x: Target X coordinate
         y: Target Y coordinate
         duration: Time to take for the movement
-        
+
     Returns:
         MouseKeyboardResult with operation details
     """
@@ -147,11 +162,11 @@ def move_mouse(x: int, y: int, duration: float = 0.5) -> MouseKeyboardResult:
 
     try:
         if _QUARTZ_AVAILABLE:
-            #Use native macOS for smooth movement
+            # Use native macOS for smooth movement
             move_event = CGEventCreateMouseEvent(None, kCGEventMouseMoved, (x, y), 0)
             CGEventPost(kCGHIDEventTap, move_event)
         else:
-            #Fallback to PyAutoGUI
+            # Fallback to PyAutoGUI
             pyautogui.moveTo(x, y, duration=duration)
 
         execution_time = time.time() - start_time
@@ -181,11 +196,11 @@ def move_mouse(x: int, y: int, duration: float = 0.5) -> MouseKeyboardResult:
 
 def type_text(text: str, interval: float = 0.01) -> MouseKeyboardResult:
     """Type text with specified interval between characters.
-    
+
     Args:
         text: Text to type
         interval: Delay between each character
-        
+
     Returns:
         MouseKeyboardResult with operation details
     """
@@ -221,11 +236,11 @@ def type_text(text: str, interval: float = 0.01) -> MouseKeyboardResult:
 
 def press_key(key: str, duration: float = 0.1) -> MouseKeyboardResult:
     """Press a specific key.
-    
+
     Args:
         key: Key to press (e.g., 'enter', 'space', 'cmd', 'tab')
         duration: Duration to hold the key
-        
+
     Returns:
         MouseKeyboardResult with operation details
     """

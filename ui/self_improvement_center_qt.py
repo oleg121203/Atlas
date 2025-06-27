@@ -4,8 +4,9 @@ This is a placeholder module to resolve import errors.
 Actual implementation will be added later.
 """
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 import logging
+
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,8 @@ class SelfImprovementCenter(QWidget):
         header_label = QLabel("Self Improvement Center")
         header_label.setStyleSheet("font-size: 18px; font-weight: bold; margin: 10px;")
         layout.addWidget(header_label)
-        placeholder_label = QLabel("This module is under development. Functionality will be added soon.")
+        placeholder_label = QLabel(
+            "This module is under development. Functionality will be added soon."
+        )
         layout.addWidget(placeholder_label)
         layout.addStretch()

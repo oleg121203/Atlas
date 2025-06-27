@@ -1,14 +1,25 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QListWidget, QListWidgetItem, QMessageBox
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from utils.logger import get_logger
 
 logger = get_logger()
 
+
 class PluginMarketplace(QWidget):
     """
     A module for discovering, installing, and updating plugins from a marketplace or repository.
     """
+
     plugin_installed = Signal(str)
     plugin_updated = Signal(str)
 
@@ -70,7 +81,9 @@ class PluginMarketplace(QWidget):
             item.setData(Qt.UserRole, plugin)
             self.plugin_list.addItem(item)
         if not plugins:
-            item = QListWidgetItem("No plugins available. Search for plugins or check your connection.")
+            item = QListWidgetItem(
+                "No plugins available. Search for plugins or check your connection."
+            )
             item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
             self.plugin_list.addItem(item)
 
@@ -80,8 +93,16 @@ class PluginMarketplace(QWidget):
         # Placeholder: In a real implementation, this would query a remote repository
         if text:
             mock_plugins = [
-                {"name": "Example Plugin", "version": "1.0.0", "description": "A sample plugin for testing."},
-                {"name": f"{text} Plugin", "version": "0.1.0", "description": f"A plugin related to {text}."}
+                {
+                    "name": "Example Plugin",
+                    "version": "1.0.0",
+                    "description": "A sample plugin for testing.",
+                },
+                {
+                    "name": f"{text} Plugin",
+                    "version": "0.1.0",
+                    "description": f"A plugin related to {text}.",
+                },
             ]
             self.populate_plugin_list(mock_plugins)
         else:
@@ -93,11 +114,15 @@ class PluginMarketplace(QWidget):
         if plugin_data:
             self.install_button.setEnabled(True)
             # Check if the plugin is already installed to enable update button
-            plugin_name = plugin_data['name']
+            plugin_name = plugin_data["name"]
             installed_plugins = self.plugin_manager.get_all_plugins()
             if plugin_name in installed_plugins:
-                installed_version = installed_plugins[plugin_name]['metadata'].get('version', '0.0.0')
-                if self.plugin_manager._compare_version(plugin_data['version'], f">{installed_version}"):
+                installed_version = installed_plugins[plugin_name]["metadata"].get(
+                    "version", "0.0.0"
+                )
+                if self.plugin_manager._compare_version(
+                    plugin_data["version"], f">{installed_version}"
+                ):
                     self.update_button.setEnabled(True)
                 else:
                     self.update_button.setEnabled(False)
@@ -110,10 +135,14 @@ class PluginMarketplace(QWidget):
         if selected_item:
             plugin_data = selected_item.data(Qt.UserRole)
             if plugin_data:
-                plugin_name = plugin_data['name']
+                plugin_name = plugin_data["name"]
                 logger.info(f"Installing plugin: {plugin_name}")
                 # Placeholder for actual installation logic
-                QMessageBox.information(self, "Plugin Installed", f"Plugin {plugin_name} has been installed successfully.")
+                QMessageBox.information(
+                    self,
+                    "Plugin Installed",
+                    f"Plugin {plugin_name} has been installed successfully.",
+                )
                 self.plugin_installed.emit(plugin_name)
                 self.install_button.setEnabled(False)
 
@@ -123,9 +152,13 @@ class PluginMarketplace(QWidget):
         if selected_item:
             plugin_data = selected_item.data(Qt.UserRole)
             if plugin_data:
-                plugin_name = plugin_data['name']
+                plugin_name = plugin_data["name"]
                 logger.info(f"Updating plugin: {plugin_name}")
                 # Placeholder for actual update logic
-                QMessageBox.information(self, "Plugin Updated", f"Plugin {plugin_name} has been updated to version {plugin_data['version']}.")
+                QMessageBox.information(
+                    self,
+                    "Plugin Updated",
+                    f"Plugin {plugin_name} has been updated to version {plugin_data['version']}.",
+                )
                 self.plugin_updated.emit(plugin_name)
                 self.update_button.setEnabled(False)

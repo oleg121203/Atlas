@@ -30,7 +30,9 @@ class ConfigManager:
                     return json.load(f)
                 return yaml.safe_load(f) or {}
         except (OSError, yaml.YAMLError, json.JSONDecodeError) as e:
-            logger.error(f"Failed to load config from {self.path}: {e}. Creating default.")
+            logger.error(
+                f"Failed to load config from {self.path}: {e}. Creating default."
+            )
             self._create_default()
             return self.load()
 
@@ -60,58 +62,74 @@ class ConfigManager:
     def get_openai_api_key(self) -> str:
         """Get OpenAI API key from .env file, config, or environment."""
         import os
+
         config = self.load()
-        #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv("OPENAI_API_KEY", "") or
-               config.get("openai_api_key", "") or
-               config.get("api_keys", {}).get("openai", ""))
+        # Пріоритет: .env файл → конфіг → змінні середовища
+        key = (
+            os.getenv("OPENAI_API_KEY", "")
+            or config.get("openai_api_key", "")
+            or config.get("api_keys", {}).get("openai", "")
+        )
         return key
 
     def get_gemini_api_key(self) -> str:
         """Get Gemini API key from .env file, config, or environment."""
         import os
+
         config = self.load()
-        #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv("GEMINI_API_KEY", "") or
-               config.get("gemini_api_key", "") or
-               config.get("api_keys", {}).get("gemini", ""))
+        # Пріоритет: .env файл → конфіг → змінні середовища
+        key = (
+            os.getenv("GEMINI_API_KEY", "")
+            or config.get("gemini_api_key", "")
+            or config.get("api_keys", {}).get("gemini", "")
+        )
         return key
 
     def get_groq_api_key(self) -> str:
         """Get Groq API key from .env file, config, or environment."""
         import os
+
         config = self.load()
-        #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv("GROQ_API_KEY", "") or
-               config.get("groq_api_key", "") or
-               config.get("api_keys", {}).get("groq", ""))
+        # Пріоритет: .env файл → конфіг → змінні середовища
+        key = (
+            os.getenv("GROQ_API_KEY", "")
+            or config.get("groq_api_key", "")
+            or config.get("api_keys", {}).get("groq", "")
+        )
         return key
 
     def get_mistral_api_key(self) -> str:
         """Get Mistral API key from .env file, config, or environment."""
         import os
+
         config = self.load()
-        #Пріоритет: .env файл → конфіг → змінні середовища
-        key = (os.getenv("MISTRAL_API_KEY", "") or
-               config.get("mistral_api_key", "") or
-               config.get("api_keys", {}).get("mistral", ""))
+        # Пріоритет: .env файл → конфіг → змінні середовища
+        key = (
+            os.getenv("MISTRAL_API_KEY", "")
+            or config.get("mistral_api_key", "")
+            or config.get("api_keys", {}).get("mistral", "")
+        )
         return key
 
     def get_current_provider(self) -> str:
         """Get current LLM provider from .env file or config."""
         import os
+
         config = self.load()
-        #Пріоритет: .env файл → конфіг
-        return (os.getenv("DEFAULT_LLM_PROVIDER", "") or
-                config.get("current_provider", "gemini"))
+        # Пріоритет: .env файл → конфіг
+        return os.getenv("DEFAULT_LLM_PROVIDER", "") or config.get(
+            "current_provider", "gemini"
+        )
 
     def get_current_model(self) -> str:
         """Get current LLM model from .env file or config."""
         import os
+
         config = self.load()
-        #Пріоритет: .env файл → конфіг
-        return (os.getenv("DEFAULT_LLM_MODEL", "") or
-                config.get("current_model", "gemini-1.5-flash"))
+        # Пріоритет: .env файл → конфіг
+        return os.getenv("DEFAULT_LLM_MODEL", "") or config.get(
+            "current_model", "gemini-1.5-flash"
+        )
 
     def get_model_name(self) -> str:
         """Get model name (alias for get_current_model)."""
@@ -121,7 +139,7 @@ class ConfigManager:
         """Get a setting from config with fallback to default."""
         config = self.load()
 
-        #Handle API keys specially
+        # Handle API keys specially
         if key == "groq_api_key":
             return self.get_groq_api_key()
         if key == "mistral_api_key":
@@ -152,9 +170,11 @@ class ConfigManager:
                 config["current_model"] = model
                 logger.info(f"Set LLM model to: {model}")
 
-            #Save to disk
+            # Save to disk
             self.save(config)
-            logger.info(f"✅ LLM configuration updated: provider={provider}, model={model}")
+            logger.info(
+                f"✅ LLM configuration updated: provider={provider}, model={model}"
+            )
             return True
 
         except Exception as e:
@@ -166,17 +186,17 @@ class ConfigManager:
         try:
             config = self.load()
 
-            #Initialize api_keys section if it doesn't exist
+            # Initialize api_keys section if it doesn't exist
             if "api_keys" not in config:
                 config["api_keys"] = {}
 
-            #Set the API key
+            # Set the API key
             config["api_keys"][provider.lower()] = api_key
 
-            #Also set in the direct key format for backwards compatibility
+            # Also set in the direct key format for backwards compatibility
             config[f"{provider.lower()}_api_key"] = api_key
 
-            #Save to disk
+            # Save to disk
             self.save(config)
             logger.info(f"✅ Set {provider} API key")
             return True
@@ -191,10 +211,26 @@ class ConfigManager:
             "current_provider": "gemini",
             "current_model": "gemini-1.5-flash",
             "agents": {
-                "Browser Agent": {"provider": "gemini", "model": "gemini-1.5-flash", "fallback_chain": []},
-                "Screen Agent": {"provider": "gemini", "model": "gemini-1.5-flash", "fallback_chain": []},
-                "Text Agent": {"provider": "gemini", "model": "gemini-1.5-flash", "fallback_chain": []},
-                "System Interaction Agent": {"provider": "gemini", "model": "gemini-1.5-flash", "fallback_chain": []},
+                "Browser Agent": {
+                    "provider": "gemini",
+                    "model": "gemini-1.5-flash",
+                    "fallback_chain": [],
+                },
+                "Screen Agent": {
+                    "provider": "gemini",
+                    "model": "gemini-1.5-flash",
+                    "fallback_chain": [],
+                },
+                "Text Agent": {
+                    "provider": "gemini",
+                    "model": "gemini-1.5-flash",
+                    "fallback_chain": [],
+                },
+                "System Interaction Agent": {
+                    "provider": "gemini",
+                    "model": "gemini-1.5-flash",
+                    "fallback_chain": [],
+                },
             },
             "security": {
                 "destructive_op_threshold": 80,
@@ -209,5 +245,5 @@ class ConfigManager:
         self.save(default_cfg)
 
 
-#Global instance for backward compatibility
+# Global instance for backward compatibility
 config_manager = ConfigManager()

@@ -1,5 +1,6 @@
-import subprocess
 import json
+import subprocess
+
 
 def get_security_emails():
     # AppleScript to get security emails
@@ -7,11 +8,11 @@ def get_security_emails():
     tell application "Safari"
         activate
         delay 2
-        
+
         -- Navigate to Gmail security search
         set URL of current tab of window 1 to "https://mail.google.com/mail/u/0/#search/security"
         delay 5
-        
+
         -- Get emails from the page
         tell document 1
             set emails to do JavaScript "var emails = [];
@@ -28,17 +29,18 @@ def get_security_emails():
         end tell
     end tell
     """
-    
+
     try:
         # Run the AppleScript
-        result = subprocess.run(['osascript', '-e', applescript], 
-                              capture_output=True, text=True)
-        
+        result = subprocess.run(
+            ["osascript", "-e", applescript], capture_output=True, text=True
+        )
+
         if result.returncode == 0:
             # Parse and sort emails
             emails = json.loads(result.stdout)
             emails.sort(key=lambda x: x["date"], reverse=True)
-            
+
             # Print emails
             for email in emails:
                 print(f"\n📧 {email['subject']}")
@@ -46,9 +48,10 @@ def get_security_emails():
                 print(f"📝 {email['snippet']}")
         else:
             print(f"Error: {result.stderr}")
-            
+
     except Exception as e:
         print(f"Error: {str(e)}")
+
 
 if __name__ == "__main__":
     get_security_emails()
