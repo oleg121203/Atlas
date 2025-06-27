@@ -1,0 +1,11 @@
+{
+    "environment": "development",
+    "api": {
+        "host": "localhost",
+        "port": 5000
+    },
+    "logging": {
+        "level": "INFO",
+        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    }
+}

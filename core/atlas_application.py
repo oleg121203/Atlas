@@ -62,10 +62,19 @@ class AtlasApplication:
         self.app_name = app_name
         self.version = version
         self.config = config
+        self.initialized = False
+
+        # Initialize logging first
+        setup_logging()
+
+        # Initialize security
+        initialize_security()
+
+        # Initialize core components
         self.app: Optional[QApplication] = None
         self.config_manager = ConfigManager()
         self.event_bus = EventBus()
-        self.module_registry = ModuleRegistry(self)
+        self.module_registry = ModuleRegistry()
         self.plugin_registry = PluginRegistry()
         self.running = False
         self.network_client = None
@@ -75,7 +84,6 @@ class AtlasApplication:
         self.self_healing_manager: Optional[SelfHealingManager] = None
         self.workflow_manager: Optional[WorkflowManager] = None
         self.async_task_manager: Optional[AsyncTaskManager] = None
-        self.initialized = False
 
         # Check environment security
         if not check_environment_security():
