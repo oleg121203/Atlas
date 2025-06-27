@@ -57,11 +57,13 @@ PyJWT==2.8.0
 # Storage and Database
 sqlalchemy>=2.0.0 
 pyyaml==6.0.2 # Exact version from later list 
+redis>=5.0.1
 
 # Logging and Monitoring
 coloredlogs>=15.0.1 
 tqdm==4.67.1 # Exact version from later list 
 rich==14.0.0 # Exact version from later list 
+sentry_sdk>=1.39.0
 
 # Utilities
 python-dotenv==1.1.0 # Exact version from later list 
@@ -69,6 +71,7 @@ platformdirs>=4.0.0
 pydantic==2.11.7 # Exact version from later list 
 dataclasses-json>=0.6.0 
 watchdog>=3.0.0 
+jsonschema>=4.21.0
 
 # LLM Providers
 google-generativeai>=0.7.0 

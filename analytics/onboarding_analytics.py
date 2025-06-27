@@ -23,13 +23,21 @@ class OnboardingAnalytics:
         """
         self.analytics_file = analytics_file
         self.current_session = {}
+        self.data = []
         self.load_existing_data()
+
+    def initialize(self) -> None:
+        """
+        Initialize analytics system.
+        """
+        # Make sure we have the data structure set up
+        if not hasattr(self, "data") or not self.data:
+            self.data = []
 
     def load_existing_data(self) -> None:
         """
         Load existing analytics data from the file if it exists.
         """
-        self.data = []
         if os.path.exists(self.analytics_file):
             try:
                 with open(self.analytics_file, "r") as f:

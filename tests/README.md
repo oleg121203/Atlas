@@ -25,6 +25,9 @@ pytest tests/ -v
 
 # Run specific test file
 pytest tests/test_basic.py
+
+# Run with coverage
+pytest tests/ --cov=. --cov-config=pyproject.toml
 ```
 
 ## Adding New Tests
@@ -44,6 +47,14 @@ When adding new tests:
 - Mock external dependencies appropriately
 - Test both success and failure cases
 - Maintain good test coverage
+
+## Coverage Configuration
+
+The code coverage configuration is defined in `pyproject.toml` in the project root:
+
+- Coverage settings use the `[tool.coverage.*]` sections in `pyproject.toml`
+- HTML reports are generated in `coverage_html_report/`
+- Excludes test files, backup files, and other non-core code
 
 ## Legacy Tests
 

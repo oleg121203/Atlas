@@ -62,29 +62,65 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "asyncio: mark a test as an asyncio test",
 ]
 
 [tool.coverage.run]
 source = ["."]
+branch = true
 omit = [
+    # Backup directories
     "backup_archive/*",
     "backup_ui/*", 
     "backup_ui_qt/*",
+    # Test files
     "tests/*",
+    "*_test.py",
+    "test_*.py",
+    # Virtual environments
     ".venv/*",
+    "venv/*",
+    "env/*",
+    # Build and cache directories
+    "build/*",
+    "dist/*",
+    "*.egg-info/*",
+    "__pycache__/*",
+    ".pytest_cache/*",
+    ".ruff_cache/*",
+    # Configuration files
+    "setup.py",
+    "conftest.py",
+    # Scripts and utilities (optional)
+    "scripts/*",
+    "dev-tools/*",
+    # Documentation
+    "docs/*",
+    "*.md",
+    "*.rst",
     "*/site-packages/*",
 ]
 
 [tool.coverage.report]
 exclude_lines = [
+    # Have to re-enable the standard pragma
     "pragma: no cover",
+    # Don't complain about missing debug-only code:
     "def __repr__",
-    "if self.debug:",
+    "if self\\.debug",
     "if settings.DEBUG",
+    # Don't complain if tests don't hit defensive assertion code:
     "raise AssertionError",
     "raise NotImplementedError",
+    # Don't complain if non-runnable code isn't run:
     "if 0:",
     "if __name__ == .__main__.:",
     "class .*\\bProtocol\\):",
+    # Don't complain about abstract methods
     "@(abc\\.)?abstractmethod",
 ]
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "coverage_html_report"

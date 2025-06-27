@@ -63,7 +63,7 @@ jobs:
     - name: Run tests with coverage
       run: |
         echo "🧪 Running tests..."
-        pytest tests/ --cov=. --cov-report=xml --cov-report=term-missing --cov-fail-under=80 -v
+        pytest tests/ --cov=. --cov-config=pyproject.toml --cov-report=xml --cov-report=term-missing --cov-fail-under=80 -v
       env:
         ATLAS_TESTING: "true"
     
