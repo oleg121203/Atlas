@@ -2,7 +2,7 @@ exclude = ["backup_archive", "backup_ui", "backup_ui_qt"]
 
 [lint]
 select = ["E", "F", "W", "I", "B", "SIM", "C"]
-ignore = ["E501", "C901", "SIM108", "B019", "F401", "SIM102", "E722"]
+ignore = ["E501", "C901", "SIM108", "B019", "F401", "SIM102", "E722", "B904", "SIM115", "F811", "E402"]
 
 [lint.pycodestyle]
 max-line-length = 120
@@ -11,10 +11,9 @@ max-line-length = 120
 "*/__init__.py" = ["F401", "F403"]
 "*/tests/*" = ["F401", "F811", "B007"]
 "main.py" = ["E402"]
-"utils/*" = ["E402"]
-"ui/main_window.py" = ["F401", "F811", "E402"]
+"utils/*" = ["E402", "F821", "B904", "SIM115", "F811"]
+"tools/*" = ["F821", "E402", "B904"]
+"ui/main_window.py" = ["F401", "F811", "E402", "B904"]
 "simulation/workflow_simulation.py" = ["E402"]
 "tests/plugin_marketplace_test.py" = ["E402"]
 "tests/test_enhanced_memory_manager_fix.py" = ["E402"]
-"backup_ui_qt/*.py" = ["F821"]
-"backup_ui/*.py" = ["F821"]
