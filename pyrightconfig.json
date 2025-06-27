@@ -1,0 +1,39 @@
+{
+    "include": [
+        "."
+    ],
+    "exclude": [
+        "backup_archive",
+        "backup_ui",
+        "backup_ui_qt",
+        "**/__pycache__",
+        "**/node_modules",
+        ".venv",
+        "venv",
+        "env",
+        ".git",
+        "dist",
+        "build",
+        "*.egg-info"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "pythonVersion": "3.11",
+    "pythonPlatform": "Darwin",
+    "executionEnvironments": [
+        {
+            "root": ".",
+            "pythonVersion": "3.11",
+            "pythonPlatform": "Darwin",
+            "extraPaths": [
+                "."
+            ]
+        }
+    ],
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "reportGeneralTypeIssues": "warning",
+    "reportOptionalMemberAccess": "warning",
+    "reportOptionalSubscript": "warning",
+    "reportPrivateImportUsage": "warning"
+}
