@@ -6,10 +6,16 @@ Uses platform-specific capture methods with fallbacks.
 from __future__ import annotations
 
 import datetime
+import logging
 from pathlib import Path
 from typing import Optional
 
-from PIL import Image  # type: ignore
+try:
+    from PIL import Image
+    PILLOW_AVAILABLE = True
+except ImportError:
+    PILLOW_AVAILABLE = False
+    logging.warning("Pillow not installed. Screenshot functionality will be limited.")
 
 from utils.platform_utils import IS_HEADLESS, IS_LINUX, IS_MACOS
 
@@ -33,46 +39,18 @@ _PYAUTOGUI_AVAILABLE = False
 
 if IS_MACOS:
     try:
-        # pyobjc Quartz is preferred on macOS (legacy support)
-        from Quartz import (
-            CGMainDisplayID,
-            CGRectInfinite,
-            CGWindowListCreateImage,
-            kCGWindowImageDefault,
-            kCGWindowListOptionOnScreenOnly,
-        )
-
+        import Quartz
         _QUARTZ_AVAILABLE = True
-    except ImportError as e:
+    except ImportError:
         _QUARTZ_AVAILABLE = False
-        print(f"Quartz not available: {e}")
-    except Exception:  # pragma: no cover
-        _QUARTZ_AVAILABLE = False
-
-
-# Try to import pyautogui safely for headless environments
-# Skip if in headless environment or if display is not available
-import types
+        logging.warning("Quartz not installed. Screenshot functionality on macOS will be limited.")
 
 try:
-    import pyautogui as pyautogui  # noqa: F401 - re-export for unit-test patching
-
-    _PYAUTOGUI_AVAILABLE = not IS_HEADLESS
-except Exception as e:  # pragma: no cover – keep attribute for tests
-    pyautogui = types.ModuleType("pyautogui")
-
-    def _noop(*_a, **_kw):
-        raise RuntimeError("pyautogui unavailable")
-
-    pyautogui.screenshot = _noop  # type: ignore[attr-defined]
+    import pyautogui
+    _PYAUTOGUI_AVAILABLE = True
+except ImportError:
     _PYAUTOGUI_AVAILABLE = False
-    if not IS_HEADLESS:
-        print(f"Warning: PyAutoGUI import failed: {e}")
-else:
-    _PYAUTOGUI_AVAILABLE = False
-    print(
-        "Warning: PyAutoGUI not available for mouse/keyboard: Headless environment detected"
-    )
+    logging.warning("PyAutoGUI not installed. Screenshot functionality will be limited.")
 
 __all__ = ["capture_screen"]
 
@@ -81,30 +59,23 @@ def _capture_quartz() -> Image.Image:
     """Capture the full screen via Quartz and return a PIL Image."""
     try:
         # Create screenshot using Quartz API
-        image_ref = CGWindowListCreateImage(
-            CGRectInfinite,
-            kCGWindowListOptionOnScreenOnly,
-            CGMainDisplayID(),
-            kCGWindowImageDefault,
+        image_ref = Quartz.CGWindowListCreateImage(
+            Quartz.CGRectInfinite,
+            Quartz.kCGWindowListOptionOnScreenOnly,
+            Quartz.CGMainDisplayID(),
+            Quartz.kCGWindowImageDefault,
         )
 
         if not image_ref:
             raise Exception("Failed to create CGImage")
 
         # Use modern pyobjc API
-        from Quartz import (
-            CGDataProviderCopyData,
-            CGImageGetBytesPerRow,
-            CGImageGetDataProvider,
-            CGImageGetHeight,
-            CGImageGetWidth,
-        )
 
-        width = CGImageGetWidth(image_ref)
-        height = CGImageGetHeight(image_ref)
-        bytes_per_row = CGImageGetBytesPerRow(image_ref)
-        data_provider = CGImageGetDataProvider(image_ref)
-        data = CGDataProviderCopyData(data_provider)
+        width = Quartz.CGImageGetWidth(image_ref)
+        height = Quartz.CGImageGetHeight(image_ref)
+        bytes_per_row = Quartz.CGImageGetBytesPerRow(image_ref)
+        data_provider = Quartz.CGImageGetDataProvider(image_ref)
+        data = Quartz.CGDataProviderCopyData(data_provider)
 
         # Convert CFData to bytes - use bytes() method if available, else convert directly
         buffer = data.bytes() if hasattr(data, "bytes") else bytes(data)
@@ -127,6 +98,19 @@ def _capture_quartz() -> Image.Image:
     except Exception as e:
         # If Quartz fails, raise exception to trigger fallback
         raise Exception(f"Quartz capture failed: {e}") from e
+
+
+def _capture_pyautogui() -> Image.Image:
+    """Capture the full screen via PyAutoGUI and return a PIL Image."""
+    try:
+        pyautogui.FAILSAFE = False  # type: ignore[attr-defined]
+        img = pyautogui.screenshot()  # type: ignore[attr-defined]
+        if not isinstance(img, Image.Image):
+            img = Image.fromarray(img)
+        return img
+    except Exception as e:
+        # If PyAutoGUI fails, raise exception to trigger fallback
+        raise Exception(f"PyAutoGUI capture failed: {e}") from e
 
 
 def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
@@ -153,10 +137,7 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
     # 2. PyAutoGUI (works cross-platform; tests patch this path)
     if img is None and _PYAUTOGUI_AVAILABLE:
         try:
-            pyautogui.FAILSAFE = False  # type: ignore[attr-defined]
-            img = pyautogui.screenshot()  # type: ignore[attr-defined]
-            if not isinstance(img, Image.Image):
-                img = Image.fromarray(img)
+            img = _capture_pyautogui()
         except Exception as e:
             last_error = f"PyAutoGUI capture failed: {e}"
             if not IS_HEADLESS:

@@ -2,7 +2,6 @@
 Main chat panel that combines chat history and input components.
 """
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLineEdit,

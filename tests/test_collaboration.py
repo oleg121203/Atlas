@@ -2,8 +2,6 @@
 Tests for the CollaborationManager class in integration/websocket_integration.py
 """
 
-import asyncio
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest

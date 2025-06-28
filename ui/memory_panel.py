@@ -7,7 +7,7 @@ searching, and managing memory collections in the Atlas AI platform.
 
 from typing import Callable, List, Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,

@@ -2,9 +2,6 @@
 Tests for the DatabaseOptimizer class in utils/db_optimizer.py
 """
 
-import os
-import sqlite3
-
 import pytest
 
 from utils.db_optimizer import DatabaseOptimizer

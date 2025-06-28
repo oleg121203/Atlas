@@ -2,9 +2,7 @@
 Tests for the DataCache module.
 """
 
-import asyncio
-import unittest.mock
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

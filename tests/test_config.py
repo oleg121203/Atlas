@@ -5,11 +5,11 @@ Test cases for Atlas configuration system.
 import json
 import os
 import unittest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import mock_open, patch
 
 from jsonschema import ValidationError
 
-from core.config import CONFIG_DIR, DEFAULT_CONFIG_PATH, SCHEMA_PATH, ConfigManager
+from core.config import ConfigManager
 
 
 class TestConfiguration(unittest.TestCase):

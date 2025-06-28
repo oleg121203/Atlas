@@ -26,11 +26,35 @@ sys.path.append(os.path.join(base_dir, "ui"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "config"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "utils"))
 
+# Import application components
+from analytics.onboarding_analytics import OnboardingAnalytics
+from core.data_cache import DataCache
+from core.intelligence.context_engine import ContextEngine
+from core.intelligence.decision_engine import DecisionEngine
+from core.intelligence.self_improvement_engine import SelfImprovementEngine
+
+# Import developer tools for Phase 13
+try:
+    from debugging.debugging_hooks import DebuggingHooks
+except ImportError:
+    class DebuggingHooks:
+        def __init__(self):
+            pass
+try:
+    from performance.performance_monitor import PerformanceMonitor
+except ImportError:
+    class PerformanceMonitor:
+        def __init__(self):
+            pass
+try:
+    from performance.latency_analyzer import LatencyAnalyzer
+except ImportError:
+    class LatencyAnalyzer:
+        def __init__(self):
+            pass
 
 from sentry_config import init_sentry
 
-from analytics.onboarding_analytics import OnboardingAnalytics
-from core.data_cache import DataCache
 from integration.websocket_integration import CollaborationManager
 from utils.db_optimizer import DatabaseOptimizer
 
@@ -83,12 +107,24 @@ class AtlasApp:
         )
         self.onboarding_analytics = OnboardingAnalytics()
         self.collab_manager = None  # Initialize later with user data
+        # Initialize intelligence components
+        self.context_engine = ContextEngine()
+        self.decision_engine = DecisionEngine(context_engine=self.context_engine)
+        self.self_improvement_engine = SelfImprovementEngine()
+        # Initialize developer tools for Phase 13
+        self.debugging_hooks = DebuggingHooks()
+        self.performance_monitor = PerformanceMonitor()
+        self.latency_analyzer = LatencyAnalyzer()
+        logger.info("Advanced developer tools initialized.")
 
     async def initialize(self):
         """Initialize app components."""
         await self.data_cache.initialize()
         self.db_optimizer.connect()
         self.onboarding_analytics.initialize()
+        # Initialize intelligence components
+        self.context_engine.start_continuous_update()
+        logger.info("Intelligence components initialized and context updates started.")
         # Collaboration manager would be initialized after user login with proper IDs
         # For now, placeholder initialization
         user_id = "placeholder_user"

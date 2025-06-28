@@ -101,7 +101,6 @@ class TestModuleEvents(unittest.TestCase):
         self.patcher = patch("core.event_system.EVENT_BUS", EventBus())
         self.mock_event_bus = self.patcher.start()
         # Also get a reference to the real EventBus instance for assertions
-        from core.event_system import EVENT_BUS
 
         self.event_bus = EVENT_BUS
 
@@ -133,7 +132,6 @@ class TestModuleEvents(unittest.TestCase):
     def test_global_event_bus_instance(self):
         """Test that a global EVENT_BUS instance exists."""
         # Import the module to get the actual EVENT_BUS instance
-        from core.event_system import EVENT_BUS
 
         # Assert
         self.assertIsInstance(EVENT_BUS, EventBus)

@@ -2,7 +2,6 @@
 Test suite for PySide6 SecurityPanel migration.
 """
 
-import pytest
 from PySide6.QtWidgets import QApplication
 
 from ui.security_panel import SecurityPanel

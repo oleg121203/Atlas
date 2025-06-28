@@ -8,7 +8,7 @@ import unittest
 from typing import Any, Dict
 from unittest.mock import mock_open, patch
 
-from core.config import CONFIG_DIR, DEFAULT_CONFIG_PATH, SCHEMA_PATH, ConfigManager
+from core.config import CONFIG_DIR, ConfigManager
 
 
 class TestConfiguration(unittest.TestCase):

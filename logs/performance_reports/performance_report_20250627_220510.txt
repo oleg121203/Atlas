@@ -1,0 +1,25 @@
+Atlas Performance Report - 20250627_220510
+==================================================
+
+CPU Usage: 0.0%
+Memory Usage: 0.0%
+
+Latency Statistics:
+  - MockOperation:
+    Average: 1.002 sec
+    Max: 1.002 sec
+    Min: 1.002 sec
+    Count: 1
+
+Memory Allocation Details:
+[Top 10 Memory Allocations]
+/Users/dev/.pyenv/versions/3.9.20/lib/python3.9/site-packages/psutil/_psosx.py:347: size=1552 B, count=5, average=310 B
+/Users/dev/.pyenv/versions/3.9.20/lib/python3.9/site-packages/psutil/_common.py:460: size=832 B, count=2, average=416 B
+/Users/dev/.pyenv/versions/3.9.20/lib/python3.9/threading.py:842: size=744 B, count=2, average=372 B
+/Users/dev/.pyenv/versions/3.9.20/lib/python3.9/threading.py:250: size=624 B, count=2, average=312 B
+/Users/dev/Documents/NIMDA/Atlas/plugins/performance_monitoring.py:362: size=616 B, count=1, average=616 B
+/Users/dev/.pyenv/versions/3.9.20/lib/python3.9/site-packages/psutil/_psosx.py:447: size=592 B, count=2, average=296 B
+/Users/dev/Documents/NIMDA/Atlas/plugins/performance_monitoring.py:165: size=560 B, count=1, average=560 B
+/Users/dev/.pyenv/versions/3.9.20/lib/python3.9/threading.py:581: size=536 B, count=1, average=536 B
+/Users/dev/.pyenv/versions/3.9.20/lib/python3.9/site-packages/psutil/_psosx.py:123: size=536 B, count=1, average=536 B
+/Users/dev/Documents/NIMDA/Atlas/plugins/performance_monitoring.py:246: size=528 B, count=1, average=528 B

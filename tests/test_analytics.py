@@ -4,7 +4,6 @@ Tests for the OnboardingAnalytics class in analytics/onboarding_analytics.py
 
 import json
 import os
-from datetime import datetime
 
 import pytest
 

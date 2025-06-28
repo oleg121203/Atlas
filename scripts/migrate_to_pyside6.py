@@ -3,7 +3,6 @@
 Script to help migrate UI components from tkinter/customtkinter to PySide6.
 """
 
-import os
 import shutil
 from pathlib import Path
 

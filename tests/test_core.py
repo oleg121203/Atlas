@@ -2,13 +2,11 @@
 Test cases for core components of the Atlas application.
 """
 
-import os
 import unittest
 from unittest.mock import MagicMock, patch
 
 from core.atlas_application import AtlasApplication
 from core.event_bus import EventBus
-from core.module_system import ModuleRegistry
 from core.module_system import ModuleRegistry as ModuleRegistrySystem
 
 
