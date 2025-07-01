@@ -77,7 +77,10 @@ class WorkflowAnalytics:
             cursor = self.conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO workflow_executions (execution_id, workflow_id, start_time, status, actions_count, failed_actions_count)
+                INSERT INTO workflow_executions (
+                    execution_id, workflow_id, start_time, status,
+                    actions_count, failed_actions_count
+                )
                 VALUES (?, ?, ?, 'running', 0, 0)
             """,
                 (execution_id, workflow_id, datetime.now()),
@@ -145,7 +148,10 @@ class WorkflowAnalytics:
             duration = (end_time - start_time).total_seconds()
             cursor.execute(
                 """
-                INSERT INTO action_executions (execution_id, action_name, start_time, end_time, duration_seconds, status, error_message)
+                INSERT INTO action_executions (
+                    execution_id, action_name, start_time, end_time,
+                    duration_seconds, status, error_message
+                )
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
                 (
@@ -206,7 +212,8 @@ class WorkflowAnalytics:
             cursor = self.conn.cursor()
             cursor.execute(
                 """
-                SELECT execution_id, start_time, end_time, duration_seconds, status, actions_count, failed_actions_count, details
+                SELECT execution_id, start_time, end_time, duration_seconds,
+                       status, actions_count, failed_actions_count, details
                 FROM workflow_executions
                 WHERE workflow_id = ?
                 ORDER BY start_time DESC
@@ -225,7 +232,9 @@ class WorkflowAnalytics:
                 "failed_actions_count",
                 "details",
             ]
-            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            results = [
+                dict(zip(columns, row, strict=False)) for row in cursor.fetchall()
+            ]
             logger.info(
                 f"Retrieved performance data for workflow {workflow_id} with {len(results)} executions"
             )
@@ -266,7 +275,9 @@ class WorkflowAnalytics:
                 "status",
                 "error_message",
             ]
-            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            results = [
+                dict(zip(columns, row, strict=False)) for row in cursor.fetchall()
+            ]
             logger.info(
                 f"Retrieved action performance data for execution {execution_id} with {len(results)} actions"
             )
@@ -407,14 +418,17 @@ class WorkflowAnalytics:
                     avg_total_duration > 10.0
                 ):  # Arbitrary threshold for long-running workflows
                     suggestions["other_suggestions"].append(
-                        f"Workflow takes on average {avg_total_duration:.2f} seconds to complete. Consider breaking it into smaller workflows."
+                        f"Workflow takes on average {avg_total_duration:.2f} seconds "
+                        f"to complete. Consider breaking it into smaller workflows."
                     )
 
                 # Identify bottlenecks (actions taking more than 20% of total duration)
                 for action_name, avg_duration, count in action_durations:
                     if count > 1 and avg_duration > avg_total_duration * 0.2:
                         suggestions["bottlenecks"].append(
-                            f"Action '{action_name}' takes on average {avg_duration:.2f} seconds ({(avg_duration / avg_total_duration) * 100:.1f}% of total)"
+                            f"Action '{action_name}' takes on average "
+                            f"{avg_duration:.2f} seconds "
+                            f"({(avg_duration / avg_total_duration) * 100:.1f}% of total)"
                         )
                         suggestions["parallelization_opportunities"].append(
                             f"Consider parallelizing or optimizing action '{action_name}'"

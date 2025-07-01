@@ -227,7 +227,10 @@ class PersonalizedInsights:
                     {
                         "action": "Schedule regular check-ins",
                         "priority": "medium",
-                        "rationale": "Low usage frequency detected. Setting regular times to review the dashboard can help maintain engagement.",
+                        "rationale": (
+                            "Low usage frequency detected. Setting regular times "
+                            "to review the dashboard can help maintain engagement."
+                        ),
                     }
                 )
 
@@ -237,7 +240,10 @@ class PersonalizedInsights:
                     {
                         "action": "Explore dashboard tutorials",
                         "priority": "medium",
-                        "rationale": "Low engagement score. Learning more about dashboard features may increase usage and efficiency.",
+                        "rationale": (
+                            "Low engagement score. Learning more about dashboard "
+                            "features may increase usage and efficiency."
+                        ),
                     }
                 )
             elif user_insights["engagement_score"] > 0.7:
@@ -245,7 +251,10 @@ class PersonalizedInsights:
                     {
                         "action": "Utilize advanced features",
                         "priority": "low",
-                        "rationale": "High engagement score. Exploring advanced features could further enhance productivity.",
+                        "rationale": (
+                            "High engagement score. Exploring advanced features "
+                            "could further enhance productivity."
+                        ),
                     }
                 )
 
@@ -255,7 +264,10 @@ class PersonalizedInsights:
                     {
                         "action": "Prioritize task management",
                         "priority": "high",
-                        "rationale": "Frequent interaction with task sections. Focus on task completion and organization for maximum productivity.",
+                        "rationale": (
+                            "Frequent interaction with task sections. Focus on task "
+                            "completion and organization for maximum productivity."
+                        ),
                     }
                 )
             if "analytics" in user_insights["preferred_sections"]:
@@ -263,7 +275,10 @@ class PersonalizedInsights:
                     {
                         "action": "Review analytics regularly",
                         "priority": "medium",
-                        "rationale": "Interest in analytics detected. Regular review can provide insights for better decision-making.",
+                        "rationale": (
+                            "Interest in analytics detected. Regular review can "
+                            "provide insights for better decision-making."
+                        ),
                     }
                 )
 
@@ -325,7 +340,9 @@ class PersonalizedInsights:
             archetype_mapping = {0: "casual", 1: "focused", 2: "power_user"}
             user_archetypes = {
                 uid: archetype_mapping.get(cluster, "default")
-                for uid, cluster in zip(user_features["user_id"], clusters)
+                for uid, cluster in zip(
+                    user_features["user_id"], clusters, strict=False
+                )
             }
 
             return user_archetypes

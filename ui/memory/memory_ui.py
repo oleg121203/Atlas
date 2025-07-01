@@ -97,7 +97,7 @@ class MemoryUI(QWidget):
                     documents = items.get("documents", [])
 
                     for i, (item_id, metadata, document) in enumerate(
-                        zip(item_ids, metadatas, documents)
+                        zip(item_ids, metadatas, documents, strict=False)
                     ):
                         if i >= 10:  # Limit to first 10 items for performance
                             QTreeWidgetItem(

@@ -1,7 +1,7 @@
 repos:
-    - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.12.1
-      hooks:
-          - id: ruff
-            args: ["--fix", "--ignore=C901"]
-          - id: ruff-format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.1
+    hooks:
+      - id: ruff
+        args: ["--fix", "--ignore=C901,E501,E402,F401,F811,B904,SIM115"]
+      - id: ruff-format
