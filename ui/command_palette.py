@@ -1,5 +1,6 @@
 # Placeholder for CommandPalette to stabilize application launch
 
+
 class CommandPalette:
     def __init__(self, parent=None):
         self.parent = parent

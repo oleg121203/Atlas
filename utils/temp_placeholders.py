@@ -1,5 +1,6 @@
 # Temporary placeholder classes to stabilize application launch
 
+
 class CollaborationManager:
     def __init__(self, server_url=None, user_id=None, team_id=None):
         self.server_url = server_url
@@ -18,6 +19,7 @@ class CollaborationManager:
     def start(self):
         pass
 
+
 class Config:
     def __init__(self):
         self.data = {}
@@ -27,6 +29,7 @@ class Config:
 
     def set(self, key, value):
         self.data[key] = value
+
 
 class OnboardingAnalytics:
     def __init__(self):

@@ -12,7 +12,10 @@ logger = logging.getLogger(__name__)
 # Sentry SDK might not be installed, so we'll use a placeholder
 sentry_sdk = None
 
-def init_sentry(dsn: str = "", environment: str = "production", release: str = "atlas@1.0.0") -> bool:
+
+def init_sentry(
+    dsn: str = "", environment: str = "production", release: str = "atlas@1.0.0"
+) -> bool:
     """Initialize Sentry error tracking.
 
     Args:
@@ -42,7 +45,7 @@ def init_sentry(dsn: str = "", environment: str = "production", release: str = "
             release=release,
             traces_sample_rate=1.0,
             profiles_sample_rate=1.0,
-            enable_tracing=True
+            enable_tracing=True,
         )
         logger.info("Sentry initialized for crash reporting")
         return True
@@ -52,6 +55,7 @@ def init_sentry(dsn: str = "", environment: str = "production", release: str = "
     except Exception as e:
         logger.error(f"Failed to initialize Sentry: {e}")
         return False
+
 
 def capture_exception(exception: Exception, extra_data: dict = None) -> str:
     """Capture an exception and send it to Sentry.
@@ -78,6 +82,7 @@ def capture_exception(exception: Exception, extra_data: dict = None) -> str:
     else:
         logger.warning("Sentry SDK not available, exception not captured")
         return ""
+
 
 def capture_message(message: str, level: str = "info", extra_data: dict = None) -> str:
     """Capture a custom message and send it to Sentry.
@@ -109,6 +114,7 @@ def capture_message(message: str, level: str = "info", extra_data: dict = None) 
         logger.warning("Sentry SDK not available, message not captured")
         return ""
 
+
 def set_user(user_id: str, email: str = "", username: str = "") -> None:
     """Set user information for Sentry error tracking.
 
@@ -119,11 +125,7 @@ def set_user(user_id: str, email: str = "", username: str = "") -> None:
     """
     if sentry_sdk:
         try:
-            sentry_sdk.set_user({
-                "id": user_id,
-                "email": email,
-                "username": username
-            })
+            sentry_sdk.set_user({"id": user_id, "email": email, "username": username})
             logger.info(f"User information set for Sentry: {user_id}")
         except Exception as e:
             logger.error(f"Failed to set user information: {e}")

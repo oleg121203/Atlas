@@ -122,7 +122,9 @@ def test_chromadb_manager_initialization():
 @pytest.mark.skipif(
     not BROWSER_AVAILABLE, reason="EnhancedBrowser dependencies not installed"
 )
-@pytest.mark.skip(reason="Temporarily skipped due to GUI initialization crash in test environment")
+@pytest.mark.skip(
+    reason="Temporarily skipped due to GUI initialization crash in test environment"
+)
 def test_enhanced_browser_initialization():
     """Test initialization of EnhancedBrowser."""
     browser_tool = EnhancedBrowser()
@@ -161,7 +163,9 @@ def test_file_explorer_initialization():
     """Test initialization of FileExplorer."""
     explorer_tool = FileExplorer()
     assert explorer_tool is not None, "FileExplorer initialization failed"
-    assert hasattr(explorer_tool, "tree_view"), "Tree view not initialized in FileExplorer"
+    assert hasattr(explorer_tool, "tree_view"), (
+        "Tree view not initialized in FileExplorer"
+    )
 
 
 @pytest.mark.quality

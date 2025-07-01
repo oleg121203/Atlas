@@ -76,7 +76,10 @@ class AtlasMainWindow(QMainWindow):
     """
 
     def __init__(
-        self, meta_agent: Optional[Any] = None, parent: Optional[QWidget] = None, app_instance: Optional[Any] = None
+        self,
+        meta_agent: Optional[Any] = None,
+        parent: Optional[QWidget] = None,
+        app_instance: Optional[Any] = None,
     ):
         logger = logging.getLogger(__name__)
         logger.debug("Starting AtlasMainWindow initialization")
@@ -117,20 +120,20 @@ class AtlasMainWindow(QMainWindow):
         logger.debug("Initializing UI elements")
         self.setStyleSheet("""
             QMainWindow { background-color: #1a1a1a; color: #00ffaa; }
-            QPushButton { 
-                background-color: #333; 
-                color: #00ffaa; 
-                border: 1px solid #444; 
-                padding: 5px 10px; 
-                border-radius: 3px; 
+            QPushButton {
+                background-color: #333;
+                color: #00ffaa;
+                border: 1px solid #444;
+                padding: 5px 10px;
+                border-radius: 3px;
             }
             QPushButton:hover { background-color: #444; }
             QPushButton:pressed { background-color: #222; }
-            QTextEdit, QLineEdit { 
-                background-color: #222; 
-                color: #00ffaa; 
-                border: 1px solid #444; 
-                padding: 3px; 
+            QTextEdit, QLineEdit {
+                background-color: #222;
+                color: #00ffaa;
+                border: 1px solid #444;
+                padding: 3px;
             }
             QLabel { color: #00ffaa; }
             QTabWidget::pane { border: 1px solid #333; background: #1a1a1a; }
@@ -354,11 +357,10 @@ class AtlasMainWindow(QMainWindow):
                     self.setLayout(layout)
 
         try:
-            from ui.tasks.task_widget import TaskWidget
+            from ui.tasks.task_widget import TaskWidget  # noqa: F401
         except ImportError as e:
             logger = logging.getLogger(__name__)
             logger.warning(f"Import error for TaskWidget: {e}")
-            TaskWidget = None
 
         try:
             from ui.user_management import UserManagement
@@ -965,20 +967,20 @@ class AtlasMainWindow(QMainWindow):
         # Apply cyberpunk styling to entire window
         self.setStyleSheet("""
             QMainWindow { background-color: #1a1a1a; color: #00ffaa; }
-            QPushButton { 
-                background-color: #333; 
-                color: #00ffaa; 
-                border: 1px solid #444; 
-                padding: 5px 10px; 
-                border-radius: 3px; 
+            QPushButton {
+                background-color: #333;
+                color: #00ffaa;
+                border: 1px solid #444;
+                padding: 5px 10px;
+                border-radius: 3px;
             }
             QPushButton:hover { background-color: #444; }
             QPushButton:pressed { background-color: #222; }
-            QTextEdit, QLineEdit { 
-                background-color: #222; 
-                color: #00ffaa; 
-                border: 1px solid #444; 
-                padding: 3px; 
+            QTextEdit, QLineEdit {
+                background-color: #222;
+                color: #00ffaa;
+                border: 1px solid #444;
+                padding: 3px;
             }
             QLabel { color: #00ffaa; }
         """)

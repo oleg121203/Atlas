@@ -36,8 +36,12 @@ class TaskWidget(QWidget):
         self.task_table = QTableWidget()
         self.task_table.setRowCount(0)
         self.task_table.setColumnCount(5)
-        self.task_table.setHorizontalHeaderLabels(["Task Name", "Description", "Status", "Due Date", "Actions"])
-        self.task_table.setStyleSheet("border: 1px solid #404040; alternate-background-color: #303030;")
+        self.task_table.setHorizontalHeaderLabels(
+            ["Task Name", "Description", "Status", "Due Date", "Actions"]
+        )
+        self.task_table.setStyleSheet(
+            "border: 1px solid #404040; alternate-background-color: #303030;"
+        )
         self.task_table.setAlternatingRowColors(True)
         self.task_table.horizontalHeader().setStretchLastSection(True)
         layout.addWidget(self.task_table)
@@ -48,12 +52,18 @@ class TaskWidget(QWidget):
 
         self.task_name_input = QLineEdit()
         self.task_name_input.setPlaceholderText("Task Name")
-        self.task_name_input.setStyleSheet("padding: 5px; border: 1px solid #404040; background-color: #202020; color: #ffffff;")
+        self.task_name_input.setStyleSheet(
+            "padding: 5px; border: 1px solid #404040; "
+            "background-color: #202020; color: #ffffff;"
+        )
         form_layout.addWidget(self.task_name_input)
 
         self.description_input = QLineEdit()
         self.description_input.setPlaceholderText("Description")
-        self.description_input.setStyleSheet("padding: 5px; border: 1px solid #404040; background-color: #202020; color: #ffffff;")
+        self.description_input.setStyleSheet(
+            "padding: 5px; border: 1px solid #404040; "
+            "background-color: #202020; color: #ffffff;"
+        )
         form_layout.addWidget(self.description_input)
 
         status_widget = QWidget()
@@ -62,7 +72,10 @@ class TaskWidget(QWidget):
         status_label.setStyleSheet("color: #ffffff;")
         self.status_input = QComboBox()
         self.status_input.addItems(["Not Started", "In Progress", "Completed"])
-        self.status_input.setStyleSheet("padding: 5px; border: 1px solid #404040; background-color: #202020; color: #ffffff;")
+        self.status_input.setStyleSheet(
+            "padding: 5px; border: 1px solid #404040; "
+            "background-color: #202020; color: #ffffff;"
+        )
         status_layout.addWidget(status_label)
         status_layout.addWidget(self.status_input)
         status_layout.addStretch()
@@ -75,7 +88,10 @@ class TaskWidget(QWidget):
         due_date_label.setStyleSheet("color: #ffffff;")
         self.due_date_input = QDateTimeEdit()
         self.due_date_input.setDateTime(QDateTime.currentDateTime().addDays(7))
-        self.due_date_input.setStyleSheet("padding: 5px; border: 1px solid #404040; background-color: #202020; color: #ffffff;")
+        self.due_date_input.setStyleSheet(
+            "padding: 5px; border: 1px solid #404040; "
+            "background-color: #202020; color: #ffffff;"
+        )
         due_date_layout.addWidget(due_date_label)
         due_date_layout.addWidget(self.due_date_input)
         due_date_layout.addStretch()
@@ -83,7 +99,10 @@ class TaskWidget(QWidget):
         form_layout.addWidget(due_date_widget)
 
         add_button = QPushButton("Add Task")
-        add_button.setStyleSheet("background-color: #007BFF; color: white; border: none; padding: 8px; font-weight: bold;")
+        add_button.setStyleSheet(
+            "background-color: #007BFF; color: white; border: none; "
+            "padding: 8px; font-weight: bold;"
+        )
         add_button.clicked.connect(self.add_task)
         form_layout.addWidget(add_button)
 
@@ -95,9 +114,24 @@ class TaskWidget(QWidget):
         """Populate the task table with sample data (to be replaced with real data)."""
         self.task_table.setRowCount(0)
         sample_tasks = [
-            ("Implement UI", "Finish PySide6 integration", "In Progress", QDateTime.currentDateTime().addDays(3).toString("yyyy-MM-dd hh:mm")),
-            ("Database Optimization", "Improve query performance", "Not Started", QDateTime.currentDateTime().addDays(10).toString("yyyy-MM-dd hh:mm")),
-            ("Bug Fixing", "Resolve critical bugs", "Completed", QDateTime.currentDateTime().addDays(-2).toString("yyyy-MM-dd hh:mm"))
+            (
+                "Implement UI",
+                "Finish PySide6 integration",
+                "In Progress",
+                QDateTime.currentDateTime().addDays(3).toString("yyyy-MM-dd hh:mm"),
+            ),
+            (
+                "Database Optimization",
+                "Improve query performance",
+                "Not Started",
+                QDateTime.currentDateTime().addDays(10).toString("yyyy-MM-dd hh:mm"),
+            ),
+            (
+                "Bug Fixing",
+                "Resolve critical bugs",
+                "Completed",
+                QDateTime.currentDateTime().addDays(-2).toString("yyyy-MM-dd hh:mm"),
+            ),
         ]
 
         for task_name, description, status, due_date in sample_tasks:
@@ -111,10 +145,14 @@ class TaskWidget(QWidget):
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
             edit_btn = QPushButton("Edit")
-            edit_btn.setStyleSheet("background-color: #ffc107; color: black; border: none; padding: 3px 6px;")
+            edit_btn.setStyleSheet(
+                "background-color: #ffc107; color: black; border: none; padding: 3px 6px;"
+            )
             edit_btn.clicked.connect(lambda checked, t=task_name: self.edit_task(t))
             delete_btn = QPushButton("Delete")
-            delete_btn.setStyleSheet("background-color: #dc3545; color: white; border: none; padding: 3px 6px;")
+            delete_btn.setStyleSheet(
+                "background-color: #dc3545; color: white; border: none; padding: 3px 6px;"
+            )
             delete_btn.clicked.connect(lambda checked, t=task_name: self.delete_task(t))
             action_layout.addWidget(edit_btn)
             action_layout.addWidget(delete_btn)
@@ -143,10 +181,14 @@ class TaskWidget(QWidget):
         action_widget = QWidget()
         action_layout = QHBoxLayout(action_widget)
         edit_btn = QPushButton("Edit")
-        edit_btn.setStyleSheet("background-color: #ffc107; color: black; border: none; padding: 3px 6px;")
+        edit_btn.setStyleSheet(
+            "background-color: #ffc107; color: black; border: none; padding: 3px 6px;"
+        )
         edit_btn.clicked.connect(lambda checked, t=task_name: self.edit_task(t))
         delete_btn = QPushButton("Delete")
-        delete_btn.setStyleSheet("background-color: #dc3545; color: white; border: none; padding: 3px 6px;")
+        delete_btn.setStyleSheet(
+            "background-color: #dc3545; color: white; border: none; padding: 3px 6px;"
+        )
         delete_btn.clicked.connect(lambda checked, t=task_name: self.delete_task(t))
         action_layout.addWidget(edit_btn)
         action_layout.addWidget(delete_btn)
@@ -158,19 +200,32 @@ class TaskWidget(QWidget):
         self.description_input.clear()
         self.status_input.setCurrentIndex(0)
         self.due_date_input.setDateTime(QDateTime.currentDateTime().addDays(7))
-        QMessageBox.information(self, "Success", f"Task {task_name} added successfully.")
+        QMessageBox.information(
+            self, "Success", f"Task {task_name} added successfully."
+        )
 
     def edit_task(self, task_name):
         """Placeholder for editing a task."""
-        QMessageBox.information(self, "Edit Task", f"Editing task {task_name}. This functionality will be implemented soon.")
+        QMessageBox.information(
+            self,
+            "Edit Task",
+            f"Editing task {task_name}. This functionality will be implemented soon.",
+        )
 
     def delete_task(self, task_name):
         """Delete a task from the table."""
-        confirm = QMessageBox.question(self, "Confirm Deletion", f"Are you sure you want to delete task {task_name}?",
-                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            f"Are you sure you want to delete task {task_name}?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
         if confirm == QMessageBox.Yes:
             for row in range(self.task_table.rowCount()):
                 if self.task_table.item(row, 0).text() == task_name:
                     self.task_table.removeRow(row)
-                    QMessageBox.information(self, "Success", f"Task {task_name} deleted.")
+                    QMessageBox.information(
+                        self, "Success", f"Task {task_name} deleted."
+                    )
                     break

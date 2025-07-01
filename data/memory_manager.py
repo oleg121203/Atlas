@@ -1,5 +1,6 @@
 # Placeholder for MemoryManager to stabilize application launch
 
+
 class MemoryManager:
     def __init__(self):
         self.data = {}

@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -18,6 +19,7 @@ except ImportError:
 
 try:
     import tracemalloc
+
     TRACEMALLOC_AVAILABLE = True
 except ImportError:
     TRACEMALLOC_AVAILABLE = False
@@ -40,7 +42,9 @@ class PerformanceMonitor:
             except Exception as e:
                 logger.warning(f"Failed to initialize process monitor: {e}")
         else:
-            logger.warning("psutil not available, CPU and memory metrics will be limited")
+            logger.warning(
+                "psutil not available, CPU and memory metrics will be limited"
+            )
         if TRACEMALLOC_AVAILABLE:
             self.start_memory_tracing()
         else:
@@ -84,7 +88,10 @@ class PerformanceMonitor:
         if self.process is not None and psutil is not None:
             try:
                 mem_info = self.process.memory_info()
-                return {"rss": mem_info.rss / 1024 / 1024, "vms": mem_info.vms / 1024 / 1024}
+                return {
+                    "rss": mem_info.rss / 1024 / 1024,
+                    "vms": mem_info.vms / 1024 / 1024,
+                }
             except Exception as e:
                 logger.warning(f"Failed to get memory usage: {e}")
                 return None
@@ -151,7 +158,7 @@ class PerformanceMonitor:
                     "min": min(values),
                     "max": max(values),
                     "avg": sum(values) / len(values),
-                    "count": len(values)
+                    "count": len(values),
                 }
         return summary
 

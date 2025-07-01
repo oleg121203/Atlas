@@ -37,7 +37,9 @@ from utils.db_optimizer import DatabaseOptimizer
 from utils.temp_placeholders import CollaborationManager, Config, OnboardingAnalytics
 
 # Configure logging before any other code
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Initialize Sentry for crash reporting
@@ -86,7 +88,9 @@ def run_async(coroutine):
         loop = asyncio.get_event_loop()
         return asyncio.run_coroutine_threadsafe(coroutine, loop)
     else:
-        logger.warning("Asyncio not available or coroutine is not a Future, cannot run coroutine")
+        logger.warning(
+            "Asyncio not available or coroutine is not a Future, cannot run coroutine"
+        )
         return None
 
 
@@ -121,7 +125,7 @@ class AtlasApp:
             if future is not None:
                 future.result(timeout=5)  # Wait up to 5 seconds for initialization
         # Ensure no reference to start_optimization
-        if hasattr(self.db_optimizer, 'connect'):
+        if hasattr(self.db_optimizer, "connect"):
             self.db_optimizer.connect()
         else:
             logger.info("Database optimizer connection method not available, skipping.")
@@ -146,12 +150,16 @@ class AtlasApp:
         user_id = os.environ.get("ATLAS_USER_ID", "default_user")
         team_id = os.environ.get("ATLAS_TEAM_ID", "default_team")
         if server_url and user_id and team_id:
-            self.collaboration_manager = CollaborationManager(server_url, user_id, team_id)
+            self.collaboration_manager = CollaborationManager(
+                server_url, user_id, team_id
+            )
             # Removed task_view reference
             self.collaboration_manager.connect()
             logger.info("Team collaboration features initialized.")
         else:
-            logger.warning("Collaboration environment variables not set. Collaboration disabled.")
+            logger.warning(
+                "Collaboration environment variables not set. Collaboration disabled."
+            )
 
     def handle_task_update(self, data: Dict[str, Any]):
         """Handle real-time task updates from WebSocket."""
@@ -178,7 +186,7 @@ class AtlasApp:
         logger.info("Starting Atlas application")
         self.app = QApplication(sys.argv)
         # Ensure _setup_ui method exists or replace with actual UI setup
-        if hasattr(self, '_setup_ui'):
+        if hasattr(self, "_setup_ui"):
             self._setup_ui()
         else:
             logger.warning("_setup_ui method not found, skipping UI setup")
@@ -194,13 +202,19 @@ class AtlasApp:
             if loop.is_closed():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-            tasks = [component.initialize() for component in self.async_components if hasattr(component, 'initialize')]
+            tasks = [
+                component.initialize()
+                for component in self.async_components
+                if hasattr(component, "initialize")
+            ]
             if tasks:
                 loop.run_until_complete(asyncio.gather(*tasks))
 
         run_async_tasks()
 
-    async def _init_component(self, component: Any, success_msg: str, error_attr=None) -> None:
+    async def _init_component(
+        self, component: Any, success_msg: str, error_attr=None
+    ) -> None:
         """Initialize a component asynchronously with error handling."""
         try:
             if hasattr(component, "init"):
@@ -265,7 +279,9 @@ def main():
     # Initialize core components before UI if needed, but keep it minimal for now
     # Now initialize UI after QApplication is created
     if MainWindow is not None:
-        window = MainWindow()  # Removed app_instance parameter to match constructor signature
+        window = (
+            MainWindow()
+        )  # Removed app_instance parameter to match constructor signature
         window.show()
         sys.exit(app.exec())
     else:

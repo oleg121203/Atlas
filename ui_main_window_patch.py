@@ -2,6 +2,10 @@
 Patch file to update import statements in ui/main_window.py for new UI directory structure.
 """
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Import UI components with error handling
 try:
     from ui.chat.ai_assistant_widget import AIAssistantWidget

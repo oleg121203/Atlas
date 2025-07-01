@@ -2,20 +2,33 @@
 Patch file to update import statements in ui/__init__.py for new UI directory structure.
 """
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Import input validation functions with error handling
 try:
     from ui.input_validation import (
-        sanitize_ui_input,
-        validate_ui_input,
         sanitize_form_data,
+        sanitize_ui_input,
         validate_form_data,
+        validate_ui_input,
     )
 except ImportError as e:
     logger.error(f"Input validation functions import failed: {e}")
-    sanitize_ui_input = lambda x: x
-    validate_ui_input = lambda x: True
-    sanitize_form_data = lambda x: x
-    validate_form_data = lambda x: True
+
+    def sanitize_ui_input(x):
+        return x
+
+    def validate_ui_input(x):
+        return True
+
+    def sanitize_form_data(x):
+        return x
+
+    def validate_form_data(x):
+        return True
+
 
 # Import UI widgets with error handling
 try:

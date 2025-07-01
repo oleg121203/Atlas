@@ -6,4 +6,4 @@ This package contains UI components related to task management for the Atlas app
 
 from .task_widget import TaskWidget
 
-__all__ = ['TaskWidget']
+__all__ = ["TaskWidget"]

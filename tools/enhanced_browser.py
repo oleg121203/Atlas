@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 
 try:
     import importlib.util
+
     PYAUTOGUI_AVAILABLE = importlib.util.find_spec("pyautogui") is not None
 except ImportError:
     PYAUTOGUI_AVAILABLE = False
@@ -165,11 +166,15 @@ class EnhancedBrowser(QWidget):
         """Initialize browser settings and connect signals."""
         if self.web_view is not None:
             settings = self.web_view.page().settings()
-            settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
+            settings.setAttribute(
+                QWebEngineSettings.WebAttribute.JavascriptEnabled, True
+            )
             settings.setAttribute(
                 QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows, True
             )
-            settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
+            settings.setAttribute(
+                QWebEngineSettings.WebAttribute.LocalStorageEnabled, True
+            )
             settings.setAttribute(
                 QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True
             )

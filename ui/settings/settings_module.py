@@ -109,7 +109,8 @@ class SettingsModule(QWidget):
                     else:
                         info = plugin.info()
                         label = QLabel(
-                            f"{info.get('name', plugin.name)}: {str(_('No settings available')) or 'No settings available'}"
+                            f"{info.get('name', plugin.name)}: "
+                            f"{str(_('No settings available')) or 'No settings available'}"
                         )
                         self.plugins_layout.addWidget(label)
                 except Exception as e:

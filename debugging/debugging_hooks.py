@@ -69,6 +69,7 @@ class DebuggingHooks:
 
 class DebuggingHooksPlaceholder:
     """Placeholder class for debugging hooks."""
+
     def __init__(self):
         pass
 

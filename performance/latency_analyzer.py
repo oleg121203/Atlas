@@ -42,12 +42,16 @@ class LatencyAnalyzer:
         """
         if operation_name in self._start_times:
             end_time = time.time()
-            latency = (end_time - self._start_times[operation_name]) * 1000  # Convert to milliseconds
+            latency = (
+                end_time - self._start_times[operation_name]
+            ) * 1000  # Convert to milliseconds
             if operation_name not in self._operation_times:
                 self._operation_times[operation_name] = []
             self._operation_times[operation_name].append(latency)
             del self._start_times[operation_name]
-            logger.debug(f"Ended timing operation: {operation_name}, Latency: {latency:.2f}ms")
+            logger.debug(
+                f"Ended timing operation: {operation_name}, Latency: {latency:.2f}ms"
+            )
             return latency
         else:
             logger.warning(f"Operation not started: {operation_name}")
@@ -60,9 +64,13 @@ class LatencyAnalyzer:
             operation_name (str): The name of the operation to get stats for.
 
         Returns:
-            Optional[Dict[str, float]]: Dictionary with min, max, avg, and count of latencies if available, None otherwise.
+            Optional[Dict[str, float]]: Dictionary with min, max, avg, and count of latencies if
+            available, None otherwise.
         """
-        if operation_name in self._operation_times and self._operation_times[operation_name]:
+        if (
+            operation_name in self._operation_times
+            and self._operation_times[operation_name]
+        ):
             latencies = self._operation_times[operation_name]
             return {
                 "min": min(latencies),
@@ -71,7 +79,7 @@ class LatencyAnalyzer:
                 "median": statistics.median(latencies),
                 "count": len(latencies),
                 "exceeds_threshold": sum(latencies) / len(latencies) > 100,
-                "threshold": 100
+                "threshold": 100,
             }
         return None
 
@@ -100,7 +108,10 @@ class LatencyAnalyzer:
         """
         stats = self.get_latency_stats(operation_name)
         if stats and stats["average"] > threshold_ms:
-            logger.warning(f"Latency threshold exceeded for {operation_name}: {stats['average']:.2f}ms > {threshold_ms}ms")
+            logger.warning(
+                f"Latency threshold exceeded for {operation_name}: "
+                f"{stats['average']:.2f}ms > {threshold_ms}ms"
+            )
             return True
         return False
 
@@ -115,21 +126,24 @@ class LatencyAnalyzer:
         """
         suggestions = []
         stats = self.get_latency_stats(operation_name)
-        if stats:
-            if stats["average"] > 100:
-                suggestions.append(f"Optimize {operation_name} - high average latency ({stats['average']:.2f}ms)")
-                if stats["max"] > stats["average"] * 1.5:
-                    suggestions.append("Investigate occasional spikes in latency")
-                if stats["count"] > 100:
-                    suggestions.append("Consider caching frequent operations")
-                if 'screen' in operation_name.lower() or 'input' in operation_name.lower():
-                    suggestions.append("Target latency <100ms for user interaction")
-                elif 'planning' in operation_name.lower():
-                    suggestions.append("Target latency <500ms for planning operations")
-                elif 'memory' in operation_name.lower():
-                    suggestions.append("Target latency <200ms for memory operations")
+        if stats and stats["average"] > 100:
+            suggestions.append(
+                f"Optimize {operation_name} - high average latency ({stats['average']:.2f}ms)"
+            )
+            if stats["max"] > stats["average"] * 1.5:
+                suggestions.append("Investigate occasional spikes in latency")
+            if stats["count"] > 100:
+                suggestions.append("Consider caching frequent operations")
+            if "screen" in operation_name.lower() or "input" in operation_name.lower():
+                suggestions.append("Target latency <100ms for user interaction")
+            elif "planning" in operation_name.lower():
+                suggestions.append("Target latency <500ms for planning operations")
+            elif "memory" in operation_name.lower():
+                suggestions.append("Target latency <200ms for memory operations")
         if suggestions:
-            logger.info(f"Optimization suggestions for {operation_name}: {', '.join(suggestions)}")
+            logger.info(
+                f"Optimization suggestions for {operation_name}: {', '.join(suggestions)}"
+            )
         return suggestions
 
     def log_latency_report(self) -> None:
@@ -139,7 +153,7 @@ class LatencyAnalyzer:
             return
 
         report = ["Latency Report:"]
-        for operation, times in self._operation_times.items():
+        for operation, _times in self._operation_times.items():
             stats = self.get_latency_stats(operation)
             if stats:
                 report.append(f"  Operation: {operation}")
@@ -148,8 +162,10 @@ class LatencyAnalyzer:
                 report.append(f"    Min: {stats['min']:.3f} ms")
                 report.append(f"    Max: {stats['max']:.3f} ms")
                 report.append(f"    Median: {stats['median']:.3f} ms")
-                if stats['exceeds_threshold']:
-                    report.append(f"    WARNING: Latency exceeds threshold of {stats['threshold']:.0f} ms")
+                if stats["exceeds_threshold"]:
+                    report.append(
+                        f"    WARNING: Latency exceeds threshold of {stats['threshold']:.0f} ms"
+                    )
                     optimizations = self.suggest_optimizations(operation)
                     if optimizations:
                         report.append("    Suggested Optimizations:")

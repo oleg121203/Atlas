@@ -390,7 +390,8 @@ class ChatModule(QWidget):
             btn = QPushButton(str(rating))
             btn.setFixedSize(30, 30)
             btn.setStyleSheet(
-                "QPushButton { background: #3A3A3A; color: white; border: none; } QPushButton:hover { background: #4A4A4A; }"
+                "QPushButton { background: #3A3A3A; color: white; border: none; } "
+                "QPushButton:hover { background: #4A4A4A; }"
             )
             btn.clicked.connect(lambda checked, r=rating: self.submit_feedback(r))
             layout.addWidget(btn)
