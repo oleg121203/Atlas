@@ -158,3 +158,10 @@ class PluginRegistry:
 
 # Global plugin registry instance
 PLUGIN_REGISTRY = PluginRegistry()
+
+
+class PluginSystem:
+    """Stub for plugin system."""
+
+    def __init__(self):
+        pass

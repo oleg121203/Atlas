@@ -4,6 +4,8 @@ Patch file to update import statements in ui/__init__.py for new UI directory st
 
 import logging
 
+from ui.agents.user_management_widget import UserManagementWidget
+
 logger = logging.getLogger(__name__)
 
 # Import input validation functions with error handling

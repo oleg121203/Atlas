@@ -3,6 +3,9 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from core.events import NEW_TOOL_REGISTERED, TOOL_ERROR, TOOL_EXECUTED
+from ui.module_communication import EVENT_BUS
+
 
 class SelfRegenerationManager:
     """Manages self-regeneration processes to detect and fix issues in the Atlas system."""
@@ -423,6 +426,7 @@ def create_tool_{tool_name}():
     return f"Tool {tool_name} created at {{tool_path}}"
 """
             self._run_tool_code(tool_code, f"create_tool_{tool_name}")
+            self.add_tool(tool_name)
             return {"success": True, "message": f"Tool for tool {tool_name} created"}
         except Exception as e:
             self.logger.error(
@@ -538,7 +542,34 @@ def create_config_{config_name}():
             Dict[str, Any]: Result of the tool activation.
         """
         self.logger.info(f"Tool activated from UI: {tool_name}")
-        return self.execute_tool(tool_name, parameters={})
+        result = self.execute_tool(tool_name, parameters={})
+        # Публікуємо подію про результат виконання
+        if result.get("success", False):
+            EVENT_BUS.publish(TOOL_EXECUTED, result)
+        else:
+            EVENT_BUS.publish(TOOL_ERROR, result)
+        return result
+
+    def add_tool(self, tool_name: str) -> None:
+        """Register a new tool and publish event."""
+        self.logger.info(f"Registering new tool: {tool_name}")
+        EVENT_BUS.publish(NEW_TOOL_REGISTERED, {"tool_name": tool_name})
+
+    def remove_tool(self, tool_name: str) -> None:
+        """Remove a tool and publish event."""
+        self.logger.info(f"Removing tool: {tool_name}")
+        EVENT_BUS.publish("ToolRemoved", {"tool_name": tool_name})
+
+    def get_available_tools(self) -> List[str]:
+        """Return a list of available tool names (Python files in tools/)."""
+        tools_dir = self.project_root.parent / "tools"
+        tool_files = [
+            f.stem
+            for f in tools_dir.glob("*.py")
+            if f.is_file() and not f.name.startswith("__") and f.name != "base_tool.py"
+        ]
+        # Додаємо також згенеровані інструменти, якщо потрібно
+        return sorted(tool_files)
 
 
 # Singleton instance

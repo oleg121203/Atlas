@@ -1,116 +1,112 @@
-# UI Components Migration Plan from tkinter/customtkinter to PySide6
+# DEV\_PLAN.md
 
-**UNIFIED INTERFACE**: PySide6 - the only UI framework for the entire application
+**UNIFIED INTERFACE**: PySide6 - єдиний UI фреймворк для всього додатку.
 
 ## Atlas Target Architecture
 
 ```
 atlas/
-├── main.py                 # Application entry point (PySide6)
-├── core/                   # Core system components
-│   ├── application.py      # AtlasApplication main class
-│   ├── config.py          # Configuration management
-│   ├── event_bus.py        # Event system
-│   ├── module_registry.py # Module registry
-│   ├── plugin_system.py   # Plugin system
-│   ├── self_healing.py     # Self-healing and auto-recovery
-│   └── agents/            # Meta-agent system
-├── ui/                     # PySide6 UI components (UNIFIED INTERFACE)
-│   ├── chat/              # Chat module
-│   ├── tasks/             # Tasks module  
-│   ├── agents/            # Agents module
-│   ├── plugins/           # Plugin management UI
-│   ├── settings/          # Settings interface
-│   ├── tools/             # Tools management UI
-│   ├── workflow/          # Workflow UI
-│   ├── memory/            # Memory management UI
-│   ├── self_improvement/  # Self-improvement center UI
-│   ├── themes/            # Theme system and switcher
-│   ├── developer/         # Developer tools integration
-│   ├── context/           # Context awareness engine UI
-│   └── stats/             # Statistics and analytics
-├── tools/                 # Tools ecosystem
-│   ├── base_tool.py       # Base tool class
-│   ├── browser.py         # Browser tool
-│   ├── terminal_tool.py   # Terminal tool
-│   ├── screenshot_tool.py # Screenshot tool
-│   └── {tool_name}.py     # Individual tools
-├── workflow/              # Workflow management system
-│   ├── engine.py          # Workflow engine
-│   ├── execution.py       # Process execution
-│   └── natural_language_workflow.py # NL workflows
-├── intelligence/          # AI and context awareness
-│   ├── context_awareness_engine.py # Context understanding
-│   └── llm.py             # LLM integration
-├── utils/                 # Core utilities
-│   ├── memory_management.py # Long-term memory system
-│   ├── llm_manager.py     # LLM provider management
-│   └── cache_manager.py   # Performance optimization
-└── plugins/               # Plugin ecosystem (to create)
-    ├── base.py            # PluginBase abstract class
-    └── {plugin_name}/     # Individual plugin packages
+├── main.py                 # Точка входу в додаток (PySide6)
+├── core/                   # Основні компоненти системи
+│   ├── application.py      # Головний клас AtlasApplication
+│   ├── config.py           # Управління конфігурацією
+│   ├── event_bus.py        # Система подій
+│   ├── module_registry.py  # Реєстр модулів
+│   ├── plugin_system.py    # Система плагінів
+│   ├── self_healing.py     # Самовідновлення та авто-відновлення
+│   └── agents/             # Система мета-агентів
+├── ui/                     # UI компоненти на PySide6 (ЄДИНИЙ ІНТЕРФЕЙС)
+│   ├── chat/               # Модуль чату
+│   ├── tasks/              # Модуль завдань
+│   ├── agents/             # Модуль агентів
+│   ├── plugins/            # UI для управління плагінами
+│   ├── settings/           # Інтерфейс налаштувань
+│   ├── tools/              # UI для управління інструментами
+│   ├── workflow/           # UI для робочих процесів
+│   ├── memory/             # UI для управління пам'яттю
+│   ├── self_improvement/   # Центр самовдосконалення
+│   ├── themes/             # Система тем та їх перемикач
+│   ├── developer/          # Інтеграція інструментів розробника
+│   ├── context/            # UI для рушія контекстної обізнаності
+│   └── stats/              # Статистика та аналітика
+├── tools/                  # Екосистема інструментів
+│   ├── base_tool.py        # Базовий клас інструменту
+│   ├── browser.py          # Інструмент для браузера
+│   ├── terminal_tool.py    # Інструмент для терміналу
+│   ├── screenshot_tool.py  # Інструмент для скріншотів
+│   └── {tool_name}.py      # Окремі інструменти
+├── workflow/               # Система управління робочими процесами
+│   ├── engine.py           # Рушій робочих процесів
+│   ├── execution.py        # Виконання процесів
+│   └── natural_language_workflow.py # Робочі процеси на природній мові
+├── intelligence/           # ШІ та контекстна обізнаність
+│   ├── context_awareness_engine.py # Розуміння контексту
+│   └── llm.py              # Інтеграція з LLM
+├── utils/                  # Основні утиліти
+│   ├── memory_management.py # Система довгострокової пам'яті
+│   ├── llm_manager.py      # Управління провайдерами LLM
+│   └── cache_manager.py    # Оптимізація продуктивності
+└── plugins/                # Екосистема плагінів (до створення)
+    ├── base.py             # Абстрактний клас PluginBase
+    └── {plugin_name}/      # Пакети окремих плагінів
 ```
 
-Of course. Here is the modified development plan, focused on the first and most critical stage of getting the application to a stable, runnable state.
+-----
 
-This plan addresses the immediate startup errors and begins to align the codebase with the target architecture. This is your first package of tasks.
+# Етап 2: Інтеграція систем та розширення функціональності
 
----
+**Мета**: Перетворити програму зі стану "стабільного запуску" на "функціонально завершену". Це включає забезпечення безшовної та надійної взаємодії між інтегрованими системами, реалізацію ключового функціоналу та підготовку до тестування.
 
-# DEV_PLAN.md: Stage 1 - Application Startup & Core Stabilization
+-----
 
-**Objective**: Resolve all critical startup errors and establish a stable application foundation that aligns with the unified PySide6 architecture. This phase will focus on making the application launch successfully without crashes.
+## **Фаза 2.1: Налагодження міжмодульної взаємодії (EventBus)**
 
----
+**Завдання**: Забезпечити, щоб усі частини програми коректно спілкувалися між собою, реагуючи на дії користувача та внутрішні системні події.
 
-## **Phase 1: Critical Startup and Architecture Fixes**
+  * [x] **1. Стандартизація подій EventBus:**
+      * **Завдання**: Створити централізований файл (наприклад, `core/events.py`), де будуть визначені та задокументовані всі типи подій (наприклад, `TaskCompleted`, `NewToolRegistered`, `ContextUpdated`, `ShowNotification`). Це створить єдине джерело правди для комунікацій.
+  * [x] **2. Реалізація обробників критичних подій:**
+      * **Завдання**: Імплементувати логіку в основних модулях (`chat`, `tasks`, `tools`) для обробки ключових подій. Наприклад, модуль `chat` має реагувати на подію `ContextUpdated` для оновлення свого стану, а `tasks` — на `TaskCompleted` для оновлення UI.
+  * [x] **3. Повний перехід UI на подієву модель:**
+      * **Завдання**: Провести рефакторинг UI-компонентів, щоб їхня логіка була повністю керована через `EventBus`. Усі дії користувача (натискання кнопок, вибір меню) мають генерувати події, а не викликати функції напряму, де це можливо.
 
-### **Sub-Phase 1.1: Fix Blocking Startup Errors**
+-----
 
-These tasks are the absolute highest priority to get the application running.
+## **Фаза 2.2: Розширення та стабілізація ключових систем**
 
-* [ ] **1. Resolve PyQt5 Conflict:**
-    * **File**: `ui/ai_assistant_widget.py`
-    * **Task**: Remove the `from PyQt5.QtCore import pyqtSignal` import and replace it with the correct PySide6 equivalent: `from PySide6.QtCore import Signal`. This resolves the primary `ModuleNotFoundError`.
+**Завдання**: Зробити базово інтегровані системи інтелекту, пам'яті та інструментів по-справжньому надійними та функціональними.
 
-* [ ] **2. Create Missing Core Modules & Files:**
-    * Create the following missing files with basic placeholder classes/functions to resolve `ImportError` exceptions at startup:
-        * `debugging/debugging_hooks.py` (with a `DebuggingHooks` class)
-        * `performance/performance_monitor.py` (with a `PerformanceMonitor` class)
-        * `sentry_config.py` (with an `init_sentry` function)
+  * [x] **1. Інтелект та Пам'ять (Intelligence & Memory):**
+      * **Завдання**: Додати обробку помилок для звернень до LLM API в `utils/llm_manager.py` (наприклад, таймаути, недоступність сервісу, невірний API-ключ).
+      * [x] **Завдання**: Реалізувати механізм очищення та консолідації довгострокової пам'яті в `utils/memory_management.py` для уникнення її переповнення нерелевантними даними.
+  * [x] **2. Екосистема інструментів (Tools Ecosystem):**
+      * **Завдання**: Впровадити надійну обробку помилок під час виконання інструментів у `ToolManager`. UI має чітко показувати, коли інструмент виконав своє завдання успішно, а коли сталася помилка.
+      * [x] **Завдання**: `ToolManagerUI` має динамічно оновлюватися при додаванні або видаленні інструментів без необхідності перезапуску програми.
+  * [x] **3. Рушій робочих процесів (Workflow Engine):**
+      * **Завдання**: Розширити логіку в `workflow/engine.py` для послідовного виконання завдань (ланцюжків інструментів) на основі визначеного плану. Це ядро автоматизації вашої програми.
 
-* [ ] **3. Fix `main_window.py` Critical Errors:**
-    * **Fix `QAction` Import**: Change the import from `PySide6.QtWidgets` to `from PySide6.QtGui import QAction`.
-    * **Fix `Qt` Constants**: Update all `Qt` constants to use the new enum-based access (e.g., `Qt.Vertical` becomes `Qt.Orientation.Vertical`, `Qt.TopToolBarArea` becomes `Qt.ToolBarArea.TopToolBarArea`).
-    * **Initialize Missing Attributes**: In the `AtlasMainWindow` constructor (`__init__`), add initializations for `self.main_layout`, `self.logger`, and `self.theme_manager` to prevent `AttributeError` crashes.
+-----
 
-### **Sub-Phase 1.2: Core Architecture Alignment**
+## **Фаза 2.3: Завершення UI та покращення досвіду користувача (UX)**
 
-With the immediate startup crashes resolved, the next step is to align the core structure with the target architecture.
+**Завдання**: "Оживити" інтерфейс, забезпечивши, щоб кожен його елемент був функціональним та відгукувався на дії користувача.
 
-* [ ] **1. Restructure `main.py`:**
-    * **Task**: Create `core/application.py` and move the core `AtlasApplication` logic into it. The `main.py` file should now be a simple entry point that initializes and runs `AtlasApplication`.
-    * **Task**: Remove hardcoded references like `task_view` from the main application class. These will be replaced by a proper module loading system.
+  * [ ] **1. Підключення всіх елементів управління:**
+      * **Завдання**: Пройтися по всіх вікнах та панелях UI і переконатися, що кожна кнопка, меню та перемикач підключені до відповідної події `EventBus` або функції.
+  * [x] **2. Впровадження зворотного зв'язку для користувача:**
+      * **Завдання**: Додати індикатори завантаження (спіннери) для тривалих операцій (LLM, інструменти, workflow) у відповідних UI-модулях. Користувач повинен розуміти, що програма працює, а не зависла.
+  * [x] **3. Фіналізація системи тем:**
+      * **Завдання**: Перевірити, що система тем (`ui/themes`) коректно застосовується до всіх нових та існуючих компонентів UI, забезпечуючи візуальну цілісність.
 
-* [ ] **2. Create Core System Modules:**
-    * Create the following essential core modules with basic class structures:
-        * `core/module_registry.py` (for managing UI and backend modules)
-        * `core/plugin_system.py` (for the plugin architecture)
-        * `core/self_healing.py` (for auto-recovery mechanisms)
+-----
 
-* [ ] **3. Organize UI Module Structure:**
-    * **Task**: Begin restructuring the `ui/` directory. Move the existing UI files into the appropriate subdirectories (`chat/`, `tasks/`, `agents/`, etc.) as defined in the target architecture.
-    * **Task**: Create `__init__.py` files in each new UI subdirectory to ensure they are recognized as Python packages.
-    * **Task**: Update all import paths in the moved files to reflect their new locations.
+## **Фаза 2.4: Створення фундаменту для тестування**
 
----
+**Завдання**: Започаткувати процес тестування для забезпечення стабільності програми в майбутньому та уникнення регресій.
 
-## **Next Steps After This Package**
-
-Once all tasks in this first package are complete, the application should start without crashing. At that point, contact me again, and we will proceed to the next package of tasks, which will focus on:
-
-1.  **Implementing the `event_bus`** for communication between modules.
-2.  **Fixing and integrating the intelligence and memory systems.**
-3.  **Repairing the tools ecosystem and their UI integrations.**
-
-This step-by-step approach will ensure we build on a stable foundation.
+  * [x] **1. Налаштування середовища для тестування:**
+      * **Завдання**: Налаштувати `pytest` та додати плагін `pytest-qt` для тестування UI-компонентів. Створити базовий файл `tests/conftest.py` для загальних налаштувань.
+  * [ ] **2. Написання перших Unit-тестів:**
+      * **Завдання**: Написати набір тестів для критично важливих "чистих" функцій, наприклад, для валідаторів, функцій конфігурації в `core/config.py` та інших утиліт з папки `utils`.
+  * [x] **3. Написання інтеграційного тесту для EventBus:**
+      * **Завдання**: Створити простий тест, який перевіряє, що один модуль (наприклад, `MockModuleA`) може успішно відправити подію через `EventBus`, а інший (`MockModuleB`) її отримає. Це підтвердить, що основа для комунікації працює надійно.

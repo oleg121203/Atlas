@@ -40,11 +40,15 @@ from PySide6.QtWidgets import (
 )
 
 from core.event_bus import EventBus
+from core.events import TOOL_ERROR, TOOL_EXECUTED
 from data.memory_manager import MemoryManager
 from ui.chat.ai_assistant_widget import AIAssistantWidget
 from ui.chat.chat_widget import ChatWidget
+from ui.module_communication import EVENT_BUS
 from ui.plugins.plugins_widget import PluginsWidget
 from ui.settings.settings_widget import SettingsWidget
+from ui.themes import ThemeManager
+from ui.tools import ToolManagerUI
 from ui.user_management_widget import UserManagementWidget
 
 try:
@@ -80,19 +84,29 @@ class AtlasMainWindow(QMainWindow):
         meta_agent: Optional[Any] = None,
         parent: Optional[QWidget] = None,
         app_instance: Optional[Any] = None,
+        context_engine=None,
+        decision_engine=None,
+        self_improvement_engine=None,
+        memory_manager=None,
     ):
         logger = logging.getLogger(__name__)
         logger.debug("Starting AtlasMainWindow initialization")
         super().__init__(parent)
         self.meta_agent = meta_agent
         self.app_instance = app_instance
+        self.context_engine = context_engine
+        self.decision_engine = decision_engine
+        self.self_improvement_engine = self_improvement_engine
+        self.memory_manager = memory_manager
         self.setWindowTitle("Atlas - Autonomous Task Planning")
         self.setGeometry(100, 100, 1200, 800)
         # Initialize core components
         from PySide6.QtWidgets import QApplication
 
         self.app_instance = app_instance if app_instance else QApplication.instance()
-        self.event_bus = EventBus()
+        self.event_bus = EVENT_BUS
+        self.event_bus.subscribe("app_shutdown", self._on_app_shutdown)
+        self.event_bus.publish("main_window_initialized", {"status": "ready"})
         self.memory_manager = MemoryManager()
         self.modules = {}
         # Temporarily commented out unresolved imports to prevent startup crashes
@@ -112,6 +126,12 @@ class AtlasMainWindow(QMainWindow):
         self.dock.setWidget(self.sidebar)
         # Delay UI initialization to ensure QApplication is ready
         QTimer.singleShot(0, self._init_ui)
+        self.logger = logging.getLogger(__name__)
+        self.main_layout = QVBoxLayout()  # Додаємо основний layout, якщо його не було
+        self.theme_manager = ThemeManager()
+        self.theme_manager.theme_changed.connect(self.apply_theme_to_all)
+        self.event_bus.subscribe(TOOL_EXECUTED, self._on_tool_executed)
+        self.event_bus.subscribe(TOOL_ERROR, self._on_tool_error)
         logger.debug("AtlasMainWindow initialization completed")
 
     def _init_ui(self):
@@ -397,6 +417,7 @@ class AtlasMainWindow(QMainWindow):
         self.decision_explanation_module = DecisionExplanation(self.central)
         self.user_management_module = UserManagement(self.central)
         self.consent_module = ConsentManager(self.central)
+        self.modules["Tools"] = ToolManagerUI()
         # Add initialized modules to central widget stack
         self.central.addWidget(self.chat_module)
         self.central.addWidget(self.tasks_module)
@@ -419,6 +440,8 @@ class AtlasMainWindow(QMainWindow):
             self.central.addWidget(self.user_management_module)
         if hasattr(self, "consent_module") and isinstance(self.consent_module, QWidget):
             self.central.addWidget(self.consent_module)
+        if hasattr(self, "Tools") and isinstance(self.modules["Tools"], QWidget):
+            self.central.addWidget(self.modules["Tools"])
         # Set the active module (typically chat as default)
         self.central.setCurrentWidget(self.chat_module)
         logger.info("Modules initialized")
@@ -1065,6 +1088,7 @@ class AtlasMainWindow(QMainWindow):
         self._initialize_decision_explanation_ui()
         self._initialize_user_management_ui()
         self._initialize_consent_manager_ui()
+        self.modules["Tools"] = ToolManagerUI()
         logger.info("All UI modules initialized")
 
     def _initialize_chat_ui(self):
@@ -1263,4 +1287,31 @@ class AtlasMainWindow(QMainWindow):
         self._initialize_decision_explanation_ui()
         self._initialize_user_management_ui()
         self._initialize_consent_manager_ui()
+        self.modules["Tools"] = ToolManagerUI()
         logger.info("All UI modules initialized")
+
+    def _on_app_shutdown(self, data):
+        logger = logging.getLogger(__name__)
+        logger.info(f"Received app_shutdown event with data: {data}")
+        self.close()
+
+    def _on_tool_executed(self, data):
+        msg = data.get("message") if isinstance(data, dict) else str(data)
+        self.statusBar().showMessage(msg or "Tool executed successfully.", 5000)
+        self.logger.info(f"[StatusBar] Tool executed: {msg}")
+
+    def _on_tool_error(self, data):
+        msg = data.get("error") if isinstance(data, dict) else str(data)
+        self.statusBar().showMessage(msg or "Tool execution failed.", 7000)
+        self.logger.error(f"[StatusBar] Tool error: {msg}")
+
+    def apply_theme_to_all(self, theme_id: str):
+        stylesheet = self.theme_manager.get_theme_stylesheet(theme_id)
+        self.setStyleSheet(stylesheet)
+        # Оновити стиль для всіх вкладок/модулів
+        for module in self.modules.values():
+            if hasattr(module, "setStyleSheet"):
+                module.setStyleSheet(stylesheet)
+            # Для LoadingSpinner
+            if hasattr(module, "spinner") and hasattr(module.spinner, "apply_theme"):
+                module.spinner.apply_theme(stylesheet)

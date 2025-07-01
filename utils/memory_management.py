@@ -278,15 +278,53 @@ class MemoryManager:
                     logger.debug(f"Cache expired for key: {key}")
             return None
 
+    def consolidate_long_term_memory(
+        self, relevance_threshold: float = 0.5, max_per_user: int = 50
+    ) -> None:
+        """Consolidate long-term memory by keeping only relevant or recent data."""
+        with self._lock:
+            for user_id, interactions in self.interactions.items():
+                # Залишаємо лише останні max_per_user або ті, що мають рейтинг >= relevance_threshold
+                filtered = [
+                    i
+                    for i in interactions
+                    if (i.get("rating") or 0) >= relevance_threshold
+                ]
+                # Якщо таких мало — додаємо останні
+                if len(filtered) < max_per_user:
+                    filtered += interactions[-max_per_user:]
+                # Унікалізуємо
+                seen = set()
+                consolidated = []
+                for i in filtered:
+                    key = (i["query"], i["response"])
+                    if key not in seen:
+                        consolidated.append(i)
+                        seen.add(key)
+                self.interactions[user_id] = consolidated[-max_per_user:]
+            for user_id, feedbacks in self.feedback.items():
+                # Залишаємо лише останні max_per_user або з високим рейтингом
+                filtered = [
+                    f for f in feedbacks if f.get("rating", 0) >= relevance_threshold
+                ]
+                if len(filtered) < max_per_user:
+                    filtered += feedbacks[-max_per_user:]
+                seen = set()
+                consolidated = []
+                for f in filtered:
+                    key = (f.get("response_id"), f.get("rating"))
+                    if key not in seen:
+                        consolidated.append(f)
+                        seen.add(key)
+                self.feedback[user_id] = consolidated[-max_per_user:]
+        logger.info("Long-term memory consolidated for all users.")
+
     def perform_cleanup(self) -> None:
-        """Perform general memory cleanup, including garbage collection and cache eviction."""
-        # Clear expired cache items
-        self._evict_cache()
-        # Force garbage collection
+        """Perform memory cleanup and consolidation."""
+        self.clear_cache()
+        self.consolidate_long_term_memory()
         gc.collect()
-        logger.info(
-            "Memory cleanup performed, current usage: %.2f MB", self.get_memory_usage()
-        )
+        logger.info("Memory cleanup and consolidation performed.")
 
     def log_memory_stats(self) -> None:
         """Log detailed memory usage statistics for debugging."""

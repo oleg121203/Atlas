@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.logging import get_logger
+from ui.components.loading_spinner import LoadingSpinner
 from ui.i18n import _
 from ui.plugins.plugin_manager import PluginManager
 
@@ -65,6 +66,7 @@ class ChatModule(QWidget):
         tools_layout: QVBoxLayout for tool widgets
         title: QLabel for module title
         history_btn: QPushButton for history management
+        spinner: LoadingSpinner instance
     """
 
     message_sent = Signal(str)
@@ -153,6 +155,9 @@ class ChatModule(QWidget):
         self.feedback_widget.setLayout(self.feedback_layout)
         layout.addWidget(self.feedback_widget)
 
+        self.spinner = LoadingSpinner(self)
+        layout.addWidget(self.spinner)
+
     def update_ui(self) -> None:
         """Update UI elements with translated text."""
         self.title.setText(str(_("💬 Chat (Cyberpunk)")) or "💬 Chat (Cyberpunk)")
@@ -207,6 +212,8 @@ class ChatModule(QWidget):
         Args:
             user_text: User input text
         """
+        self.spinner.start()
+        self.send_btn.setEnabled(False)
         if self.llm_callback:
 
             def handle_response(response: str) -> None:
@@ -227,6 +234,8 @@ class ChatModule(QWidget):
         Args:
             text: Agent's response text
         """
+        self.spinner.stop()
+        self.send_btn.setEnabled(True)
         try:
             text = self.replace_emoji(text)
             html = markdown2.markdown(text)

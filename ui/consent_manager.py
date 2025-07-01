@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (
 )
 
 from core.ethics.ethical_guidelines import EthicalGuidelines
+from core.events import SHOW_NOTIFICATION
+from ui.module_communication import EVENT_BUS
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +99,13 @@ class ConsentManager(QWidget):
         self.ethics.update_consent(self.user_id, action_type, consent)
         logger.info(
             f"Updated consent for {action_type} to {consent} for user {self.user_id}"
+        )
+        EVENT_BUS.publish(
+            "CONSENT_CHANGED", {"action_type": action_type, "value": consent}
+        )
+        EVENT_BUS.publish(
+            SHOW_NOTIFICATION,
+            {"type": "info", "message": f"Consent changed: {action_type} = {consent}"},
         )
 
     def save_preferences(self):

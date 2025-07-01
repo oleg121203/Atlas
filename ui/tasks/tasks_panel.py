@@ -9,7 +9,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core.event_bus import EventBus
+from core.events import TASK_COMPLETED
+from ui.module_communication import EVENT_BUS
 
 
 class TasksPanel(QWidget):
@@ -21,7 +22,8 @@ class TasksPanel(QWidget):
         self.mode = mode
         self.on_refresh = on_refresh
         self.on_action = on_action
-        self.event_bus = EventBus()
+        self.event_bus = EVENT_BUS
+        self.event_bus.subscribe(TASK_COMPLETED, self._on_task_completed)
         self._build_ui()
 
     def _build_ui(self):
@@ -128,3 +130,6 @@ class TasksPanel(QWidget):
             index = self.task_list.row(current_item)
             if index >= 0 and index < len(self.tasks) and self.on_action:
                 self.on_action(self.tasks[index])
+
+    def _on_task_completed(self, data):
+        self._refresh_tasks()

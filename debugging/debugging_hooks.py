@@ -12,12 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class DebuggingHooks:
-    """Class for managing debugging hooks within Atlas."""
+    """Stub for debugging hooks."""
 
     def __init__(self):
-        """Initialize the DebuggingHooks."""
-        self._hooks = {}
-        logger.info("DebuggingHooks initialized")
+        pass
 
     def register_hook(self, hook_name: str, callback: Callable[[Any], None]) -> None:
         """Register a debugging hook.

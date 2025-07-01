@@ -4,6 +4,8 @@ Patch file to update import statements in ui/main_window.py for new UI directory
 
 import logging
 
+from ui.agents.user_management_widget import UserManagementWidget
+
 logger = logging.getLogger(__name__)
 
 # Import UI components with error handling

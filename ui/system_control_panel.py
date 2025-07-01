@@ -9,14 +9,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core.event_bus import EventBus
+from ui.module_communication import EVENT_BUS
 
 
 class SystemControlPanel(QWidget):
     def __init__(self, parent=None, agent_manager=None):
         super().__init__(parent)
         self.agent_manager = agent_manager
-        self.event_bus = EventBus()
+        self.event_bus = EVENT_BUS
         self._build_ui()
 
     def _build_ui(self):

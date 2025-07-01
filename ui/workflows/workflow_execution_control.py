@@ -1,6 +1,9 @@
 """Workflow Execution Control component for Atlas."""
 
+import json
 import logging
+import os
+import pathlib
 from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Qt, Signal, Slot
@@ -9,10 +12,15 @@ from PySide6.QtWidgets import (
     QLabel,
     QListWidget,
     QListWidgetItem,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
+
+from ui.components.loading_spinner import LoadingSpinner
+from ui.module_communication import EVENT_BUS
+from workflow.engine import WorkflowEngine
 
 
 class WorkflowExecutionControl(QWidget):
@@ -25,6 +33,7 @@ class WorkflowExecutionControl(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
+        self.event_bus = EVENT_BUS
         self.setStyleSheet("""
             QWidget {
                 background-color: #0a0a0a;
@@ -87,6 +96,10 @@ class WorkflowExecutionControl(QWidget):
         button_layout.addWidget(self.stop_button)
 
         layout.addLayout(button_layout)
+
+        self.spinner = LoadingSpinner(self)
+        layout.addWidget(self.spinner)
+
         self.setLayout(layout)
 
     def update_workflow_list(self, workflows: List[Dict[str, Any]]) -> None:
@@ -122,9 +135,54 @@ class WorkflowExecutionControl(QWidget):
     def on_execute_workflow(self) -> None:
         """Handle execute workflow button click."""
         if self.current_workflow_id and not self.is_executing:
-            self.execute_workflow.emit(self.current_workflow_id)
-            self.set_execution_state(self.current_workflow_id, True)
-            self.logger.info(f"Executing workflow: {self.current_workflow_id}")
+            self.execute_button.setEnabled(False)
+            self.spinner.start()
+            # Завантажити план workflow (наприклад, з JSON-файлу)
+            workflow_id = self.current_workflow_id
+            patterns_path = (
+                pathlib.Path(os.path.dirname(__file__)).parent.parent
+                / "workflow"
+                / "workflow_patterns.json"
+            )
+            with open(patterns_path, "r") as f:
+                patterns = json.load(f)
+            plan = None
+            initial_state = {}
+            for key, wf in patterns.get("patterns", {}).items():
+                if (
+                    key == workflow_id
+                    or wf.get("name") == workflow_id
+                    or wf.get("id") == workflow_id
+                ):
+                    # Конвертуємо структуру у список кроків для WorkflowEngine
+                    steps = wf.get("structure", {}).get("steps", [])
+                    # Кожен крок повинен мати tool_name та params
+                    plan = []
+                    for step in steps:
+                        tool_name = (
+                            step.get("name") or step.get("type") or "unknown_tool"
+                        )
+                        params = step.get("config", {})
+                        plan.append({"tool_name": tool_name, "params": params})
+                    break
+            if not plan:
+                QMessageBox.critical(
+                    self,
+                    "Workflow Error",
+                    f"Workflow plan not found for: {workflow_id}",
+                )
+                return
+            engine = WorkflowEngine()
+            result = engine.execute_workflow_plan(plan, initial_state)
+            msg = json.dumps(result, indent=2, ensure_ascii=False)
+            self.spinner.stop()
+            self.execute_button.setEnabled(True)
+            if result["errors"]:
+                QMessageBox.critical(self, "Workflow Execution Failed", msg)
+            else:
+                QMessageBox.information(self, "Workflow Execution Success", msg)
+            self.set_execution_state(self.current_workflow_id, False)
+            self.logger.info(f"Executed workflow: {self.current_workflow_id}")
         else:
             self.logger.warning("No workflow selected or already executing")
 

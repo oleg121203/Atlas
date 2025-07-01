@@ -27,12 +27,14 @@ from sentry_config import init_sentry
 
 # Updated import paths for UI modules in subdirectories
 try:
-    from ui.main_window import AtlasMainWindow as MainWindow
+    from ui.main_window import AtlasMainWindow
 except ImportError:
     logger = logging.getLogger(__name__)
     logger.error("MainWindow import failed", exc_info=True)
-    MainWindow = None  # Fallback for circular imports or missing modules
+    AtlasMainWindow = None  # Fallback for circular imports or missing modules
 
+
+from core.memory.memory_manager import MemoryManager
 from utils.db_optimizer import DatabaseOptimizer
 from utils.temp_placeholders import CollaborationManager, Config, OnboardingAnalytics
 
@@ -110,7 +112,10 @@ class AtlasApp:
         # Initialize intelligence components
         self.context_engine = ContextEngine()
         self.decision_engine = DecisionEngine(context_engine=self.context_engine)
-        self.self_improvement_engine = SelfImprovementEngine()
+        self.self_improvement_engine = SelfImprovementEngine(
+            context_engine=self.context_engine, decision_engine=self.decision_engine
+        )
+        self.memory_manager = MemoryManager()
         # Initialize developer tools for Phase 13
         self.debugging_hooks = DebuggingHooks()
         self.performance_monitor = PerformanceMonitor()
@@ -167,8 +172,13 @@ class AtlasApp:
 
     def setup_ui(self):
         """Set up UI components."""
-        # Reverted to passing app_instance now that constructor accepts it
-        self.main_window = MainWindow(app_instance=self)
+        self.main_window = AtlasMainWindow(
+            app_instance=self,
+            context_engine=self.context_engine,
+            decision_engine=self.decision_engine,
+            self_improvement_engine=self.self_improvement_engine,
+            memory_manager=self.memory_manager,
+        )
         self.main_window.show()
         logger.info("UI setup complete")
 
@@ -278,9 +288,9 @@ def main():
     app = QApplication(sys.argv)
     # Initialize core components before UI if needed, but keep it minimal for now
     # Now initialize UI after QApplication is created
-    if MainWindow is not None:
+    if AtlasMainWindow is not None:
         window = (
-            MainWindow()
+            AtlasMainWindow()
         )  # Removed app_instance parameter to match constructor signature
         window.show()
         sys.exit(app.exec())

@@ -14,7 +14,9 @@ from PySide6.QtWidgets import (
 )
 
 from core.async_task_manager import AsyncTaskManager
+from core.events import SHOW_NOTIFICATION
 from ui.i18n import _
+from ui.module_communication import EVENT_BUS
 from ui.plugins.plugin_manager import PluginManager
 
 
@@ -176,6 +178,11 @@ class PluginsModule(QWidget):
                 name = self.list.item(row).text().split()[0]
                 self.plugin_manager.activate_plugin(name)
                 self.update_plugins()
+                EVENT_BUS.publish("PLUGIN_ACTIVATED", {"plugin": name})
+                EVENT_BUS.publish(
+                    SHOW_NOTIFICATION,
+                    {"type": "info", "message": f"Plugin activated: {name}"},
+                )
             except Exception as e:
                 QMessageBox.warning(
                     self,
@@ -201,6 +208,11 @@ class PluginsModule(QWidget):
                 name = self.list.item(row).text().split()[0]
                 self.plugin_manager.deactivate_plugin(name)
                 self.update_plugins()
+                EVENT_BUS.publish("PLUGIN_DEACTIVATED", {"plugin": name})
+                EVENT_BUS.publish(
+                    SHOW_NOTIFICATION,
+                    {"type": "info", "message": f"Plugin deactivated: {name}"},
+                )
             except Exception as e:
                 QMessageBox.warning(
                     self,

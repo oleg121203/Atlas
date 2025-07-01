@@ -30,15 +30,15 @@ IMPORTS_MAP = {
     "timedelta": "from datetime import timedelta",
     "LLMManager": "from core.llm_manager import LLMManager",
     "TokenUsage": "from core.token_usage import TokenUsage",
-    "ChatWidget": "from ui.chat_widget import ChatWidget",
-    "TaskWidget": "from ui.task_widget import TaskWidget",
-    "SettingsWidget": "from ui.settings_widget import SettingsWidget",
-    "PluginsWidget": "from ui.plugins_widget import PluginsWidget",
-    "UserManagementWidget": "from ui.user_management_widget import UserManagementWidget",
-    "AIAssistantWidget": "from ui.ai_assistant_widget import AIAssistantWidget",
+    "ChatWidget": "from ui.chat.chat_widget import ChatWidget",
+    "TaskWidget": "from ui.tasks.task_widget import TaskWidget",
+    "SettingsWidget": "from ui.settings.settings_widget import SettingsWidget",
+    "PluginsWidget": "from ui.plugins.plugins_widget import PluginsWidget",
+    "UserManagementWidget": "from ui.agents.user_management_widget import UserManagementWidget",
+    "AIAssistantWidget": "from ui.chat.ai_assistant_widget import AIAssistantWidget",
     "get_logger": "from utils.logging_utils import get_logger",
     "e": "Exception as e",  # Для випадків, коли 'e' використовується без визначення
-    "PluginManager": "from ui.plugin_manager import PluginManager",
+    "PluginManager": "from ui.plugins.plugin_manager import PluginManager",
 }
 
 

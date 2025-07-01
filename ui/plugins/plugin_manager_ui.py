@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from plugins.plugin_manager import PluginManager
+from ui.module_communication import EVENT_BUS
 
 
 class PluginManagerUI(QWidget):
@@ -30,6 +31,7 @@ class PluginManagerUI(QWidget):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.plugin_manager = plugin_manager
+        self.event_bus = EVENT_BUS
         self.setup_ui()
         self.connect_signals()
         self.logger.info("PluginManagerUI initialized")

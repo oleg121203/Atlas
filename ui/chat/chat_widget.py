@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from core.events import CONTEXT_UPDATED
 from core.logging import get_logger
 from ui.input_validation import sanitize_ui_input, validate_ui_input
 
@@ -26,6 +27,7 @@ class ChatWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.init_ui()
+        self.event_bus.subscribe(CONTEXT_UPDATED, self._on_context_updated)
         logger.info("Chat widget initialized")
 
     def init_ui(self) -> None:
@@ -86,3 +88,6 @@ class ChatWidget(QWidget):
         sanitized_message = sanitize_ui_input(message)
         self.chat_display.append(f"Other: {sanitized_message}")
         logger.info("Message received: %s", sanitized_message)
+
+    def _on_context_updated(self, data):
+        self.refresh_context()

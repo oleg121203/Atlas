@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ui.module_communication import EVENT_BUS
+
 
 class AgentListPanel(QWidget):
     """PySide6 implementation of agent list panel."""
@@ -32,6 +34,7 @@ class AgentListPanel(QWidget):
         self.agents = agents or {}
         self.on_start_agent = on_start_agent
         self.on_stop_agent = on_stop_agent
+        self.event_bus = EVENT_BUS
         self.setup_ui()
 
     def setup_ui(self):

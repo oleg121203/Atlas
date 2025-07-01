@@ -5,7 +5,6 @@ This module provides performance monitoring for the Atlas application.
 """
 
 import logging
-import os
 import time
 from typing import Any, Dict, Optional
 
@@ -29,27 +28,10 @@ logger = logging.getLogger(__name__)
 
 
 class PerformanceMonitor:
-    """Class for monitoring performance metrics in Atlas."""
+    """Stub for performance monitoring."""
 
     def __init__(self):
-        """Initialize the PerformanceMonitor."""
-        self.start_time = time.time()
-        self._metrics = {}
-        self.process = None  # type: Optional['psutil.Process']
-        if psutil is not None:
-            try:
-                self.process = psutil.Process(os.getpid())
-            except Exception as e:
-                logger.warning(f"Failed to initialize process monitor: {e}")
-        else:
-            logger.warning(
-                "psutil not available, CPU and memory metrics will be limited"
-            )
-        if TRACEMALLOC_AVAILABLE:
-            self.start_memory_tracing()
-        else:
-            logger.warning("tracemalloc not available, memory tracing will be disabled")
-        logger.info("PerformanceMonitor initialized")
+        pass
 
     def record_metric(self, metric_name: str, value: float) -> None:
         """Record a performance metric.

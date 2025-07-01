@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ui.module_communication import EVENT_BUS
+
 
 class ChatInputPanel(QWidget):
     """PySide6 implementation of chat input panel."""
@@ -29,6 +31,7 @@ class ChatInputPanel(QWidget):
         """
         super().__init__(parent)
         self.on_send_callback = on_send_callback
+        self.event_bus = EVENT_BUS
         self.setup_ui()
         self.setup_shortcuts()
 

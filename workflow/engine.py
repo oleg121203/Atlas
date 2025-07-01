@@ -175,6 +175,50 @@ class WorkflowEngine:
             self.conn.rollback()
             raise
 
+    def execute_workflow_plan(
+        self, plan: list, initial_state: dict, continue_on_error: bool = False
+    ) -> dict:
+        """
+        Execute a workflow plan (list of steps), each step is a dict: {'tool_name': str, 'params': dict}.
+        Args:
+            plan: List of workflow steps.
+            initial_state: Initial workflow state.
+            continue_on_error: If True, workflow continues after error; else stops.
+        Returns:
+            dict: Final state with results and errors.
+        """
+        from agents.self_regeneration_manager import self_regeneration_manager
+
+        state = initial_state.copy()
+        results = []
+        errors = []
+        workflow_id = f"wf_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.start_workflow(workflow_id, state)
+        for idx, step in enumerate(plan):
+            tool_name = step.get("tool_name")
+            params = step.get("params", {})
+            logger.info(f"[Workflow] Step {idx + 1}/{len(plan)}: {tool_name}({params})")
+            try:
+                result = self.execute_action(
+                    self_regeneration_manager.execute_tool, tool_name, params
+                )
+                results.append({"step": idx + 1, "tool": tool_name, "result": result})
+                state[f"step_{idx + 1}"] = result
+                self.update_state(state)
+                if not result.get("success", True) and not continue_on_error:
+                    logger.error(
+                        f"[Workflow] Step {idx + 1} failed, stopping workflow."
+                    )
+                    errors.append({"step": idx + 1, "tool": tool_name, "error": result})
+                    break
+            except Exception as e:
+                logger.error(f"[Workflow] Exception in step {idx + 1}: {e}")
+                errors.append({"step": idx + 1, "tool": tool_name, "error": str(e)})
+                if not continue_on_error:
+                    break
+        self.complete_workflow()
+        return {"results": results, "errors": errors, "final_state": state}
+
     def __del__(self):
         """Cleanup database connection on object destruction."""
         if self.conn:

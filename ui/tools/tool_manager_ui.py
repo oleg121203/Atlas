@@ -6,10 +6,14 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QListWidget,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
+
+from core.events import NEW_TOOL_REGISTERED, TOOL_ERROR, TOOL_EXECUTED
+from ui.components.loading_spinner import LoadingSpinner
 
 
 class ToolManagerUI(QWidget):
@@ -30,6 +34,10 @@ class ToolManagerUI(QWidget):
         from agents.self_regeneration_manager import self_regeneration_manager
 
         self.tool_activated.connect(self_regeneration_manager.handle_tool_activation)
+        self.event_bus.subscribe(TOOL_EXECUTED, self._on_tool_executed)
+        self.event_bus.subscribe(TOOL_ERROR, self._on_tool_error)
+        self.event_bus.subscribe(NEW_TOOL_REGISTERED, self._on_tools_changed)
+        self.event_bus.subscribe("ToolRemoved", self._on_tools_changed)
 
     def initialize_ui(self) -> None:
         """Initialize the UI components for tool management."""
@@ -97,6 +105,9 @@ class ToolManagerUI(QWidget):
         self.refresh_button.clicked.connect(self.refresh_tools)
         button_layout.addWidget(self.refresh_button)
 
+        self.spinner = LoadingSpinner(self)
+        layout.addWidget(self.spinner)
+
         layout.addLayout(button_layout)
         self.setLayout(layout)
         self.apply_cyberpunk_style()
@@ -127,6 +138,8 @@ class ToolManagerUI(QWidget):
         selected_items = self.tool_list.selectedItems()
         if selected_items:
             tool_name = selected_items[0].text()
+            self.activate_button.setEnabled(False)
+            self.spinner.start()
             self.tool_activated.emit(tool_name)
             self.logger.info("Activated tool: %s", tool_name)
 
@@ -134,6 +147,39 @@ class ToolManagerUI(QWidget):
     def refresh_tools(self) -> None:
         """Refresh the list of available tools."""
         self.logger.info("Refreshing tool list")
-        # This would typically trigger a signal to the backend to rediscover tools
-        # For now, it just clears selection
-        self.tool_list.clearSelection()
+        from agents.self_regeneration_manager import self_regeneration_manager
+
+        tools = self_regeneration_manager.get_available_tools()
+        self.update_tool_list(tools)
+
+    def _on_tool_executed(self, data):
+        self.spinner.stop()
+        self.activate_button.setEnabled(True)
+        self.logger.info(f"Tool executed: {data}")
+        msg = data.get("message") if isinstance(data, dict) else str(data)
+        QMessageBox.information(
+            self, "Tool Executed", msg or "Tool executed successfully."
+        )
+        # Оновити статус-бар через EventBus
+        if hasattr(self, "event_bus"):
+            self.event_bus.publish(
+                "ShowNotification",
+                {"type": "info", "message": msg or "Tool executed successfully."},
+            )
+
+    def _on_tool_error(self, data):
+        self.spinner.stop()
+        self.activate_button.setEnabled(True)
+        self.logger.error(f"Tool error: {data}")
+        msg = data.get("error") if isinstance(data, dict) else str(data)
+        QMessageBox.critical(self, "Tool Error", msg or "Tool execution failed.")
+        # Оновити статус-бар через EventBus
+        if hasattr(self, "event_bus"):
+            self.event_bus.publish(
+                "ShowNotification",
+                {"type": "error", "message": msg or "Tool execution failed."},
+            )
+
+    def _on_tools_changed(self, data):
+        self.logger.info(f"Tools changed event: {data}")
+        self.refresh_tools()

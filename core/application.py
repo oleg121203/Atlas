@@ -8,13 +8,6 @@ and lifecycle management of core systems, modules, and plugins.
 import logging
 import sys
 
-from modules.agents.master_agent import MasterAgent
-from modules.agents.token_tracker import TokenTracker
-from PySide6.QtWidgets import QApplication
-
-from ui.main_window import AtlasMainWindow
-from utils.llm_manager import LLMManager
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -23,22 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class AtlasApplication:
-    """Central application class for Atlas."""
+    """Stub for Atlas main application class."""
 
     def __init__(self):
-        """Initialize the Atlas application with core components."""
-        logger.info("Initializing Atlas Application")
-        # Use existing QApplication instance if already created
-        self.app = QApplication.instance() or QApplication(sys.argv)
-
-        # Initialize core systems
-        self.token_tracker = TokenTracker()
-        self.llm_manager = LLMManager(self.token_tracker)
-        self.master_agent = MasterAgent(self.llm_manager)
-        self.meta_agent = self.master_agent  # For compatibility
-
-        # Initialize main window
-        self.main_window = AtlasMainWindow(meta_agent=self.meta_agent)
+        pass
 
     def run(self):
         """Start the application event loop."""

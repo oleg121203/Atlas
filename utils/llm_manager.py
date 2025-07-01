@@ -8,6 +8,7 @@ TokenTracker to monitor and log token usage for all API calls.
 
 import json
 import logging
+import socket
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Protocol, Union
 
@@ -157,7 +158,31 @@ class LLMManager:
                 self.logger.info(f"Cached response for request: {cache_key[:50]}...")
 
             return token_usage
+        except socket.timeout as e:
+            self.logger.error(f"LLM API timeout with {provider}: {e}", exc_info=True)
+            return TokenUsage(response_text="[ERROR: LLM API timeout]", tool_calls=None)
+        except ValueError as e:
+            if "API key" in str(e) or "not initialized" in str(e):
+                self.logger.error(
+                    f"LLM API key error with {provider}: {e}", exc_info=True
+                )
+                return TokenUsage(
+                    response_text="[ERROR: Invalid or missing API key]", tool_calls=None
+                )
+            else:
+                self.logger.error(
+                    f"LLM API value error with {provider}: {e}", exc_info=True
+                )
+                return TokenUsage(response_text=f"[ERROR: {e}]", tool_calls=None)
         except Exception as e:
+            if "unavailable" in str(e).lower() or "connection" in str(e).lower():
+                self.logger.error(
+                    f"LLM API service unavailable with {provider}: {e}", exc_info=True
+                )
+                return TokenUsage(
+                    response_text="[ERROR: LLM API service unavailable]",
+                    tool_calls=None,
+                )
             self.logger.error(f"LLM API error with {provider}: {e}", exc_info=True)
             return self._fallback_to_available_provider(
                 messages, tools, model_to_use, max_tokens

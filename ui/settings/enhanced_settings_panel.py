@@ -17,6 +17,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from core.events import SHOW_NOTIFICATION
+from ui.module_communication import EVENT_BUS
+
 
 class EnhancedSettingsPanel(QWidget):
     """Advanced settings panel for Atlas with cyberpunk styling."""
@@ -234,10 +237,18 @@ class EnhancedSettingsPanel(QWidget):
         current_settings = self.get_current_settings()
         self.settings_updated.emit(current_settings)
         self.settings_saved.emit()
+        EVENT_BUS.publish("SETTINGS_SAVED", current_settings)
+        EVENT_BUS.publish(
+            SHOW_NOTIFICATION, {"type": "info", "message": "Settings saved"}
+        )
         self.logger.info("Settings saved")
 
     @Slot()
     def on_reset_settings(self) -> None:
         """Handle reset settings button click."""
         self.settings_reset.emit()
+        EVENT_BUS.publish("SETTINGS_RESET", {})
+        EVENT_BUS.publish(
+            SHOW_NOTIFICATION, {"type": "info", "message": "Settings reset to defaults"}
+        )
         self.logger.info("Settings reset to defaults")

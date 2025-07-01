@@ -102,6 +102,8 @@ except ImportError as e:
         pass
 
 
+from . import context, developer, stats
+
 __all__ = [
     "MainWindow",
     "ConfigWidget",
@@ -113,4 +115,7 @@ __all__ = [
     "AIAssistantWidget",
     "CommandPalette",
     "SelfImprovementCenter",
+    "context",
+    "developer",
+    "stats",
 ]

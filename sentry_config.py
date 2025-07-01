@@ -5,7 +5,6 @@ This module provides configuration for Sentry crash reporting in the Atlas appli
 """
 
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -13,48 +12,9 @@ logger = logging.getLogger(__name__)
 sentry_sdk = None
 
 
-def init_sentry(
-    dsn: str = "", environment: str = "production", release: str = "atlas@1.0.0"
-) -> bool:
-    """Initialize Sentry error tracking.
-
-    Args:
-        dsn (str): Data Source Name for Sentry connection.
-        environment (str): Environment name (e.g., 'production', 'staging').
-        release (str): Release version identifier.
-
-    Returns:
-        bool: True if Sentry was initialized successfully, False otherwise.
-    """
-    global sentry_sdk
-    try:
-        import sentry_sdk
-
-        # Use environment variable if DSN not provided explicitly
-        if not dsn:
-            dsn = os.environ.get("SENTRY_DSN", "")
-
-        if not dsn:
-            logger.warning("Sentry DSN not found, crash reporting disabled")
-            return False
-
-        # Initialize Sentry with provided or environment DSN
-        sentry_sdk.init(
-            dsn=dsn,
-            environment=environment,
-            release=release,
-            traces_sample_rate=1.0,
-            profiles_sample_rate=1.0,
-            enable_tracing=True,
-        )
-        logger.info("Sentry initialized for crash reporting")
-        return True
-    except ImportError:
-        logger.warning("Sentry SDK not installed, crash reporting disabled")
-        return False
-    except Exception as e:
-        logger.error(f"Failed to initialize Sentry: {e}")
-        return False
+def init_sentry(dsn, environment=None, release=None):
+    """Stub for Sentry initialization."""
+    pass
 
 
 def capture_exception(exception: Exception, extra_data: dict = None) -> str:

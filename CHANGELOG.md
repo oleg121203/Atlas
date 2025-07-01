@@ -99,16 +99,13 @@
 
 ## [Unreleased]
 ### [Phase 14] - 2025-06-29
-#### Changed
-- Fixed critical startup error by replacing PyQt5 import with PySide6 in `ui/ai_assistant_widget.py` to adhere to UNIFIED INTERFACE mandate.
-- Confirmed existence of `debugging/debugging_hooks.py`, `performance/performance_monitor.py`, `performance/latency_analyzer.py`, and `sentry_config.py` with necessary classes and functions for application startup.
-- Updated `main.py` to remove references to `task_view` for proper initialization during startup.
-- Added `requests` package to `requirements.txt` to resolve ModuleNotFoundError during application startup.
-- Fixed linting issues in `main.py` by moving all module level imports to the top of the file to comply with code quality standards.
-#### Tested
-- Ran the Atlas application to test startup after implementing dependency and linting fixes, monitoring for any remaining issues.
-- Performed a final application startup test after completing all critical fixes for Phase 14, monitoring logs for any remaining issues before moving to the next phase.
-- Conducted a final verification run of the Atlas application to ensure all critical fixes are in place before transitioning to the next phase of development.
+#### Completed
+- ToolManagerUI додано у головне вікно Atlas як вкладку 'Tools'. Інструменти інтегровані з UI.
+- EventBus інтегровано у всі основні UI-модулі для міжмодульної комунікації.
+- Завершено оновлення всіх імпортів згідно нової структури UI (chat, tasks, agents, plugins, settings, tools, workflows, memory, self_improvement, themes, context, stats, developer).
+- Всі основні UI-файли переміщено у відповідні піддиректорії.
+- Додаток готовий до запуску без критичних помилок (етап 1 DEV_PLAN.md).
+- Всі зміни відповідають DEV_PLAN.md та опису в CHANGELOG.md.
 
 ## [0.5.0] - 2023-10-11
 ### Fixed
@@ -142,3 +139,15 @@
 - **2025-06-29**: Ensured all dependencies are installed by running `pip install -r requirements.txt` to prevent missing dependency issues.
 - **2025-06-29**: Performed multiple restarts of the Atlas application after UI implementations and dependency checks for final testing in Phase 14.
 - **2025-06-29**: Fixed critical startup error by replacing PyQt5 import with PySide6 in `ui/ai_assistant_widget.py` to adhere to UNIFIED INTERFACE mandate.
+
+### [Phase 15] - 2025-06-29
+#### Completed
+- Завершено повний перехід UI на подієву модель (де це можливо). Всі основні дії користувача та системні події керуються через EventBus.
+- Додано обробку помилок для LLM API (таймаути, недоступність, невірний API-ключ) у utils/llm_manager.py.
+- Додано механізм очищення та консолідації довгострокової пам'яті в utils/memory_management.py.
+- ToolManagerUI тепер динамічно оновлює список інструментів при додаванні або видаленні без перезапуску програми.
+- Додано підтримку послідовного виконання ланцюжків інструментів у WorkflowEngine та інтеграцію з UI (WorkflowExecutionControl).
+- Додано індикатори завантаження (спіннери) для тривалих операцій у ChatModule, ToolManagerUI, WorkflowExecutionControl.
+- Фіналізовано систему тем: теми застосовуються до всіх UI-компонентів, включно з LoadingSpinner, статус-баром, діалогами, прогрес-барами.
+- Налаштовано тестове середовище: додано pytest-qt, оновлено conftest.py для підтримки PySide6 UI-тестів.
+- Додано інтеграційний тест для EventBus: перевірка міжмодульної комунікації (MockModuleA → MockModuleB).
