@@ -46,7 +46,9 @@ class ContextMenu(QMenu):
         self.logger.debug(f"Added action to context menu: {text}")
         return action
 
-    def show_at(self, pos: QPoint, actions: List[Tuple[str, Callable[[], None]]]) -> None:
+    def show_at(
+        self, pos: QPoint, actions: List[Tuple[str, Callable[[], None]]]
+    ) -> None:
         """Show the context menu at the specified position with the given actions.
 
         Args:

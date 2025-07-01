@@ -24,11 +24,13 @@ class TestSelfRegenerationManager(unittest.TestCase):
 
     def test_detect_issues_empty(self):
         """Test detecting issues when there are none."""
-        with patch.object(self.manager, '_detect_import_issues', return_value=[]), \
-             patch.object(self.manager, '_detect_missing_methods', return_value=[]), \
-             patch.object(self.manager, '_detect_broken_tools', return_value=[]), \
-             patch.object(self.manager, '_detect_missing_plugins', return_value=[]), \
-             patch.object(self.manager, '_detect_config_issues', return_value=[]):
+        with (
+            patch.object(self.manager, "_detect_import_issues", return_value=[]),
+            patch.object(self.manager, "_detect_missing_methods", return_value=[]),
+            patch.object(self.manager, "_detect_broken_tools", return_value=[]),
+            patch.object(self.manager, "_detect_missing_plugins", return_value=[]),
+            patch.object(self.manager, "_detect_config_issues", return_value=[]),
+        ):
             issues = self.manager._detect_issues()
             self.assertEqual(issues, [])
 
@@ -40,15 +42,21 @@ class TestSelfRegenerationManager(unittest.TestCase):
 
     def test_execute_create_module_tool(self):
         """Test executing create_module tool."""
-        with patch.object(self.manager, '_run_tool_code', return_value=None) as mock_run:
-            result = self.manager.execute_tool("create_module", {"module_name": "test_module"})
+        with patch.object(
+            self.manager, "_run_tool_code", return_value=None
+        ) as mock_run:
+            result = self.manager.execute_tool(
+                "create_module", {"module_name": "test_module"}
+            )
             self.assertTrue(result["success"])
             self.assertIn("Tool for module test_module created", result["message"])
             mock_run.assert_called_once()
 
     def test_execute_create_class_tool(self):
         """Test executing create_class tool."""
-        with patch.object(self.manager, '_run_tool_code', return_value=None) as mock_run:
+        with patch.object(
+            self.manager, "_run_tool_code", return_value=None
+        ) as mock_run:
             params = {"class_name": "TestClass", "module_name": "test_module"}
             result = self.manager.execute_tool("create_class", params)
             self.assertTrue(result["success"])
@@ -57,11 +65,13 @@ class TestSelfRegenerationManager(unittest.TestCase):
 
     def test_execute_create_method_tool(self):
         """Test executing create_method tool."""
-        with patch.object(self.manager, '_run_tool_code', return_value=None) as mock_run:
+        with patch.object(
+            self.manager, "_run_tool_code", return_value=None
+        ) as mock_run:
             params = {
                 "method_name": "test_method",
                 "class_name": "TestClass",
-                "module_name": "test_module"
+                "module_name": "test_module",
             }
             result = self.manager.execute_tool("create_method", params)
             self.assertTrue(result["success"])
@@ -70,24 +80,36 @@ class TestSelfRegenerationManager(unittest.TestCase):
 
     def test_execute_create_tool_tool(self):
         """Test executing create_tool tool."""
-        with patch.object(self.manager, '_run_tool_code', return_value=None) as mock_run:
-            result = self.manager.execute_tool("create_tool", {"tool_name": "test_tool"})
+        with patch.object(
+            self.manager, "_run_tool_code", return_value=None
+        ) as mock_run:
+            result = self.manager.execute_tool(
+                "create_tool", {"tool_name": "test_tool"}
+            )
             self.assertTrue(result["success"])
             self.assertIn("Tool for tool test_tool created", result["message"])
             mock_run.assert_called_once()
 
     def test_execute_create_plugin_tool(self):
         """Test executing create_plugin tool."""
-        with patch.object(self.manager, '_run_tool_code', return_value=None) as mock_run:
-            result = self.manager.execute_tool("create_plugin", {"plugin_name": "test_plugin"})
+        with patch.object(
+            self.manager, "_run_tool_code", return_value=None
+        ) as mock_run:
+            result = self.manager.execute_tool(
+                "create_plugin", {"plugin_name": "test_plugin"}
+            )
             self.assertTrue(result["success"])
             self.assertIn("Tool for plugin test_plugin created", result["message"])
             mock_run.assert_called_once()
 
     def test_execute_create_config_tool(self):
         """Test executing create_config tool."""
-        with patch.object(self.manager, '_run_tool_code', return_value=None) as mock_run:
-            result = self.manager.execute_tool("create_config", {"config_name": "test_config"})
+        with patch.object(
+            self.manager, "_run_tool_code", return_value=None
+        ) as mock_run:
+            result = self.manager.execute_tool(
+                "create_config", {"config_name": "test_config"}
+            )
             self.assertTrue(result["success"])
             self.assertIn("Tool for config test_config created", result["message"])
             mock_run.assert_called_once()
@@ -95,7 +117,9 @@ class TestSelfRegenerationManager(unittest.TestCase):
     def test_handle_tool_activation(self):
         """Test handling tool activation from UI."""
         mock_return = {"success": True, "message": "Tool executed"}
-        with patch.object(self.manager, 'execute_tool', return_value=mock_return) as mock_execute:
+        with patch.object(
+            self.manager, "execute_tool", return_value=mock_return
+        ) as mock_execute:
             result = self.manager.handle_tool_activation("test_tool")
             self.assertTrue(result["success"])
             self.assertEqual(result["message"], "Tool executed")
@@ -113,5 +137,6 @@ class TestSelfRegenerationManager(unittest.TestCase):
         self.assertIn("GenericTool", content)
         self.assertIn("execute", content)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -32,7 +32,9 @@ class DecisionUI(QWidget):
         """Connect to the decision engine signals to update UI on changes."""
         if self.decision_engine:
             self.decision_engine.decision_made.connect(self.on_decision_made)
-            self.decision_engine.decision_factors_updated.connect(self.on_factors_updated)
+            self.decision_engine.decision_factors_updated.connect(
+                self.on_factors_updated
+            )
 
     def on_decision_made(self, decision: dict):
         """Handle new decision made by the engine.
@@ -68,13 +70,25 @@ class DecisionUI(QWidget):
             # Display decision history if available
             history = self.decision_engine.get_decision_history()
             if history:
-                history_item = QTreeWidgetItem(self.decision_tree, ["Decision History", ""])
+                history_item = QTreeWidgetItem(
+                    self.decision_tree, ["Decision History", ""]
+                )
                 for i, decision in enumerate(history[:5]):  # Limit to last 5 decisions
-                    decision_text = f"Decision {i+1}: {decision.get('goal', 'Unknown')}"
+                    decision_text = (
+                        f"Decision {i + 1}: {decision.get('goal', 'Unknown')}"
+                    )
                     decision_item = QTreeWidgetItem(history_item, [decision_text, ""])
-                    QTreeWidgetItem(decision_item, ["Action", decision.get('decision', 'N/A')])
-                    QTreeWidgetItem(decision_item, ["Confidence", str(decision.get('confidence', 'N/A'))])
-                    QTreeWidgetItem(decision_item, ["Strategy", decision.get('strategy_used', 'N/A')])
+                    QTreeWidgetItem(
+                        decision_item, ["Action", decision.get("decision", "N/A")]
+                    )
+                    QTreeWidgetItem(
+                        decision_item,
+                        ["Confidence", str(decision.get("confidence", "N/A"))],
+                    )
+                    QTreeWidgetItem(
+                        decision_item,
+                        ["Strategy", decision.get("strategy_used", "N/A")],
+                    )
 
         else:
             type_item = QTreeWidgetItem(self.decision_tree, ["Placeholder", ""])

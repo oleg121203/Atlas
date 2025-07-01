@@ -77,5 +77,6 @@ class TestToolManagerUI(unittest.TestCase):
         self.tool_manager.refresh_tools()
         self.assertIsNone(self.tool_manager.tool_list.currentItem())
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

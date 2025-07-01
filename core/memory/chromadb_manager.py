@@ -5,11 +5,14 @@ from typing import Any, Dict, List, Optional
 
 try:
     import chromadb
+
     CHROMADB_AVAILABLE = True
 except ImportError:
     chromadb = None
     CHROMADB_AVAILABLE = False
-    logging.warning("ChromaDB not installed. Memory system functionality will be limited.")
+    logging.warning(
+        "ChromaDB not installed. Memory system functionality will be limited."
+    )
 
 
 class ChromaDBManager:
@@ -118,9 +121,7 @@ class ChromaDBManager:
             return False
 
         if collection_name not in self._collections:
-            logging.error(
-                f"Collection {collection_name} not initialized."
-            )
+            logging.error(f"Collection {collection_name} not initialized.")
             return False
 
         try:
@@ -140,7 +141,7 @@ class ChromaDBManager:
         item_id: str,
         vector: Optional[List[float]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        document: Optional[str] = None
+        document: Optional[str] = None,
     ) -> bool:
         """Update an existing item in a collection.
 
@@ -159,27 +160,27 @@ class ChromaDBManager:
             return False
 
         if collection_name not in self._collections:
-            logging.error(
-                f"Collection {collection_name} not initialized."
-            )
+            logging.error(f"Collection {collection_name} not initialized.")
             return False
 
         try:
             collection = self._collections[collection_name]
             update_dict = {}
             if vector is not None:
-                update_dict['embeddings'] = [vector]
+                update_dict["embeddings"] = [vector]
             if metadata is not None:
-                update_dict['metadatas'] = [metadata]
+                update_dict["metadatas"] = [metadata]
             if document is not None:
-                update_dict['documents'] = [document]
+                update_dict["documents"] = [document]
 
             if update_dict:
                 collection.update(ids=[item_id], **update_dict)
                 logging.info(f"Updated item {item_id} in collection: {collection_name}")
             return True
         except Exception as e:
-            logging.error(f"Failed to update item {item_id} in collection {collection_name}: {e}")
+            logging.error(
+                f"Failed to update item {item_id} in collection {collection_name}: {e}"
+            )
             return False
 
     def delete_item(self, collection_name: str, item_id: str) -> bool:
@@ -197,9 +198,7 @@ class ChromaDBManager:
             return False
 
         if collection_name not in self._collections:
-            logging.error(
-                f"Collection {collection_name} not initialized."
-            )
+            logging.error(f"Collection {collection_name} not initialized.")
             return False
 
         try:
@@ -208,7 +207,9 @@ class ChromaDBManager:
             logging.info(f"Deleted item {item_id} from collection: {collection_name}")
             return True
         except Exception as e:
-            logging.error(f"Failed to delete item {item_id} from collection {collection_name}: {e}")
+            logging.error(
+                f"Failed to delete item {item_id} from collection {collection_name}: {e}"
+            )
             return False
 
     def get_collection(self, name: str) -> Optional[Any]:
@@ -239,7 +240,7 @@ class ChromaDBManager:
         query_texts: Optional[List[str]] = None,
         n_results: int = 10,
         where: Optional[Dict[str, Any]] = None,
-        where_document: Optional[Dict[str, Any]] = None
+        where_document: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Query a collection for similar items.
 
@@ -259,9 +260,7 @@ class ChromaDBManager:
             return {}
 
         if collection_name not in self._collections:
-            logging.error(
-                f"Collection {collection_name} not initialized."
-            )
+            logging.error(f"Collection {collection_name} not initialized.")
             return {}
 
         try:
@@ -272,7 +271,7 @@ class ChromaDBManager:
                     n_results=n_results,
                     where=where,
                     where_document=where_document,
-                    include=["metadatas", "documents", "distances"]
+                    include=["metadatas", "documents", "distances"],
                 )
             elif query_texts is not None:
                 results = collection.query(
@@ -280,19 +279,23 @@ class ChromaDBManager:
                     n_results=n_results,
                     where=where,
                     where_document=where_document,
-                    include=["metadatas", "documents", "distances"]
+                    include=["metadatas", "documents", "distances"],
                 )
             else:
                 logging.error("Either query_vectors or query_texts must be provided.")
                 return {}
 
-            logging.info(f"Queried collection {collection_name} with {n_results} results.")
+            logging.info(
+                f"Queried collection {collection_name} with {n_results} results."
+            )
             return results
         except Exception as e:
             logging.error(f"Failed to query collection {collection_name}: {e}")
             return {}
 
-    def update_collection_metadata(self, collection_name: str, metadata: Dict[str, Any]) -> bool:
+    def update_collection_metadata(
+        self, collection_name: str, metadata: Dict[str, Any]
+    ) -> bool:
         """Update metadata for a collection.
 
         Args:
@@ -307,9 +310,7 @@ class ChromaDBManager:
             return False
 
         if collection_name not in self._collections:
-            logging.error(
-                f"Collection {collection_name} not initialized."
-            )
+            logging.error(f"Collection {collection_name} not initialized.")
             return False
 
         try:
@@ -318,7 +319,9 @@ class ChromaDBManager:
             logging.info(f"Updated metadata for collection: {collection_name}")
             return True
         except Exception as e:
-            logging.error(f"Failed to update metadata for collection {collection_name}: {e}")
+            logging.error(
+                f"Failed to update metadata for collection {collection_name}: {e}"
+            )
             return False
 
     def get_collection_metadata(self, collection_name: str) -> Optional[Dict[str, Any]]:
@@ -335,16 +338,16 @@ class ChromaDBManager:
             return None
 
         if collection_name not in self._collections:
-            logging.error(
-                f"Collection {collection_name} not initialized."
-            )
+            logging.error(f"Collection {collection_name} not initialized.")
             return None
 
         try:
             collection = self._collections[collection_name]
             return collection.metadata
         except Exception as e:
-            logging.error(f"Failed to get metadata for collection {collection_name}: {e}")
+            logging.error(
+                f"Failed to get metadata for collection {collection_name}: {e}"
+            )
             return None
 
     def persist(self) -> bool:

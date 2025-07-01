@@ -226,5 +226,131 @@ ATLAS_INTELLIGENCE_INTEGRATION
 5. Use progress commands to check status
 
 ---
+
+## 🔧 **Phase 14: Architecture Compliance and Error Resolution Commands**
+
+### **Critical Startup Fixes**
+```
+ATLAS_FIX_STARTUP_CRITICAL
+
+Fix critical startup errors in main.py - create missing modules for debugging_hooks, performance_monitor, latency_analyzer, and sentry_config with proper class implementations.
+
+Priority: Fix application launch blocking issues first.
+```
+
+```
+ATLAS_FIX_MAIN_WINDOW_ERRORS
+
+Fix main_window.py PySide6 import and attribute errors - correct QAction import from QtGui and fix Qt constants like Qt.Orientation.Vertical.
+
+Also add missing attribute initialization: main_layout, logger, theme_manager.
+```
+
+```
+ATLAS_CREATE_MINIMAL_FUNCTIONAL_APP
+
+Create minimal functional AtlasMainWindow that launches without crashes - add missing attribute initialization and error handling.
+
+Focus: Get application to start successfully.
+```
+
+### **Architecture Compliance**
+```
+ATLAS_RESTRUCTURE_UI_MODULES
+
+Restructure UI modules according to target architecture - create ui/chat/, ui/tasks/, ui/agents/, ui/plugins/, ui/settings/ subdirectories and move existing modules.
+
+Follow DEV_PLAN.md target architecture exactly.
+```
+
+```
+ATLAS_CREATE_MISSING_CORE_MODULES
+
+Create missing core modules - implement core/application.py, core/module_registry.py, core/plugin_system.py, core/self_healing.py according to DEV_PLAN architecture.
+
+Ensure proper AtlasApplication class structure.
+```
+
+```
+ATLAS_FIX_IMPORT_DEPENDENCIES
+
+Fix all import dependencies - resolve modules.* imports to proper core.* or ui.* paths and create missing modules like ui/task_widget.py and ui/user_management.py.
+
+Eliminate all import errors.
+```
+
+### **Theme System Implementation**
+```
+ATLAS_IMPLEMENT_HACKER_THEME
+
+Implement complete hacker theme - enhance hacker.json with terminal green colors, matrix effects, monospace fonts, and ASCII art elements.
+
+Include matrix rain effect for authentic hacker aesthetic.
+```
+
+```
+ATLAS_IMPLEMENT_CYBERPUNK_THEME
+
+Implement complete cyberpunk theme - enhance cyberpunk_neon.json with neon glow effects, dark backgrounds, and futuristic UI elements.
+
+Add neon pulse animations and glow effects.
+```
+
+```
+ATLAS_CREATE_THEME_SWITCHER
+
+Create working theme switcher UI - implement theme selection interface with live preview and smooth transitions.
+
+Connect to theme manager backend properly.
+```
+
+### **Developer Tools Integration**
+```
+ATLAS_CREATE_DEVELOPER_TOOLS_UI
+
+Create ui/developer/ module - implement developer tools UI with ruff_integration.py, auto_coding_ui.py, ollama_manager.py, continue_integration.py.
+
+Follow DEV_PLAN.md specifications for developer module.
+```
+
+```
+ATLAS_IMPLEMENT_RUFF_INTEGRATION
+
+Implement real-time ruff linting interface - create code linting UI with real-time feedback and auto-fix suggestions.
+
+Integrate with existing Ruff tasks in workspace.
+```
+
+```
+ATLAS_CREATE_AUTO_CODING_UI
+
+Create AI-powered auto-coding UI - implement code generation suggestions panel with Windsurf commands integration.
+
+Include continue.dev workflow integration.
+```
+
+### **Error Resolution Protocol**
+```
+ATLAS_FIX_ALL_PYSIDE6_ERRORS
+
+Fix all PySide6 GUI component crashes - resolve QAction imports, Qt attribute access, and AttributeError issues in main_window.py.
+
+Ensure application launches without GUI crashes.
+```
+
+```
+ATLAS_COMPREHENSIVE_ERROR_CHECK
+
+Run comprehensive error checking using available VS Code tasks:
+1. Ruff: Lint - check code quality
+2. Ruff: Fix - auto-correct issues  
+3. Ruff: Format - ensure consistent formatting
+4. Pytest: Run All Tests - validate functionality
+
+Fix all identified issues.
+```
+
+---
+
 **Last Updated**: June 27, 2025
 **Target**: Complete intelligent, self-improving AI platform with cyberpunk aesthetics

@@ -64,7 +64,9 @@ class MasterAgentPanel(QWidget):
         layout = QVBoxLayout(self)
 
         header_label = QLabel("Master Agents")
-        header_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #00ffaa;")
+        header_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #00ffaa;"
+        )
         layout.addWidget(header_label)
 
         self.agent_list = QListWidget()

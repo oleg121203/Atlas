@@ -8,6 +8,7 @@ for enhanced development workflows.
 Enhanced with advanced features like automated refactoring suggestions to improve code quality
 and developer productivity within the PyCharm environment.
 """
+
 import json
 import logging
 import os
@@ -68,13 +69,15 @@ class PyCharmPlugin:
                 "code_analysis": True,
                 "context_suggestions": True,
                 "decision_trigger": True,
-                "refactoring_suggestions": True
-            }
+                "refactoring_suggestions": True,
+            },
         }
 
         with open(self.plugin_config_path, "w", encoding="utf-8") as f:
             json.dump(plugin_config, f, indent=2)
-        logger.info(f"Created/Updated PyCharm plugin configuration at {self.plugin_config_path}")
+        logger.info(
+            f"Created/Updated PyCharm plugin configuration at {self.plugin_config_path}"
+        )
 
     def _create_plugin_structure(self):
         """Create the basic structure for the PyCharm plugin."""
@@ -145,7 +148,9 @@ class PyCharmPlugin:
         logger.info(f"Created plugin.xml for PyCharm plugin at {plugin_xml_path}")
 
         # Placeholder for additional plugin files
-        logger.info("Created basic PyCharm plugin structure (mocked Java classes and resources).")
+        logger.info(
+            "Created basic PyCharm plugin structure (mocked Java classes and resources)."
+        )
 
     def connect_project(self, project_path: str) -> bool:
         """Connect the PyCharm project to an Atlas project.
@@ -186,21 +191,10 @@ class PyCharmPlugin:
 
         # Mocked response for context data
         context_data = {
-            "environmental": {
-                "time": "2025-06-27T10:00:00Z",
-                "location": "Office"
-            },
-            "user": {
-                "mood": "Focused",
-                "task": "Coding"
-            },
-            "system": {
-                "cpu_usage": "45%",
-                "memory_usage": "60%"
-            },
-            "historical": {
-                "last_decision": "Optimized algorithm for performance"
-            }
+            "environmental": {"time": "2025-06-27T10:00:00Z", "location": "Office"},
+            "user": {"mood": "Focused", "task": "Coding"},
+            "system": {"cpu_usage": "45%", "memory_usage": "60%"},
+            "historical": {"last_decision": "Optimized algorithm for performance"},
         }
         logger.info("Viewed context data from Atlas AI in PyCharm.")
         return context_data
@@ -226,8 +220,8 @@ class PyCharmPlugin:
             "factors": [
                 "Current code complexity",
                 "Developer's recent activity",
-                "Performance metrics"
-            ]
+                "Performance metrics",
+            ],
         }
         logger.info(f"Triggered decision in Atlas AI for goal: {goal}")
         return decision_result
@@ -246,17 +240,19 @@ class PyCharmPlugin:
             return {"error": "Not initialized"}
 
         # Mocked response for code analysis
-        snippet_preview = code_snippet[:50] + "..." if len(code_snippet) > 50 else code_snippet
+        snippet_preview = (
+            code_snippet[:50] + "..." if len(code_snippet) > 50 else code_snippet
+        )
         analysis_result = {
             "code_snippet": snippet_preview,
             "issues": [
                 "Potential performance bottleneck in loop structure",
-                "Variable naming could be more descriptive"
+                "Variable naming could be more descriptive",
             ],
             "suggestions": [
                 "Consider using list comprehension for better performance",
-                "Rename 'x' to 'user_input_count' for clarity"
-            ]
+                "Rename 'x' to 'user_input_count' for clarity",
+            ],
         }
         logger.info("Analyzed code snippet with Atlas AI in PyCharm.")
         return analysis_result
@@ -275,13 +271,15 @@ class PyCharmPlugin:
             return {"error": "Not initialized"}
 
         # Mocked response for refactoring suggestions
-        snippet_preview = code_snippet[:50] + "..." if len(code_snippet) > 50 else code_snippet
+        snippet_preview = (
+            code_snippet[:50] + "..." if len(code_snippet) > 50 else code_snippet
+        )
         refactoring_result = {
             "code_snippet": snippet_preview,
             "analysis": {
                 "structure": "The current code structure can be modularized for better maintainability.",
                 "complexity": "Cyclomatic complexity is high; consider breaking down functions.",
-                "duplication": "Detected duplicated code blocks that can be extracted into functions."
+                "duplication": "Detected duplicated code blocks that can be extracted into functions.",
             },
             "suggestions": [
                 {
@@ -291,25 +289,25 @@ class PyCharmPlugin:
                     "after": (
                         "def process_items(items):\n    for item in items:\n        process(item)\n\n"
                         "# Usage\nprocess_items(items)"
-                    )
+                    ),
                 },
                 {
                     "title": "Simplify Conditional",
                     "description": "Simplify nested if-statements into a single condition.",
                     "before": "if condition1:\n    if condition2:\n        do_something()",
-                    "after": "if condition1 and condition2:\n    do_something()"
+                    "after": "if condition1 and condition2:\n    do_something()",
                 },
                 {
                     "title": "Rename Variables",
                     "description": "Rename variables for better readability and intent.",
                     "before": "x = get_data()",
-                    "after": "user_data = get_data()"
-                }
+                    "after": "user_data = get_data()",
+                },
             ],
             "recommendation": (
                 "Start with extracting methods to reduce code duplication, then simplify "
                 "conditionals for better readability."
-            )
+            ),
         }
         logger.info("Suggested refactoring improvements with Atlas AI in PyCharm.")
         return refactoring_result
@@ -330,7 +328,9 @@ class PyCharmPlugin:
         try:
             # In a real implementation, this would apply the refactoring to the code
             # For now, log the action
-            refactoring_title = refactoring_suggestion.get("title", "Unknown Refactoring")
+            refactoring_title = refactoring_suggestion.get(
+                "title", "Unknown Refactoring"
+            )
             logger.info(f"Applying refactoring: {refactoring_title}")
             return True
         except Exception as e:
@@ -348,9 +348,13 @@ if __name__ == "__main__":
         logger.info(f"Context Data: {context_data}")
         decision_result = pycharm_plugin.trigger_decision("Optimize algorithm")
         logger.info(f"Decision Result: {decision_result}")
-        analysis_result = pycharm_plugin.analyze_code("def example_function(x):\n    return x * 2")
+        analysis_result = pycharm_plugin.analyze_code(
+            "def example_function(x):\n    return x * 2"
+        )
         logger.info(f"Analysis Result: {analysis_result}")
-        refactoring_result = pycharm_plugin.suggest_refactoring("def complex_function(a, b):\n    if a > b:\n        if a - b > 10:\n            return a - b\n    return 0")
+        refactoring_result = pycharm_plugin.suggest_refactoring(
+            "def complex_function(a, b):\n    if a > b:\n        if a - b > 10:\n            return a - b\n    return 0"
+        )
         logger.info(f"Refactoring Suggestions: {refactoring_result}")
-        if refactoring_result.get('suggestions'):
-            pycharm_plugin.apply_refactoring(refactoring_result['suggestions'][0])
+        if refactoring_result.get("suggestions"):
+            pycharm_plugin.apply_refactoring(refactoring_result["suggestions"][0])

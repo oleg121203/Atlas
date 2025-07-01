@@ -37,7 +37,15 @@ Atlas — сучасна модульна AI-платформа з кіберп�
 Для швидкого продовження розробки в Windsurf Chat використовуй команди з файлу:
 **[WINDSURF_COMMANDS.md](WINDSURF_COMMANDS.md)** - Всі команди для автоматичного виконання DEV_PLAN.md
 
-### Швидкий старт:
+### 🚨 Phase 14: Critical Error Resolution
+**[PHASE14_QUICKSTART.md](PHASE14_QUICKSTART.md)** - Негайне виправлення критичних помилок запуску
+
+### Швидкий старт Phase 14:
+```
+/chat Fix critical startup errors in Atlas main.py - create missing debugging/debugging_hooks.py, performance/performance_monitor.py, performance/latency_analyzer.py, and sentry_config.py modules with proper class implementations to resolve import errors
+```
+
+### Повна автоматизація:
 ```
 ATLAS_AUTO_EXECUTE
 ```
@@ -88,7 +96,15 @@ Atlas is a modern modular AI platform with cyberpunk design, extensibility throu
 For quick development continuation in Windsurf Chat, use commands from:
 **[WINDSURF_COMMANDS.md](WINDSURF_COMMANDS.md)** - All commands for automatic DEV_PLAN.md execution
 
-### Quick Start:
+### 🚨 Phase 14: Critical Error Resolution
+**[PHASE14_QUICKSTART.md](PHASE14_QUICKSTART.md)** - Immediate critical startup error fixes
+
+### Quick Start Phase 14:
+```
+/chat Fix critical startup errors in Atlas main.py - create missing debugging/debugging_hooks.py, performance/performance_monitor.py, performance/latency_analyzer.py, and sentry_config.py modules with proper class implementations to resolve import errors
+```
+
+### Full Automation:
 ```
 ATLAS_AUTO_EXECUTE
 ```

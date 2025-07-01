@@ -4,7 +4,13 @@ This module contains reusable UI components that assist in various aspects of th
 such as tooltips, context menus, and other utility widgets.
 """
 
-__all__ = ["Tooltip", "ContextMenu", "CommandPalette", "HierarchicalTaskView", "MasterAgentPanel"]
+__all__ = [
+    "Tooltip",
+    "ContextMenu",
+    "CommandPalette",
+    "HierarchicalTaskView",
+    "MasterAgentPanel",
+]
 
 # Import helper components for easy access
 from .command_palette import CommandPalette

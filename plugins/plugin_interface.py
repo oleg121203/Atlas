@@ -20,7 +20,7 @@ class PluginInterface(QObject):
             "name": "Unnamed Plugin",
             "version": "0.1.0",
             "description": "No description provided.",
-            "author": "Unknown"
+            "author": "Unknown",
         }
         self.logger.info(f"Plugin interface initialized for {plugin_id}")
 

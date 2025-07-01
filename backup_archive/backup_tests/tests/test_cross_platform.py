@@ -2,8 +2,8 @@ import sys
 from unittest.mock import patch
 
 import pytest
-from plugins.base import PluginBase
 
+from plugins.base import PluginBase
 from tests.mock_plugin_metadata import MockPluginMetadata as PluginMetadata
 from tests.test_plugin_dependencies import MockPluginRegistry
 

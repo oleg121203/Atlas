@@ -4,9 +4,9 @@ from typing import Any, Dict, Optional
 
 import pytest
 from memory_profiler import profile
-from plugins.base import PluginBase
 from PySide6.QtWidgets import QWidget
 
+from plugins.base import PluginBase
 from tests.mock_chat_manager import MockChatContextManager as ChatContextManager
 from tests.mock_llm_manager import MockLLMManager as LLMManager
 from tests.mock_main_window import MockMainWindow as MainWindow

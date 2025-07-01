@@ -23,7 +23,9 @@ class CommandPalette(QDialog):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.setWindowTitle("Command Palette")
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint
+        )
         self.setStyleSheet("""
             QDialog {
                 background-color: #0a0a0a;

@@ -8,6 +8,7 @@ methods for setting breakpoints and tracing operations.
 Advanced debugging hooks are implemented for deeper integration with intelligence components like
 ContextEngine, DecisionEngine, and SelfImprovementEngine to provide detailed insights into AI processes.
 """
+
 import logging
 import os
 import sys
@@ -39,7 +40,9 @@ class DebuggingTools:
             atlas_root_path: The root directory path of the Atlas project.
         """
         self.atlas_root_path = atlas_root_path
-        self.config_path = os.path.join(atlas_root_path, "config", "debugging_config.json")
+        self.config_path = os.path.join(
+            atlas_root_path, "config", "debugging_config.json"
+        )
         self.is_initialized = False
         self.pdbpp_enabled = False
         self.pyside6_debugging_enabled = False
@@ -146,7 +149,9 @@ class DebuggingTools:
             # Hook to trace improvement plan generation and execution
 
             self.intelligence_hooks_installed = True
-            logger.info("Advanced debugging hooks installed for intelligence components.")
+            logger.info(
+                "Advanced debugging hooks installed for intelligence components."
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to install intelligence debugging hooks: {e}")

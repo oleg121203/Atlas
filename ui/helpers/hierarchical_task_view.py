@@ -39,7 +39,9 @@ class HierarchicalTaskView(QWidget):
         layout = QVBoxLayout(self)
 
         header_label = QLabel("Task Hierarchy")
-        header_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #00ffaa;")
+        header_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #00ffaa;"
+        )
         layout.addWidget(header_label)
 
         self.task_tree = QTreeWidget()
@@ -60,7 +62,9 @@ class HierarchicalTaskView(QWidget):
         self._populate_tasks(tasks, None)
         self.logger.debug(f"Updated task view with {len(tasks)} top-level tasks")
 
-    def _populate_tasks(self, tasks: List[Dict[str, Any]], parent: Optional[QTreeWidgetItem]) -> None:
+    def _populate_tasks(
+        self, tasks: List[Dict[str, Any]], parent: Optional[QTreeWidgetItem]
+    ) -> None:
         """Recursively populate the task tree with tasks and subtasks.
 
         Args:

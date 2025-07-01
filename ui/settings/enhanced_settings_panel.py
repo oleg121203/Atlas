@@ -115,7 +115,9 @@ class EnhancedSettingsPanel(QWidget):
         layout = QVBoxLayout(self)
 
         header_label = QLabel("Advanced Settings")
-        header_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #00ffaa;")
+        header_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #00ffaa;"
+        )
         layout.addWidget(header_label)
 
         # Scroll area for settings
@@ -169,7 +171,9 @@ class EnhancedSettingsPanel(QWidget):
 
                 for setting_name, setting_info in category_settings.items():
                     setting_type = setting_info.get("type", "text")
-                    setting_label = setting_info.get("label", setting_name.replace("_", " ").title())
+                    setting_label = setting_info.get(
+                        "label", setting_name.replace("_", " ").title()
+                    )
                     setting_value = setting_info.get("value")
                     setting_options = setting_info.get("options", [])
 
@@ -199,7 +203,9 @@ class EnhancedSettingsPanel(QWidget):
                 scroll_layout.addWidget(group_box)
 
             scroll_layout.addStretch(1)
-            self.logger.info(f"Updated settings UI with {len(self.settings_widgets)} settings")
+            self.logger.info(
+                f"Updated settings UI with {len(self.settings_widgets)} settings"
+            )
         else:
             self.logger.warning("No scroll layout found to update settings UI")
 
@@ -217,7 +223,9 @@ class EnhancedSettingsPanel(QWidget):
                 current_settings[setting_name] = widget.currentText()
             elif isinstance(widget, QLineEdit):
                 current_settings[setting_name] = widget.text()
-            self.logger.debug(f"Retrieved setting {setting_name}: {current_settings[setting_name]}")
+            self.logger.debug(
+                f"Retrieved setting {setting_name}: {current_settings[setting_name]}"
+            )
         return current_settings
 
     @Slot()

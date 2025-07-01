@@ -96,6 +96,12 @@ atlas/
 
 ## Core Principles
 
+### 🚨 CRITICAL INTERFACE COMPLIANCE
+- **UNIFIED INTERFACE MANDATE**: Only PySide6 is allowed - NO PyQt5 imports anywhere in codebase
+- **Current Critical Issue**: ui/ai_assistant_widget.py imports PyQt5.QtCore.pyqtSignal (BLOCKING APPLICATION STARTUP)
+- **Interface Violation**: Any PyQt5 imports must be immediately converted to PySide6 equivalents
+- **Zero Tolerance**: PyQt5 imports violate the core architecture principle and prevent application launch
+
 ### 1. Never-Stop Execution
 - **Continuous progression**: Development never pauses regardless of errors, unclear requirements, or missing dependencies
 - **Auto-recovery**: Automatically implement missing components, fix errors, and continue execution

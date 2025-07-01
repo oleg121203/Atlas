@@ -10,15 +10,12 @@ logger = getLogger(__name__)
 
 class SystemContextProvider:
     """Placeholder for a provider of system context data."""
+
     def __init__(self, config=None):
         self.config = config or {}
 
     def __call__(self):
-        return {
-            "cpu_usage": 0.5,
-            "memory_usage": 0.7,
-            "disk_space": 0.3
-        }
+        return {"cpu_usage": 0.5, "memory_usage": 0.7, "disk_space": 0.3}
 
     def stop(self):
         pass
@@ -26,6 +23,7 @@ class SystemContextProvider:
 
 class UserContextProvider:
     """Placeholder for a provider of user context data."""
+
     def __init__(self, config=None):
         self.config = config or {}
 
@@ -33,7 +31,7 @@ class UserContextProvider:
         return {
             "activity_level": "moderate",
             "last_input": time.time(),
-            "preferences": {"theme": "dark"}
+            "preferences": {"theme": "dark"},
         }
 
     def stop(self):
@@ -42,6 +40,7 @@ class UserContextProvider:
 
 class EnvironmentalContextProvider:
     """Placeholder for a provider of environmental context data."""
+
     def __init__(self, config=None):
         self.config = config or {}
 
@@ -49,7 +48,7 @@ class EnvironmentalContextProvider:
         return {
             "time_of_day": "afternoon",
             "location": "office",
-            "network_status": "connected"
+            "network_status": "connected",
         }
 
     def stop(self):
@@ -61,7 +60,11 @@ class ContextEngine(QObject):
 
     context_updated = Signal(str, dict)
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None, parent: Union[QObject, None] = None):
+    def __init__(
+        self,
+        config: Optional[Dict[str, Any]] = None,
+        parent: Union[QObject, None] = None,
+    ):
         """Initialize the ContextEngine with configuration.
 
         Args:
@@ -122,17 +125,25 @@ class ContextEngine(QObject):
                     self.context_providers[category] = provider_instance
                     logger.info("Initialized provider for category: %s", category)
                 else:
-                    logger.warning("Invalid provider configuration for category: %s", category)
+                    logger.warning(
+                        "Invalid provider configuration for category: %s", category
+                    )
             except Exception as e:
-                logger.error("Failed to initialize provider for category %s: %s", category, str(e))
+                logger.error(
+                    "Failed to initialize provider for category %s: %s",
+                    category,
+                    str(e),
+                )
 
         # Default providers if not specified in config
         if not self.context_providers:
-            self.context_providers.update({
-                "system": SystemContextProvider(),
-                "user": UserContextProvider(),
-                "environmental": EnvironmentalContextProvider()
-            })
+            self.context_providers.update(
+                {
+                    "system": SystemContextProvider(),
+                    "user": UserContextProvider(),
+                    "environmental": EnvironmentalContextProvider(),
+                }
+            )
             logger.info("Initialized default context providers")
 
     def register_provider(self, category: str, provider: Callable[[], dict]) -> None:
@@ -167,7 +178,9 @@ class ContextEngine(QObject):
                 return False
         return False
 
-    def register_listener(self, listener_id: str, callback: Callable[[str, Dict[str, Any]], None]) -> None:
+    def register_listener(
+        self, listener_id: str, callback: Callable[[str, Dict[str, Any]], None]
+    ) -> None:
         """Register a listener to be notified of context updates.
 
         Args:
@@ -216,7 +229,9 @@ class ContextEngine(QObject):
                 self.update_all_contexts()
                 elapsed = time.time() - start_time
                 if elapsed > interval:
-                    logger.warning(f"Context update took {elapsed:.2f} seconds, longer than interval {interval}")
+                    logger.warning(
+                        f"Context update took {elapsed:.2f} seconds, longer than interval {interval}"
+                    )
                 else:
                     time.sleep(interval - elapsed)
 
@@ -237,14 +252,19 @@ class ContextEngine(QObject):
                 try:
                     new_data = provider()
                     for key, value in new_data.items():
-                        if key in self.context_data[category] and self.context_data[category][key] == value:
+                        if (
+                            key in self.context_data[category]
+                            and self.context_data[category][key] == value
+                        ):
                             continue
                         self.context_data[category][key] = value
                         self.notify_listeners(category, {key: value})
                         self.context_updated.emit(category, {key: value})
                     logger.debug(f"Updated context for category: {category}")
                 except Exception as e:
-                    logger.error(f"Error updating context for category {category}: {str(e)}")
+                    logger.error(
+                        f"Error updating context for category {category}: {str(e)}"
+                    )
 
     def notify_listeners(self, context_type: str, context_data: Dict[str, Any]) -> None:
         """Notify all registered listeners of a context update.
@@ -291,13 +311,14 @@ class ContextEngine(QObject):
             self.context_data["historical"][category] = {}
         if key not in self.context_data["historical"][category]:
             self.context_data["historical"][category][key] = []
-        self.context_data["historical"][category][key].append({
-            "timestamp": time.time(),
-            "value": value
-        })
+        self.context_data["historical"][category][key].append(
+            {"timestamp": time.time(), "value": value}
+        )
         # Limit history to last 100 entries to prevent unbounded growth
         if len(self.context_data["historical"][category][key]) > 100:
-            self.context_data["historical"][category][key] = self.context_data["historical"][category][key][-100:]
+            self.context_data["historical"][category][key] = self.context_data[
+                "historical"
+            ][category][key][-100:]
         logger.debug(f"Added historical context for {category}.{key}")
         self.notify_listeners("historical", {category: {key: value}})
         self.context_updated.emit("historical", {category: {key: value}})

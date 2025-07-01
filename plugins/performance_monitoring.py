@@ -7,6 +7,7 @@ tracking memory allocations, measuring latency of operations, and generating per
 Enhanced with real-time dashboard integration in the Atlas UI to visualize performance metrics
 dynamically and provide actionable insights for optimization.
 """
+
 import logging
 import os
 import time
@@ -27,10 +28,12 @@ logger = logging.getLogger(__name__)
 # For UI integration (mocked for now as PySide6 might not be available)
 try:
     from PySide6.QtCore import QObject, Signal
+
     PYSIDE_AVAILABLE = True
 except ImportError:
     logger.warning("PySide6 not available. UI integration will be mocked.")
     PYSIDE_AVAILABLE = False
+
     # Mock QObject and Signal for non-UI testing
     class QObject:
         pass
@@ -42,8 +45,10 @@ except ImportError:
         def emit(self, *args):
             pass
 
+
 class PerformanceMonitor(QObject):
     """Monitors system performance metrics and integrates with UI for real-time dashboard display."""
+
     # Signals for UI updates
     cpu_usage_updated = Signal(float)
     memory_usage_updated = Signal(float)
@@ -66,7 +71,9 @@ class PerformanceMonitor(QObject):
         self.process = psutil.Process()
         self.latency_data: Dict[str, List[float]] = {}
         self.dashboard_enabled = PYSIDE_AVAILABLE
-        logger.info(f"Performance Monitor initialized with root path: {atlas_root_path}")
+        logger.info(
+            f"Performance Monitor initialized with root path: {atlas_root_path}"
+        )
 
     def start_monitoring(self) -> bool:
         """Start continuous performance monitoring in a separate thread.
@@ -94,7 +101,9 @@ class PerformanceMonitor(QObject):
             if self.dashboard_enabled:
                 logger.info("Performance dashboard integration enabled.")
             else:
-                logger.warning("Performance dashboard integration mocked due to missing PySide6.")
+                logger.warning(
+                    "Performance dashboard integration mocked due to missing PySide6."
+                )
 
             return True
         except Exception as e:
@@ -117,7 +126,9 @@ class PerformanceMonitor(QObject):
             if self.monitor_thread:
                 self.monitor_thread.join(timeout=2.0)
                 if self.monitor_thread.is_alive():
-                    logger.warning("Performance monitoring thread did not terminate gracefully.")
+                    logger.warning(
+                        "Performance monitoring thread did not terminate gracefully."
+                    )
                 else:
                     logger.info("Performance monitoring thread terminated.")
             tracemalloc.stop()
@@ -141,7 +152,9 @@ class PerformanceMonitor(QObject):
                     self.cpu_usage_updated.emit(cpu_usage)
                     self.memory_usage_updated.emit(memory_usage)
                 else:
-                    logger.info(f"CPU Usage: {cpu_usage:.1f}% | Memory Usage: {memory_usage:.1f}%")
+                    logger.info(
+                        f"CPU Usage: {cpu_usage:.1f}% | Memory Usage: {memory_usage:.1f}%"
+                    )
 
                 # Check if it's time to generate a report
                 current_time = time.time()
@@ -216,14 +229,17 @@ class PerformanceMonitor(QObject):
 
             # Keep only the last 100 measurements to avoid unbounded growth
             if len(self.latency_data[operation_name]) > 100:
-                self.latency_data[operation_name] = self.latency_data[operation_name][-100:]
+                self.latency_data[operation_name] = self.latency_data[operation_name][
+                    -100:
+                ]
 
             # Emit signal for dashboard update
             if self.dashboard_enabled:
                 latency_summary = {
                     "operation": operation_name,
                     "latest": duration,
-                    "average": sum(self.latency_data[operation_name]) / len(self.latency_data[operation_name])
+                    "average": sum(self.latency_data[operation_name])
+                    / len(self.latency_data[operation_name]),
                 }
                 self.latency_updated.emit(latency_summary)
             else:

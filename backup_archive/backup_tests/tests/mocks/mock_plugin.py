@@ -1,8 +1,8 @@
 from typing import Any, Dict, Optional
 
-from plugins.base import PluginBase
 from PySide6.QtWidgets import QWidget
 
+from plugins.base import PluginBase
 from tests.mock_plugin_metadata import MockPluginMetadata as PluginMetadata
 
 

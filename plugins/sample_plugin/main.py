@@ -18,7 +18,7 @@ class AtlasPlugin(PluginInterface):
             "name": "Sample Plugin",
             "version": "1.0.0",
             "description": "A sample plugin demonstrating Atlas plugin functionality.",
-            "author": "Atlas Team"
+            "author": "Atlas Team",
         }
         self.logger.info(f"Sample Plugin {plugin_id} instantiated")
 

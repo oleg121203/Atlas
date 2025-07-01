@@ -67,7 +67,9 @@ class ThemeSwitcher(QWidget):
         layout = QVBoxLayout(self)
 
         header_label = QLabel("Theme Switcher")
-        header_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #00ffaa;")
+        header_label.setStyleSheet(
+            "font-size: 16px; font-weight: bold; color: #00ffaa;"
+        )
         layout.addWidget(header_label)
 
         self.theme_dropdown = QComboBox()

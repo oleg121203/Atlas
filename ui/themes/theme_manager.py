@@ -50,7 +50,7 @@ class ThemeManager(QObject):
                     color: #000000;
                 }
             """,
-            "icon_set": "default"
+            "icon_set": "default",
         }
         self.theme_data["default"] = default_theme
         self.available_themes.append("default")

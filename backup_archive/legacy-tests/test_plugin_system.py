@@ -15,7 +15,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from plugins import execute_plugin_command
-
 from tools.plugin_tool import (
     browser_navigate_to_url,
     get_plugin_help,

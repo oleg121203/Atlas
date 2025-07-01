@@ -4,6 +4,7 @@ Self-Improvement Engine for Atlas
 This module implements the SelfImprovementEngine class, which is responsible for identifying areas for improvement,
 generating improvement plans, and executing self-modification strategies to enhance system capabilities.
 """
+
 import logging
 from typing import Any, Callable, Dict, List
 
@@ -46,7 +47,9 @@ class SelfImprovementEngine(QObject):
     def _connect_to_context_engine(self):
         """Connect to the ContextEngine to receive context updates."""
         if self.context_engine:
-            self.context_engine.register_listener("self_improvement_engine", self.on_context_update)
+            self.context_engine.register_listener(
+                "self_improvement_engine", self.on_context_update
+            )
         logger.info("Connected to ContextEngine for context updates")
 
     def _connect_to_decision_engine(self):
@@ -88,7 +91,9 @@ class SelfImprovementEngine(QObject):
             self.improvement_identified.emit(improvement_area)
             self.generate_improvement_plan(area_type, improvement_area)
 
-    def _analyze_data_for_improvement(self, area_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_data_for_improvement(
+        self, area_type: str, data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Analyze data to identify potential improvement areas.
 
         Args:
@@ -104,7 +109,7 @@ class SelfImprovementEngine(QObject):
                 "area": area_type,
                 "issue": f"Low performance in {area_type}",
                 "current_value": data.get("performance", 0),
-                "target_value": 0.9
+                "target_value": 0.9,
             }
         return {}
 
@@ -119,14 +124,16 @@ class SelfImprovementEngine(QObject):
                 "area": "decision_making",
                 "issue": f"Low confidence in decision for {decision.get('goal', 'Unknown goal')}",
                 "current_value": decision.get("confidence", 0),
-                "target_value": 0.85
+                "target_value": 0.85,
             }
             self.improvement_areas["decision_making"] = improvement_area
             logger.info("Identified improvement area in decision making")
             self.improvement_identified.emit(improvement_area)
             self.generate_improvement_plan("decision_making", improvement_area)
 
-    def generate_improvement_plan(self, area_type: str, improvement_area: Dict[str, Any]):
+    def generate_improvement_plan(
+        self, area_type: str, improvement_area: Dict[str, Any]
+    ):
         """Generate a plan to address an identified improvement area.
 
         Args:
@@ -136,13 +143,15 @@ class SelfImprovementEngine(QObject):
         plan = {
             "area": area_type,
             "steps": self._define_improvement_steps(area_type, improvement_area),
-            "expected_outcome": f"Improve {area_type} to target value of {improvement_area.get('target_value', 'N/A')}"
+            "expected_outcome": f"Improve {area_type} to target value of {improvement_area.get('target_value', 'N/A')}",
         }
         self.improvement_plans[area_type] = plan
         logger.info(f"Generated improvement plan for {area_type}")
         self.improvement_plan_updated.emit(plan)
 
-    def _define_improvement_steps(self, area_type: str, improvement_area: Dict[str, Any]) -> List[str]:
+    def _define_improvement_steps(
+        self, area_type: str, improvement_area: Dict[str, Any]
+    ) -> List[str]:
         """Define specific steps for an improvement plan.
 
         Args:
@@ -157,13 +166,13 @@ class SelfImprovementEngine(QObject):
             f"Analyze current {area_type} performance metrics",
             f"Identify bottlenecks in {area_type} processes",
             f"Implement optimization strategies for {area_type}",
-            f"Monitor {area_type} performance post-optimization"
+            f"Monitor {area_type} performance post-optimization",
         ]
 
     def register_improvement_strategy(
         self,
         strategy_name: str,
-        strategy_func: Callable[[Dict[str, Any]], Dict[str, Any]]
+        strategy_func: Callable[[Dict[str, Any]], Dict[str, Any]],
     ):
         """Register a new self-improvement strategy.
 
@@ -174,7 +183,9 @@ class SelfImprovementEngine(QObject):
         self.improvement_strategies[strategy_name] = strategy_func
         logger.info(f"Registered improvement strategy: {strategy_name}")
 
-    def execute_improvement_plan(self, area_type: str, strategy_name: str = "default") -> Dict[str, Any]:
+    def execute_improvement_plan(
+        self, area_type: str, strategy_name: str = "default"
+    ) -> Dict[str, Any]:
         """Execute an improvement plan for a specified area using a specified strategy.
 
         Args:
@@ -192,12 +203,16 @@ class SelfImprovementEngine(QObject):
             logger.warning(f"Strategy {strategy_name} not found, using default logic")
             result = self._default_improvement_logic(area_type)
         else:
-            result = self.improvement_strategies[strategy_name](self.improvement_plans[area_type])
+            result = self.improvement_strategies[strategy_name](
+                self.improvement_plans[area_type]
+            )
 
-        result['area'] = area_type
-        result['strategy_used'] = strategy_name
+        result["area"] = area_type
+        result["strategy_used"] = strategy_name
         self.improvement_history.append(result)
-        logger.info(f"Executed improvement plan for {area_type} using strategy: {strategy_name}")
+        logger.info(
+            f"Executed improvement plan for {area_type} using strategy: {strategy_name}"
+        )
         self.improvement_executed.emit(result)
         return result
 
@@ -213,7 +228,7 @@ class SelfImprovementEngine(QObject):
         return {
             "success": True,
             "message": f"Default improvement applied to {area_type}",
-            "improvement_details": self.improvement_plans[area_type].get("steps", [])
+            "improvement_details": self.improvement_plans[area_type].get("steps", []),
         }
 
     def get_improvement_history(self) -> List[Dict[str, Any]]:

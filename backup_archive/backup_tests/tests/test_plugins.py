@@ -1,9 +1,10 @@
 import logging
 from typing import Any, Dict, Optional
 
+from PySide6.QtWidgets import QWidget
+
 from plugins.base import PluginBase, PluginMetadata
 from plugins.plugin_registry import PluginRegistry
-from PySide6.QtWidgets import QWidget
 
 
 # Test plugin implementation

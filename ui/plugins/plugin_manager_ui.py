@@ -142,7 +142,9 @@ class PluginManagerUI(QWidget):
         Args:
             metadata_list (List[Dict[str, Any]]): List of metadata for loaded plugins.
         """
-        self.logger.info(f"Received plugins loaded event with {len(metadata_list)} plugins")
+        self.logger.info(
+            f"Received plugins loaded event with {len(metadata_list)} plugins"
+        )
         self.plugin_list.clear()
         for metadata in metadata_list:
             plugin_id = metadata.get("id", "Unknown")
@@ -179,11 +181,15 @@ class PluginManagerUI(QWidget):
         self.name_label.setText(f"Name: {metadata.get('name', 'Unknown')}")
         self.version_label.setText(f"Version: {metadata.get('version', 'Unknown')}")
         self.author_label.setText(f"Author: {metadata.get('author', 'Unknown')}")
-        self.description_label.setText(f"Description: {metadata.get('description', 'No description')}")
+        self.description_label.setText(
+            f"Description: {metadata.get('description', 'No description')}"
+        )
 
         plugin = self.plugin_manager.get_plugin(plugin_id)
         if plugin:
-            self.status_label.setText(f"Status: {'Active' if plugin.is_active else 'Inactive'}")
+            self.status_label.setText(
+                f"Status: {'Active' if plugin.is_active else 'Inactive'}"
+            )
             self.activate_button.setEnabled(not plugin.is_active)
             self.deactivate_button.setEnabled(plugin.is_active)
         else:
@@ -252,6 +258,9 @@ class PluginManagerUI(QWidget):
         """
         self.logger.info(f"Plugin status changed: {plugin_id} - {status}")
         selected_items = self.plugin_list.selectedItems()
-        if selected_items and selected_items[0].data(Qt.ItemDataRole.UserRole) == plugin_id:
+        if (
+            selected_items
+            and selected_items[0].data(Qt.ItemDataRole.UserRole) == plugin_id
+        ):
             self.update_details(plugin_id)
         self.logger.debug(f"Updated UI for plugin status change: {plugin_id}")

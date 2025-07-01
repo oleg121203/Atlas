@@ -4,6 +4,7 @@ VS Code Extension for Atlas
 This module provides integration with Visual Studio Code, allowing developers to manage Atlas projects,
 view context data, and trigger intelligence operations directly from the IDE.
 """
+
 import json
 import logging
 import os
@@ -30,7 +31,9 @@ class VSCodeExtension:
         """
         self.atlas_root_path = atlas_root_path
         self.extension_name = "atlas-vscode-extension"
-        self.extension_path = os.path.join(atlas_root_path, "plugins", "vscode", self.extension_name)
+        self.extension_path = os.path.join(
+            atlas_root_path, "plugins", "vscode", self.extension_name
+        )
         self.package_json_path = os.path.join(self.extension_path, "package.json")
         self.is_initialized = False
         logger.info(f"VS Code Extension initialized with root path: {atlas_root_path}")
@@ -64,67 +67,53 @@ class VSCodeExtension:
             "name": self.extension_name,
             "displayName": "Atlas AI Integration",
             "description": "Integrates Atlas AI platform with VS Code for project management and "
-                           "intelligence operations.",
+            "intelligence operations.",
             "version": "0.1.0",
-            "engines": {
-                "vscode": "^1.80.0"
-            },
-            "categories": [
-                "AI",
-                "Programming Languages",
-                "Other"
-            ],
-            "activationEvents": [
-                "onStartupFinished"
-            ],
+            "engines": {"vscode": "^1.80.0"},
+            "categories": ["AI", "Programming Languages", "Other"],
+            "activationEvents": ["onStartupFinished"],
             "main": "./out/extension.js",
             "contributes": {
                 "commands": [
-                    {
-                        "command": "atlas.connect",
-                        "title": "Atlas: Connect to Project"
-                    },
+                    {"command": "atlas.connect", "title": "Atlas: Connect to Project"},
                     {
                         "command": "atlas.viewContext",
-                        "title": "Atlas: View Context Data"
+                        "title": "Atlas: View Context Data",
                     },
                     {
                         "command": "atlas.triggerDecision",
-                        "title": "Atlas: Trigger Decision"
-                    }
+                        "title": "Atlas: Trigger Decision",
+                    },
                 ],
                 "viewsContainers": {
                     "activitybar": [
                         {
                             "id": "atlas-sidebar",
                             "title": "Atlas AI",
-                            "icon": "media/atlas.svg"
+                            "icon": "media/atlas.svg",
                         }
                     ]
                 },
                 "views": {
                     "atlas-sidebar": [
-                        {
-                            "id": "atlasContextView",
-                            "name": "Context Data"
-                        },
+                        {"id": "atlasContextView", "name": "Context Data"},
                         {
                             "id": "atlasIntelligenceView",
-                            "name": "Intelligence Operations"
-                        }
+                            "name": "Intelligence Operations",
+                        },
                     ]
-                }
+                },
             },
             "scripts": {
                 "vscode:prepublish": "npm run compile",
                 "compile": "tsc -p ./",
-                "watch": "tsc --watch -p ./"
+                "watch": "tsc --watch -p ./",
             },
             "devDependencies": {
                 "@types/node": "^18.15.11",
                 "@types/vscode": "^1.80.0",
-                "typescript": "^5.0.4"
-            }
+                "typescript": "^5.0.4",
+            },
         }
 
         with open(self.package_json_path, "w", encoding="utf-8") as f:
@@ -191,13 +180,17 @@ export function deactivate() {
                 "strict": True,
                 "esModuleInterop": True,
                 "skipLibCheck": True,
-                "forceConsistentCasingInFileNames": True
+                "forceConsistentCasingInFileNames": True,
             }
         }
-        with open(os.path.join(self.extension_path, "tsconfig.json"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(self.extension_path, "tsconfig.json"), "w", encoding="utf-8"
+        ) as f:
             json.dump(tsconfig_content, f, indent=2)
 
-        logger.info(f"Created basic VS Code extension structure at {self.extension_path}")
+        logger.info(
+            f"Created basic VS Code extension structure at {self.extension_path}"
+        )
 
     def install_extension(self) -> bool:
         """Install the extension to VS Code for testing.
@@ -212,19 +205,33 @@ export function deactivate() {
         try:
             # Compile TypeScript to JavaScript
             compile_cmd = ["npm", "run", "compile"]
-            subprocess.run(compile_cmd, cwd=self.extension_path, check=True, capture_output=True, text=True)
+            subprocess.run(
+                compile_cmd,
+                cwd=self.extension_path,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             logger.info("Extension compiled successfully.")
 
             # Install the extension using vsce (VS Code Extension CLI)
             install_cmd = ["vsce", "package"]
-            subprocess.run(install_cmd, cwd=self.extension_path, check=True, capture_output=True, text=True)
+            subprocess.run(
+                install_cmd,
+                cwd=self.extension_path,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             logger.info("Extension packaged successfully.")
 
             vsix_file = f"{self.extension_name}-0.1.0.vsix"
             vsix_path = os.path.join(self.extension_path, vsix_file)
             if os.path.exists(vsix_path):
                 install_vsix_cmd = ["code", "--install-extension", vsix_path]
-                subprocess.run(install_vsix_cmd, check=True, capture_output=True, text=True)
+                subprocess.run(
+                    install_vsix_cmd, check=True, capture_output=True, text=True
+                )
                 logger.info("VS Code Extension for Atlas installed successfully.")
                 return True
             else:
@@ -267,7 +274,7 @@ export function deactivate() {
         mock_context_data = {
             "environmental": {"time_of_day": "afternoon", "location": "office"},
             "user": {"activity_level": "moderate", "preferences": {"theme": "dark"}},
-            "system": {"cpu_usage": 0.5, "memory_usage": 0.7}
+            "system": {"cpu_usage": 0.5, "memory_usage": 0.7},
         }
         logger.info("Context data retrieved (mocked).")
         return mock_context_data
@@ -290,7 +297,7 @@ export function deactivate() {
         mock_decision = {
             "goal": goal,
             "decision": f"Recommended action for {goal}",
-            "confidence": 0.85
+            "confidence": 0.85,
         }
         logger.info(f"Decision triggered (mocked): {mock_decision['decision']}")
         return mock_decision

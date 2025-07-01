@@ -96,10 +96,13 @@ class MemoryUI(QWidget):
                     metadatas = items.get("metadatas", [])
                     documents = items.get("documents", [])
 
-                    for i, (item_id, metadata, document) in enumerate(zip(item_ids, metadatas, documents)):
+                    for i, (item_id, metadata, document) in enumerate(
+                        zip(item_ids, metadatas, documents)
+                    ):
                         if i >= 10:  # Limit to first 10 items for performance
                             QTreeWidgetItem(
-                                collection_item, ["", "...", f"+ {len(item_ids) - 10} more items"]
+                                collection_item,
+                                ["", "...", f"+ {len(item_ids) - 10} more items"],
                             )
                             break
                         detail_text = str(metadata) if metadata else "No metadata"
@@ -107,7 +110,9 @@ class MemoryUI(QWidget):
                             collection_item, ["", str(item_id), detail_text]
                         )
                         if document:
-                            QTreeWidgetItem(item_item, ["Document", str(document)[:100]])
+                            QTreeWidgetItem(
+                                item_item, ["Document", str(document)[:100]]
+                            )
                 except Exception as e:
                     QTreeWidgetItem(collection_item, ["", "Error", str(e)])
 

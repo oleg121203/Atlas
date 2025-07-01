@@ -74,13 +74,17 @@ class PluginManager(QObject):
                 # Get the plugin class from the module
                 plugin_class = getattr(plugin_module, "AtlasPlugin", None)
                 if plugin_class is None:
-                    self.logger.error(f"No AtlasPlugin class found in {plugin_module_name}")
+                    self.logger.error(
+                        f"No AtlasPlugin class found in {plugin_module_name}"
+                    )
                     continue
 
                 # Create plugin instance
                 plugin_instance = plugin_class(plugin_id)
                 if not isinstance(plugin_instance, PluginInterface):
-                    self.logger.error(f"Plugin {plugin_id} does not inherit from PluginInterface")
+                    self.logger.error(
+                        f"Plugin {plugin_id} does not inherit from PluginInterface"
+                    )
                     continue
 
                 # Store plugin
@@ -104,7 +108,9 @@ class PluginManager(QObject):
                 self.logger.error(f"Error loading plugin {plugin_id}: {str(e)}")
 
         self.plugins_loaded.emit(loaded_plugin_metadata)
-        self.logger.info(f"Completed loading plugins. Total loaded: {len(self.plugins)}")
+        self.logger.info(
+            f"Completed loading plugins. Total loaded: {len(self.plugins)}"
+        )
 
     def initialize_plugins(self) -> None:
         """Initialize all loaded plugins."""
@@ -189,5 +195,7 @@ class PluginManager(QObject):
                 try:
                     plugin.handle_event(event_type, data)
                 except Exception as e:
-                    self.logger.error(f"Error broadcasting event to plugin {plugin_id}: {str(e)}")
+                    self.logger.error(
+                        f"Error broadcasting event to plugin {plugin_id}: {str(e)}"
+                    )
         self.logger.debug(f"Completed broadcasting event {event_type}")

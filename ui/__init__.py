@@ -93,7 +93,7 @@ except ImportError as e:
 
 
 try:
-    from ui.ai_assistant_widget import AIAssistantWidget
+    from ui.chat.ai_assistant_widget import AIAssistantWidget
 except ImportError as e:
     print(f"AIAssistantWidget import failed: {e}")
     print("Using fallback for AIAssistantWidget.")

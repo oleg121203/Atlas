@@ -1,10 +1,10 @@
 import logging
 
 import pytest
-from plugins.base import PluginBase, PluginMetadata
-from plugins.plugin_registry import PluginRegistry
 from PySide6.QtWidgets import QApplication, QWidget
 
+from plugins.base import PluginBase, PluginMetadata
+from plugins.plugin_registry import PluginRegistry
 from ui.plugins_module import PluginsModule
 
 # Configure logging for tests

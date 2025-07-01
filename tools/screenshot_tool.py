@@ -12,6 +12,7 @@ from typing import Optional
 
 try:
     from PIL import Image
+
     PILLOW_AVAILABLE = True
 except ImportError:
     PILLOW_AVAILABLE = False
@@ -40,17 +41,23 @@ _PYAUTOGUI_AVAILABLE = False
 if IS_MACOS:
     try:
         import Quartz
+
         _QUARTZ_AVAILABLE = True
     except ImportError:
         _QUARTZ_AVAILABLE = False
-        logging.warning("Quartz not installed. Screenshot functionality on macOS will be limited.")
+        logging.warning(
+            "Quartz not installed. Screenshot functionality on macOS will be limited."
+        )
 
 try:
     import pyautogui
+
     _PYAUTOGUI_AVAILABLE = True
 except ImportError:
     _PYAUTOGUI_AVAILABLE = False
-    logging.warning("PyAutoGUI not installed. Screenshot functionality will be limited.")
+    logging.warning(
+        "PyAutoGUI not installed. Screenshot functionality will be limited."
+    )
 
 __all__ = ["capture_screen"]
 

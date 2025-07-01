@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 
 from core.async_task_manager import AsyncTaskManager
 from ui.i18n import _
-from ui.plugin_manager import PluginManager
+from ui.plugins.plugin_manager import PluginManager
 
 
 class PluginsModule(QWidget):

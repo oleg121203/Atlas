@@ -17,6 +17,7 @@ try:
     from core.intelligence.decision_engine import DecisionEngine
     from core.intelligence.self_improvement_engine import SelfImprovementEngine
     from core.memory.chromadb_manager import ChromaDBManager
+
     COMPONENTS_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"Components not fully available for import: {e}")
@@ -38,7 +39,9 @@ class PerformanceBenchmark:
             self.self_improvement_engine = None
             self.chromadb_manager = None
 
-    def measure_latency(self, operation_name: str, func: callable, iterations: int = 10) -> List[float]:
+    def measure_latency(
+        self, operation_name: str, func: callable, iterations: int = 10
+    ) -> List[float]:
         """Measure latency of a given operation over multiple iterations."""
         latencies = []
         for _ in range(iterations):
@@ -61,29 +64,45 @@ class PerformanceBenchmark:
         """Benchmark context update operations (<500ms target)."""
         if self.context_engine:
             self.context_engine.start_continuous_update()
-            return self.measure_latency("ContextEngine Update",
-                lambda: self.context_engine.update_context("mock_key", {"mock": "data"}))
+            return self.measure_latency(
+                "ContextEngine Update",
+                lambda: self.context_engine.update_context(
+                    "mock_key", {"mock": "data"}
+                ),
+            )
         else:
-            return self.measure_latency("ContextEngine Update (Mock)",
-                lambda: self.mock_operation(0.1))
+            return self.measure_latency(
+                "ContextEngine Update (Mock)", lambda: self.mock_operation(0.1)
+            )
 
     def benchmark_decision_engine(self):
         """Benchmark decision-making operations (<500ms target)."""
         if self.decision_engine:
-            return self.measure_latency("DecisionEngine Make Decision",
-                lambda: self.decision_engine.make_decision(goal="mock_goal", context_data={"mock": "context"}))
+            return self.measure_latency(
+                "DecisionEngine Make Decision",
+                lambda: self.decision_engine.make_decision(
+                    goal="mock_goal", context_data={"mock": "context"}
+                ),
+            )
         else:
-            return self.measure_latency("DecisionEngine Make Decision (Mock)",
-                lambda: self.mock_operation(0.2))
+            return self.measure_latency(
+                "DecisionEngine Make Decision (Mock)", lambda: self.mock_operation(0.2)
+            )
 
     def benchmark_self_improvement_engine(self):
         """Benchmark self-improvement operations (<500ms target)."""
         if self.self_improvement_engine:
-            return self.measure_latency("SelfImprovementEngine Identify Areas",
-                lambda: self.self_improvement_engine.identify_improvement_areas({"mock": "data"}))
+            return self.measure_latency(
+                "SelfImprovementEngine Identify Areas",
+                lambda: self.self_improvement_engine.identify_improvement_areas(
+                    {"mock": "data"}
+                ),
+            )
         else:
-            return self.measure_latency("SelfImprovementEngine Identify Areas (Mock)",
-                lambda: self.mock_operation(0.3))
+            return self.measure_latency(
+                "SelfImprovementEngine Identify Areas (Mock)",
+                lambda: self.mock_operation(0.3),
+            )
 
     def benchmark_memory_operations(self):
         """Benchmark memory operations (<200ms target)."""
@@ -92,13 +111,18 @@ class PerformanceBenchmark:
             collection_name = "benchmark_collection"
             try:
                 self.chromadb_manager.create_collection(collection_name)
-                return self.measure_latency("ChromaDB Add Item",
-                    lambda: self.chromadb_manager.add_item(collection_name, "Test item", {"test": "data"}))
+                return self.measure_latency(
+                    "ChromaDB Add Item",
+                    lambda: self.chromadb_manager.add_item(
+                        collection_name, "Test item", {"test": "data"}
+                    ),
+                )
             finally:
                 self.chromadb_manager.delete_collection(collection_name)
         else:
-            return self.measure_latency("ChromaDB Add Item (Mock)",
-                lambda: self.mock_operation(0.05))
+            return self.measure_latency(
+                "ChromaDB Add Item (Mock)", lambda: self.mock_operation(0.05)
+            )
 
     def run_benchmarks(self):
         """Run all performance benchmarks and log results."""
@@ -117,13 +141,20 @@ class PerformanceBenchmark:
             std_latency = stdev(latencies) if len(latencies) > 1 else 0.0
             max_latency = max(latencies)
             min_latency = min(latencies)
-            target = 500.0 if "Engine" in operation else 200.0 if "ChromaDB" in operation else 100.0
+            target = (
+                500.0
+                if "Engine" in operation
+                else 200.0
+                if "ChromaDB" in operation
+                else 100.0
+            )
             status = "PASS" if avg_latency < target else "FAIL"
             logger.info(
                 f"{operation}: Avg={avg_latency:.2f}ms, Std={std_latency:.2f}ms, "
                 f"Range=[{min_latency:.2f}ms - {max_latency:.2f}ms], Target=<{target}ms, Status={status}"
             )
         logger.info("=== End of Benchmark Report ===")
+
 
 if __name__ == "__main__":
     benchmark = PerformanceBenchmark()

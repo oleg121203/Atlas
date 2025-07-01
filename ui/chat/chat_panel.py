@@ -41,7 +41,7 @@ class ChatPanel(QWidget):
             )  # Give it stretch factor of 1        # Add or create chat input panel
         if self.chat_input_panel is None:
             # Import here to avoid circular imports
-            from ui.chat_input_panel import ChatInputPanel
+            from ui.chat.chat_input_panel import ChatInputPanel
 
             self.chat_input_panel = ChatInputPanel(self, self._on_send_message)
 

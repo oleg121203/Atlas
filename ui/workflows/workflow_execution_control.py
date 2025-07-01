@@ -65,7 +65,9 @@ class WorkflowExecutionControl(QWidget):
         layout = QVBoxLayout(self)
 
         header_label = QLabel("Workflow Execution")
-        header_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #00ffaa;")
+        header_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; color: #00ffaa;"
+        )
         layout.addWidget(header_label)
 
         # Workflow list
