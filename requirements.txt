@@ -24,7 +24,7 @@ sentence-transformers>=2.2.0
 nltk==3.8.1
 
 # Data Processing
-pandas==2.2.2 
+pandas==2.3.0 
 matplotlib>=3.9.0
 numpy>=1.24.0 
 scikit-learn==1.5.0
