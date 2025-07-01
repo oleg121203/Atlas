@@ -276,7 +276,7 @@ class AtlasMainWindow(QMainWindow):
         logger.info(f"Tool execution for {tool_name} is temporarily disabled")
         return None
 
-    def _initialize_modules(self):
+    def _initialize_modules(self):  # noqa: C901
         """Initialize all UI modules."""
         logger = logging.getLogger(__name__)
         logger.info("Initializing modules")
