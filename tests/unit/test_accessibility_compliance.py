@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import Mock, patch
 
+import core.accessibility_compliance
+
 
 # Mock NSRect for testing purposes
 class NSRect:
@@ -9,10 +11,6 @@ class NSRect:
         self.y = y
         self.width = width
         self.height = height
-
-
-# Mock the core.accessibility_compliance module
-import core.accessibility_compliance
 
 
 class TestAccessibilityCompliance(unittest.TestCase):
@@ -45,26 +43,15 @@ class TestAccessibilityCompliance(unittest.TestCase):
             len(report["issues"]), 1
         )  # Adjusted to expect 1 issue based on current implementation
 
-    def test_check_application_accessibility(self):
-        """Test checking application accessibility compliance."""
-        with patch("core.accessibility_compliance.NSApplication") as mock_app:
-            app = Mock()
-            app.windows.return_value = []
-            app.localizedName.return_value = "TestApp"
-            mock_app.return_value = app
-            result = self.accessibility_compliance.check_application_accessibility(app)
-            self.assertIsInstance(result, dict)
-            self.assertIn("total_elements", result)
-            self.assertIn("accessible_elements", result)
-            self.assertIn("issues", result)
-            self.assertEqual(result["app_name"], "TestApp")
-
-    def test_check_application_accessibility(self):
+    def test_check_application_accessibility_compliance(self):
         """Test checking application accessibility compliance."""
         with patch("core.accessibility_compliance.NSApplication") as mock_app:
             mock_app.mainWindow.return_value = Mock()
             mock_app.windows.return_value = [Mock(), Mock()]
-            result = self.accessibility_compliance.check_application()
+            # Adding a mock for the app parameter if needed by the actual implementation
+            result = self.accessibility_compliance.check_application_accessibility(
+                app=mock_app
+            )
             self.assertIsInstance(result, list)
 
     def test_check_ui_element_focusable(self):

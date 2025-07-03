@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Unit tests for the plugin system."""
 
-import os
-import tempfile
 import unittest
 import unittest.mock
 
