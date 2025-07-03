@@ -5,24 +5,48 @@ from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QObject, Signal
 
+# Імпортуємо PluginBase для сумісності
+try:
+    from core.plugin_system import PluginBase
+except ImportError:
+    # Fallback якщо PluginBase недоступний
+    class PluginBase:
+        def __init__(self, name: str, version: str):
+            self.name = name
+            self.version = version
+            self.is_active = False
 
-class PluginInterface(QObject):
+        def initialize(self) -> None:
+            self.is_active = True
+
+        def shutdown(self) -> None:
+            self.is_active = False
+
+        def get_metadata(self) -> Dict[str, Any]:
+            return {
+                "name": self.name,
+                "version": self.version,
+                "status": "active" if self.is_active else "inactive",
+            }
+
+
+class PluginInterface(PluginBase, QObject):
     """Base interface for all plugins in Atlas."""
 
     status_changed = Signal(str)
 
-    def __init__(self, plugin_id: str, parent: Optional[QObject] = None):
-        super().__init__(parent)
+    def __init__(self, name: str, version: str, parent: Optional[QObject] = None):
+        PluginBase.__init__(self, name, version)
+        QObject.__init__(self, parent)
         self.logger = logging.getLogger(__name__)
-        self.plugin_id = plugin_id
-        self.is_active = False
+        self.plugin_id = name  # Використовуємо name як plugin_id для сумісності
         self.metadata = {
             "name": "Unnamed Plugin",
-            "version": "0.1.0",
+            "version": version,
             "description": "No description provided.",
             "author": "Unknown",
         }
-        self.logger.info(f"Plugin interface initialized for {plugin_id}")
+        self.logger.info(f"Plugin interface initialized for {name}")
 
     def initialize(self) -> bool:
         """Initialize the plugin.

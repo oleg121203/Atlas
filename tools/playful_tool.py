@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any, Dict
 
-from .base_tool import BaseTool
+from tools.base_tool import BaseTool
 
 
 class PlayfulTool(BaseTool):

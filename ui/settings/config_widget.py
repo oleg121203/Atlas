@@ -181,3 +181,6 @@ class ConfigWidget(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Unexpected error: {str(e)}")
             logger.error(f"Unexpected error while saving configuration: {e}")
+
+
+ConfigWidget = ConfigWidget

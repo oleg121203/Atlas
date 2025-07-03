@@ -11,16 +11,16 @@ from plugins.plugin_interface import PluginInterface
 class AtlasPlugin(PluginInterface):
     """Sample plugin implementation for Atlas."""
 
-    def __init__(self, plugin_id: str, parent: Optional[QObject] = None):
-        super().__init__(plugin_id, parent)
+    def __init__(self, name: str, version: str, parent: Optional[QObject] = None):
+        super().__init__(name, version, parent)
         self.logger = logging.getLogger(__name__)
         self.metadata = {
             "name": "Sample Plugin",
-            "version": "1.0.0",
+            "version": version,
             "description": "A sample plugin demonstrating Atlas plugin functionality.",
             "author": "Atlas Team",
         }
-        self.logger.info(f"Sample Plugin {plugin_id} instantiated")
+        self.logger.info(f"Sample Plugin {name} instantiated")
 
     def on_initialize(self) -> bool:
         """Initialize the sample plugin.

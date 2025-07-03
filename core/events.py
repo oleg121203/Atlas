@@ -24,5 +24,9 @@ SHOW_NOTIFICATION = "ShowNotification"  # Показати повідомлен�
 USER_ACTION = "UserAction"  # Дія користувача (натискання, вибір)
 THEME_CHANGED = "ThemeChanged"  # Змінено тему
 
+# Події чату
+CHAT_MESSAGE_SENT = "ChatMessageSent"  # Відправлено повідомлення у чат
+CHAT_MESSAGE_RECEIVED = "ChatMessageReceived"  # Отримано повідомлення чату
+
 # Події робочих процесів
 WORKFLOW_EXECUTED = "WorkflowExecuted"  # Виконано робочий процес

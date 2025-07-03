@@ -20,13 +20,10 @@ except ImportError as e:
 
 
 try:
-    from .config_widget import ConfigWidget
-except ImportError as e:
-    print(f"ConfigWidget import failed: {e}")
-    print("Using fallback for ConfigWidget.")
-
-    class ConfigWidget:
-        pass
+    from .settings.config_widget import ConfigWidget
+except ImportError:
+    # Fallback якщо ConfigWidget недоступний
+    ConfigWidget = None
 
 
 try:

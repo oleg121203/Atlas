@@ -13,7 +13,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ui.module_communication import EVENT_BUS
+from core.events import CHAT_MESSAGE_SENT
+from ui.module_communication import EVENT_BUS, publish_module_event
 
 
 class ChatInputPanel(QWidget):
@@ -143,6 +144,9 @@ class ChatInputPanel(QWidget):
         if text:
             # Emit signal
             self.message_sent.emit(text)
+
+            # Publish event on the global event bus
+            publish_module_event(CHAT_MESSAGE_SENT, {"text": text, "sender": "user"})
 
             # Call callback if provided
             if self.on_send_callback is not None:

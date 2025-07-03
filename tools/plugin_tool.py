@@ -5,271 +5,197 @@ This tool provides integration with the plugin system, allowing
 the chat system to execute plugin commands and manage plugins.
 """
 
-import json
 import logging
 from typing import Any, Dict
 
-from plugins import (
-    execute_plugin_command,
-    get_plugin_manager,
-    register_builtin_plugins,
-    set_active_provider,
-)
+from tools.base_tool import BaseTool
 
 logger = logging.getLogger(__name__)
 
 
-def initialize_plugin_system(provider: Any) -> Dict[str, Any]:
-    """
-    Initialize the plugin system with the active provider.
+class PluginTool(BaseTool):
+    """Tool for managing and interacting with plugins."""
 
-    Args:
-        provider: The active provider from the chat system
+    def __init__(self):
+        super().__init__()
+        self.plugin_system = None  # Will be injected by tool manager
 
-    Returns:
-        Dict with initialization status
-    """
-    try:
-        # Register built-in plugins
-        register_builtin_plugins()
+    def set_plugin_system(self, plugin_system):
+        """Set the plugin system reference."""
+        self.plugin_system = plugin_system
 
-        # Set the active provider
-        set_active_provider(provider)
+    async def execute(self, action: str, **kwargs) -> Dict[str, Any]:
+        """
+        Execute plugin-related actions.
 
-        # Get plugin manager
-        manager = get_plugin_manager()
+        Args:
+            action: The action to perform (list, load, activate, deactivate, etc.)
+            **kwargs: Additional parameters for the action
 
-        return {
-            "success": True,
-            "message": "Plugin system initialized successfully",
-            "available_plugins": manager.get_available_plugins(),
-            "provider_set": True,
-        }
+        Returns:
+            Dict with action results
+        """
+        if not self.plugin_system:
+            return {"error": "Plugin system not available", "success": False}
 
-    except Exception as e:
-        logger.error(f"Failed to initialize plugin system: {e}")
-        return {"success": False, "error": str(e)}
+        try:
+            if action == "list":
+                return await self._list_plugins()
+            elif action == "load":
+                plugin_name = kwargs.get("plugin_name")
+                if not plugin_name:
+                    return {"error": "plugin_name is required", "success": False}
+                return await self._load_plugin(plugin_name)
+            elif action == "activate":
+                plugin_name = kwargs.get("plugin_name")
+                if not plugin_name:
+                    return {"error": "plugin_name is required", "success": False}
+                return await self._activate_plugin(plugin_name)
+            elif action == "deactivate":
+                plugin_name = kwargs.get("plugin_name")
+                if not plugin_name:
+                    return {"error": "plugin_name is required", "success": False}
+                return await self._deactivate_plugin(plugin_name)
+            elif action == "status":
+                plugin_name = kwargs.get("plugin_name")
+                if not plugin_name:
+                    return {"error": "plugin_name is required", "success": False}
+                return await self._get_plugin_status(plugin_name)
+            else:
+                return {"error": f"Unknown action: {action}", "success": False}
 
+        except Exception as e:
+            logger.error(f"Error executing plugin action '{action}': {e}")
+            return {"error": str(e), "success": False}
 
-def execute_plugin(plugin_name: str, command: str, **kwargs) -> str:
-    """
-    Execute a plugin command.
+    async def _list_plugins(self) -> Dict[str, Any]:
+        """List all available plugins."""
+        try:
+            plugins = self.plugin_system.list_plugins()
+            active_plugins = self.plugin_system.list_active_plugins()
 
-    Args:
-        plugin_name: Name of the plugin to execute
-        command: Command to execute
-        **kwargs: Additional arguments for the command
+            result = {
+                "success": True,
+                "plugins": [],
+                "count": len(plugins),
+                "active_count": len(active_plugins),
+            }
 
-    Returns:
-        JSON string with the result
-    """
-    try:
-        result = execute_plugin_command(plugin_name, command, **kwargs)
-
-        return json.dumps(
-            {
-                "success": result.success,
-                "data": result.data,
-                "error": result.error,
-                "metadata": result.metadata,
-            },
-            indent=2,
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to execute plugin {plugin_name}: {e}")
-        return json.dumps({"success": False, "error": str(e)}, indent=2)
-
-
-def list_plugins() -> str:
-    """
-    List all available plugins.
-
-    Returns:
-        JSON string with plugin information
-    """
-    try:
-        manager = get_plugin_manager()
-        plugins = manager.get_available_plugins()
-
-        plugin_info = []
-        for plugin_name in plugins:
-            plugin = manager.plugins[plugin_name]
-            plugin_info.append(
-                {
+            for plugin_name in plugins:
+                plugin_info = {
                     "name": plugin_name,
-                    "description": plugin.metadata.description,
-                    "version": plugin.metadata.version,
-                    "category": plugin.metadata.category,
-                    "commands": plugin.get_commands(),
-                    "initialized": plugin.is_initialized,
+                    "active": plugin_name in active_plugins,
+                    "loaded": plugin_name in self.plugin_system.loaded_plugins,
                 }
-            )
 
-        return json.dumps(
-            {"success": True, "plugins": plugin_info, "count": len(plugin_info)},
-            indent=2,
-        )
+                # Get plugin metadata if available
+                plugin_instance = self.plugin_system.get_plugin(plugin_name)
+                if plugin_instance:
+                    try:
+                        metadata = plugin_instance.get_metadata()
+                        plugin_info.update(metadata)
+                    except Exception as e:
+                        logger.warning(f"Could not get metadata for {plugin_name}: {e}")
 
-    except Exception as e:
-        logger.error(f"Failed to list plugins: {e}")
-        return json.dumps({"success": False, "error": str(e)}, indent=2)
+                result["plugins"].append(plugin_info)
 
+            return result
 
-def get_plugin_help(plugin_name: str) -> str:
-    """
-    Get help information for a specific plugin.
+        except Exception as e:
+            logger.error(f"Error listing plugins: {e}")
+            return {"error": str(e), "success": False}
 
-    Args:
-        plugin_name: Name of the plugin
+    async def _load_plugin(self, plugin_name: str) -> Dict[str, Any]:
+        """Load a plugin."""
+        try:
+            success = self.plugin_system.load_plugin(plugin_name)
+            return {
+                "success": success,
+                "plugin_name": plugin_name,
+                "action": "load",
+                "message": f"Plugin {plugin_name} {'loaded' if success else 'failed to load'}",
+            }
+        except Exception as e:
+            logger.error(f"Error loading plugin {plugin_name}: {e}")
+            return {"error": str(e), "success": False}
 
-    Returns:
-        JSON string with help information
-    """
-    try:
-        manager = get_plugin_manager()
-        help_text = manager.get_plugin_help(plugin_name)
+    async def _activate_plugin(self, plugin_name: str) -> Dict[str, Any]:
+        """Activate a plugin."""
+        try:
+            success = self.plugin_system.activate_plugin(plugin_name)
+            return {
+                "success": success,
+                "plugin_name": plugin_name,
+                "action": "activate",
+                "message": f"Plugin {plugin_name} {'activated' if success else 'failed to activate'}",
+            }
+        except Exception as e:
+            logger.error(f"Error activating plugin {plugin_name}: {e}")
+            return {"error": str(e), "success": False}
 
-        return json.dumps(
-            {"success": True, "plugin": plugin_name, "help": help_text}, indent=2
-        )
+    async def _deactivate_plugin(self, plugin_name: str) -> Dict[str, Any]:
+        """Deactivate a plugin."""
+        try:
+            success = self.plugin_system.deactivate_plugin(plugin_name)
+            return {
+                "success": success,
+                "plugin_name": plugin_name,
+                "action": "deactivate",
+                "message": f"Plugin {plugin_name} {'deactivated' if success else 'failed to deactivate'}",
+            }
+        except Exception as e:
+            logger.error(f"Error deactivating plugin {plugin_name}: {e}")
+            return {"error": str(e), "success": False}
 
-    except Exception as e:
-        logger.error(f"Failed to get help for plugin {plugin_name}: {e}")
-        return json.dumps({"success": False, "error": str(e)}, indent=2)
+    async def _get_plugin_status(self, plugin_name: str) -> Dict[str, Any]:
+        """Get the status of a specific plugin."""
+        try:
+            plugins = self.plugin_system.list_plugins()
+            active_plugins = self.plugin_system.list_active_plugins()
 
+            if plugin_name not in plugins:
+                return {"success": False, "error": f"Plugin {plugin_name} not found"}
 
-def gmail_search_emails(query: str, max_results: int = 50) -> str:
-    """
-    Search emails using Gmail plugin.
+            plugin_instance = self.plugin_system.get_plugin(plugin_name)
+            status = {
+                "success": True,
+                "plugin_name": plugin_name,
+                "exists": True,
+                "loaded": plugin_name in self.plugin_system.loaded_plugins,
+                "active": plugin_name in active_plugins,
+            }
 
-    Args:
-        query: Search query
-        max_results: Maximum number of results
+            # Get metadata if plugin is loaded
+            if plugin_instance:
+                try:
+                    metadata = plugin_instance.get_metadata()
+                    status.update(metadata)
+                except Exception as e:
+                    logger.warning(f"Could not get metadata for {plugin_name}: {e}")
 
-    Returns:
-        JSON string with email search results
-    """
-    return execute_plugin(
-        "gmail", "search_emails", query=query, max_results=max_results
-    )
+            return status
 
+        except Exception as e:
+            logger.error(f"Error getting plugin status for {plugin_name}: {e}")
+            return {"error": str(e), "success": False}
 
-def gmail_search_security_emails(days_back: int = 30) -> str:
-    """
-    Search for security-related emails using Gmail plugin.
+    def get_name(self) -> str:
+        return "plugin_manager"
 
-    Args:
-        days_back: Number of days to look back
+    def get_description(self) -> str:
+        return "Manage and interact with Atlas plugins"
 
-    Returns:
-        JSON string with security email results
-    """
-    return execute_plugin("gmail", "search_security_emails", days_back=days_back)
-
-
-def browser_open_gmail() -> str:
-    """
-    Open Gmail in the browser using unified browser plugin.
-
-    Returns:
-        JSON string with browser operation result
-    """
-    return execute_plugin("unified_browser", "open_gmail")
-
-
-def browser_search_gmail(query: str) -> str:
-    """
-    Search in Gmail using unified browser plugin.
-
-    Args:
-        query: Search query
-
-    Returns:
-        JSON string with browser search result
-    """
-    return execute_plugin("unified_browser", "search_gmail", query=query)
-
-
-def browser_navigate_to_url(url: str) -> str:
-    """
-    Navigate to a URL using unified browser plugin.
-
-    Args:
-        url: URL to navigate to
-
-    Returns:
-        JSON string with browser navigation result
-    """
-    return execute_plugin("unified_browser", "navigate_to_url", url=url)
-
-
-def browser_get_page_title() -> str:
-    """
-    Get the title of the current page using unified browser plugin.
-
-    Returns:
-        JSON string with page title
-    """
-    return execute_plugin("unified_browser", "get_page_title")
-
-
-def browser_close_browser() -> str:
-    """
-    Close the browser using unified browser plugin.
-
-    Returns:
-        JSON string with browser close result
-    """
-    return execute_plugin("unified_browser", "close_browser")
-
-
-def browser_execute_javascript(script: str) -> str:
-    """
-    Execute JavaScript code using unified browser plugin.
-
-    Args:
-        script: JavaScript code to execute
-
-    Returns:
-        JSON string with JavaScript execution result
-    """
-    return execute_plugin("unified_browser", "execute_javascript", script=script)
-
-
-def register_plugin_tools():
-    """
-    Register plugin tools with the Atlas system.
-    This function should be called during system initialization.
-    """
-    logger.info("Registering plugin tools...")
-
-    # The plugin tools are now integrated into the main tool system
-    # and will be available through the plugin system interface
-
-    logger.info("Plugin tools registered successfully")
-
-
-# Legacy compatibility functions
-def legacy_browser_open_gmail() -> str:
-    """
-    Legacy function for backward compatibility.
-    Now uses unified browser plugin.
-    """
-    return browser_open_gmail()
-
-
-def legacy_browser_search_gmail(query: str) -> str:
-    """
-    Legacy function for backward compatibility.
-    Now uses unified browser plugin.
-    """
-    return browser_search_gmail(query)
-
-
-def legacy_browser_navigate_to_url(url: str) -> str:
-    """
-    Legacy function for backward compatibility.
-    Now uses unified browser plugin.
-    """
-    return browser_navigate_to_url(url)
+    def get_parameters(self) -> Dict[str, Any]:
+        return {
+            "action": {
+                "type": "string",
+                "description": "Action to perform: list, load, activate, deactivate, status",
+                "required": True,
+                "enum": ["list", "load", "activate", "deactivate", "status"],
+            },
+            "plugin_name": {
+                "type": "string",
+                "description": "Name of the plugin (required for load, activate, deactivate, status actions)",
+                "required": False,
+            },
+        }

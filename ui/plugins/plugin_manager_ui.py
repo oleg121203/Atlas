@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from plugins.plugin_manager import PluginManager
+from core.plugin_system import PluginSystem
 from ui.module_communication import EVENT_BUS
 
 
@@ -27,10 +27,10 @@ class PluginManagerUI(QWidget):
     plugin_activated = Signal(str)
     plugin_deactivated = Signal(str)
 
-    def __init__(self, plugin_manager: PluginManager, parent: Optional[QWidget] = None):
+    def __init__(self, plugin_system: PluginSystem, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
-        self.plugin_manager = plugin_manager
+        self.plugin_system = plugin_system
         self.event_bus = EVENT_BUS
         self.setup_ui()
         self.connect_signals()
@@ -114,8 +114,14 @@ class PluginManagerUI(QWidget):
         self.plugin_list.itemSelectionChanged.connect(self.on_plugin_selected)
         self.activate_button.clicked.connect(self.on_activate_clicked)
         self.deactivate_button.clicked.connect(self.on_deactivate_clicked)
-        self.plugin_manager.plugins_loaded.connect(self.on_plugins_loaded)
-        self.plugin_manager.plugin_status_changed.connect(self.on_plugin_status_changed)
+
+        # Connect to event bus if available
+        if self.event_bus:
+            self.event_bus.subscribe("plugin_loaded", self._on_plugin_event)
+            self.event_bus.subscribe("plugin_unloaded", self._on_plugin_event)
+            self.event_bus.subscribe("plugin_activated", self._on_plugin_event)
+            self.event_bus.subscribe("plugin_deactivated", self._on_plugin_event)
+
         self.logger.debug("PluginManagerUI signals connected")
 
     @Slot()
@@ -123,37 +129,54 @@ class PluginManagerUI(QWidget):
         """Refresh the list of available plugins."""
         self.logger.info("Refreshing plugin list")
         self.plugin_list.clear()
-        plugin_ids = self.plugin_manager.discover_plugins()
-        for plugin_id in plugin_ids:
-            item = QListWidgetItem(plugin_id)
-            item.setData(Qt.ItemDataRole.UserRole, plugin_id)
+
+        # Get list of loaded plugins
+        plugin_names = self.plugin_system.list_plugins()
+
+        # Also discover available plugins that might not be loaded
+        discovered_plugins = self.plugin_system.registry.discover_plugins()
+        all_plugins = list(set(plugin_names + discovered_plugins))
+
+        for plugin_name in all_plugins:
+            item = QListWidgetItem(plugin_name)
+            item.setData(Qt.ItemDataRole.UserRole, plugin_name)
             self.plugin_list.addItem(item)
-        self.logger.info(f"Discovered {len(plugin_ids)} plugins")
+
+        self.logger.info(f"Refreshed plugin list with {len(all_plugins)} plugins")
 
     @Slot()
     def load_all_plugins(self) -> None:
         """Load all available plugins."""
         self.logger.info("Loading all plugins")
-        self.plugin_manager.load_plugins()
+
+        # Discover and load all plugins
+        discovered_plugins = self.plugin_system.registry.discover_plugins()
+        for plugin_name in discovered_plugins:
+            self.plugin_system.load_plugin(plugin_name)
+
+        self.refresh_plugins()
+
+    def _on_plugin_event(self, event_data: Dict[str, Any]) -> None:
+        """Handle plugin events from the event bus."""
+        plugin_name = event_data.get("plugin_name", "")
+        self.logger.debug(f"Plugin event received for: {plugin_name}")
+
+        # Refresh the display for the current selection
+        selected_items = self.plugin_list.selectedItems()
+        if (
+            selected_items
+            and selected_items[0].data(Qt.ItemDataRole.UserRole) == plugin_name
+        ):
+            self.update_details(plugin_name)
+
+        # Also refresh the list in case new plugins were discovered
         self.refresh_plugins()
 
     @Slot(list)
     def on_plugins_loaded(self, metadata_list: List[Dict[str, Any]]) -> None:
-        """Handle plugins loaded event.
-
-        Args:
-            metadata_list (List[Dict[str, Any]]): List of metadata for loaded plugins.
-        """
-        self.logger.info(
-            f"Received plugins loaded event with {len(metadata_list)} plugins"
-        )
-        self.plugin_list.clear()
-        for metadata in metadata_list:
-            plugin_id = metadata.get("id", "Unknown")
-            item = QListWidgetItem(plugin_id)
-            item.setData(Qt.ItemDataRole.UserRole, plugin_id)
-            self.plugin_list.addItem(item)
-        self.logger.debug("Updated plugin list UI after plugins loaded")
+        """Handle plugins loaded event - deprecated in new system."""
+        # This method is kept for backward compatibility but uses new API
+        self.refresh_plugins()
 
     @Slot()
     def on_plugin_selected(self) -> None:
@@ -164,42 +187,49 @@ class PluginManagerUI(QWidget):
             return
 
         item = selected_items[0]
-        plugin_id = item.data(Qt.ItemDataRole.UserRole)
-        self.logger.info(f"Plugin selected: {plugin_id}")
-        self.plugin_selected.emit(plugin_id)
-        self.update_details(plugin_id)
+        plugin_name = item.data(Qt.ItemDataRole.UserRole)
+        self.logger.info(f"Plugin selected: {plugin_name}")
+        self.plugin_selected.emit(plugin_name)
+        self.update_details(plugin_name)
 
-    def update_details(self, plugin_id: str) -> None:
-        """Update the details panel for the selected plugin.
+    def update_details(self, plugin_name: str) -> None:
+        """Update the details panel for the selected plugin."""
+        # Get plugin status from the plugin system
+        status_info = self.plugin_system.get_plugin_status(plugin_name)
 
-        Args:
-            plugin_id (str): ID of the selected plugin.
-        """
-        metadata = self.plugin_manager.get_plugin_metadata(plugin_id)
-        if not metadata:
-            self.clear_details()
-            return
-
-        self.name_label.setText(f"Name: {metadata.get('name', 'Unknown')}")
-        self.version_label.setText(f"Version: {metadata.get('version', 'Unknown')}")
-        self.author_label.setText(f"Author: {metadata.get('author', 'Unknown')}")
-        self.description_label.setText(
-            f"Description: {metadata.get('description', 'No description')}"
-        )
-
-        plugin = self.plugin_manager.get_plugin(plugin_id)
-        if plugin:
-            self.status_label.setText(
-                f"Status: {'Active' if plugin.is_active else 'Inactive'}"
-            )
-            self.activate_button.setEnabled(not plugin.is_active)
-            self.deactivate_button.setEnabled(plugin.is_active)
-        else:
+        if status_info["status"] == "not_loaded":
+            self.name_label.setText(f"Name: {plugin_name}")
+            self.version_label.setText("Version: Unknown")
+            self.author_label.setText("Author: Unknown")
+            self.description_label.setText("Description: Plugin not loaded")
             self.status_label.setText("Status: Not loaded")
             self.activate_button.setEnabled(False)
             self.deactivate_button.setEnabled(False)
+        else:
+            plugin = self.plugin_system.get_plugin(plugin_name)
+            if plugin:
+                metadata = plugin.get_metadata()
+                self.name_label.setText(f"Name: {metadata.get('name', plugin_name)}")
+                self.version_label.setText(
+                    f"Version: {metadata.get('version', 'Unknown')}"
+                )
+                self.author_label.setText(
+                    f"Author: {metadata.get('author', 'Unknown')}"
+                )
+                self.description_label.setText(
+                    f"Description: {metadata.get('description', 'No description')}"
+                )
 
-        self.logger.debug(f"Updated details for plugin: {plugin_id}")
+                is_active = status_info["active"]
+                self.status_label.setText(
+                    f"Status: {'Active' if is_active else 'Loaded'}"
+                )
+                self.activate_button.setEnabled(not is_active)
+                self.deactivate_button.setEnabled(is_active)
+            else:
+                self.clear_details()
+
+        self.logger.debug(f"Updated details for plugin: {plugin_name}")
 
     def clear_details(self) -> None:
         """Clear the details panel."""
@@ -219,18 +249,24 @@ class PluginManagerUI(QWidget):
         if not selected_items:
             return
 
-        plugin_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
-        self.logger.info(f"Activating plugin: {plugin_id}")
-        plugin = self.plugin_manager.get_plugin(plugin_id)
-        if plugin and not plugin.is_active:
-            if plugin.initialize():
-                self.plugin_activated.emit(plugin_id)
-                self.update_details(plugin_id)
-                self.logger.info(f"Plugin {plugin_id} activated successfully")
-            else:
-                self.logger.error(f"Failed to activate plugin: {plugin_id}")
+        plugin_name = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        self.logger.info(f"Activating plugin: {plugin_name}")
+
+        # Load plugin if not loaded
+        if (
+            plugin_name not in self.plugin_system.list_plugins()
+            and not self.plugin_system.load_plugin(plugin_name)
+        ):
+            self.logger.error(f"Failed to load plugin: {plugin_name}")
+            return
+
+        # Activate the plugin
+        if self.plugin_system.activate_plugin(plugin_name):
+            self.plugin_activated.emit(plugin_name)
+            self.update_details(plugin_name)
+            self.logger.info(f"Plugin {plugin_name} activated successfully")
         else:
-            self.logger.warning(f"Plugin {plugin_id} not found or already active")
+            self.logger.error(f"Failed to activate plugin: {plugin_name}")
 
     @Slot()
     def on_deactivate_clicked(self) -> None:
@@ -239,30 +275,19 @@ class PluginManagerUI(QWidget):
         if not selected_items:
             return
 
-        plugin_id = selected_items[0].data(Qt.ItemDataRole.UserRole)
-        self.logger.info(f"Deactivating plugin: {plugin_id}")
-        plugin = self.plugin_manager.get_plugin(plugin_id)
-        if plugin and plugin.is_active:
-            plugin.shutdown()
-            self.plugin_deactivated.emit(plugin_id)
-            self.update_details(plugin_id)
-            self.logger.info(f"Plugin {plugin_id} deactivated")
+        plugin_name = selected_items[0].data(Qt.ItemDataRole.UserRole)
+        self.logger.info(f"Deactivating plugin: {plugin_name}")
+
+        if self.plugin_system.deactivate_plugin(plugin_name):
+            self.plugin_deactivated.emit(plugin_name)
+            self.update_details(plugin_name)
+            self.logger.info(f"Plugin {plugin_name} deactivated")
         else:
-            self.logger.warning(f"Plugin {plugin_id} not found or already inactive")
+            self.logger.error(f"Failed to deactivate plugin: {plugin_name}")
 
     @Slot(str, str)
-    def on_plugin_status_changed(self, plugin_id: str, status: str) -> None:
-        """Handle plugin status change event.
-
-        Args:
-            plugin_id (str): ID of the plugin.
-            status (str): New status of the plugin.
-        """
-        self.logger.info(f"Plugin status changed: {plugin_id} - {status}")
-        selected_items = self.plugin_list.selectedItems()
-        if (
-            selected_items
-            and selected_items[0].data(Qt.ItemDataRole.UserRole) == plugin_id
-        ):
-            self.update_details(plugin_id)
-        self.logger.debug(f"Updated UI for plugin status change: {plugin_id}")
+    def on_plugin_status_changed(self, plugin_name: str, status: str) -> None:
+        """Handle plugin status change event - deprecated in new system."""
+        # This method is kept for backward compatibility
+        # The new system uses event bus events instead
+        self._on_plugin_event({"plugin_name": plugin_name, "status": status})

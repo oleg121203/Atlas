@@ -5,6 +5,7 @@
 
 import os
 import sys
+from unittest.mock import MagicMock
 
 # -- Path setup --------------------------------------------------------------
 sys.path.insert(0, os.path.abspath(".."))
@@ -14,13 +15,42 @@ sys.path.insert(0, os.path.abspath("../tools"))
 sys.path.insert(0, os.path.abspath("../workflow"))
 sys.path.insert(0, os.path.abspath("../intelligence"))
 sys.path.insert(0, os.path.abspath("../utils"))
+sys.path.insert(0, os.path.abspath("../plugins"))
+
+
+# Mock problematic imports for documentation building
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+
+MOCK_MODULES = [
+    "PySide6",
+    "PySide6.QtCore",
+    "PySide6.QtWidgets",
+    "PySide6.QtGui",
+    "psutil",
+    "pyautogui",
+    "selenium",
+    "google",
+    "google.auth",
+    "google.auth.transport",
+    "google.auth.transport.requests",
+    "googleapiclient",
+    "googleapiclient.discovery",
+    "Quartz",
+    "AppKit",
+    "Foundation",
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # -- Project information -----------------------------------------------------
 project = "Atlas AI Assistant"
-copyright = "2024, Atlas Development Team"
+copyright = "2025, Atlas Development Team"
 author = "Atlas Development Team"
-release = "1.0.0"
-version = "1.0.0"
+release = "2.0.0"
+version = "2.0.0"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -97,25 +127,20 @@ intersphinx_mapping = {
 # -- Options for todo extension ----------------------------------------------
 todo_include_todos = True
 
-# -- Options for autodoc extension -------------------------------------------
+# -- Autodoc configuration ---------------------------------------------------
 autodoc_default_options = {
     "members": True,
     "member-order": "bysource",
     "special-members": "__init__",
     "undoc-members": True,
     "exclude-members": "__weakref__",
-    "show-inheritance": True,
 }
 
-autodoc_inherit_docstrings = True
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "documented"
+autodoc_mock_imports = MOCK_MODULES
 
-# -- Options for autosummary extension ---------------------------------------
-autosummary_generate = True
-autosummary_imported_members = True
-
-# -- Options for napoleon extension ------------------------------------------
+# Napoleon configuration for Google/NumPy style docstrings
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = False
@@ -128,13 +153,9 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_type_aliases = None
-napoleon_attr_annotations = True
 
-# -- Options for copybutton extension ----------------------------------------
-copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
-copybutton_prompt_is_regexp = True
-copybutton_only_copy_prompt_lines = True
-copybutton_remove_prompts = True
+# Autosummary configuration
+autosummary_generate = True
+autosummary_imported_members = True
 
-# -- Custom configuration ----------------------------------------------------
-# Add any custom configuration here
+# -- Options for HTML output -------------------------------------------------

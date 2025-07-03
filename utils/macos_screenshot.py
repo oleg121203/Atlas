@@ -63,7 +63,7 @@ def capture_screen_native_macos(save_path: Optional[Path] = None) -> PIL.Image.I
         # Clean up on failure
         if save_path is None and os.path.exists(temp_path):
             os.unlink(temp_path)
-        raise Exception(f"Native macOS screenshot failed: {e}")
+        raise Exception(f"Native macOS screenshot failed: {e}") from e
 
 
 def capture_screen_applescript() -> PIL.Image.Image:
@@ -128,7 +128,7 @@ def capture_screen_applescript() -> PIL.Image.Image:
         # Clean up on failure
         if os.path.exists(temp_path):
             os.unlink(temp_path)
-        raise Exception(f"AppleScript screenshot failed: {e}")
+        raise Exception(f"AppleScript screenshot failed: {e}") from e
 
 
 def test_screenshot_methods():
@@ -204,7 +204,7 @@ def capture_screen_native_macos(save_to: Optional[Path] = None) -> Image.Image:
         # Clean up on error
         if "tmp_path" in locals():
             Path(tmp_path).unlink(missing_ok=True)
-        raise Exception(f"Native macOS screenshot failed: {e}")
+        raise Exception(f"Native macOS screenshot failed: {e}") from e
 
 
 def capture_screen_applescript() -> Image.Image:
@@ -249,7 +249,7 @@ def capture_screen_applescript() -> Image.Image:
     except Exception as e:
         if "tmp_path" in locals():
             Path(tmp_path).unlink(missing_ok=True)
-        raise Exception(f"AppleScript screenshot failed: {e}")
+        raise Exception(f"AppleScript screenshot failed: {e}") from e
 
 
 def test_screenshot_methods():

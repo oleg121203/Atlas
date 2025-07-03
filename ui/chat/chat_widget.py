@@ -14,9 +14,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core.events import CONTEXT_UPDATED
+from core.events import CHAT_MESSAGE_SENT, CONTEXT_UPDATED
 from core.logging import get_logger
 from ui.input_validation import sanitize_ui_input, validate_ui_input
+from ui.module_communication import EVENT_BUS, publish_module_event
 
 logger = get_logger("ChatWidget")
 
@@ -24,10 +25,13 @@ logger = get_logger("ChatWidget")
 class ChatWidget(QWidget):
     """Chat interface widget for Atlas."""
 
-    def __init__(self, parent=None):
+    def __init__(self, app, parent=None):
         super().__init__(parent)
+        self.app = app
+        self.event_bus = EVENT_BUS
         self.init_ui()
         self.event_bus.subscribe(CONTEXT_UPDATED, self._on_context_updated)
+        self.event_bus.subscribe(CHAT_MESSAGE_SENT, self._on_chat_message)
         logger.info("Chat widget initialized")
 
     def init_ui(self) -> None:
@@ -75,7 +79,11 @@ class ChatWidget(QWidget):
         self.chat_display.append(f"You: {sanitized_message}")
         self.message_input.clear()
 
-        # TODO: Implement actual message sending logic
+        # Publish event so other components (e.g. AI reply handler) can react
+        publish_module_event(
+            CHAT_MESSAGE_SENT, {"text": sanitized_message, "sender": "user"}
+        )
+
         logger.info("Message sent: %s", sanitized_message)
 
     def receive_message(self, message: str) -> None:
@@ -88,6 +96,22 @@ class ChatWidget(QWidget):
         sanitized_message = sanitize_ui_input(message)
         self.chat_display.append(f"Other: {sanitized_message}")
         logger.info("Message received: %s", sanitized_message)
+
+    def _on_chat_message(self, data):
+        """Handle incoming chat message events from other components."""
+        sender = data.get("sender", "other")
+        if sender == "user":
+            # Already displayed locally
+            return
+        text = data.get("text", "")
+        if text:
+            self.receive_message(text)
+
+    def refresh_context(self):
+        """Refresh context information displayed in the chat widget.
+        Currently a placeholder to satisfy type checkers and can be extended later."""
+        # TODO: Implement actual context refresh logic
+        pass
 
     def _on_context_updated(self, data):
         self.refresh_context()

@@ -88,6 +88,10 @@ class AtlasMainWindow(QMainWindow):
         decision_engine=None,
         self_improvement_engine=None,
         memory_manager=None,
+        event_bus=None,
+        config=None,
+        plugin_system=None,
+        tool_manager=None,
     ):
         logger = logging.getLogger(__name__)
         logger.debug("Starting AtlasMainWindow initialization")
@@ -98,13 +102,19 @@ class AtlasMainWindow(QMainWindow):
         self.decision_engine = decision_engine
         self.self_improvement_engine = self_improvement_engine
         self.memory_manager = memory_manager
+        self.config = config
+        self.plugin_system = plugin_system
+        self.tool_manager = tool_manager
         self.setWindowTitle("Atlas - Autonomous Task Planning")
         self.setGeometry(100, 100, 1200, 800)
         # Initialize core components
         from PySide6.QtWidgets import QApplication
 
         self.app_instance = app_instance if app_instance else QApplication.instance()
-        self.event_bus = EVENT_BUS
+        if event_bus is not None:
+            self.event_bus = event_bus
+        else:
+            self.event_bus = EVENT_BUS
         self.event_bus.subscribe("app_shutdown", self._on_app_shutdown)
         self.event_bus.publish("main_window_initialized", {"status": "ready"})
         self.memory_manager = MemoryManager()
@@ -417,7 +427,7 @@ class AtlasMainWindow(QMainWindow):
         self.decision_explanation_module = DecisionExplanation(self.central)
         self.user_management_module = UserManagement(self.central)
         self.consent_module = ConsentManager(self.central)
-        self.modules["Tools"] = ToolManagerUI()
+        self.modules["Tools"] = ToolManagerUI(self.tool_manager)
         # Add initialized modules to central widget stack
         self.central.addWidget(self.chat_module)
         self.central.addWidget(self.tasks_module)
@@ -1088,7 +1098,7 @@ class AtlasMainWindow(QMainWindow):
         self._initialize_decision_explanation_ui()
         self._initialize_user_management_ui()
         self._initialize_consent_manager_ui()
-        self.modules["Tools"] = ToolManagerUI()
+        self.modules["Tools"] = ToolManagerUI(self.tool_manager)
         logger.info("All UI modules initialized")
 
     def _initialize_chat_ui(self):
@@ -1287,7 +1297,7 @@ class AtlasMainWindow(QMainWindow):
         self._initialize_decision_explanation_ui()
         self._initialize_user_management_ui()
         self._initialize_consent_manager_ui()
-        self.modules["Tools"] = ToolManagerUI()
+        self.modules["Tools"] = ToolManagerUI(self.tool_manager)
         logger.info("All UI modules initialized")
 
     def _on_app_shutdown(self, data):
@@ -1315,3 +1325,6 @@ class AtlasMainWindow(QMainWindow):
             # Для LoadingSpinner
             if hasattr(module, "spinner") and hasattr(module.spinner, "apply_theme"):
                 module.spinner.apply_theme(stylesheet)
+
+
+MainWindow = AtlasMainWindow
