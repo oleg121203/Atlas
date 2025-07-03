@@ -1,6 +1,6 @@
 import unittest
 import unittest.mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # Mock the core.tools module and its classes to avoid import errors
 core = unittest.mock.MagicMock()

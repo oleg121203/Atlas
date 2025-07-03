@@ -59,6 +59,43 @@ class TestAccessibilityCompliance(unittest.TestCase):
             self.assertIn("issues", result)
             self.assertEqual(result["app_name"], "TestApp")
 
+    def test_check_application_accessibility(self):
+        """Test checking application accessibility compliance."""
+        with patch("core.accessibility_compliance.NSApplication") as mock_app:
+            mock_app.mainWindow.return_value = Mock()
+            mock_app.windows.return_value = [Mock(), Mock()]
+            result = self.accessibility_compliance.check_application()
+            self.assertIsInstance(result, list)
+
+    def test_check_ui_element_focusable(self):
+        """Test checking if a UI element is focusable."""
+        mock_element = Mock()
+        mock_element.isKindOfClass.return_value = True
+        mock_element.accessibilityRole.return_value = "AXButton"
+        mock_element.accessibilityIsFocused.return_value = True
+        report = self.accessibility_compliance.check_ui_element(mock_element)
+        self.assertTrue(report["accessible"])
+
+    def test_check_ui_element_label(self):
+        """Test checking if a UI element has a proper label."""
+        mock_element = Mock()
+        mock_element.isKindOfClass.return_value = True
+        mock_element.accessibilityRole.return_value = "AXTextField"
+        mock_element.accessibilityLabel.return_value = "Username"
+        mock_element.frame.return_value = NSRect(0, 0, 100, 30)
+        report = self.accessibility_compliance.check_ui_element(mock_element)
+        self.assertTrue(report["accessible"])
+
+    def test_check_ui_element_help_text(self):
+        """Test checking if a UI element has help text."""
+        mock_element = Mock()
+        mock_element.isKindOfClass.return_value = True
+        mock_element.accessibilityRole.return_value = "AXSlider"
+        mock_element.accessibilityHelp.return_value = "Adjust volume"
+        mock_element.frame.return_value = NSRect(0, 0, 100, 30)
+        report = self.accessibility_compliance.check_ui_element(mock_element)
+        self.assertTrue(report["accessible"])
+
 
 if __name__ == "__main__":
     unittest.main()

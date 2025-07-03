@@ -1,0 +1,19 @@
+{
+  "definition": {
+    "name": "test_workflow",
+    "steps": [
+      "step1",
+      "step2"
+    ],
+    "description": "Test description",
+    "initial_step": "step1"
+  },
+  "state": {
+    "current_step": "step1",
+    "status": "created",
+    "last_updated": "2025-07-03T16:13:15.266141",
+    "error": null,
+    "retry_count": 0
+  },
+  "history": []
+}

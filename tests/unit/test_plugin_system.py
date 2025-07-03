@@ -5,14 +5,13 @@ import os
 import tempfile
 import unittest
 import unittest.mock
-from unittest.mock import MagicMock, patch
 
 # Mock the core.plugins module and its classes to avoid import errors
 core = unittest.mock.MagicMock()
 core.plugins = unittest.mock.MagicMock()
-core.plugins.PluginSystem = MagicMock()
-core.plugins.Plugin = MagicMock()
-core.plugins.PluginType = MagicMock()
+core.plugins.PluginSystem = unittest.mock.MagicMock()
+core.plugins.Plugin = unittest.mock.MagicMock()
+core.plugins.PluginType = unittest.mock.MagicMock()
 
 
 class TestPluginSystem(unittest.TestCase):
@@ -20,12 +19,12 @@ class TestPluginSystem(unittest.TestCase):
         """Set up test fixtures before each test method."""
         self.plugin_system = core.plugins.PluginSystem()
         self.plugin_system.plugins = []
-        self.plugin_system.register_plugin = MagicMock()
-        self.plugin_system.get_plugin = MagicMock()
-        self.plugin_system.get_plugins_by_type = MagicMock()
-        self.plugin_system.get_all_plugins = MagicMock()
-        self.plugin_system.load_plugins_from_module = MagicMock()
-        self.plugin_system.execute_plugin = MagicMock()
+        self.plugin_system.register_plugin = unittest.mock.MagicMock()
+        self.plugin_system.get_plugin = unittest.mock.MagicMock()
+        self.plugin_system.get_plugins_by_type = unittest.mock.MagicMock()
+        self.plugin_system.get_all_plugins = unittest.mock.MagicMock()
+        self.plugin_system.load_plugins_from_module = unittest.mock.MagicMock()
+        self.plugin_system.execute_plugin = unittest.mock.MagicMock()
 
     def test_plugin_system_init(self):
         """Test PluginSystem initialization."""
@@ -87,7 +86,7 @@ class TestPluginSystem(unittest.TestCase):
 
     def test_load_plugins_from_module(self):
         """Test loading plugins from a module."""
-        mock_module = MagicMock()
+        mock_module = unittest.mock.MagicMock()
         mock_module.__name__ = "test_module"
         self.plugin_system.load_plugins_from_module(mock_module)
         self.plugin_system.load_plugins_from_module.assert_called_once_with(mock_module)
@@ -96,7 +95,7 @@ class TestPluginSystem(unittest.TestCase):
         """Test executing a plugin by name with parameters."""
         mock_plugin = core.plugins.Plugin()
         mock_plugin.name = "Executable Plugin"
-        mock_plugin.execute = MagicMock(return_value="Plugin Output")
+        mock_plugin.execute = unittest.mock.MagicMock(return_value="Plugin Output")
         self.plugin_system.plugins.append(mock_plugin)
         self.plugin_system.get_plugin.return_value = mock_plugin
         self.plugin_system.execute_plugin.return_value = "Plugin Output"
