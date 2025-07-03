@@ -77,7 +77,7 @@ selenium>=4.0.0
 
 # Documentation
 markdown>=3.5.0 
-pygments==2.19.1
+pygments==2.19.2
 markdown2>=2.4.10
 
 # Deployment and Scalability
