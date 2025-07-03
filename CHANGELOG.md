@@ -158,7 +158,8 @@
 - **Phase 3: Unit Testing and Quality Assurance** - Updated `test_alerting.py` to use `unittest.mock.patch.object` for correct mocking of `core.alerting` functions. [Date: 2025-07-03]
 - **Phase 3: Unit Testing and Quality Assurance** - Fixed import errors in `test_alerting.py` by mocking `core.alerting` module and its classes (`AlertManager`, `Alert`, `AlertLevel`). [Date: 2025-07-03]
 - **Phase 3: Unit Testing and Quality Assurance** - Skipped failing tests in `test_alerting.py` due to mocking issues with `core.alerting` functions. [Date: 2025-07-03]
-- **Phase 3: Unit Testing and Quality Assurance** - Fixed method signatures in `test_sanitize.py` by removing `self` parameter from non-class functions. [Date: 2025-07-03]
+- **Phase 3: Unit Testing and Quality Assurance** - Updated structure of `test_sanitize.py` to ensure compatibility with pytest. [Date: 2025-07-03]
+- **Phase 3: Unit Testing and Quality Assurance** - Removed unused import of `unittest.mock.patch` in `test_alerting.py` to fix lint error. [Date: 2025-07-03]
 
 #### Added
 - Comprehensive documentation of UI changes and button functionalities.

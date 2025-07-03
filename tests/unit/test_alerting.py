@@ -1,5 +1,4 @@
 import unittest
-import unittest.mock
 from unittest.mock import patch
 
 # Mock the core.alerting module since it might not be available or fully implemented
