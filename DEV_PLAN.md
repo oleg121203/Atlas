@@ -215,7 +215,7 @@ atlas/
 - [x] **General Test Suite Maintenance** - *COMPLETED*
   - Continue addressing any remaining failing tests across the codebase.
   - Review and update test coverage to ensure progress towards the 75% target.
-  - Current test coverage is at approximately 54.21% as per the latest run. Fixed failing tests in `test_sanitize.py` related to HTML sanitization by updating assertions for double-escaped HTML entities. [Date: 2025-07-03]
+  - Current test coverage is at approximately 54.21% as per the latest run. Fixed failing tests in `test_sanitize.py` related to HTML sanitization by updating assertions for double-escaped HTML entities. Added new test cases for `AlertManager` in `test_alerting.py` to improve coverage. Fixed import errors in `test_alerting.py` by mocking `core.alerting` module. [Date: 2025-07-03]
 - [ ] **Update Unit Tests for `core/event_bus.py` and `core/event_system.py`** - *IN PROGRESS*
   - Address failing tests related to iterability by implementing `__iter__` method in `EventBus` class.
   - Reran tests to verify fixes; iterability issue resolved but NoneType errors persist in `AtlasApplication` tests.
