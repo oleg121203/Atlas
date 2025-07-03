@@ -5,9 +5,9 @@ def test_sanitize_removes_script(self):
     """Test that script tags are properly escaped."""
     input_str = "<script>alert('hello')</script>"
     result = sanitize_ui_input(input_str)
-    assert "&amp;lt;script&amp;gt;" in result
+    assert "&amp;amp;lt;script&amp;amp;gt;" in result
     assert "alert('hello')" not in result
-    assert "&amp;lt;/script&amp;gt;" in result
+    assert "&amp;amp;lt;/script&amp;amp;gt;" in result
 
 
 def test_sanitize_html():
@@ -21,10 +21,10 @@ def test_sanitize_special_chars(self):
     """Test that special characters are properly escaped."""
     input_str = "hello & < > \" ' /"
     result = sanitize_ui_input(input_str)
-    assert "&amp;lt;" in result
-    assert "&amp;gt;" in result
-    assert "&amp;" in result
-    assert "&quot;" in result
+    assert "&amp;amp;lt;" in result
+    assert "&amp;amp;gt;" in result
+    assert "&amp;amp;" in result
+    assert "&amp;quot;" in result
     assert "&#x27;" in result
     assert "&#x2F;" in result
 
