@@ -158,6 +158,17 @@ class ChatModule(QWidget):
         self.spinner = LoadingSpinner(self)
         layout.addWidget(self.spinner)
 
+        self._connect_buttons()
+
+    def _connect_buttons(self):
+        """Connect buttons to their respective actions."""
+        if hasattr(self, "send_btn"):
+            self.send_btn.clicked.connect(self.send_message)
+        if hasattr(self, "history_btn"):
+            self.history_btn.clicked.connect(self.show_history_dialog)
+        logger = get_logger()
+        logger.info("Chat module buttons connected")
+
     def update_ui(self) -> None:
         """Update UI elements with translated text."""
         self.title.setText(str(_("💬 Chat (Cyberpunk)")) or "💬 Chat (Cyberpunk)")

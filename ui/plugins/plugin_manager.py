@@ -2,7 +2,7 @@ import importlib.util
 import os
 import sys
 
-from plugins.base import PluginBase
+from plugins.plugin_interface import PluginBase
 
 
 class PluginManager:

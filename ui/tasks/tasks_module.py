@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Optional
 
 from modules.agents.task_planner_agent import TaskPlannerAgent
@@ -22,6 +23,8 @@ from PySide6.QtWidgets import (
 
 from core.async_task_manager import AsyncTaskManager
 from ui.i18n import _
+
+logger = logging.getLogger(__name__)
 
 
 class TasksModule(QWidget):
@@ -97,13 +100,11 @@ class TasksModule(QWidget):
         self.add_task_btn.setStyleSheet(
             "background: #ff00a0; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
         )
-        self.add_task_btn.clicked.connect(self.add_task)
         task_btns.addWidget(self.add_task_btn)
         self.del_task_btn = QPushButton(_("Delete Task"))
         self.del_task_btn.setStyleSheet(
             "background: #23272e; color: #ff00a0; border-radius: 6px; padding: 6px 18px;"
         )
-        self.del_task_btn.clicked.connect(self.delete_task)
         task_btns.addWidget(self.del_task_btn)
         tasks_layout.addLayout(task_btns)
         splitter.addWidget(tasks_group)
@@ -124,13 +125,11 @@ class TasksModule(QWidget):
         self.create_plan_btn.setStyleSheet(
             "background: #00fff7; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
         )
-        self.create_plan_btn.clicked.connect(self.create_plan)
         plan_btns.addWidget(self.create_plan_btn)
         self.cancel_plan_btn = QPushButton(_("Cancel Plan"))
         self.cancel_plan_btn.setStyleSheet(
             "background: #23272e; color: #00fff7; border-radius: 6px; padding: 6px 18px;"
         )
-        self.cancel_plan_btn.clicked.connect(self.cancel_plan)
         plan_btns.addWidget(self.cancel_plan_btn)
         plans_layout.addLayout(plan_btns)
 
@@ -152,6 +151,19 @@ class TasksModule(QWidget):
 
         self.update_task_list()
         self.update_plan_list()
+        self._connect_buttons()
+
+    def _connect_buttons(self):
+        """Connect buttons to their respective actions."""
+        if hasattr(self, "add_task_btn"):
+            self.add_task_btn.clicked.connect(self.add_task)
+        if hasattr(self, "del_task_btn"):
+            self.del_task_btn.clicked.connect(self.delete_task)
+        if hasattr(self, "create_plan_btn"):
+            self.create_plan_btn.clicked.connect(self.create_plan)
+        if hasattr(self, "cancel_plan_btn"):
+            self.cancel_plan_btn.clicked.connect(self.cancel_plan)
+        logger.info("Tasks module buttons connected")
 
     def update_ui(self) -> None:
         """Update UI elements with translated text."""

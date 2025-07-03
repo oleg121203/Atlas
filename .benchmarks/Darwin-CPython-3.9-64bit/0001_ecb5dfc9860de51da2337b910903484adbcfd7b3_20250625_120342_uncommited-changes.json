@@ -5,8 +5,8 @@
         "machine": "arm64",
         "python_compiler": "Clang 17.0.0 (clang-1700.0.13.5)",
         "python_implementation": "CPython",
-        "python_implementation_version": "3.9.6",
-        "python_version": "3.9.6",
+        "python_implementation_version": "3.9.2",
+        "python_version": "3.9.2",
         "python_build": [
             "default",
             "Apr 30 2025 02:07:17"

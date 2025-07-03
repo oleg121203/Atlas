@@ -184,9 +184,22 @@ class AtlasMainWindow(QMainWindow):
         self._initialize_modules()
         self._setup_topbar()
         self._setup_sidebar()
-        self.central.setCurrentWidget(
-            list(self.modules.values())[0] if self.modules else QWidget()
-        )
+        # Add all initialized modules to the central widget stack
+        for module_name, module_widget in self.modules.items():
+            if self.central.indexOf(module_widget) == -1:
+                self.central.addWidget(module_widget)  # type: ignore[attr-defined]
+                logger.debug(f"Added module {module_name} to central widget stack")
+        # Set the first module as current if available
+        if self.modules and len(self.modules) > 0:
+            first_module = list(self.modules.values())[0]
+            self.central.setCurrentWidget(first_module)
+            logger.debug("Set first available module as current widget")
+        else:
+            # Fallback to a placeholder widget if no modules are available
+            placeholder = QWidget()
+            self.central.addWidget(placeholder)  # type: ignore[attr-defined]
+            self.central.setCurrentWidget(placeholder)
+            logger.warning("No modules available, using placeholder widget")
         logger.info("UI initialization complete")
 
     def _create_menu_bar(self):
@@ -265,22 +278,45 @@ class AtlasMainWindow(QMainWindow):
         """Show the specified module in the central widget area."""
         logger = logging.getLogger(__name__)
         logger.info(f"Showing module: {module_name}")
+        # Гарантуємо, що всі потрібні атрибути існують
+        for attr in [
+            "chat_module",
+            "plugins_module",
+            "settings_module",
+            "stats_module",
+            "tasks_module",
+            "system_module",
+            "self_improvement_module",
+            "decision_explanation_module",
+            "user_management_module",
+            "consent_module",
+        ]:
+            if not hasattr(self, attr):
+                setattr(self, attr, None)
         module_map = {
             "Chat": self.chat_module,
             "Tasks": self.tasks_module,
             "Plugins": self.plugins_module,
             "Settings": self.settings_module,
             "Stats": self.stats_module,
-            "System": getattr(self, "system_module", None),
-            "SelfImprovement": getattr(self, "self_improvement_module", None),
-            "DecisionExplanation": getattr(self, "decision_explanation_module", None),
-            "UserManagement": getattr(self, "user_management_module", None),
-            "Consent": getattr(self, "consent_module", None),
+            "System": self.system_module,
+            "SelfImprovement": self.self_improvement_module,
+            "DecisionExplanation": self.decision_explanation_module,
+            "UserManagement": self.user_management_module,
+            "Consent": self.consent_module,
+            "Tools": self.modules.get("Tools"),
         }
-        if module_name in module_map and module_map[module_name] is not None:
+        widget = module_map.get(module_name)
+        if widget is not None:
+            # Якщо віджет ще не додано у стек — додати
+            if self.central.indexOf(widget) == -1:
+                self.central.addWidget(widget)  # type: ignore[attr-defined]
             try:
-                self.central.setCurrentWidget(module_map[module_name])
-                logger.info(f"Module {module_name} displayed")
+                if self.central.indexOf(widget) != -1:
+                    self.central.setCurrentWidget(widget)
+                    logger.info(f"Module {module_name} displayed")
+                else:
+                    logger.warning(f"Module {module_name} could not be added to stack")
             except Exception as e:
                 logger.error(f"Error displaying module {module_name}: {e}")
         else:
@@ -306,202 +342,146 @@ class AtlasMainWindow(QMainWindow):
         logger.info(f"Tool execution for {tool_name} is temporarily disabled")
         return None
 
-    def _initialize_modules(self):  # noqa: C901
-        """Initialize all UI modules."""
+    def _initialize_modules(self):
+        """Initialize all UI modules (з fallback-заглушками)."""
         logger = logging.getLogger(__name__)
-        logger.info("Initializing modules")
+        logger.info("Initializing modules (with fallbacks)")
         from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
-        from ui.chat.chat_module import ChatModule
-        from ui.plugins.plugins_module import PluginsModule
-        from ui.settings.settings_module import SettingsModule
-        from ui.stats_module import StatsModule
-        from ui.tasks.tasks_module import TasksModule
+        self.modules = {}
 
+        # Initialize all UI modules
         try:
-            from ui.system_control_module import SystemControlModule
-        except ImportError:
-            logger.warning("SystemControlModule not found, using placeholder")
+            from ui.consent_manager import ConsentManager
 
-            class SystemControlModule(QWidget):
-                def __init__(self, parent=None):
-                    super().__init__(parent)
-                    self.setMinimumSize(300, 200)
-                    layout = QVBoxLayout()
-                    layout.addWidget(QLabel("System Control Module Placeholder"))
-                    self.setLayout(layout)
-
-                def set_agent_manager(self, agent_manager):
-                    pass
+            self.consent_module = ConsentManager()
+            self.modules["Consent"] = self.consent_module
+            logger.info("Consent module initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize Consent module: {e}")
+            self.consent_module = QWidget()
+            layout = QVBoxLayout()
+            layout.addWidget(QLabel("ConsentManager not available"))
+            self.consent_module.setLayout(layout)
+            self.modules["Consent"] = self.consent_module
 
         try:
             from ui.self_improvement_center import SelfImprovementCenter
-        except ImportError:
-            logger.warning("SelfImprovementCenter not found, using placeholder")
 
-            class SelfImprovementCenter(QWidget):
-                def __init__(self, parent=None):
-                    super().__init__(parent)
-                    self.setMinimumSize(300, 200)
-                    layout = QVBoxLayout()
-                    layout.addWidget(QLabel("Self Improvement Center Placeholder"))
-                    self.setLayout(layout)
-
-        try:
-            from ui.decision_explanation import DecisionExplanation
-        except ImportError:
-            logger.warning("DecisionExplanation not found, using placeholder")
-
-            class DecisionExplanation(QWidget):
-                def __init__(self, parent=None):
-                    super().__init__(parent)
-                    self.setMinimumSize(300, 200)
-                    layout = QVBoxLayout()
-                    layout.addWidget(QLabel("Decision Explanation Placeholder"))
-                    self.setLayout(layout)
+            self.self_improvement_module = SelfImprovementCenter()
+            self.modules["SelfImprovement"] = self.self_improvement_module
+            logger.info("SelfImprovement module initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize SelfImprovement module: {e}")
+            self.self_improvement_module = QWidget()
+            layout = QVBoxLayout()
+            layout.addWidget(QLabel("SelfImprovementCenter not available"))
+            self.self_improvement_module.setLayout(layout)
+            self.modules["SelfImprovement"] = self.self_improvement_module
 
         try:
             from ui.user_management import UserManagement
-        except ImportError:
-            logger.warning("UserManagement not found, using placeholder")
 
-            class UserManagement(QWidget):
-                def __init__(self, parent=None):
-                    super().__init__(parent)
-                    self.setMinimumSize(300, 200)
-                    layout = QVBoxLayout()
-                    layout.addWidget(QLabel("User Management Placeholder"))
-                    self.setLayout(layout)
-
-        try:
-            from ui.consent_manager import ConsentManager
-        except ImportError:
-            logger.warning("ConsentManager not found, using placeholder")
-
-            class ConsentManager(QWidget):
-                def __init__(self, parent=None):
-                    super().__init__(parent)
-                    self.setMinimumSize(300, 200)
-                    layout = QVBoxLayout()
-                    layout.addWidget(QLabel("Consent Manager Placeholder"))
-                    self.setLayout(layout)
+            self.user_management_module = UserManagement()
+            self.modules["UserManagement"] = self.user_management_module
+            logger.info("UserManagement module initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize UserManagement module: {e}")
+            self.user_management_module = QWidget()
+            layout = QVBoxLayout()
+            layout.addWidget(QLabel("UserManagement not available"))
+            self.user_management_module.setLayout(layout)
+            self.modules["UserManagement"] = self.user_management_module
 
         try:
-            from ui.tasks.task_widget import TaskWidget  # noqa: F401
-        except ImportError as e:
-            logger = logging.getLogger(__name__)
-            logger.warning(f"Import error for TaskWidget: {e}")
+            from ui.system_control_module import SystemControl
+
+            self.system_module = SystemControl()
+            self.modules["System"] = self.system_module
+            logger.info("System module initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize System module: {e}")
+            self.system_module = QWidget()
+            layout = QVBoxLayout()
+            layout.addWidget(QLabel("SystemControl not available"))
+            self.system_module.setLayout(layout)
+            self.modules["System"] = self.system_module
 
         try:
-            from ui.user_management import UserManagement
-        except ImportError as e:
-            logger = logging.getLogger(__name__)
-            logger.warning(f"Import error for UserManagement: {e}")
-            UserManagement = None
+            from ui.intelligence.decision_explanation_ui import DecisionExplanationUI
 
-        # Manually initialize modules without passing module_name
-        self.chat_module = ChatModule()
-        self.tasks_module = TasksModule(
-            task_manager=self.task_planner_agent,
-            task_planner_agent=self.task_planner_agent,
-            user_id="default_user",
-        )
-        self.plugins_module = PluginsModule()
-        self.settings_module = SettingsModule()
-        self.stats_module = StatsModule()
-        self.system_module = (
-            SystemControlModule(parent=self.central)
-            if "SystemControlModule" in globals()
-            else SystemControlModule(self.central)
-        )
-        if hasattr(self, "system_module") and hasattr(
-            self.system_module, "set_agent_manager"
-        ):
-            try:
-                self.system_module.set_agent_manager(
-                    self.meta_agent if hasattr(self, "meta_agent") else None
-                )
-            except Exception as e:
-                logger.error(f"Error setting agent manager for System module: {e}")
-        self.self_improvement_module = SelfImprovementCenter(self.central)
-        self.decision_explanation_module = DecisionExplanation(self.central)
-        self.user_management_module = UserManagement(self.central)
-        self.consent_module = ConsentManager(self.central)
-        self.modules["Tools"] = ToolManagerUI(self.tool_manager)
-        # Add initialized modules to central widget stack
-        self.central.addWidget(self.chat_module)
-        self.central.addWidget(self.tasks_module)
-        self.central.addWidget(self.plugins_module)
-        self.central.addWidget(self.settings_module)
-        self.central.addWidget(self.stats_module)
-        if hasattr(self, "system_module") and isinstance(self.system_module, QWidget):
-            self.central.addWidget(self.system_module)
-        if hasattr(self, "self_improvement_module") and isinstance(
-            self.self_improvement_module, QWidget
-        ):
-            self.central.addWidget(self.self_improvement_module)
-        if hasattr(self, "decision_explanation_module") and isinstance(
-            self.decision_explanation_module, QWidget
-        ):
-            self.central.addWidget(self.decision_explanation_module)
-        if hasattr(self, "user_management_module") and isinstance(
-            self.user_management_module, QWidget
-        ):
-            self.central.addWidget(self.user_management_module)
-        if hasattr(self, "consent_module") and isinstance(self.consent_module, QWidget):
-            self.central.addWidget(self.consent_module)
-        if hasattr(self, "Tools") and isinstance(self.modules["Tools"], QWidget):
-            self.central.addWidget(self.modules["Tools"])
-        # Set the active module (typically chat as default)
-        self.central.setCurrentWidget(self.chat_module)
-        logger.info("Modules initialized")
+            self.decision_explanation_module = DecisionExplanationUI()
+            self.modules["DecisionExplanation"] = self.decision_explanation_module
+            logger.info("DecisionExplanation module initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize DecisionExplanation module: {e}")
+            self.decision_explanation_module = QWidget()
+            layout = QVBoxLayout()
+            layout.addWidget(QLabel("DecisionExplanationUI not available"))
+            self.decision_explanation_module.setLayout(layout)
+            self.modules["DecisionExplanation"] = self.decision_explanation_module
+
+        # Add all initialized modules to the central widget stack
+        for module_name, module_widget in self.modules.items():
+            if self.central.indexOf(module_widget) == -1:
+                self.central.addWidget(module_widget)  # type: ignore[attr-defined]
+                logger.debug(f"Added module {module_name} to central widget stack")
+
+        # Set the first module as current if available
+        if self.modules and len(self.modules) > 0:
+            first_module = next(iter(self.modules.values()))
+            self.central.setCurrentWidget(first_module)
+        else:
+            placeholder = QWidget()
+            self.central.addWidget(placeholder)  # type: ignore[attr-defined]
+            self.central.setCurrentWidget(placeholder)
+            logger.warning("No modules available, using placeholder widget")
+
+        logger.info("UI initialization complete")
 
     def _setup_topbar(self):
         """Create the topbar with necessary actions."""
         logger = logging.getLogger(__name__)
         logger.debug("Creating topbar")
-        topbar_layout = QHBoxLayout(self.topbar)
 
-        # Add buttons for navigation
+        # Add buttons for navigation напряму у QToolBar
         chat_btn = QPushButton("Chat")
         chat_btn.clicked.connect(lambda: self.show_module("Chat"))
-        topbar_layout.addWidget(chat_btn)
+        self.topbar.addWidget(chat_btn)
 
         plugins_btn = QPushButton("Plugins")
         plugins_btn.clicked.connect(lambda: self.show_module("Plugins"))
-        topbar_layout.addWidget(plugins_btn)
+        self.topbar.addWidget(plugins_btn)
 
         settings_btn = QPushButton("Settings")
         settings_btn.clicked.connect(lambda: self.show_module("Settings"))
-        topbar_layout.addWidget(settings_btn)
+        self.topbar.addWidget(settings_btn)
 
         stats_btn = QPushButton("Stats")
         stats_btn.clicked.connect(lambda: self.show_module("Stats"))
-        topbar_layout.addWidget(stats_btn)
+        self.topbar.addWidget(stats_btn)
 
         system_btn = QPushButton("System Control")
         system_btn.clicked.connect(lambda: self.show_module("System"))
-        topbar_layout.addWidget(system_btn)
+        self.topbar.addWidget(system_btn)
 
         self_improvement_btn = QPushButton("Self Improvement")
         self_improvement_btn.clicked.connect(
             lambda: self.show_module("SelfImprovement")
         )
-        topbar_layout.addWidget(self_improvement_btn)
+        self.topbar.addWidget(self_improvement_btn)
 
         consent_btn = QPushButton("Consent Manager")
         consent_btn.clicked.connect(lambda: self.show_module("Consent"))
-        topbar_layout.addWidget(consent_btn)
+        self.topbar.addWidget(consent_btn)
 
         decision_btn = QPushButton("AI Decisions")
         decision_btn.clicked.connect(lambda: self.show_module("DecisionExplanation"))
-        topbar_layout.addWidget(decision_btn)
+        self.topbar.addWidget(decision_btn)
 
         user_management_btn = QPushButton("User Management")
         user_management_btn.clicked.connect(lambda: self.show_module("UserManagement"))
-        topbar_layout.addWidget(user_management_btn)
-
-        topbar_layout.addStretch()
+        self.topbar.addWidget(user_management_btn)
 
         logger.debug("Topbar creation completed")
 
@@ -509,48 +489,45 @@ class AtlasMainWindow(QMainWindow):
         """Create the sidebar with necessary actions."""
         logger = logging.getLogger(__name__)
         logger.debug("Creating sidebar")
-        sidebar_layout = QVBoxLayout(self.sidebar)
 
-        # Add buttons for navigation
+        # Add buttons for navigation напряму у QToolBar
         chat_btn = QPushButton("Chat")
         chat_btn.clicked.connect(lambda: self.show_module("Chat"))
-        sidebar_layout.addWidget(chat_btn)
+        self.sidebar.addWidget(chat_btn)
 
         plugins_btn = QPushButton("Plugins")
         plugins_btn.clicked.connect(lambda: self.show_module("Plugins"))
-        sidebar_layout.addWidget(plugins_btn)
+        self.sidebar.addWidget(plugins_btn)
 
         settings_btn = QPushButton("Settings")
         settings_btn.clicked.connect(lambda: self.show_module("Settings"))
-        sidebar_layout.addWidget(settings_btn)
+        self.sidebar.addWidget(settings_btn)
 
         stats_btn = QPushButton("Stats")
         stats_btn.clicked.connect(lambda: self.show_module("Stats"))
-        sidebar_layout.addWidget(stats_btn)
+        self.sidebar.addWidget(stats_btn)
 
         system_btn = QPushButton("System Control")
         system_btn.clicked.connect(lambda: self.show_module("System"))
-        sidebar_layout.addWidget(system_btn)
+        self.sidebar.addWidget(system_btn)
 
         self_improvement_btn = QPushButton("Self Improvement")
         self_improvement_btn.clicked.connect(
             lambda: self.show_module("SelfImprovement")
         )
-        sidebar_layout.addWidget(self_improvement_btn)
+        self.sidebar.addWidget(self_improvement_btn)
 
         consent_btn = QPushButton("Consent Manager")
         consent_btn.clicked.connect(lambda: self.show_module("Consent"))
-        sidebar_layout.addWidget(consent_btn)
+        self.sidebar.addWidget(consent_btn)
 
         decision_btn = QPushButton("AI Decisions")
         decision_btn.clicked.connect(lambda: self.show_module("DecisionExplanation"))
-        sidebar_layout.addWidget(decision_btn)
+        self.sidebar.addWidget(decision_btn)
 
         user_management_btn = QPushButton("User Management")
         user_management_btn.clicked.connect(lambda: self.show_module("UserManagement"))
-        sidebar_layout.addWidget(user_management_btn)
-
-        sidebar_layout.addStretch()
+        self.sidebar.addWidget(user_management_btn)
 
         logger.debug("Sidebar creation completed")
 
@@ -719,35 +696,40 @@ class AtlasMainWindow(QMainWindow):
         self.tab_widget.setTabPosition(QTabWidget.TabPosition.West)
         self.tab_widget.setStyleSheet("""
             QTabWidget::pane { border: 1px solid #444; background: #222; }
-            QTabBar::tab { background: #333; color: #aaa; padding: 8px; min-width: 100px; }
-            QTabBar::tab:selected { background: #00ffaa; color: #fff; }
+            QTabBar::tab { background: #333; color: #aaa; padding: 5px 10px; border: 1px solid #444; }
+            QTabBar::tab:selected { background: #444; border-bottom: none; }
+            QTreeView, QListView { background-color: #222; color: #aaa; border: 1px solid #444; }
+            QTreeView::item:hover, QListView::item:hover { background-color: #333; }
+            QTreeView::item:selected, QListView::item:selected { background-color: #444; }
+            QMenuBar { background-color: #222; color: #aaa; }
+            QMenuBar::item { padding: 2px 10px; }
+            QMenuBar::item:selected { background-color: #333; }
+            QMenu { background-color: #222; color: #aaa; border: 1px solid #444; }
+            QMenu::item { padding: 2px 10px; }
+            QMenu::item:selected { background-color: #333; }
+            QStatusBar { background-color: #222; color: #aaa; border-top: 1px solid #333; }
         """)
 
-        # Initialize core widgets for standard UI
-        self.chat_widget = ChatWidget(self.app_instance)
-        self.tasks_widget = None  # Temporarily set to None to prevent startup crashes
-        # self.tasks_widget = TaskWidget(self.app_instance)
-        self.settings_widget = SettingsWidget(self.app_instance)
-        self.plugins_widget = PluginsWidget(self.app_instance)
-        self.user_management_widget = UserManagementWidget(self.app_instance)
-        self.ai_assistant_widget = AIAssistantWidget(self.app_instance)
-
-        # Add tabs based on feature flags
-        if self.is_feature_enabled("chat_module"):
-            self.tab_widget.addTab(self.chat_widget, "Chat")
-        if self.is_feature_enabled("task_management") and self.tasks_widget:
-            self.tab_widget.addTab(self.tasks_widget, "Tasks")
-        if self.is_feature_enabled("ai_assistant"):
-            self.tab_widget.addTab(self.ai_assistant_widget, "AI Assistant")
-        if self.is_feature_enabled("settings_ui"):
-            self.tab_widget.addTab(self.settings_widget, "Settings")
-        if self.is_feature_enabled("plugins_ui"):
-            self.tab_widget.addTab(self.plugins_widget, "Plugins")
-        if self.is_feature_enabled("user_management"):
-            self.tab_widget.addTab(self.user_management_widget, "User Management")
-
-        layout.addWidget(self.tab_widget)
-        logger.info("Standard UI setup with tabs")
+        self._initialize_modules()
+        self._setup_topbar()
+        self._setup_sidebar()
+        # Add all initialized modules to the central widget stack
+        for module_name, module_widget in self.modules.items():
+            if self.central.indexOf(module_widget) == -1:
+                self.central.addWidget(module_widget)  # type: ignore[attr-defined]
+                logger.debug(f"Added module {module_name} to central widget stack")
+        # Set the first module as current if available
+        if self.modules and len(self.modules) > 0:
+            first_module = list(self.modules.values())[0]
+            self.central.setCurrentWidget(first_module)
+            logger.debug("Set first available module as current widget")
+        else:
+            # Fallback to a placeholder widget if no modules are available
+            placeholder = QWidget()
+            self.central.addWidget(placeholder)  # type: ignore[attr-defined]
+            self.central.setCurrentWidget(placeholder)
+            logger.warning("No modules available, using placeholder widget")
+        logger.info("UI initialization complete")
 
     def setup_advanced_menu_bar(self):
         # Create advanced menu bar
@@ -864,8 +846,6 @@ class AtlasMainWindow(QMainWindow):
         logger.info("Initializing task management components")
         self.task_widget = None  # Temporarily set to None to prevent startup crashes
         # self.task_widget = TaskWidget()
-        if self.task_widget:
-            pass
 
     def create_new_project(self):
         """Create a new project."""
@@ -1325,6 +1305,40 @@ class AtlasMainWindow(QMainWindow):
             # Для LoadingSpinner
             if hasattr(module, "spinner") and hasattr(module.spinner, "apply_theme"):
                 module.spinner.apply_theme(stylesheet)
+
+    def _setup_ui(self):
+        """Set up the user interface components."""
+        super()._setup_ui()
+        self._connect_buttons()
+
+    def _connect_buttons(self):
+        """Connect all UI buttons to their respective actions."""
+        # Sidebar buttons
+        if hasattr(self.sidebar, "tasks_btn"):
+            self.sidebar.tasks_btn.clicked.connect(lambda: self.switch_module("tasks"))
+        if hasattr(self.sidebar, "chat_btn"):
+            self.sidebar.chat_btn.clicked.connect(lambda: self.switch_module("chat"))
+        if hasattr(self.sidebar, "settings_btn"):
+            self.sidebar.settings_btn.clicked.connect(
+                lambda: self.switch_module("settings")
+            )
+        if hasattr(self.sidebar, "plugins_btn"):
+            self.sidebar.plugins_btn.clicked.connect(
+                lambda: self.switch_module("plugins")
+            )
+
+        # Topbar buttons
+        if hasattr(self.topbar, "menu_btn"):
+            self.topbar.menu_btn.clicked.connect(self._toggle_sidebar)
+        if hasattr(self.topbar, "minimize_btn"):
+            self.topbar.minimize_btn.clicked.connect(self.showMinimized)
+        if hasattr(self.topbar, "maximize_btn"):
+            self.topbar.maximize_btn.clicked.connect(self._toggle_maximize)
+        if hasattr(self.topbar, "close_btn"):
+            self.topbar.close_btn.clicked.connect(self.close)
+
+        # Connect other UI elements as needed
+        logger.info("UI buttons connected to actions")
 
 
 MainWindow = AtlasMainWindow

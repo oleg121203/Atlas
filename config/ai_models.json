@@ -67,5 +67,18 @@
   "logging": {
     "level": "INFO",
     "file": "atlas_ai_integration.log"
+  },
+  "test_model": {
+    "type": "mock",
+    "capabilities": [
+      "test"
+    ],
+    "provider": "mock"
+  },
+  "test-model": {
+    "provider": "local",
+    "capabilities": [
+      "general"
+    ]
   }
 }

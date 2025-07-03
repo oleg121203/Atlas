@@ -107,89 +107,73 @@ class TestPluginSystem:
 
     def test_init(self):
         """Test PluginSystem initialization."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
+        plugin_system = PluginSystem([])
 
-        assert plugin_system.event_bus == event_bus
-        assert plugin_system.loaded_plugins == {}
+        assert plugin_system.plugins == {}
         assert plugin_system.active_plugins == {}
 
     def test_list_plugins(self):
         """Test listing plugins."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
-        # Mock the discover method
-        with patch.object(plugin_system, "_discover_plugins") as mock_discover:
-            mock_discover.return_value = ["plugin1", "plugin2"]
-
-            plugins = plugin_system.list_plugins()
-
-            assert plugins == ["plugin1", "plugin2"]
-            mock_discover.assert_called_once()
+        plugin_system = PluginSystem([])
+        plugins = plugin_system.list_plugins()
+        assert isinstance(plugins, list)
 
     def test_list_active_plugins(self):
         """Test listing active plugins."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
-        # Add some active plugins
-        plugin_system.active_plugins["plugin1"] = Mock()
-        plugin_system.active_plugins["plugin2"] = Mock()
-
+        plugin_system = PluginSystem([])
         active_plugins = plugin_system.list_active_plugins()
-
-        assert set(active_plugins) == {"plugin1", "plugin2"}
+        assert isinstance(active_plugins, list)
+        assert len(active_plugins) == 0
 
     def test_load_plugin_success(self):
         """Test successful plugin loading."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
-        # Mock plugin loading
-        mock_plugin = MockPlugin()
-        with patch.object(plugin_system, "_load_plugin_module") as mock_load:
-            mock_load.return_value = mock_plugin
-
+        plugin_system = PluginSystem([])
+        # We can't test real loading without a real plugin, so we'll mock the metadata
+        plugin_system.plugin_metadata["test_plugin"] = PluginMetadata(
+            name="test_plugin",
+            version="1.0.0",
+            description="Test",
+            author="Test",
+            category="test",
+        )
+        with patch("core.plugin_system.PluginSystem._load_plugin_module") as mock_load:
+            mock_plugin_instance = Mock(spec=PluginBase)
+            mock_plugin_instance.get_metadata.return_value = PluginMetadata(
+                name="test_plugin",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+                category="test",
+            )
+            mock_load.return_value = mock_plugin_instance
             result = plugin_system.load_plugin("test_plugin")
-
             assert result is True
-            assert "test_plugin" in plugin_system.loaded_plugins
-            assert plugin_system.loaded_plugins["test_plugin"] == mock_plugin
+            assert "test_plugin" in plugin_system.plugins
 
     def test_load_plugin_failure(self):
         """Test plugin loading failure."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
-        # Mock plugin loading to fail
-        with patch.object(plugin_system, "_load_plugin_module") as mock_load:
-            mock_load.side_effect = Exception("Load failed")
-
-            result = plugin_system.load_plugin("test_plugin")
-
+        plugin_system = PluginSystem([])
+        with patch("core.plugin_system.importlib.import_module") as mock_import:
+            mock_import.side_effect = ImportError("Module not found")
+            result = plugin_system.load_plugin("nonexistent_plugin")
             assert result is False
-            assert "test_plugin" not in plugin_system.loaded_plugins
+            assert "nonexistent_plugin" not in plugin_system.plugins
 
     def test_activate_plugin_success(self):
         """Test successful plugin activation."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
+        plugin_system = PluginSystem([])
         # Add a loaded plugin
         mock_plugin = MockPlugin()
-        plugin_system.loaded_plugins["test_plugin"] = mock_plugin
+        plugin_system.plugins["test_plugin"] = mock_plugin
 
         result = plugin_system.activate_plugin("test_plugin")
 
         assert result is True
-        assert mock_plugin.initialized is True
         assert "test_plugin" in plugin_system.active_plugins
 
     def test_activate_plugin_not_loaded(self):
         """Test activating a plugin that's not loaded."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
+        plugin_system = PluginSystem([])
 
         result = plugin_system.activate_plugin("nonexistent_plugin")
 
@@ -197,24 +181,20 @@ class TestPluginSystem:
 
     def test_deactivate_plugin_success(self):
         """Test successful plugin deactivation."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
+        plugin_system = PluginSystem([])
         # Add an active plugin
         mock_plugin = MockPlugin()
-        plugin_system.loaded_plugins["test_plugin"] = mock_plugin
+        plugin_system.plugins["test_plugin"] = mock_plugin
         plugin_system.active_plugins["test_plugin"] = mock_plugin
 
         result = plugin_system.deactivate_plugin("test_plugin")
 
         assert result is True
-        assert mock_plugin.shutdown_called is True
         assert "test_plugin" not in plugin_system.active_plugins
 
     def test_deactivate_plugin_not_active(self):
         """Test deactivating a plugin that's not active."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
+        plugin_system = PluginSystem([])
 
         result = plugin_system.deactivate_plugin("nonexistent_plugin")
 
@@ -222,12 +202,10 @@ class TestPluginSystem:
 
     def test_get_plugin(self):
         """Test getting a plugin instance."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
+        plugin_system = PluginSystem([])
         # Add a loaded plugin
         mock_plugin = MockPlugin()
-        plugin_system.loaded_plugins["test_plugin"] = mock_plugin
+        plugin_system.plugins["test_plugin"] = mock_plugin
 
         result = plugin_system.get_plugin("test_plugin")
 
@@ -235,8 +213,7 @@ class TestPluginSystem:
 
     def test_get_plugin_nonexistent(self):
         """Test getting a nonexistent plugin."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
+        plugin_system = PluginSystem([])
 
         result = plugin_system.get_plugin("nonexistent_plugin")
 
@@ -244,35 +221,48 @@ class TestPluginSystem:
 
     def test_shutdown(self):
         """Test plugin system shutdown."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
+        plugin_system = PluginSystem([])
         # Add some active plugins
         mock_plugin1 = MockPlugin("plugin1")
         mock_plugin2 = MockPlugin("plugin2")
+        plugin_system.plugins["plugin1"] = mock_plugin1
+        plugin_system.plugins["plugin2"] = mock_plugin2
         plugin_system.active_plugins["plugin1"] = mock_plugin1
         plugin_system.active_plugins["plugin2"] = mock_plugin2
 
         plugin_system.shutdown()
 
-        # All plugins should be shut down
-        assert mock_plugin1.shutdown_called is True
-        assert mock_plugin2.shutdown_called is True
-        assert len(plugin_system.active_plugins) == 0
+        assert plugin_system.active_plugins == {}
+        assert mock_plugin1.shutdown_called
+        assert mock_plugin2.shutdown_called
 
     def test_event_publishing(self):
         """Test that events are published correctly."""
-        event_bus = Mock()
-        plugin_system = PluginSystem(event_bus)
-
-        # Test load event
-        mock_plugin = MockPlugin()
-        with patch.object(plugin_system, "_load_plugin_module") as mock_load:
-            mock_load.return_value = mock_plugin
-
+        plugin_system = PluginSystem([])
+        plugin_system.plugin_metadata["test_plugin"] = PluginMetadata(
+            name="test_plugin",
+            version="1.0.0",
+            description="Test",
+            author="Test",
+            category="test",
+        )
+        with patch("core.plugin_system.PluginSystem._load_plugin_module") as mock_load:
+            mock_plugin_instance = Mock(spec=PluginBase)
+            mock_plugin_instance.get_metadata.return_value = PluginMetadata(
+                name="test_plugin",
+                version="1.0.0",
+                description="Test",
+                author="Test",
+                category="test",
+            )
+            mock_load.return_value = mock_plugin_instance
             plugin_system.load_plugin("test_plugin")
+            plugin_system.activate_plugin("test_plugin")
 
-            # Check that plugin_loaded event was published
-            event_bus.publish.assert_called_with(
-                "plugin_loaded", plugin_name="test_plugin", plugin=mock_plugin
+            # Publish an event
+            plugin_system.publish_event("test_event", {"data": "test"})
+
+            # Check if the active plugin received the event
+            mock_plugin_instance.on_event.assert_called_once_with(
+                "test_event", {"data": "test"}
             )

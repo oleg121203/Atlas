@@ -378,33 +378,104 @@ class PerformancePanel(QFrame):
         self.last_update_time = current_time
 
     def _collect_metrics(self) -> Dict[str, Any]:
-        """
-        Collect current performance metrics.
+        """Collect current performance metrics.
 
         Returns:
             Dictionary of metric names to values
         """
-        # This would integrate with actual metrics manager
-        # For now, return simulated data
-        import random
+        metrics = {}
+        self._populate_metrics(metrics)
+        self._collect_uptime(metrics)
+        return metrics
 
+    def _populate_metrics(self, metrics: Dict[str, Any]) -> None:
+        """Populate metrics dictionary based on availability of metrics_manager."""
+        if self.metrics_manager is None:
+            self._set_default_metrics(metrics)
+        else:
+            self._collect_system_metrics(metrics)
+            self._collect_performance_metrics(metrics)
+
+    def _set_default_metrics(self, metrics: Dict[str, Any]) -> None:
+        """Set default values for all metrics if metrics_manager is None."""
+        metrics["CPU Usage"] = 0.0
+        metrics["Memory Usage"] = 0.0
+        metrics["Response Time"] = 0.0
+        metrics["Operations/sec"] = 0.0
+        metrics["Active Agents"] = 0
+        metrics["Queue Size"] = 0
+        metrics["Error Rate"] = 0.0
+
+    def _collect_system_metrics(self, metrics: Dict[str, Any]) -> None:
+        """Collect system-related metrics."""
+        if hasattr(self.metrics_manager, "get_cpu_usage"):
+            cpu_usage = self.metrics_manager.get_cpu_usage()
+            metrics["CPU Usage"] = cpu_usage
+        else:
+            metrics["CPU Usage"] = 0.0
+
+        if hasattr(self.metrics_manager, "get_memory_usage"):
+            memory_usage = self.metrics_manager.get_memory_usage()
+            if isinstance(memory_usage, dict):
+                metrics["Memory Usage"] = memory_usage.get("used_percent", 0.0)
+            else:
+                metrics["Memory Usage"] = memory_usage
+        else:
+            metrics["Memory Usage"] = 0.0
+
+    def _collect_performance_metrics(self, metrics: Dict[str, Any]) -> None:
+        """Collect performance-related metrics."""
+        if hasattr(self.metrics_manager, "get_response_time"):
+            response_time = self.metrics_manager.get_response_time()
+            metrics["Response Time"] = response_time
+        else:
+            metrics["Response Time"] = 0.0
+
+        if hasattr(self.metrics_manager, "get_current_operations_per_second"):
+            ops_per_sec = self.metrics_manager.get_current_operations_per_second()
+            metrics["Operations/sec"] = ops_per_sec
+        elif hasattr(self.metrics_manager, "get_operations_per_second"):
+            ops_per_sec = self.metrics_manager.get_operations_per_second()
+            metrics["Operations/sec"] = ops_per_sec
+        else:
+            metrics["Operations/sec"] = 0.0
+
+        if hasattr(self.metrics_manager, "get_active_agents_count"):
+            active_agents = self.metrics_manager.get_active_agents_count()
+            metrics["Active Agents"] = active_agents
+        elif hasattr(self.metrics_manager, "get_active_agents"):
+            active_agents = self.metrics_manager.get_active_agents()
+            metrics["Active Agents"] = active_agents
+        else:
+            metrics["Active Agents"] = 0
+
+        if hasattr(self.metrics_manager, "get_current_queue_size"):
+            queue_size = self.metrics_manager.get_current_queue_size()
+            metrics["Queue Size"] = queue_size
+        elif hasattr(self.metrics_manager, "get_queue_size"):
+            queue_size = self.metrics_manager.get_queue_size()
+            metrics["Queue Size"] = queue_size
+        else:
+            metrics["Queue Size"] = 0
+
+        if hasattr(self.metrics_manager, "get_current_error_rate"):
+            error_rate = self.metrics_manager.get_current_error_rate()
+            metrics["Error Rate"] = error_rate
+        elif hasattr(self.metrics_manager, "get_error_rate"):
+            error_rate = self.metrics_manager.get_error_rate()
+            metrics["Error Rate"] = error_rate
+        else:
+            metrics["Error Rate"] = 0.0
+
+    def _collect_uptime(self, metrics: Dict[str, Any]) -> None:
+        """Collect uptime metric."""
         base_time = (
             time.time() - self.last_update_time
             if hasattr(self, "last_update_time")
-            else 0
+            else 0.0
         )
         uptime_hours = base_time / 3600
-
-        return {
-            "CPU Usage": random.uniform(10, 80),
-            "Memory Usage": random.uniform(20, 70),
-            "Response Time": random.uniform(50, 200),
-            "Operations/sec": random.randint(10, 100),
-            "Active Agents": random.randint(1, 5),
-            "Queue Size": random.randint(0, 10),
-            "Error Rate": random.uniform(0, 5),
-            "Uptime": uptime_hours,
-        }
+        metrics["Uptime"] = uptime_hours
 
     def _check_metric_thresholds(self, metrics: Dict[str, Any]) -> None:
         """

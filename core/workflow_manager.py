@@ -99,83 +99,84 @@ class WorkflowManager:
             raise_alert("error", f"Workflow Start Failed: {workflow_id}", str(e))
             return False
 
-    def execute_step(self, workflow_id: str, step_id: Optional[str] = None) -> bool:
-        """Execute a specific step in a workflow.
+    def execute_step(self, workflow_id: str, step_id: str) -> bool:
+        """
+        Execute a specific step in a workflow.
 
         Args:
-            workflow_id (str): ID of the workflow.
-            step_id (Optional[str]): Specific step to execute, if None use current step.
+            workflow_id (str): The unique identifier of the workflow.
+            step_id (str): The identifier of the step to execute.
 
         Returns:
-            bool: True if step executed successfully, False otherwise.
+            bool: True if the step was executed successfully, False otherwise.
         """
-        try:
-            if workflow_id not in self.workflows:
-                logger.error(f"Workflow {workflow_id} not found")
-                raise_alert(
-                    "error",
-                    f"Workflow Not Found: {workflow_id}",
-                    "Cannot execute step in non-existent workflow",
-                )
-                return False
-
-            workflow = self.workflows[workflow_id]
-            current_step = step_id if step_id else workflow["state"]["current_step"]
-            step_definition = workflow["definition"]["steps"].get(current_step)
-
-            if not step_definition:
-                logger.error(f"Step {current_step} not found in workflow {workflow_id}")
-                raise_alert(
-                    "error",
-                    f"Step Not Found: {current_step}",
-                    f"Step not defined in workflow {workflow_id}",
-                )
-                return False
-
-            logger.info(f"Executing step {current_step} in workflow {workflow_id}")
-            # Simulate step execution (in real implementation, this would call the actual step logic)
-            result = self._simulate_step_execution(step_definition)
-
-            # Update workflow state based on result
-            if result["success"]:
-                workflow["state"]["current_step"] = step_definition.get(
-                    "next_step", "end"
-                )
-                workflow["state"]["status"] = (
-                    "running"
-                    if workflow["state"]["current_step"] != "end"
-                    else "completed"
-                )
-                workflow["state"]["error"] = None
-                workflow["state"]["retry_count"] = 0
-            else:
-                workflow["state"]["status"] = "error"
-                workflow["state"]["error"] = result["error"]
-                workflow["state"]["retry_count"] += 1
-                raise_alert(
-                    "error", f"Step Execution Failed: {current_step}", result["error"]
-                )
-
-            workflow["state"]["last_updated"] = datetime.now().isoformat()
-            workflow["history"].append(
-                {
-                    "step": current_step,
-                    "result": result,
-                    "timestamp": datetime.now().isoformat(),
-                }
-            )
-
-            logger.info(
-                f"Step {current_step} execution {'succeeded' if result['success'] else 'failed'} in workflow {workflow_id}"
-            )
-            self._persist_workflow_state(workflow_id)
-            return result["success"]
-        except Exception as e:
-            logger.error(
-                f"Error executing step {step_id or 'current'} in workflow {workflow_id}: {str(e)}"
-            )
-            raise_alert("error", f"Step Execution Error: {workflow_id}", str(e))
+        if workflow_id not in self.workflows:
+            logger.error(f"Workflow {workflow_id} not found")
             return False
+
+        workflow = self.workflows[workflow_id]
+        if workflow["state"]["current_step"] != step_id:
+            logger.warning(
+                f"Step {step_id} is not the current step in workflow {workflow_id}"
+            )
+            return False
+
+        # Mark the current step as completed
+        workflow["state"]["status"] = "in_progress"
+        workflow["state"]["last_updated"] = datetime.now().isoformat()
+        workflow["history"].append(
+            {
+                "step": step_id,
+                "status": "in_progress",
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
+
+        # Simulate step execution
+        result = self._execute_step_logic(workflow, step_id)
+        if result["success"]:
+            # Determine the next step
+            steps = workflow["definition"].get("steps", [])
+            current_step_index = steps.index(step_id) if step_id in steps else -1
+            if current_step_index >= 0 and current_step_index < len(steps) - 1:
+                workflow["state"]["current_step"] = steps[current_step_index + 1]
+            else:
+                workflow["state"]["current_step"] = ""
+                workflow["state"]["status"] = "completed"
+            workflow["history"][-1]["status"] = "completed"
+        else:
+            workflow["state"]["status"] = "failed"
+            workflow["state"]["error"] = result.get("error", "Unknown error")
+            workflow["state"]["retry_count"] += 1
+            workflow["history"][-1]["status"] = "failed"
+            logger.error(
+                f"Step {step_id} failed in workflow {workflow_id}: {workflow['state']['error']}"
+            )
+            raise_alert(
+                "error",
+                f"Step Failed: {step_id} in {workflow_id}",
+                workflow["state"]["error"],
+            )
+
+        self._persist_workflow_state(workflow_id)
+        return result["success"]
+
+    def update_workflow_state(self, workflow_id: str, new_state: dict) -> bool:
+        """
+        Update the state of a workflow.
+
+        Args:
+            workflow_id (str): The unique identifier of the workflow.
+            new_state (dict): The new state to set for the workflow.
+
+        Returns:
+            bool: True if the state was updated successfully, False otherwise.
+        """
+        if workflow_id not in self.workflows:
+            return False
+
+        self.workflows[workflow_id]["state"] = new_state
+        return True
 
     def retry_step(self, workflow_id: str) -> bool:
         """Retry the current step in a workflow after an error.
@@ -212,7 +213,7 @@ class WorkflowManager:
             logger.info(
                 f"Retrying step {workflow['state']['current_step']} in workflow {workflow_id}"
             )
-            return self.execute_step(workflow_id)
+            return self.execute_step(workflow_id, workflow["state"]["current_step"])
         except Exception as e:
             logger.error(f"Failed to retry step in workflow {workflow_id}: {str(e)}")
             raise_alert("error", f"Retry Failed: {workflow_id}", str(e))
@@ -241,7 +242,7 @@ class WorkflowManager:
             # Find last successful step in history
             last_successful = None
             for entry in reversed(workflow["history"]):
-                if entry["result"]["success"]:
+                if entry["status"] == "completed":
                     last_successful = entry["step"]
                     break
 
@@ -360,3 +361,223 @@ class WorkflowManager:
         if should_fail:
             return {"success": False, "error": "Simulated step failure"}
         return {"success": True, "data": "Simulated step success"}
+
+    def _execute_step_logic(self, workflow: Dict, step_id: str) -> Dict:
+        """Execute the logic for a specific step in a workflow.
+
+        Args:
+            workflow (Dict): The workflow definition.
+            step_id (str): The ID of the step to execute.
+
+        Returns:
+            Dict: Result of the step execution.
+        """
+        # In a real implementation, this would execute the actual step logic
+        step_def = workflow["definition"].get("step_definitions", {}).get(step_id, {})
+        return self._simulate_step_execution(step_def)
+
+    def execute_workflow(self, workflow_id: str) -> bool:
+        """
+        Execute an entire workflow from start to finish or resume from current step.
+
+        Args:
+            workflow_id (str): ID of the workflow to execute.
+
+        Returns:
+            bool: True if execution successful, False otherwise.
+        """
+        try:
+            if workflow_id not in self.workflows:
+                logger.error(f"Workflow {workflow_id} not found")
+                raise_alert(
+                    "error",
+                    f"Workflow Not Found: {workflow_id}",
+                    "Cannot execute non-existent workflow",
+                )
+                return False
+
+            workflow = self.workflows[workflow_id]
+            if workflow["state"]["status"] not in ["created", "running", "paused"]:
+                logger.error(
+                    f"Workflow {workflow_id} is not in executable state: {workflow['state']['status']}"
+                )
+                raise_alert(
+                    "error",
+                    f"Invalid Workflow State: {workflow_id}",
+                    f"Workflow is in {workflow['state']['status']} state",
+                )
+                return False
+
+            workflow["state"]["status"] = "running"
+            workflow["state"]["last_updated"] = datetime.now().isoformat()
+            self.current_workflow_id = workflow_id
+            logger.info(f"Executing workflow {workflow_id}")
+
+            # Execute each step until completion or error
+            while workflow["state"]["status"] == "running":
+                current_step = workflow["state"]["current_step"]
+                if not current_step:
+                    workflow["state"]["status"] = "completed"
+                    break
+
+                success = self.execute_step(workflow_id, current_step)
+                if not success:
+                    workflow["state"]["status"] = "failed"
+                    workflow["state"]["error"] = (
+                        f"Failed to execute step {current_step}"
+                    )
+                    workflow["state"]["retry_count"] += 1
+                    logger.error(
+                        f"Workflow {workflow_id} failed at step {current_step}"
+                    )
+                    raise_alert(
+                        "error",
+                        f"Workflow Execution Failed: {workflow_id}",
+                        f"Failed at step {current_step}",
+                    )
+                    break
+
+                workflow["state"]["last_updated"] = datetime.now().isoformat()
+                workflow["history"].append(
+                    {
+                        "step": current_step,
+                        "status": "completed",
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
+                self._persist_workflow_state(workflow_id)
+
+            logger.info(
+                f"Workflow {workflow_id} execution completed with status: {workflow['state']['status']}"
+            )
+            self._persist_workflow_state(workflow_id)
+            return workflow["state"]["status"] == "completed"
+        except Exception as e:
+            logger.error(f"Failed to execute workflow {workflow_id}: {str(e)}")
+            raise_alert("error", f"Workflow Execution Failed: {workflow_id}", str(e))
+            if workflow_id in self.workflows:
+                self.workflows[workflow_id]["state"]["status"] = "failed"
+                self.workflows[workflow_id]["state"]["error"] = str(e)
+                self._persist_workflow_state(workflow_id)
+            return False
+
+    def get_workflow_status(self, workflow_id: str) -> Optional[Dict]:
+        """
+        Get the current status and state of a workflow.
+
+        Args:
+            workflow_id (str): ID of the workflow to query.
+
+        Returns:
+            Optional[Dict]: Workflow state dictionary if found, None otherwise.
+        """
+        try:
+            if workflow_id not in self.workflows:
+                logger.warning(f"Workflow {workflow_id} not found")
+                return None
+            return self.workflows[workflow_id]["state"]
+        except Exception as e:
+            logger.error(f"Error getting status for workflow {workflow_id}: {str(e)}")
+            return None
+
+    def add_step(self, workflow_id: str, step_id: str, step_definition: Dict) -> bool:
+        """
+        Add a new step to an existing workflow definition.
+
+        Args:
+            workflow_id (str): ID of the workflow to modify.
+            step_id (str): ID of the new step.
+            step_definition (Dict): Definition of the new step.
+
+        Returns:
+            bool: True if step added successfully, False otherwise.
+        """
+        try:
+            if workflow_id not in self.workflows:
+                logger.error(f"Workflow {workflow_id} not found")
+                return False
+
+            workflow = self.workflows[workflow_id]
+            if "steps" not in workflow["definition"]:
+                workflow["definition"]["steps"] = []
+
+            # Check if step already exists
+            if step_id in workflow["definition"]["steps"]:
+                logger.warning(
+                    f"Step {step_id} already exists in workflow {workflow_id}"
+                )
+                return False
+
+            workflow["definition"]["steps"].append(step_id)
+            # Assuming there's a dictionary of step definitions
+            if "step_definitions" not in workflow["definition"]:
+                workflow["definition"]["step_definitions"] = {}
+            workflow["definition"]["step_definitions"][step_id] = step_definition
+
+            logger.info(f"Added step {step_id} to workflow {workflow_id}")
+            self._persist_workflow_state(workflow_id)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to add step to workflow {workflow_id}: {str(e)}")
+            return False
+
+    def remove_step(self, workflow_id: str, step_id: str) -> bool:
+        """
+        Remove a step from an existing workflow definition.
+
+        Args:
+            workflow_id (str): ID of the workflow to modify.
+            step_id (str): ID of the step to remove.
+
+        Returns:
+            bool: True if step removed successfully, False otherwise.
+        """
+        try:
+            if workflow_id not in self.workflows:
+                logger.error(f"Workflow {workflow_id} not found")
+                return False
+
+            workflow = self.workflows[workflow_id]
+            if (
+                "steps" not in workflow["definition"]
+                or step_id not in workflow["definition"]["steps"]
+            ):
+                logger.warning(f"Step {step_id} not found in workflow {workflow_id}")
+                return False
+
+            # Don't allow removal if it's the current step or initial step
+            if (
+                workflow["state"]["current_step"] == step_id
+                or workflow["definition"].get("initial_step") == step_id
+            ):
+                logger.error(
+                    f"Cannot remove active or initial step {step_id} from workflow {workflow_id}"
+                )
+                return False
+
+            workflow["definition"]["steps"].remove(step_id)
+            if (
+                "step_definitions" in workflow["definition"]
+                and step_id in workflow["definition"]["step_definitions"]
+            ):
+                del workflow["definition"]["step_definitions"][step_id]
+
+            logger.info(f"Removed step {step_id} from workflow {workflow_id}")
+            self._persist_workflow_state(workflow_id)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to remove step from workflow {workflow_id}: {str(e)}")
+            return False
+
+    def list_workflows(self) -> list:
+        """
+        List all available workflows with their current status.
+
+        Returns:
+            list: List of dictionaries with workflow ID and state.
+        """
+        try:
+            return [{"id": wid, **w["state"]} for wid, w in self.workflows.items()]
+        except Exception as e:
+            logger.error(f"Error listing workflows: {str(e)}")
+            return []

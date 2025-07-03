@@ -1,0 +1,28 @@
+{
+  "definition": {
+    "name": "test_wf",
+    "steps": [
+      "step1",
+      "step2"
+    ],
+    "initial_step": "step1",
+    "step_definitions": {
+      "step1": {
+        "type": "task",
+        "config": {}
+      },
+      "step2": {
+        "type": "task",
+        "config": {}
+      }
+    }
+  },
+  "state": {
+    "current_step": "step1",
+    "status": "created",
+    "last_updated": "2025-07-03T15:23:37.902183",
+    "error": null,
+    "retry_count": 0
+  },
+  "history": []
+}

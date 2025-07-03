@@ -5,9 +5,15 @@
       "enabled": true,
       "description": "Enables the AI Assistant feature for natural language processing and automation",
       "environments": {
-        "dev": { "enabled": true },
-        "staging": { "enabled": true },
-        "prod": { "enabled": false }
+        "dev": {
+          "enabled": true
+        },
+        "staging": {
+          "enabled": true
+        },
+        "prod": {
+          "enabled": false
+        }
       }
     },
     "plugin_system": true,
@@ -44,5 +50,7 @@
   "logging": {
     "level": "INFO",
     "file": "atlas_feature_flags.log"
-  }
+  },
+  "test_feature": false,
+  "persistent_feature": true
 }

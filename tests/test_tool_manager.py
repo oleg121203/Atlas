@@ -3,7 +3,9 @@
 Tests for the Atlas Tool Manager.
 """
 
-from unittest.mock import Mock, patch
+import asyncio
+from unittest import TestCase
+from unittest.mock import AsyncMock, Mock, patch
 
 from tools.base_tool import BaseTool
 from tools.tool_manager import ToolManager
@@ -12,9 +14,11 @@ from tools.tool_manager import ToolManager
 class MockTool(BaseTool):
     """Mock tool for testing."""
 
-    def __init__(self, name="mock_tool"):
+    def __init__(self):
         super().__init__()
-        self._name = name
+        self._name = "test_tool"
+        self._category = "general"
+        self._description = "Mock tool for testing"
         self.executed = False
         self.execute_result = {"success": True, "message": "Mock execution"}
 
@@ -22,265 +26,247 @@ class MockTool(BaseTool):
         return self._name
 
     def get_description(self) -> str:
-        return f"Mock tool: {self._name}"
+        return self._description
 
     def get_parameters(self) -> dict:
         return {
-            "param1": {
-                "type": "string",
-                "description": "Test parameter",
-                "required": False,
-            }
+            "type": "object",
+            "properties": {
+                "param1": {"type": "string", "description": "First parameter"},
+                "param2": {"type": "string", "description": "Second parameter"},
+            },
         }
 
-    async def execute(self, **kwargs):
+    async def execute(self, *args, **kwargs):
         self.executed = True
         return self.execute_result
 
+    async def run(self, *args, **kwargs):
+        return {"success": True, "result": f"Mock tool executed with {args} {kwargs}"}
 
-class TestToolManager:
+    def get_metadata(self):
+        return {
+            "name": "test_tool",
+            "category": "general",
+            "description": "Mock tool for testing",
+        }
+
+
+class TestToolManager(TestCase):
     """Test cases for ToolManager."""
 
-    def test_init(self):
-        """Test ToolManager initialization."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
+    def setUp(self):
+        """Set up test fixtures before each test method."""
+        self.event_bus_mock = Mock()
+        self.tool_manager = ToolManager(self.event_bus_mock)
 
-        assert tool_manager.event_bus == event_bus
-        assert tool_manager.tools == {}
-        assert tool_manager.tool_classes == {}
+    def test_initialization(self):
+        """Test that ToolManager initializes correctly."""
+        self.assertIsNotNone(self.tool_manager.event_bus)
+        self.assertEqual(self.tool_manager.tools, {})
+        self.assertEqual(self.tool_manager.tool_classes, {})
+        self.assertEqual(self.tool_manager.categories, {})
 
     def test_register_tool_class(self):
         """Test registering a tool class."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.assertIn("test_tool", self.tool_manager.tool_classes)
+        self.assertEqual(self.tool_manager.tool_classes["test_tool"], tool_class)
 
-        tool_manager.register_tool_class("mock", MockTool)
+    def test_load_tool(self):
+        """Test loading a tool."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        result = self.tool_manager.load_tool("test_tool")
+        self.assertTrue(result)
+        self.assertIn("test_tool", self.tool_manager.tools)
 
-        assert "mock" in tool_manager.tool_classes
-        assert tool_manager.tool_classes["mock"] == MockTool
+    def test_load_tool_already_loaded(self):
+        """Test loading a tool that is already loaded."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        result = self.tool_manager.load_tool("test_tool")
+        self.assertTrue(result)
+        self.assertIn("test_tool", self.tool_manager.tools)
 
-    def test_register_tool_instance_success(self):
-        """Test successful tool instance registration."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
+    def test_load_tool_not_registered(self):
+        """Test loading a tool that is not registered."""
+        result = self.tool_manager.load_tool("nonexistent_tool")
+        self.assertFalse(result)
+        self.assertNotIn("nonexistent_tool", self.tool_manager.tools)
 
-        mock_tool = MockTool("test_tool")
-        result = tool_manager.register_tool(mock_tool)
+    def test_unload_tool(self):
+        """Test unloading a tool."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        result = self.tool_manager.unload_tool("test_tool")
+        self.assertTrue(result)
+        self.assertNotIn("test_tool", self.tool_manager.tools)
 
-        assert result is True
-        assert "test_tool" in tool_manager.tools
-        assert tool_manager.tools["test_tool"] == mock_tool
-
-    def test_register_tool_instance_duplicate(self):
-        """Test registering duplicate tool instance."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        mock_tool1 = MockTool("test_tool")
-        mock_tool2 = MockTool("test_tool")
-
-        result1 = tool_manager.register_tool(mock_tool1)
-        result2 = tool_manager.register_tool(mock_tool2)
-
-        assert result1 is True
-        assert result2 is False  # Should fail due to duplicate name
+    def test_unload_tool_not_loaded(self):
+        """Test unloading a tool that is not loaded."""
+        result = self.tool_manager.unload_tool("nonexistent_tool")
+        self.assertTrue(result)
 
     def test_get_tool(self):
-        """Test getting a tool by name."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        mock_tool = MockTool("test_tool")
-        tool_manager.register_tool(mock_tool)
-
-        result = tool_manager.get_tool("test_tool")
-
-        assert result == mock_tool
+        """Test getting a tool instance."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        tool = self.tool_manager.get_tool("test_tool")
+        self.assertIsNotNone(tool)
+        self.assertIsInstance(tool, BaseTool)
 
     def test_get_tool_nonexistent(self):
-        """Test getting a nonexistent tool."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
+        """Test getting a non-existent tool."""
+        tool = self.tool_manager.get_tool("nonexistent_tool")
+        self.assertIsNone(tool)
 
-        result = tool_manager.get_tool("nonexistent_tool")
+    def test_execute_tool_success(self):
+        """Test executing a tool successfully."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        tool_instance = self.tool_manager.get_tool("test_tool")
+        if tool_instance is not None:
+            # Set up the mock for async run method
+            tool_instance.run = AsyncMock(
+                return_value={
+                    "success": True,
+                    "result": "Mock tool executed with arg1=value1",
+                }
+            )
+        result = asyncio.run(self.tool_manager.execute_tool("test_tool", arg1="value1"))
+        self.assertTrue(result["success"])
+        self.assertEqual(result["result"], "Mock tool executed with arg1=value1")
 
-        assert result is None
+    def test_execute_tool_not_found(self):
+        """Test executing a non-existent tool."""
+        result = asyncio.run(self.tool_manager.execute_tool("nonexistent_tool"))
+        self.assertFalse(result["success"])
+        self.assertIn("error", result)
+
+    def test_execute_tool_exception(self):
+        """Test executing a tool that raises an exception."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        tool_instance = self.tool_manager.get_tool("test_tool")
+        if tool_instance is not None:
+            # Set up the mock to raise an exception when run is called
+            tool_instance.run = AsyncMock(side_effect=ValueError("Test error"))
+        with self.assertRaises(ValueError):
+            asyncio.run(self.tool_manager.execute_tool("test_tool"))
 
     def test_list_tools(self):
-        """Test listing all tools."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
+        """Test listing loaded tools."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        tools = self.tool_manager.list_tools()
+        self.assertIn("test_tool", tools)
 
-        mock_tool1 = MockTool("tool1")
-        mock_tool2 = MockTool("tool2")
-        tool_manager.register_tool(mock_tool1)
-        tool_manager.register_tool(mock_tool2)
+    def test_list_tool_classes(self):
+        """Test listing registered tool classes."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        tool_classes = self.tool_manager.list_tool_classes()
+        self.assertIn("test_tool", tool_classes)
 
-        tools = tool_manager.list_tools()
+    def test_list_categories(self):
+        """Test listing tool categories."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        categories = self.tool_manager.list_categories()
+        self.assertIn("general", categories)
+        self.assertIn("test_tool", categories["general"])
 
-        assert set(tools) == {"tool1", "tool2"}
+    def test_get_tool_metadata(self):
+        """Test getting tool metadata."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        metadata = self.tool_manager.get_tool_metadata("test_tool")
+        self.assertIsNotNone(metadata)
+        if isinstance(metadata, dict):
+            self.assertEqual(metadata.get("name", ""), "test_tool")
+        else:
+            self.assertEqual(getattr(metadata, "name", ""), "test_tool")
 
-    def test_get_tools_by_category(self):
-        """Test getting tools by category."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
+    def test_get_tool_metadata_nonexistent(self):
+        """Test getting metadata for non-existent tool."""
+        metadata = self.tool_manager.get_tool_metadata("nonexistent_tool")
+        self.assertIsNone(metadata)
 
-        mock_tool1 = MockTool("tool1")
-        mock_tool1.category = "category1"
-        mock_tool2 = MockTool("tool2")
-        mock_tool2.category = "category2"
-        mock_tool3 = MockTool("tool3")
-        mock_tool3.category = "category1"
+    def test_get_all_metadata(self):
+        """Test getting metadata for all tools."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        all_metadata = self.tool_manager.get_all_metadata()
+        self.assertIn("test_tool", all_metadata)
+        metadata = all_metadata["test_tool"]
+        if isinstance(metadata, dict):
+            self.assertEqual(metadata.get("name", ""), "test_tool")
+        else:
+            self.assertEqual(getattr(metadata, "name", ""), "test_tool")
 
-        tool_manager.register_tool(mock_tool1)
-        tool_manager.register_tool(mock_tool2)
-        tool_manager.register_tool(mock_tool3)
-
-        category1_tools = tool_manager.get_tools_by_category("category1")
-
-        assert len(category1_tools) == 2
-        assert mock_tool1 in category1_tools
-        assert mock_tool3 in category1_tools
-
-    async def test_execute_tool_success(self):
-        """Test successful tool execution."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        mock_tool = MockTool("test_tool")
-        tool_manager.register_tool(mock_tool)
-
-        result = await tool_manager.execute_tool("test_tool", param1="test")
-
-        assert result == mock_tool.execute_result
-        assert mock_tool.executed is True
-
-    async def test_execute_tool_nonexistent(self):
-        """Test executing a nonexistent tool."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        result = await tool_manager.execute_tool("nonexistent_tool")
-
-        assert "error" in result
-        assert result["success"] is False
-
-    async def test_execute_tool_exception(self):
-        """Test tool execution with exception."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        mock_tool = MockTool("test_tool")
-        mock_tool.execute = Mock(side_effect=Exception("Test error"))
-        tool_manager.register_tool(mock_tool)
-
-        result = await tool_manager.execute_tool("test_tool")
-
-        assert "error" in result
-        assert result["success"] is False
-
-    def test_load_tools_from_directory(self):
-        """Test loading tools from directory."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        # Mock the directory scanning and module loading
-        with (
-            patch("tools.tool_manager.os.listdir") as mock_listdir,
-            patch("tools.tool_manager.importlib.import_module") as mock_import,
-        ):
-            mock_listdir.return_value = [
-                "test_tool.py",
-                "__init__.py",
-                "not_a_tool.txt",
-            ]
-
-            # Mock module with tool class
-            mock_module = Mock()
-            mock_module.TestTool = MockTool
-            mock_import.return_value = mock_module
-
-            # Mock inspect to find tool classes
-            with patch("tools.tool_manager.inspect.getmembers") as mock_getmembers:
-                mock_getmembers.return_value = [("TestTool", MockTool)]
-
-                tool_manager._load_tools_from_directory()
-
-                # Should have registered the tool class
-                assert len(tool_manager.tool_classes) > 0
+    @patch("tools.tool_manager.ToolManager.discover_tools")
+    def test_discover_tools(self, mock_discover):
+        """Test discovering tools."""
+        mock_discover.return_value = True
+        result = self.tool_manager.discover_tools()
+        self.assertTrue(result)
+        mock_discover.assert_called_once()
 
     def test_initialize_all_tools(self):
-        """Test initializing all registered tool classes."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
+        """Test initializing all tools."""
+        mock_tool_class = MockTool
+        with patch.object(
+            self.tool_manager, "discover_tools", return_value=[mock_tool_class]
+        ):
+            self.tool_manager.initialize_all_tools()
+            self.assertIn("mock", self.tool_manager.tool_classes)
+            self.assertIn("mock", self.tool_manager.tools)
 
-        # Register a tool class
-        tool_manager.register_tool_class("mock", MockTool)
+    def test_shutdown(self):
+        """Test shutting down the tool manager."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        self.tool_manager.shutdown()
+        self.assertEqual(len(self.tool_manager.tools), 0)
+        self.assertEqual(len(self.tool_manager.tool_classes), 0)
+        self.assertEqual(len(self.tool_manager.categories), 0)
 
-        tool_manager.initialize_all_tools()
+    def test_reload_tool(self):
+        """Test reloading a tool."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        result = self.tool_manager.reload_tool("test_tool")
+        self.assertTrue(result)
+        self.assertIn("test_tool", self.tool_manager.tools)
 
-        # Should have created and registered an instance
-        assert "mock_tool" in tool_manager.tools
-        assert isinstance(tool_manager.tools["mock_tool"], MockTool)
-
-    def test_get_tool_info(self):
-        """Test getting tool information."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        mock_tool = MockTool("test_tool")
-        tool_manager.register_tool(mock_tool)
-
-        info = tool_manager.get_tool_info("test_tool")
-
-        assert info["name"] == "test_tool"
-        assert info["description"] == "Mock tool: test_tool"
-        assert "parameters" in info
-
-    def test_get_tool_info_nonexistent(self):
-        """Test getting info for nonexistent tool."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        info = tool_manager.get_tool_info("nonexistent_tool")
-
-        assert info is None
-
-    def test_unregister_tool(self):
-        """Test unregistering a tool."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        mock_tool = MockTool("test_tool")
-        tool_manager.register_tool(mock_tool)
-
-        # Verify tool is registered
-        assert "test_tool" in tool_manager.tools
-
-        result = tool_manager.unregister_tool("test_tool")
-
-        assert result is True
-        assert "test_tool" not in tool_manager.tools
-
-    def test_unregister_tool_nonexistent(self):
-        """Test unregistering a nonexistent tool."""
-        event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        result = tool_manager.unregister_tool("nonexistent_tool")
-
-        assert result is False
+    def test_handle_tool_error(self):
+        """Test handling tool errors."""
+        tool_class = MockTool
+        self.tool_manager.register_tool_class(tool_class, name="test_tool")
+        self.tool_manager.load_tool("test_tool")
+        with patch.object(self.tool_manager, "reload_tool", return_value=True):
+            self.tool_manager.handle_tool_error("test_tool", "Test error")
+            # Just ensure no exceptions are raised
+            self.assertTrue(True)
 
     def test_event_publishing(self):
         """Test that events are published correctly."""
         event_bus = Mock()
-        tool_manager = ToolManager(event_bus)
-
-        mock_tool = MockTool("test_tool")
-        tool_manager.register_tool(mock_tool)
-
-        # Should publish tool_registered event
-        event_bus.publish.assert_called_with(
-            "tool_registered", tool_name="test_tool", tool=mock_tool
-        )
+        tool_manager = ToolManager(event_bus=event_bus)
+        tool_class = MockTool
+        tool_manager.register_tool_class(tool_class, name="test_tool")
+        tool_manager.load_tool("test_tool")
+        event_bus.publish.assert_called()

@@ -6,7 +6,8 @@ This module provides performance monitoring for the Atlas application.
 
 import logging
 import time
-from typing import Any, Dict, Optional
+import tracemalloc
+from typing import Any, Dict, List, Optional
 
 try:
     import psutil
@@ -14,24 +15,38 @@ try:
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
-    psutil = None
 
 try:
-    import tracemalloc
-
     TRACEMALLOC_AVAILABLE = True
 except ImportError:
     TRACEMALLOC_AVAILABLE = False
-    tracemalloc = None
 
 logger = logging.getLogger(__name__)
 
 
 class PerformanceMonitor:
-    """Stub for performance monitoring."""
+    """A class for monitoring performance metrics of the Atlas application."""
 
     def __init__(self):
-        pass
+        self._metrics: Dict[str, List[float]] = {}
+        self.start_time: float = time.time()
+        if PSUTIL_AVAILABLE:
+            try:
+                self.process: Optional["psutil.Process"] = psutil.Process()
+            except Exception as e:
+                logger.error(f"Failed to initialize process for monitoring: {e}")
+                self.process = None
+        else:
+            self.process = None
+
+        # Initialize metrics
+        self._metrics["CPU Usage"] = []
+        self._metrics["Memory Usage"] = []
+        self._metrics["Response Time"] = []
+        self._metrics["Operations/sec"] = []
+        self._metrics["Active Agents"] = []
+        self._metrics["Queue Size"] = []
+        self._metrics["Error Rate"] = []
 
     def record_metric(self, metric_name: str, value: float) -> None:
         """Record a performance metric.
@@ -43,80 +58,230 @@ class PerformanceMonitor:
         if metric_name not in self._metrics:
             self._metrics[metric_name] = []
         self._metrics[metric_name].append(value)
-        logger.debug(f"Metric recorded: {metric_name} = {value}")
 
-    def get_cpu_usage(self) -> Optional[float]:
-        """Get current CPU usage percentage for the process.
+    def get_cpu_usage(self) -> float:
+        """Get current CPU usage percentage.
 
         Returns:
-            Optional[float]: CPU usage percentage if psutil is available, None otherwise.
+            float: CPU usage percentage.
         """
-        if self.process is not None and psutil is not None:
+        if self.process:
             try:
-                return self.process.cpu_percent(interval=1)
+                cpu_percent = self.process.cpu_percent(interval=1)
+                self.record_metric("CPU Usage", cpu_percent)
+                return cpu_percent
             except Exception as e:
-                logger.warning(f"Failed to get CPU usage: {e}")
-                return None
-        logger.warning("psutil not available for CPU usage monitoring")
-        return None
+                logger.error(f"Error getting CPU usage: {e}")
+                return 0.0
+        return 0.0
 
-    def get_memory_usage(self) -> Optional[Dict[str, float]]:
-        """Get current memory usage for the process.
+    def get_memory_usage(self) -> float:
+        """Get current memory usage in MB.
 
         Returns:
-            Optional[Dict[str, float]]: Dictionary with RSS and VMS memory usage in MB
-            if psutil is available, None otherwise.
+            float: Memory usage in MB.
         """
-        if self.process is not None and psutil is not None:
+        if self.process:
             try:
                 mem_info = self.process.memory_info()
-                return {
-                    "rss": mem_info.rss / 1024 / 1024,
-                    "vms": mem_info.vms / 1024 / 1024,
-                }
+                mem_mb = mem_info.rss / (1024 * 1024)  # Convert to MB
+                self.record_metric("Memory Usage", mem_mb)
+                return mem_mb
             except Exception as e:
-                logger.warning(f"Failed to get memory usage: {e}")
-                return None
-        logger.warning("psutil not available for memory usage monitoring")
-        return None
+                logger.error(f"Error getting memory usage: {e}")
+                return 0.0
+        return 0.0
 
-    def start_memory_tracing(self) -> None:
-        """Start memory allocation tracing if tracemalloc is available."""
-        if not TRACEMALLOC_AVAILABLE or tracemalloc is None:
-            logger.warning("tracemalloc not available for memory tracing")
-            return
-        tracemalloc.start()
-        logger.info("Memory allocation tracing started")
-
-    def stop_memory_tracing(self) -> None:
-        """Stop memory allocation tracing if tracemalloc is available."""
-        if not TRACEMALLOC_AVAILABLE or tracemalloc is None:
-            logger.warning("tracemalloc not available for memory tracing")
-            return
-        tracemalloc.stop()
-        logger.info("Memory allocation tracing stopped")
-
-    def get_memory_snapshot(self) -> Optional[Dict[str, Any]]:
-        """Get a snapshot of current memory allocations if tracemalloc is available.
+    def get_response_time(self) -> float:
+        """Get simulated response time in milliseconds.
 
         Returns:
-            Optional[Dict[str, Any]]: Snapshot data if tracemalloc is available, None otherwise.
+            float: Response time in milliseconds.
         """
-        if not TRACEMALLOC_AVAILABLE or tracemalloc is None:
-            logger.warning("tracemalloc not available for memory snapshot")
-            return None
-        snapshot = tracemalloc.take_snapshot()
-        stats = snapshot.statistics("lineno")
+        # Placeholder for actual response time measurement
+        response_time = 50.0  # Simulated value
+        self.record_metric("Response Time", response_time)
+        return response_time
+
+    def get_operations_per_second(self) -> float:
+        """Get simulated operations per second.
+
+        Returns:
+            float: Operations per second.
+        """
+        # Placeholder for actual operations per second measurement
+        ops_per_sec = 100.0  # Simulated value
+        self.record_metric("Operations/sec", ops_per_sec)
+        return ops_per_sec
+
+    def get_active_agents(self) -> float:
+        """Get simulated number of active agents.
+
+        Returns:
+            float: Number of active agents.
+        """
+        # Placeholder for actual active agents count
+        active_agents = 5.0  # Simulated value
+        self.record_metric("Active Agents", active_agents)
+        return active_agents
+
+    def get_queue_size(self) -> float:
+        """Get simulated queue size.
+
+        Returns:
+            float: Queue size.
+        """
+        # Placeholder for actual queue size measurement
+        queue_size = 10.0  # Simulated value
+        self.record_metric("Queue Size", queue_size)
+        return queue_size
+
+    def get_error_rate(self) -> float:
+        """Get simulated error rate percentage.
+
+        Returns:
+            float: Error rate percentage.
+        """
+        # Placeholder for actual error rate measurement
+        error_rate = 0.5  # Simulated value
+        self.record_metric("Error Rate", error_rate)
+        return error_rate
+
+    def get_average_metric(self, metric_name: str, window: int = 10) -> float:
+        """Get the average of a metric over a specified window of recent values.
+
+        Args:
+            metric_name (str): The name of the metric.
+            window (int): The number of recent values to average over.
+
+        Returns:
+            float: The average value of the metric over the window.
+        """
+        if metric_name in self._metrics and self._metrics[metric_name]:
+            recent_values = self._metrics[metric_name][-window:]
+            return sum(recent_values) / len(recent_values)
+        return 0.0
+
+    def start_memory_tracing(self) -> None:
+        """Start tracing memory allocations if tracemalloc is available."""
+        if TRACEMALLOC_AVAILABLE:
+            tracemalloc.start()
+            logger.info("Memory tracing started")
+        else:
+            logger.warning("tracemalloc not available, memory tracing not started")
+
+    def stop_memory_tracing(self) -> None:
+        """Stop tracing memory allocations if tracemalloc is available."""
+        if TRACEMALLOC_AVAILABLE:
+            tracemalloc.stop()
+            logger.info("Memory tracing stopped")
+        else:
+            logger.warning("tracemalloc not available, memory tracing not stopped")
+
+    def get_memory_snapshot(self) -> Optional[List[Any]]:
+        """Get a snapshot of current memory allocations.
+
+        Returns:
+            Optional[List[Any]]: List of memory allocation statistics if tracemalloc is available, else None.
+        """
+        if TRACEMALLOC_AVAILABLE:
+            snapshot = tracemalloc.take_snapshot()
+            return snapshot.filter_traces(
+                (
+                    tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
+                    tracemalloc.Filter(False, "<unknown>"),
+                )
+            ).statistics("lineno")
+        return None
+
+    def get_metrics_history(self) -> Dict[str, List[float]]:
+        """Get the full history of recorded metrics.
+
+        Returns:
+            Dict[str, List[float]]: Dictionary of metric names to their historical values.
+        """
+        return self._metrics
+
+    def clear_metrics(self) -> None:
+        """Clear all recorded metrics."""
+        self._metrics.clear()
+        logger.info("Performance metrics cleared")
+
+    def get_latest_response_time(self) -> float:
+        """Get the latest response time metric.
+
+        Returns:
+            float: Latest response time in seconds, or 0.0 if not available.
+        """
+        return (
+            self._metrics.get("Response Time", [0.0])[-1]
+            if "Response Time" in self._metrics
+            else 0.0
+        )
+
+    def get_current_operations_per_second(self) -> float:
+        """Get the operations per second metric.
+
+        Returns:
+            float: Operations per second, or 0.0 if not available.
+        """
+        ops_key = "Operations/sec"
+        return (
+            self._metrics.get(ops_key, [0.0])[-1] if ops_key in self._metrics else 0.0
+        )
+
+    def get_active_agents_count(self) -> int:
+        """Get the number of active agents.
+
+        Returns:
+            int: Number of active agents, or 0 if not available.
+        """
+        return (
+            int(self._metrics.get("Active Agents", [0])[-1])
+            if "Active Agents" in self._metrics
+            else 0
+        )
+
+    def get_current_queue_size(self) -> int:
+        """Get the current queue size.
+
+        Returns:
+            int: Current queue size, or 0 if not available.
+        """
+        return (
+            int(self._metrics.get("Queue Size", [0])[-1])
+            if "Queue Size" in self._metrics
+            else 0
+        )
+
+    def get_current_error_rate(self) -> float:
+        """Get the current error rate.
+
+        Returns:
+            float: Error rate as a percentage, or 0.0 if not available.
+        """
+        return (
+            self._metrics.get("Error Rate", [0.0])[-1]
+            if "Error Rate" in self._metrics
+            else 0.0
+        )
+
+    def get_performance_summary(self) -> Dict[str, Any]:
+        """Get a summary of key performance metrics.
+
+        Returns:
+            Dict[str, Any]: Dictionary with key performance metrics.
+        """
+        cpu_usage = self.get_cpu_usage()
+        memory_usage = self.get_memory_usage()
         return {
-            "total_size": sum(stat.size for stat in stats),
-            "top_allocations": [
-                {
-                    "size": stat.size,
-                    "count": stat.count,
-                    "traceback": str(stat.traceback),
-                }
-                for stat in stats[:3]
-            ],
+            "cpu_usage": cpu_usage if cpu_usage is not None else 0.0,
+            "memory_usage_mb": memory_usage if memory_usage else 0.0,
+            "response_time": self.get_latest_response_time(),
+            "operations_per_second": self.get_current_operations_per_second(),
+            "active_agents": self.get_active_agents_count(),
+            "queue_size": self.get_current_queue_size(),
+            "error_rate": self.get_current_error_rate(),
         }
 
     def get_uptime(self) -> float:
@@ -156,8 +321,7 @@ class PerformanceMonitor:
             report_lines.append("  CPU Usage: unavailable")
 
         if memory_usage:
-            report_lines.append(f"  Memory Usage (RSS): {memory_usage['rss']:.1f} MB")
-            report_lines.append(f"  Memory Usage (VMS): {memory_usage['vms']:.1f} MB")
+            report_lines.append(f"  Memory Usage (RSS): {memory_usage:.1f} MB")
         else:
             report_lines.append("  Memory Usage: unavailable")
 

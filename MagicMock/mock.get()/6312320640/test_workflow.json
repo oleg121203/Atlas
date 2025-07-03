@@ -1,0 +1,13 @@
+{
+  "definition": {
+    "name": "Test Workflow"
+  },
+  "state": {
+    "current_step": "start",
+    "status": "created",
+    "last_updated": "2025-07-03T08:38:53.981623",
+    "error": null,
+    "retry_count": 0
+  },
+  "history": []
+}

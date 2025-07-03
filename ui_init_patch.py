@@ -19,17 +19,45 @@ try:
 except ImportError as e:
     logger.error(f"Input validation functions import failed: {e}")
 
-    def sanitize_ui_input(x):
-        return x
+    class InputValidation:
+        @staticmethod
+        def validate_ui_input(
+            value: str, _input_type: str, field_name: str = "Input"
+        ) -> tuple[bool, str]:
+            return True, value
 
-    def validate_ui_input(x):
-        return True
+        @staticmethod
+        def sanitize_ui_input(value: str) -> str:
+            """Sanitize input string by escaping HTML characters."""
+            if not isinstance(value, str):
+                value = str(value)
+            html_escape_table = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#x27;",
+            }
+            return "".join(html_escape_table.get(c, c) for c in value)
 
-    def sanitize_form_data(x):
-        return x
+        @staticmethod
+        def validate_form_data(
+            form_data: dict[str, tuple[str, str]],
+        ) -> tuple[bool, dict[str, str]]:
+            return True, dict(form_data)
 
-    def validate_form_data(x):
-        return True
+        @staticmethod
+        def sanitize_form_data(form_data: dict[str, tuple[str, str]]) -> dict[str, str]:
+            sanitized = {}
+            for key, (_input_type, value) in form_data.items():
+                sanitized[key] = InputValidation.sanitize_ui_input(value)
+            return sanitized
+
+    # Expose the functions at module level for easier import
+    validate_ui_input = InputValidation.validate_ui_input
+    sanitize_ui_input = InputValidation.sanitize_ui_input
+    validate_form_data = InputValidation.validate_form_data
+    sanitize_form_data = InputValidation.sanitize_form_data
 
 
 # Import UI widgets with error handling

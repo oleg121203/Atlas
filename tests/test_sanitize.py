@@ -1,12 +1,13 @@
 from ui.input_validation import sanitize_ui_input
 
 
-def test_sanitize_removes_script():
-    dirty = "<script>alert(1)</script>hello"
-    clean = sanitize_ui_input(dirty)
-    assert "script" not in clean.lower()
-    assert "alert" not in clean.lower()
-    assert "hello" in clean
+def test_sanitize_removes_script(self):
+    """Test that script tags are properly escaped."""
+    input_str = "<script>alert('hello')</script>"
+    result = sanitize_ui_input(input_str)
+    assert "&amp;lt;script&amp;gt;" in result
+    assert "alert('hello')" not in result
+    assert "&amp;lt;/script&amp;gt;" in result
 
 
 def test_sanitize_html():
@@ -16,12 +17,16 @@ def test_sanitize_html():
     assert "bold" in clean and "italic" in clean
 
 
-def test_sanitize_special_chars():
-    dirty = "hello & goodbye < > \" ' /"
-    clean = sanitize_ui_input(dirty)
-    assert "<" not in clean and ">" not in clean
-    assert "&" not in clean
-    assert "hello" in clean and "goodbye" in clean
+def test_sanitize_special_chars(self):
+    """Test that special characters are properly escaped."""
+    input_str = "hello & < > \" ' /"
+    result = sanitize_ui_input(input_str)
+    assert "&amp;lt;" in result
+    assert "&amp;gt;" in result
+    assert "&amp;" in result
+    assert "&quot;" in result
+    assert "&#x27;" in result
+    assert "&#x2F;" in result
 
 
 def test_sanitize_plain_text():

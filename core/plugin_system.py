@@ -9,7 +9,10 @@ import importlib
 import inspect
 import logging
 import os
+from collections import defaultdict
 from typing import Any, Dict, List, Optional
+
+from core.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +36,11 @@ class PluginMetadata:
         self.category = category
         self.dependencies = dependencies or []
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert metadata to dictionary
 
         Returns:
-            Dict[str, str]: Dictionary representation of the metadata
+            Dict[str, Any]: Dictionary representation of the metadata
         """
         return {
             "name": self.name,
@@ -75,6 +78,10 @@ class PluginBase:
             "version": self.version,
             "status": "active" if self.is_active else "inactive",
         }
+
+    def on_event(self, event_name: str, data: dict) -> None:
+        """Handle an event. Override in subclasses."""
+        pass
 
 
 class PluginRegistry:
@@ -181,69 +188,195 @@ class PluginSystem:
     including discovery, loading, activation, and lifecycle management.
     """
 
-    def __init__(self, event_bus=None):
-        """Initialize the plugin system."""
-        self.event_bus = event_bus
-        self.registry = PluginRegistry()
-        self.plugins: Dict[str, PluginBase] = {}
-        self.active_plugins: Dict[str, PluginBase] = {}
-        self._setup_event_handlers()
+    def __init__(self, plugin_dirs: list[str] = None):
+        """
+        Initialize the PluginSystem.
 
-    def _setup_event_handlers(self):
-        """Setup event handlers if event bus is available."""
-        if self.event_bus:
-            self.event_bus.subscribe("plugin_reload_requested", self.reload_plugin)
-            self.event_bus.subscribe("plugin_error", self.handle_plugin_error)
+        Args:
+            plugin_dirs (list[str], optional): List of directories to search for plugins. Defaults to empty list if None.
+        """
+        self.plugins: dict[str, PluginBase] = {}
+        self.active_plugins: dict[str, PluginBase] = {}
+        self.plugin_metadata: dict[str, PluginMetadata] = {}
+        self.plugin_dirs = plugin_dirs or []
+        self._discover_plugins()
+
+    def _discover_plugins(self) -> None:
+        """
+        Discover available plugins in the specified directories.
+        This method scans for plugin modules and updates the plugin_metadata dictionary.
+        """
+        import glob
+        import importlib.util
+        import os
+        from pathlib import Path
+
+        self.plugin_metadata.clear()
+        for plugin_dir in self.plugin_dirs:
+            plugin_dir_path = Path(plugin_dir)
+            if not plugin_dir_path.exists():
+                continue
+
+            # Look for Python files or directories with __init__.py
+            plugin_files = glob.glob(str(plugin_dir_path / "**/*.py"), recursive=True)
+            for plugin_file in plugin_files:
+                plugin_path = Path(plugin_file)
+                if plugin_path.name == "__init__.py":
+                    continue
+
+                module_name = plugin_path.stem
+                try:
+                    spec = importlib.util.spec_from_file_location(
+                        module_name, plugin_path
+                    )
+                    if spec is None or spec.loader is None:
+                        continue
+
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    # Check for plugin class in the module
+                    for attr_name in dir(module):
+                        attr = getattr(module, attr_name)
+                        if (
+                            isinstance(attr, type)
+                            and issubclass(attr, PluginBase)
+                            and attr != PluginBase
+                        ):
+                            plugin_instance = attr()
+                            metadata = plugin_instance.get_metadata()
+                            if metadata:
+                                self.plugin_metadata[metadata.name] = metadata
+                                logger.info(
+                                    f"Discovered plugin: {metadata.name} v{metadata.version}"
+                                )
+                except Exception as e:
+                    logger.error(f"Error discovering plugin in {plugin_file}: {str(e)}")
+
+    def load_plugin(self, plugin_name: str) -> bool:
+        """
+        Load a specific plugin by name.
+
+        Args:
+            plugin_name (str): The name of the plugin to load.
+
+        Returns:
+            bool: True if the plugin was loaded successfully, False otherwise.
+        """
+        if plugin_name in self.plugins:
+            logger.info(f"Plugin {plugin_name} already loaded")
+            return True
+
+        if plugin_name not in self.plugin_metadata:
+            logger.error(f"Plugin {plugin_name} not found in metadata")
+            return False
+
+        try:
+            plugin_instance = self._load_plugin_module(plugin_name)
+            if plugin_instance:
+                self.plugins[plugin_name] = plugin_instance
+                logger.info(f"Loaded plugin: {plugin_name}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Failed to load plugin {plugin_name}: {str(e)}")
+            return False
+
+    def _load_plugin_module(self, plugin_name: str) -> Optional[PluginBase]:
+        """
+        Load the plugin module dynamically.
+
+        Args:
+            plugin_name (str): The name of the plugin to load.
+
+        Returns:
+            Optional[PluginBase]: An instance of the plugin if successful, None otherwise.
+        """
+        import importlib
+
+        try:
+            # This is a simplified implementation. In a real system, we'd map plugin names to module paths.
+            module = importlib.import_module(f"plugins.{plugin_name}")
+            plugin_class = getattr(module, plugin_name, None)
+            if plugin_class:
+                # Check if it's a class and a subclass of PluginBase, or an instance of PluginBase (for mocks)
+                if isinstance(plugin_class, type):
+                    if issubclass(plugin_class, PluginBase):
+                        return plugin_class()
+                elif isinstance(plugin_class, PluginBase):
+                    return plugin_class
+            return None
+        except ImportError as e:
+            logger.error(f"Failed to import plugin module {plugin_name}: {str(e)}")
+            return None
+        except TypeError as e:
+            logger.error(f"Type error when loading plugin {plugin_name}: {str(e)}")
+            return None
+
+    def activate_plugin(self, plugin_name: str) -> bool:
+        """
+        Activate a loaded plugin.
+
+        Args:
+            plugin_name (str): The name of the plugin to activate.
+
+        Returns:
+            bool: True if the plugin was activated successfully, False otherwise.
+        """
+        if plugin_name not in self.plugins:
+            logger.error(f"Plugin {plugin_name} not loaded")
+            return False
+
+        if plugin_name in self.active_plugins:
+            logger.info(f"Plugin {plugin_name} already active")
+            return True
+
+        try:
+            plugin = self.plugins[plugin_name]
+            plugin.initialize()
+            self.active_plugins[plugin_name] = plugin
+            logger.info(f"Activated plugin: {plugin_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to activate plugin {plugin_name}: {str(e)}")
+            return False
+
+    def deactivate_plugin(self, plugin_name: str) -> bool:
+        """
+        Deactivate an active plugin.
+
+        Args:
+            plugin_name (str): The name of the plugin to deactivate.
+
+        Returns:
+            bool: True if the plugin was deactivated successfully, False otherwise.
+        """
+        if plugin_name not in self.active_plugins:
+            logger.warning(f"Plugin {plugin_name} not active")
+            return False
+
+        try:
+            plugin = self.active_plugins[plugin_name]
+            plugin.shutdown()
+            del self.active_plugins[plugin_name]
+            logger.info(f"Deactivated plugin: {plugin_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to deactivate plugin {plugin_name}: {str(e)}")
+            return False
 
     def initialize(self):
         """Initialize the plugin system and discover available plugins."""
         logger.info("Initializing plugin system")
 
         # Discover available plugins
-        plugin_names = self.registry.discover_plugins()
+        plugin_names = self._discover_plugins()
 
         # Load all discovered plugins
         for plugin_name in plugin_names:
             self.load_plugin(plugin_name)
 
         logger.info(f"Plugin system initialized with {len(self.plugins)} plugins")
-
-        if self.event_bus:
-            self.event_bus.publish(
-                "plugin_system_initialized", plugin_count=len(self.plugins)
-            )
-
-    def load_plugin(self, plugin_name: str) -> bool:
-        """
-        Load a plugin.
-
-        Args:
-            plugin_name: Name of the plugin to load
-
-        Returns:
-            bool: True if loading was successful
-        """
-        try:
-            plugin = self.registry.load_plugin(plugin_name)
-            if plugin:
-                self.plugins[plugin_name] = plugin
-                logger.info(f"Plugin loaded: {plugin_name}")
-
-                if self.event_bus:
-                    self.event_bus.publish("plugin_loaded", plugin_name=plugin_name)
-
-                return True
-            else:
-                logger.error(f"Failed to load plugin: {plugin_name}")
-                return False
-
-        except Exception as e:
-            logger.error(f"Error loading plugin {plugin_name}: {e}")
-            if self.event_bus:
-                self.event_bus.publish(
-                    "plugin_error", plugin_name=plugin_name, error=str(e)
-                )
-            return False
 
     def unload_plugin(self, plugin_name: str) -> bool:
         """
@@ -265,9 +398,6 @@ class PluginSystem:
                 del self.plugins[plugin_name]
                 logger.info(f"Plugin unloaded: {plugin_name}")
 
-                if self.event_bus:
-                    self.event_bus.publish("plugin_unloaded", plugin_name=plugin_name)
-
                 return True
             else:
                 logger.warning(f"Plugin not loaded: {plugin_name}")
@@ -275,78 +405,6 @@ class PluginSystem:
 
         except Exception as e:
             logger.error(f"Error unloading plugin {plugin_name}: {e}")
-            if self.event_bus:
-                self.event_bus.publish(
-                    "plugin_error", plugin_name=plugin_name, error=str(e)
-                )
-            return False
-
-    def activate_plugin(self, plugin_name: str) -> bool:
-        """
-        Activate a loaded plugin.
-
-        Args:
-            plugin_name: Name of the plugin to activate
-
-        Returns:
-            bool: True if activation was successful
-        """
-        if plugin_name not in self.plugins:
-            logger.error(f"Plugin not loaded: {plugin_name}")
-            return False
-
-        try:
-            plugin = self.plugins[plugin_name]
-            plugin.initialize()
-            self.active_plugins[plugin_name] = plugin
-
-            logger.info(f"Plugin activated: {plugin_name}")
-
-            if self.event_bus:
-                self.event_bus.publish("plugin_activated", plugin_name=plugin_name)
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Error activating plugin {plugin_name}: {e}")
-            if self.event_bus:
-                self.event_bus.publish(
-                    "plugin_error", plugin_name=plugin_name, error=str(e)
-                )
-            return False
-
-    def deactivate_plugin(self, plugin_name: str) -> bool:
-        """
-        Deactivate an active plugin.
-
-        Args:
-            plugin_name: Name of the plugin to deactivate
-
-        Returns:
-            bool: True if deactivation was successful
-        """
-        if plugin_name not in self.active_plugins:
-            logger.warning(f"Plugin not active: {plugin_name}")
-            return True
-
-        try:
-            plugin = self.active_plugins[plugin_name]
-            plugin.shutdown()
-            del self.active_plugins[plugin_name]
-
-            logger.info(f"Plugin deactivated: {plugin_name}")
-
-            if self.event_bus:
-                self.event_bus.publish("plugin_deactivated", plugin_name=plugin_name)
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Error deactivating plugin {plugin_name}: {e}")
-            if self.event_bus:
-                self.event_bus.publish(
-                    "plugin_error", plugin_name=plugin_name, error=str(e)
-                )
             return False
 
     def reload_plugin(self, plugin_name: str) -> bool:
@@ -387,13 +445,13 @@ class PluginSystem:
         else:
             logger.error(f"Failed to recover plugin {plugin_name}")
 
-    def get_plugin(self, plugin_name: str) -> Optional[PluginBase]:
-        """Get a plugin instance by name."""
-        return self.plugins.get(plugin_name)
+    def get_plugin(self, plugin_id):
+        """Get a plugin by its ID."""
+        return self.plugins.get(plugin_id)
 
-    def list_plugins(self) -> List[str]:
-        """Get a list of all loaded plugin names."""
-        return list(self.plugins.keys())
+    def list_plugins(self):
+        """Return a list of all loaded plugins."""
+        return list(self.plugins.values())
 
     def list_active_plugins(self) -> List[str]:
         """Get a list of all active plugin names."""
@@ -419,6 +477,22 @@ class PluginSystem:
             "metadata": plugin.get_metadata(),
         }
 
+    def publish_event(self, event_name: str, data: dict) -> None:
+        """
+        Publish an event to all active plugins.
+
+        Args:
+            event_name (str): The name of the event.
+            data (dict): The data associated with the event.
+        """
+        for plugin_name, plugin in self.active_plugins.items():
+            try:
+                plugin.on_event(event_name, data)
+            except Exception as e:
+                logger.error(
+                    f"Error publishing event {event_name} to plugin {plugin_name}: {str(e)}"
+                )
+
     def shutdown(self):
         """Shutdown the plugin system and all active plugins."""
         logger.info("Shutting down plugin system")
@@ -432,6 +506,3 @@ class PluginSystem:
         self.active_plugins.clear()
 
         logger.info("Plugin system shutdown complete")
-
-        if self.event_bus:
-            self.event_bus.publish("plugin_system_shutdown")

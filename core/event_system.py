@@ -18,6 +18,10 @@ class EventBus:
         """Initialize the event bus with an empty subscriber dictionary."""
         self._subscribers: Dict[str, List[Callable[..., None]]] = {}
 
+    def __iter__(self):
+        """Allow iteration over event types in the subscribers dictionary."""
+        return iter(self._subscribers.keys())
+
     def subscribe(self, event_type: str, callback: Callable[..., None]) -> None:
         """Subscribe a callback function to a specific event type."""
         if event_type not in self._subscribers:

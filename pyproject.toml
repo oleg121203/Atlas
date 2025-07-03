@@ -177,54 +177,21 @@ markers = [
     "quality: mark tests related to quality assurance",
     "ui: mark tests related to UI components",
     "api: mark tests related to API calls",
+    "performance: mark tests related to performance benchmarking",
 ]
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["."]
 branch = true
-parallel = true
-context = "${CONTEXT}"
+source = ["core", "tests"]
 omit = [
-    # Backup directories
-    "backup_archive/*",
-    "backup_ui/*",
-    "backup_ui_qt/*",
-    # Test files
-    "tests/*",
-    "*_test.py",
-    "test_*.py",
-    "conftest.py",
-    # Virtual environments
-    ".venv/*",
-    "venv/*",
-    "env/*",
-    # Build and cache directories
-    "build/*",
-    "dist/*",
-    "*.egg-info/*",
-    "__pycache__/*",
-    ".pytest_cache/*",
-    ".ruff_cache/*",
-    "htmlcov/*",
-    # Configuration files
-    "setup.py",
-    # Scripts and utilities
-    "scripts/*",
-    "dev-tools/*",
-    # Documentation
-    "docs/*",
-    "*.md",
-    "*.rst",
-    "*/site-packages/*",
-    # Entry points and examples
-    "main.py",
-    "example.py",
-    "*launch*.sh",
-    "*activate*.sh",
+    "*/__init__.py",
+    "tests/*_test.py",
 ]
 
 [tool.coverage.report]
+skip_empty = true
+fail_under = 75.0
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",

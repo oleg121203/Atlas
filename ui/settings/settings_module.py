@@ -4,7 +4,6 @@ from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
     QFrame,
-    QInputDialog,
     QLabel,
     QMessageBox,
     QPushButton,
@@ -58,11 +57,11 @@ class SettingsModule(QWidget):
         self.form.addRow(self.language_label, self.language_combo)
         layout.addLayout(self.form)
 
-        self.save_btn = QPushButton(_("Save Settings"))
-        self.save_btn.setStyleSheet(
+        self.save_settings_btn = QPushButton(_("Save Settings"))
+        self.save_settings_btn.setStyleSheet(
             "background: #00ff7f; color: #181c20; font-weight: bold; border-radius: 6px; padding: 6px 18px;"
         )
-        layout.addWidget(self.save_btn)
+        layout.addWidget(self.save_settings_btn)
 
         self.plugins_title = QLabel(_("Plugin Settings"))
         self.plugins_title.setStyleSheet(
@@ -74,6 +73,16 @@ class SettingsModule(QWidget):
         self.plugins_layout = QVBoxLayout(self.plugins_frame)
         self.plugins_layout.setContentsMargins(0, 10, 0, 0)
         layout.addWidget(self.plugins_frame)
+
+        self._connect_buttons()
+
+    def _connect_buttons(self):
+        """Connect buttons to their respective actions."""
+        if hasattr(self, "save_settings_btn"):
+            self.save_settings_btn.clicked.connect(self._save_settings)
+        if hasattr(self, "reset_settings_btn"):
+            self.reset_settings_btn.clicked.connect(self._reset_settings)
+        # logger.info("Settings module buttons connected")
 
     def set_plugin_manager(self, plugin_manager: PluginManager) -> None:
         """Set the plugin manager instance.
@@ -114,9 +123,8 @@ class SettingsModule(QWidget):
                         )
                         self.plugins_layout.addWidget(label)
                 except Exception as e:
-                    self.logger.error(
-                        f"Error adding settings for plugin {plugin.name}: {e}"
-                    )
+                    # Log error to console or handle it appropriately without logger attribute
+                    print(f"Error adding settings for plugin {plugin.name}: {e}")
                     continue
 
     def update_ui(self) -> None:
@@ -126,7 +134,7 @@ class SettingsModule(QWidget):
         self.language_combo.setItemText(0, str(_("English")) or "English")
         self.language_combo.setItemText(1, str(_("Ukrainian")) or "Ukrainian")
         self.language_combo.setItemText(2, str(_("Russian")) or "Russian")
-        self.save_btn.setText(str(_("Save Settings")) or "Save Settings")
+        self.save_settings_btn.setText(str(_("Save Settings")) or "Save Settings")
         self.plugins_title.setText(str(_("Plugin Settings")) or "Plugin Settings")
         self.update_plugin_settings_section()
 
@@ -135,30 +143,16 @@ class SettingsModule(QWidget):
 
         Opens a dialog to get new value and updates the setting.
         """
-        row = self.list.currentRow()
-        if row >= 0:
-            try:
-                value, ok = QInputDialog.getText(
-                    self,
-                    str(_("Edit Setting")) or "Edit Setting",
-                    str(_("New value:")) or "New value:",
-                )
-                if ok:
-                    self.list.item(row).setText(value)
-            except Exception as e:
-                QMessageBox.warning(
-                    self,
-                    str(_("Error")) or "Error",
-                    f"{str(_('Failed to edit setting:')) or 'Failed to edit setting:'} {str(e)}",
-                )
-        else:
-            QMessageBox.warning(
-                self,
-                str(_("Edit Setting")) or "Edit Setting",
-                str(_("Select a setting to edit.")) or "Select a setting to edit.",
-            )
+        # Currently, there is no list widget in this implementation.
+        # This method seems to be a placeholder or for future use.
+        QMessageBox.warning(
+            self,
+            str(_("Edit Setting")) or "Edit Setting",
+            str(_("This feature is not yet implemented."))
+            or "This feature is not yet implemented.",
+        )
 
-    def save_settings(self) -> None:
+    def _save_settings(self):
         """Save current settings.
 
         Shows a message when complete.
@@ -177,3 +171,7 @@ class SettingsModule(QWidget):
                 str(_("Error")) or "Error",
                 f"{str(_('Failed to save settings:')) or 'Failed to save settings:'} {str(e)}",
             )
+
+    def _reset_settings(self):
+        # Reset settings logic here
+        pass

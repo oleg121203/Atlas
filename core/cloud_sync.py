@@ -13,7 +13,7 @@ from typing import Optional
 import boto3
 from botocore.exceptions import ClientError
 
-from core.config import load_config
+from core.config import get_config
 from core.logging import get_logger
 from security.security_utils import decrypt_data, encrypt_data
 
@@ -32,7 +32,7 @@ class CloudSyncManager:
             config_path (str, optional): Path to configuration file
             environment (str): Deployment environment (dev, staging, prod)
         """
-        self.config = load_config(config_path, environment=environment)
+        self.config = get_config()
         self.cloud_config = self.config.get("cloud_sync", {})
         self.enabled = self.cloud_config.get("enabled", False)
 
@@ -150,14 +150,19 @@ class CloudSyncManager:
 
                         # Read and encrypt the file content
                         with open(local_path, "rb") as f:
-                            data = f.read()
-                        encrypted_data = encrypt_data(data, self.encryption_key)
+                            data_to_upload = f.read()
+                        data_to_upload = encrypt_data(
+                            data_to_upload.decode("utf-8")
+                            if isinstance(data_to_upload, bytes)
+                            else data_to_upload,
+                            self.encryption_key,
+                        )
 
                         # Upload encrypted data
                         self.s3_client.put_object(
                             Bucket=self.bucket_name,
                             Key=cloud_key,
-                            Body=encrypted_data,
+                            Body=data_to_upload,
                             Metadata={"mtime": str(local_mtime), "encrypted": "true"},
                         )
             return True
@@ -207,9 +212,11 @@ class CloudSyncManager:
                     decrypted_data = decrypt_data(encrypted_data, self.encryption_key)
 
                     # Write decrypted data to local file
-                    with open(local_path, "wb") as f:
-                        f.write(decrypted_data)
-
+                    with open(local_path, "w") as local_file:
+                        if isinstance(decrypted_data, bytes):
+                            local_file.write(decrypted_data.decode("utf-8"))
+                        else:
+                            local_file.write(decrypted_data or "")
                     # Update local file modification time to match cloud
                     os.utime(local_path, (os.path.getatime(local_path), cloud_mtime))
             return True

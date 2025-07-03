@@ -94,6 +94,20 @@ class PluginsModule(QWidget):
         self.tools_layout.setContentsMargins(0, 10, 0, 0)
         layout.addWidget(self.tools_frame)
 
+        self._connect_buttons()
+
+    def _connect_buttons(self):
+        """Connect buttons to their respective actions."""
+        if hasattr(self, "install_plugin_btn"):
+            self.install_plugin_btn.clicked.connect(self._install_plugin)
+        if hasattr(self, "uninstall_plugin_btn"):
+            self.uninstall_plugin_btn.clicked.connect(self._uninstall_plugin)
+        if hasattr(self, "activate_plugin_btn"):
+            self.activate_plugin_btn.clicked.connect(self._activate_plugin)
+        if hasattr(self, "deactivate_plugin_btn"):
+            self.deactivate_plugin_btn.clicked.connect(self._deactivate_plugin)
+        # logger.info("Plugins module buttons connected")
+
     def update_ui(self) -> None:
         """Update UI elements with translated text."""
         self.title.setText(str(_("🧩 Plugins")) or "🧩 Plugins")
@@ -129,8 +143,9 @@ class PluginsModule(QWidget):
                     if len(desc) > 50:
                         desc = desc[:50] + "..."
                     self.list.addItem(f"{name} {status} {desc}")
-            except Exception as e:
-                self.logger.error(f"Error updating plugins: {e}")
+            except Exception:
+                pass
+                # self.logger.error(f"Error updating plugins: {e}")
 
         self.async_manager.submit_task(update_plugins_async)
 
@@ -157,13 +172,15 @@ class PluginsModule(QWidget):
                             if widget:
                                 self.tools_layout.addWidget(widget)
                                 self.tool_widgets.append(widget)
-                        except Exception as e:
-                            self.logger.error(
-                                f"Error adding widget for plugin {plugin.name}: {e}"
-                            )
+                        except Exception:
+                            pass
+                            # self.logger.error(
+                            #     f"Error adding widget for plugin {plugin.name}: {e}"
+                            # )
                             continue
-            except Exception as e:
-                self.logger.error(f"Error updating tools: {e}")
+            except Exception:
+                pass
+                # self.logger.error(f"Error updating tools: {e}")
 
         self.async_manager.submit_task(update_tools_async)
 
@@ -269,8 +286,9 @@ class PluginsModule(QWidget):
                 )
                 if query.lower() in label.lower():
                     results.append({"label": label, "key": plugin.name})
-        except Exception as e:
-            self.logger.error(f"Error searching plugins: {e}")
+        except Exception:
+            pass
+            # self.logger.error(f"Error searching plugins: {e}")
         return results
 
     def select_by_key(self, key: str) -> None:
@@ -286,6 +304,7 @@ class PluginsModule(QWidget):
                     self.list.setCurrentRow(i)
                     self.list.scrollToItem(self.list.item(i))
                     break
-            except Exception as e:
-                self.logger.error(f"Error selecting plugin {i}: {e}")
+            except Exception:
+                pass
+                # self.logger.error(f"Error selecting plugin {i}: {e}")
                 continue
