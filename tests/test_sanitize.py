@@ -1,7 +1,7 @@
 from ui.input_validation import sanitize_ui_input
 
 
-def test_sanitize_removes_script(self):
+def test_sanitize_removes_script():
     """Test that script tags are properly escaped."""
     input_str = "<script>alert('hello')</script>"
     result = sanitize_ui_input(input_str)
@@ -16,7 +16,7 @@ def test_sanitize_html():
     assert "&amp;lt;p&amp;gt;Hello&amp;lt;/p&amp;gt;" in clean
 
 
-def test_sanitize_special_chars(self):
+def test_sanitize_special_chars():
     """Test that special characters are properly escaped."""
     input_str = "hello & < > \" ' /"
     result = sanitize_ui_input(input_str)
