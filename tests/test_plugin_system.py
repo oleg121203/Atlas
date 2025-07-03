@@ -159,6 +159,18 @@ class TestPluginSystem:
             assert result is False
             assert "nonexistent_plugin" not in plugin_system.plugins
 
+    def test_load_plugin_already_loaded(self):
+        """Test loading a plugin that is already loaded."""
+        plugin_system = PluginSystem([])
+        # Add a loaded plugin
+        mock_plugin = MockPlugin()
+        plugin_system.plugins["test_plugin"] = mock_plugin
+
+        result = plugin_system.load_plugin("test_plugin")
+
+        assert result is True
+        assert plugin_system.plugins["test_plugin"] == mock_plugin
+
     def test_activate_plugin_success(self):
         """Test successful plugin activation."""
         plugin_system = PluginSystem([])
@@ -170,6 +182,19 @@ class TestPluginSystem:
 
         assert result is True
         assert "test_plugin" in plugin_system.active_plugins
+
+    def test_activate_plugin_already_active(self):
+        """Test activating a plugin that is already active."""
+        plugin_system = PluginSystem([])
+        # Add an active plugin
+        mock_plugin = MockPlugin()
+        plugin_system.plugins["test_plugin"] = mock_plugin
+        plugin_system.active_plugins["test_plugin"] = mock_plugin
+
+        result = plugin_system.activate_plugin("test_plugin")
+
+        assert result is True
+        assert plugin_system.active_plugins["test_plugin"] == mock_plugin
 
     def test_activate_plugin_not_loaded(self):
         """Test activating a plugin that's not loaded."""
@@ -197,6 +222,14 @@ class TestPluginSystem:
         plugin_system = PluginSystem([])
 
         result = plugin_system.deactivate_plugin("nonexistent_plugin")
+
+        assert result is False
+
+    def test_deactivate_plugin_not_loaded(self):
+        """Test deactivating a plugin that is not loaded."""
+        plugin_system = PluginSystem([])
+
+        result = plugin_system.deactivate_plugin("test_plugin")
 
         assert result is False
 
@@ -236,7 +269,30 @@ class TestPluginSystem:
         assert mock_plugin1.shutdown_called
         assert mock_plugin2.shutdown_called
 
-    def test_event_publishing(self):
+    def test_unload_plugin_success(self):
+        """Test successful plugin unloading."""
+        plugin_system = PluginSystem([])
+        # Add a loaded plugin
+        mock_plugin = MockPlugin()
+        plugin_system.plugins["test_plugin"] = mock_plugin
+        plugin_system.active_plugins["test_plugin"] = mock_plugin
+
+        result = plugin_system.unload_plugin("test_plugin")
+
+        assert result is True
+        assert "test_plugin" not in plugin_system.plugins
+        assert "test_plugin" not in plugin_system.active_plugins
+        assert mock_plugin.shutdown_called
+
+    def test_unload_plugin_not_loaded(self):
+        """Test unloading a plugin that is not loaded."""
+        plugin_system = PluginSystem([])
+
+        result = plugin_system.unload_plugin("test_plugin")
+
+        assert result is False
+
+    def test_publish_event(self):
         """Test that events are published correctly."""
         plugin_system = PluginSystem([])
         plugin_system.plugin_metadata["test_plugin"] = PluginMetadata(
@@ -266,3 +322,32 @@ class TestPluginSystem:
             mock_plugin_instance.on_event.assert_called_once_with(
                 "test_event", {"data": "test"}
             )
+
+    def test_publish_event_no_active_plugins(self):
+        """Test publishing an event with no active plugins."""
+        plugin_system = PluginSystem([])
+
+        # Should not raise any errors
+        plugin_system.publish_event("test_event", {"data": "test"})
+
+    def test_discover_plugins_empty_directory(self):
+        """Test discovering plugins in an empty directory."""
+        plugin_system = PluginSystem(["/empty/directory"])
+        plugin_system._discover_plugins()
+        assert len(plugin_system.plugin_metadata) == 0
+
+    def test_load_plugin_module_type_error(self):
+        """Test loading a plugin module that causes a TypeError."""
+        plugin_system = PluginSystem([])
+        plugin_system.plugin_metadata["test_plugin"] = PluginMetadata(
+            name="test_plugin",
+            version="1.0.0",
+            description="Test",
+            author="Test",
+            category="test",
+        )
+        with patch("core.plugin_system.importlib.import_module") as mock_import:
+            mock_import.side_effect = TypeError("Type error")
+            result = plugin_system.load_plugin("test_plugin")
+            assert result is False
+            assert "test_plugin" not in plugin_system.plugins

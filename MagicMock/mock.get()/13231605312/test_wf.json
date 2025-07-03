@@ -1,0 +1,14 @@
+{
+  "definition": {
+    "name": "test_wf",
+    "steps": []
+  },
+  "state": {
+    "current_step": "start",
+    "status": "created",
+    "last_updated": "2025-07-03T16:53:12.438251",
+    "error": null,
+    "retry_count": 0
+  },
+  "history": []
+}

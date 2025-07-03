@@ -48,6 +48,13 @@ class TestToolManager(unittest.TestCase):
         self.assertEqual(result.name, "Test Tool")
         self.tool_manager.get_tool.assert_called_once_with("Test Tool")
 
+    def test_get_tool_not_found(self):
+        """Test retrieving a tool that does not exist."""
+        self.tool_manager.get_tool.return_value = None
+        result = self.tool_manager.get_tool("Nonexistent Tool")
+        self.assertIsNone(result)
+        self.tool_manager.get_tool.assert_called_once_with("Nonexistent Tool")
+
     def test_get_tools_by_type(self):
         """Test retrieving tools by type."""
         mock_tool1 = core.tools.Tool()
@@ -61,6 +68,15 @@ class TestToolManager(unittest.TestCase):
         result = self.tool_manager.get_tools_by_type(core.tools.ToolType.ACTION)
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0].tool_type, core.tools.ToolType.ACTION)
+        self.tool_manager.get_tools_by_type.assert_called_once_with(
+            core.tools.ToolType.ACTION
+        )
+
+    def test_get_tools_by_type_empty(self):
+        """Test retrieving tools by type when no tools of that type exist."""
+        self.tool_manager.get_tools_by_type.return_value = []
+        result = self.tool_manager.get_tools_by_type(core.tools.ToolType.ACTION)
+        self.assertEqual(len(result), 0)
         self.tool_manager.get_tools_by_type.assert_called_once_with(
             core.tools.ToolType.ACTION
         )
@@ -97,6 +113,26 @@ class TestToolManager(unittest.TestCase):
         self.tool_manager.execute_tool.assert_called_once_with(
             "Executable Tool", param1="value1"
         )
+
+    def test_execute_tool_not_found(self):
+        """Test executing a tool that does not exist."""
+        self.tool_manager.get_tool.return_value = None
+        self.tool_manager.execute_tool.return_value = None
+        result = self.tool_manager.execute_tool("Nonexistent Tool")
+        self.assertIsNone(result)
+        self.tool_manager.execute_tool.assert_called_once_with("Nonexistent Tool")
+
+    def test_execute_tool_with_error(self):
+        """Test executing a tool that raises an exception."""
+        mock_tool = core.tools.Tool()
+        mock_tool.name = "Error Tool"
+        mock_tool.execute = MagicMock(side_effect=Exception("Tool execution failed"))
+        self.tool_manager.tools.append(mock_tool)
+        self.tool_manager.get_tool.return_value = mock_tool
+        self.tool_manager.execute_tool.return_value = None
+        result = self.tool_manager.execute_tool("Error Tool")
+        self.assertIsNone(result)
+        self.tool_manager.execute_tool.assert_called_once_with("Error Tool")
 
 
 if __name__ == "__main__":

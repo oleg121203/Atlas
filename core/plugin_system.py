@@ -9,10 +9,7 @@ import importlib
 import inspect
 import logging
 import os
-from collections import defaultdict
 from typing import Any, Dict, List, Optional
-
-from core.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 
@@ -208,7 +205,6 @@ class PluginSystem:
         """
         import glob
         import importlib.util
-        import os
         from pathlib import Path
 
         self.plugin_metadata.clear()

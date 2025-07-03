@@ -21,7 +21,10 @@ def get_logger(name):
     """
     logger = logging.getLogger(name)
     if not logger.handlers:  # Only configure if not already configured
-        logger.setLevel(logging.INFO)
+        root_logger = logging.getLogger()
+        logger.setLevel(
+            root_logger.level if root_logger.level != logging.NOTSET else logging.INFO
+        )
 
         # Create logs directory if it doesn't exist
         logs_dir = os.path.join(
@@ -34,11 +37,15 @@ def get_logger(name):
         file_handler = RotatingFileHandler(
             log_file, maxBytes=10485760, backupCount=5
         )  # 10MB per file, 5 backups
-        file_handler.setLevel(logging.INFO)
+        file_handler.setLevel(
+            root_logger.level if root_logger.level != logging.NOTSET else logging.INFO
+        )
 
         # Configure stream handler for console output
         stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
+        stream_handler.setLevel(
+            root_logger.level if root_logger.level != logging.NOTSET else logging.INFO
+        )
 
         # Define log format
         formatter = logging.Formatter(

@@ -52,5 +52,12 @@
     "file": "atlas_feature_flags.log"
   },
   "test_feature": false,
-  "persistent_feature": true
+  "persistent_feature": true,
+  "clear_feature1": true,
+  "": true,
+  "feature1": true,
+  "save_feature1": true,
+  "toggle_feature": true,
+  "null": true,
+  "null": true
 }

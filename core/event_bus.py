@@ -49,6 +49,10 @@ class EventBus:
             callback (Callable): The function to call when the event is published.
                 The callback can accept any number of positional and keyword arguments.
 
+        Raises:
+            ValueError: If event_type is empty or None.
+            TypeError: If event_type is not a string or callback is not callable.
+
         Example:
             ```python
             def handle_save(filename: str):
@@ -57,9 +61,21 @@ class EventBus:
             event_bus.subscribe("file_saved", handle_save)
             ```
         """
+        if not event_type:
+            raise ValueError("Event type cannot be empty")
+        if event_type is None:
+            raise ValueError("Event type cannot be None")
+        if not isinstance(event_type, str):
+            raise TypeError("Event type must be a string")
+        if callback is None:
+            raise ValueError("Callback cannot be None")
+        if not callable(callback):
+            raise TypeError("Callback must be callable")
+
         if event_type not in self._listeners:
             self._listeners[event_type] = []
-        self._listeners[event_type].append(callback)
+        if callback not in self._listeners[event_type]:
+            self._listeners[event_type].append(callback)
 
     def unsubscribe(self, event_type: str, callback: Callable[..., Any]) -> None:
         """
@@ -68,6 +84,10 @@ class EventBus:
         Args:
             event_type (str): The type of event to unsubscribe from.
             callback (Callable): The function to remove from the subscribers list.
+
+        Raises:
+            ValueError: If event_type is empty or None.
+            TypeError: If event_type is not a string.
 
         Note:
             If the callback is not found in the subscribers list, this method
@@ -78,8 +98,17 @@ class EventBus:
             event_bus.unsubscribe("file_saved", handle_save)
             ```
         """
+        if not event_type:
+            raise ValueError("Event type cannot be empty")
+        if event_type is None:
+            raise ValueError("Event type cannot be None")
+        if not isinstance(event_type, str):
+            raise TypeError("Event type must be a string")
+
         if event_type in self._listeners and callback in self._listeners[event_type]:
             self._listeners[event_type].remove(callback)
+            if not self._listeners[event_type]:
+                del self._listeners[event_type]
 
     def publish(self, event_type: str, *args: Any, **kwargs: Any) -> None:
         """
@@ -89,6 +118,10 @@ class EventBus:
             event_type (str): The type of event to publish.
             *args: Positional arguments to pass to the callback functions.
             **kwargs: Keyword arguments to pass to the callback functions.
+
+        Raises:
+            ValueError: If event_type is empty or None.
+            TypeError: If event_type is not a string.
 
         Note:
             If no callbacks are subscribed to the event type, this method
@@ -104,6 +137,13 @@ class EventBus:
             event_bus.publish("data_updated", table="users", count=42)
             ```
         """
+        if not event_type:
+            raise ValueError("Event type cannot be empty")
+        if event_type is None:
+            raise ValueError("Event type cannot be None")
+        if not isinstance(event_type, str):
+            raise TypeError("Event type must be a string")
+
         if event_type in self._listeners:
             for callback in self._listeners[event_type]:
                 callback(*args, **kwargs)
