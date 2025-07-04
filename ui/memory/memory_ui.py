@@ -15,7 +15,7 @@ from core.memory.chromadb_manager import ChromaDBManager
 class MemoryUI(QWidget):
     """UI component for managing memory interactions with ChromaDB."""
 
-    def __init__(self, memory_manager: ChromaDBManager, parent: QWidget | None = None):
+    def __init__(self, memory_manager: ChromaDBManager, parent=None):
         super().__init__(parent)
         self.memory_manager = memory_manager
         self.init_ui()

@@ -23,9 +23,16 @@ class CommandPalette(QDialog):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.setWindowTitle("Command Palette")
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint
-        )
+        # Set window flags for a borderless, always-on-top window
+        frameless_flag = Qt.WindowType.FramelessWindowHint
+        on_top_flag = Qt.WindowType.WindowStaysOnTopHint
+        if frameless_flag is not None and on_top_flag is not None:
+            self.setWindowFlags(frameless_flag | on_top_flag)
+        elif frameless_flag is not None:
+            self.setWindowFlags(frameless_flag)
+        elif on_top_flag is not None:
+            self.setWindowFlags(on_top_flag)
+        # Enable translucency effect if supported
         self.setStyleSheet("""
             QDialog {
                 background-color: #0a0a0a;

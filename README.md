@@ -62,7 +62,114 @@ ATLAS_AUTO_EXECUTE
 # Atlas (PySide6 Cyberpunk Edition) - English Version
 
 Atlas is a modern modular AI platform with cyberpunk design, extensibility through plugins and tools.
+# Atlas - AI Assistant Platform
 
+**Atlas** is a modular AI assistant platform built with Python and PySide6, featuring a modern cyberpunk interface, plugin ecosystem, and powerful tool integration.
+
+## Features
+
+- **Modern UI**: Sleek cyberpunk design built with PySide6
+- **Modular Architecture**: Core systems for plugins, tools, workflows, and agents
+- **Performance Monitoring**: Built-in performance tracking and optimization
+- **Self-Healing**: Automatic recovery from errors and component failures
+- **Plugin System**: Extensible plugin architecture for custom functionality
+- **Tool Ecosystem**: Powerful tools for browsing, terminal access, screenshots, and more
+- **Workflow Engine**: Define and automate complex workflows
+- **Event System**: Reactive architecture with publish-subscribe pattern
+
+## System Requirements
+
+- Python 3.9+
+- PySide6
+- Mac Studio M1 Max 32GB (optimized for)
+- macOS Sequoia (optimized for)
+
+## Installation
+
+```bash
+# Create a virtual environment
+pyenv virtualenv 3.9.20 atlas
+pyenv activate atlas
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+python main.py
+```
+
+## Architecture
+
+Atlas is built with a modular architecture centered around these core components:
+
+- **AtlasApplication**: Central application class managing all components
+- **EventBus**: Publish-subscribe system for loosely coupled communication
+- **ModuleRegistry**: Registry of all loaded modules
+- **PluginSystem**: System for discovering, loading, and managing plugins
+- **ToolManager**: System for registering and executing tools
+- **SelfHealingSystem**: System for automatic recovery from errors
+
+UI components are built exclusively with PySide6 and follow a consistent cyberpunk theme.
+
+## Development
+
+Atlas follows these development practices:
+
+- **Testing**: Comprehensive unit tests for all core components
+- **Performance**: Regular performance benchmarking and optimization
+- **Documentation**: Detailed docstrings and module documentation
+- **Error Handling**: Robust error handling and reporting via Sentry
+
+## Extending Atlas
+
+### Creating Plugins
+
+Plugins should be created as Python packages with these required components:
+
+```python
+# myplugin/__init__.py
+def activate():
+    """Called when the plugin is activated."""
+    print("Plugin activated!")
+
+def deactivate():
+    """Called when the plugin is deactivated."""
+    print("Plugin deactivated!")
+```
+
+### Creating Tools
+
+Tools are classes that extend the BaseTool class:
+
+```python
+from tools.base_tool import BaseTool
+
+class MyTool(BaseTool):
+    TOOL_NAME = "my_tool"
+
+    def __init__(self, event_bus):
+        super().__init__(event_bus)
+
+    def initialize(self):
+        """Initialize the tool."""
+        pass
+
+    async def execute(self, **kwargs):
+        """Execute the tool."""
+        return {"result": "Tool executed!"}
+
+    def shutdown(self):
+        """Clean up resources."""
+        pass
+```
+
+## License
+
+Proprietary - All rights reserved
+
+## Contact
+
+For questions or support, please contact the development team.
 ## Key Features
 - PySide6 + qdarkstyle (dark cyberpunk interface)
 - Modular architecture: Chat, Tasks, Agents, Plugins, Settings, Stats
@@ -158,6 +265,39 @@ As part of Phase 10, the project structure has been updated:
 - Merged `/ui` and `/ui_qt` into a single `/ui` directory.
 - Removed unused directories like `/archive`, `/plans`, `/models`, `/context_data`, `/CascadeProjects`, and `/~`.
 - Clarification of `/app` vs root directory responsibilities is ongoing.
+
+---
+
+## 🔧 Code Quality & Автоматична Перевірка
+
+### Обов'язково для розробників та ШІ агентів:
+```bash
+# ЗАВЖДИ запускати після змін у коді:
+./activate_auto_coding_2.1.sh
+```
+
+**Особливості системи автоматичної перевірки:**
+- ⚡ **Швидкість**: <5 секунд (було зависання)
+- 🛡️ **Захист**: Автоматичне виправлення синтаксичних помилок
+- 📊 **Прогрес**: Чіткі індикатори стану
+- 🎯 **Пріоритети**: Обробка найважливіших файлів першими
+
+### Для ШІ агентів Windsurf:
+- 📋 **Протокол**: `AI_CODE_QUALITY_PROTOCOL.md`
+- 🔧 **Команди**: `WINDSURF_COMMANDS.md` → розділ "Code Quality"
+- 📖 **Звіт**: `AUTO_CODING_PROBLEM_RESOLUTION.md`
+
+### Швидкі команди:
+```bash
+# Виправлення критичних помилок
+python3 scripts/quick_syntax_fix.py
+
+# Поліпшення коду
+python3 scripts/improved_atlas_code_fixer.py
+
+# Перевірка статистики
+ruff check --statistics .
+```
 
 ---
 

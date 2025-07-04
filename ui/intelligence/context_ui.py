@@ -6,7 +6,7 @@ from core.intelligence.context_engine import ContextEngine
 class ContextUI(QWidget):
     """UI component for displaying and interacting with context data."""
 
-    def __init__(self, context_engine: ContextEngine, parent: QWidget | None = None):
+    def __init__(self, context_engine: ContextEngine, parent=None):
         super().__init__(parent)
         self.context_engine = context_engine
         self.init_ui()

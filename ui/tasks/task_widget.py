@@ -214,14 +214,22 @@ class TaskWidget(QWidget):
 
     def delete_task(self, task_name):
         """Delete a task from the table."""
-        confirm = QMessageBox.question(
-            self,
-            "Confirm Deletion",
-            f"Are you sure you want to delete task {task_name}?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
-        )
-        if confirm == QMessageBox.Yes:
+        yes_button = QMessageBox.StandardButton.Yes
+        no_button = QMessageBox.StandardButton.No
+        if yes_button is not None and no_button is not None:
+            confirm = QMessageBox.question(
+                self,
+                "Confirm Deletion",
+                f"Are you sure you want to delete task {task_name}?",
+                buttons=yes_button | no_button,
+            )
+        else:
+            confirm = QMessageBox.question(
+                self,
+                "Confirm Deletion",
+                f"Are you sure you want to delete task {task_name}?",
+            )
+        if confirm == QMessageBox.StandardButton.Yes:
             for row in range(self.task_table.rowCount()):
                 if self.task_table.item(row, 0).text() == task_name:
                     self.task_table.removeRow(row)

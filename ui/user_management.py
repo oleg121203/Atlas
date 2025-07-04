@@ -134,13 +134,21 @@ class UserManagement(QWidget):
 
     def delete_user(self, username):
         """Delete a user from the table."""
-        confirm = QMessageBox.question(
-            self,
-            "Confirm Deletion",
-            f"Are you sure you want to delete user {username}?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
-        )
+        yes_button = QMessageBox.StandardButton.Yes
+        no_button = QMessageBox.StandardButton.No
+        if yes_button is not None and no_button is not None:
+            confirm = QMessageBox.question(
+                self,
+                "Confirm Deletion",
+                f"Are you sure you want to delete user {username}?",
+                buttons=yes_button | no_button,
+            )
+        else:
+            confirm = QMessageBox.question(
+                self,
+                "Confirm Deletion",
+                f"Are you sure you want to delete user {username}?",
+            )
         if confirm == QMessageBox.Yes:
             for row in range(self.user_table.rowCount()):
                 if self.user_table.item(row, 0).text() == username:

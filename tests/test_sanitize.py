@@ -1,10 +1,9 @@
 from core.sanitize import sanitize_input, sanitize_output
-from ui.input_validation import sanitize_ui_input
 
 
 def test_sanitize_removes_script():
     input_text = "<script>alert('hello')</script>"
-    sanitized = sanitize_ui_input(input_text)
+    sanitized = sanitize_input(input_text)
     assert "<script>" not in sanitized
     assert "</script>" not in sanitized
     # Check that the script content is not executable, i.e., it should be escaped or removed
@@ -15,16 +14,16 @@ def test_sanitize_removes_script():
 def test_sanitize_html():
     """Test that HTML tags are properly escaped."""
     dirty = "<p>Hello</p>"
-    clean = sanitize_ui_input(dirty)
-    assert "<p>" in clean or "&lt;p&gt;" in clean or "&amp;lt;p&amp;gt;" in clean
-    assert "</p>" in clean or "&lt;/p&gt;" in clean or "&amp;lt;/p&amp;gt;" in clean
+    clean = sanitize_input(dirty)
+    assert "<p>" not in clean or "&lt;p&gt;" in clean or "&amp;lt;p&amp;gt;" in clean
+    assert "</p>" not in clean or "&lt;/p&gt;" in clean or "&amp;lt;/p&amp;gt;" in clean
     assert "Hello" in clean
 
 
 def test_sanitize_special_chars():
     """Test that special characters are properly escaped."""
     input_text = "hello & < > \" ' /"
-    sanitized = sanitize_ui_input(input_text)
+    sanitized = sanitize_input(input_text)
     assert (
         "&amp;" in sanitized
         or "&quot;" in sanitized
@@ -35,7 +34,7 @@ def test_sanitize_special_chars():
 
 def test_sanitize_plain_text():
     text = "just a normal string!"
-    assert sanitize_ui_input(text) == text
+    assert sanitize_input(text) == text
 
 
 import unittest

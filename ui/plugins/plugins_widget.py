@@ -24,7 +24,7 @@ logger = get_logger("PluginsWidget")
 class PluginsWidget(QWidget):
     """Plugin management interface widget for Atlas."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super().__init__(parent)
         self.init_ui()
         logger.info("Plugins widget initialized")

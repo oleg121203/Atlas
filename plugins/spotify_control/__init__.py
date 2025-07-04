@@ -341,11 +341,11 @@ class SpotifyControlPlugin(PluginBase):
 
         # This is a simplified implementation
         # In a full implementation, you would use the Spotify Web API
-        script = f'''
+        script = f"""
         tell application "Spotify"
             play track "{query}"
         end tell
-        '''
+        """
 
         result = await self._run_applescript(script)
 

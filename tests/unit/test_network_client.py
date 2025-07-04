@@ -1,374 +1,297 @@
+"""
+Tests for the NetworkClient class in core/network_client.py
+"""
+
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-try:
-    import core.network_client
-except ImportError:
-    # Mock network_client if not available
-    class MockNetworkClient:
-        @staticmethod
-        def send_request(method, url, data=None, headers=None, timeout=None):
-            return {"status": 200, "data": "mock_response"}
-
-        @staticmethod
-        def check_connectivity():
-            return True
-
-        @staticmethod
-        def handle_response(response):
-            return {"processed": True, "data": response.get("data", "")}
-
-        @staticmethod
-        def retry_request(
-            method, url, max_retries=3, data=None, headers=None, timeout=None
-        ):
-            return {"status": 200, "data": "mock_retry_response"}
-
-        @staticmethod
-        def set_timeout(timeout):
-            pass
-
-        @staticmethod
-        def configure_proxy(proxy_settings):
-            pass
-
-    core = type("core", (), {"network_client": MockNetworkClient()})
+from core.network_client import NetworkClient
 
 
 class TestNetworkClient(unittest.TestCase):
+    """Test cases for the NetworkClient class."""
+
     def setUp(self):
-        """Set up test fixtures before each test method."""
-        self.network_client = core.network_client
+        """Set up test fixtures."""
+        # Patch the required functions and classes
+        self.mock_configure_session = patch(
+            "core.network_client.configure_secure_session"
+        ).start()
+        self.mock_make_secure_request = patch(
+            "core.network_client.make_secure_request"
+        ).start()
+        self.mock_validate_ssl = patch(
+            "core.network_client.validate_ssl_certificate"
+        ).start()
+        self.mock_logger = patch("core.network_client.logger").start()
+        self.mock_requests = patch("core.network_client.requests").start()
 
-    def test_send_request(self):
-        """Test sending a network request."""
-        try:
-            with patch("core.network_client.send_request") as mock_send:
-                mock_send.return_value = {"status": 200, "data": "response"}
-                result = self.network_client.send_request("GET", "https://example.com")
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 200)
-                mock_send.assert_called_once_with("GET", "https://example.com")
-        except AttributeError:
-            self.skipTest("send_request function not found in core.network_client")
+        # Create a mock session
+        self.mock_session = MagicMock()
+        self.mock_configure_session.return_value = self.mock_session
 
-    def test_send_request_with_data(self):
-        """Test sending a network request with data."""
-        try:
-            with patch("core.network_client.send_request") as mock_send:
-                mock_send.return_value = {"status": 201, "data": "created"}
-                test_data = {"key": "value"}
-                result = self.network_client.send_request(
-                    "POST", "https://example.com", data=test_data
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 201)
-                mock_send.assert_called_once_with(
-                    "POST", "https://example.com", data=test_data
-                )
-        except AttributeError:
-            self.skipTest("send_request function not found in core.network_client")
+        # Create a mock response
+        self.mock_response = MagicMock()
+        self.mock_response.status_code = 200
+        self.mock_response.text = "Test response"
+        self.mock_make_secure_request.return_value = self.mock_response
+        self.mock_validate_ssl.return_value = (True, "Valid certificate")
 
-    def test_send_request_with_headers(self):
-        """Test sending a network request with custom headers."""
-        try:
-            with patch("core.network_client.send_request") as mock_send:
-                mock_send.return_value = {
-                    "status": 200,
-                    "data": "response with headers",
-                }
-                test_headers = {"Authorization": "Bearer token"}
-                result = self.network_client.send_request(
-                    "GET", "https://example.com", headers=test_headers
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 200)
-                mock_send.assert_called_once_with(
-                    "GET", "https://example.com", headers=test_headers
-                )
-        except AttributeError:
-            self.skipTest("send_request function not found in core.network_client")
+        # Create the client instance
+        self.client = NetworkClient()
 
-    def test_send_request_with_timeout(self):
-        """Test sending a network request with a timeout."""
-        try:
-            with patch("core.network_client.send_request") as mock_send:
-                mock_send.return_value = {
-                    "status": 200,
-                    "data": "response with timeout",
-                }
-                result = self.network_client.send_request(
-                    "GET", "https://example.com", timeout=5
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 200)
-                mock_send.assert_called_once_with(
-                    "GET", "https://example.com", timeout=5
-                )
-        except AttributeError:
-            self.skipTest("send_request function not found in core.network_client")
+        # Set up the mock session to return our mock response
+        self.mock_session.request.return_value = self.mock_response
 
-    def test_send_request_error(self):
-        """Test sending a network request that results in an error."""
-        try:
-            with patch("core.network_client.send_request") as mock_send:
-                mock_send.return_value = {"status": 500, "data": "server error"}
-                result = self.network_client.send_request("GET", "https://example.com")
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 500)
-                mock_send.assert_called_once_with("GET", "https://example.com")
-        except AttributeError:
-            self.skipTest("send_request function not found in core.network_client")
+        self.ssl_patcher = patch("core.network_client.validate_ssl_certificate")
+        self.mock_validate_ssl = self.ssl_patcher.start()
+        self.mock_validate_ssl.return_value = (True, "Valid certificate")
 
-    def test_send_request_invalid_url(self):
-        """Test sending a network request with an invalid URL."""
-        try:
-            with patch("core.network_client.send_request") as mock_send:
-                mock_send.return_value = {"status": 400, "data": "invalid url"}
-                result = self.network_client.send_request("GET", "invalid_url")
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 400)
-                mock_send.assert_called_once_with("GET", "invalid_url")
-        except AttributeError:
-            self.skipTest("send_request function not found in core.network_client")
+        # Mock make_secure_request
+        self.secure_req_patcher = patch("core.network_client.make_secure_request")
+        self.mock_make_secure_request = self.secure_req_patcher.start()
+        self.mock_make_secure_request.return_value = self.mock_response
 
-    def test_send_request_empty_method(self):
-        """Test sending a network request with an empty method."""
-        try:
-            with patch("core.network_client.send_request") as mock_send:
-                mock_send.return_value = {"status": 400, "data": "invalid method"}
-                result = self.network_client.send_request("", "https://example.com")
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 400)
-                mock_send.assert_called_once_with("", "https://example.com")
-        except AttributeError:
-            self.skipTest("send_request function not found in core.network_client")
+    def tearDown(self):
+        """Clean up after each test method."""
+        patch.stopall()  # Stop all active patches
 
-    def test_check_connectivity(self):
-        """Test checking network connectivity."""
-        try:
-            with patch("core.network_client.check_connectivity") as mock_check:
-                mock_check.return_value = True
-                result = self.network_client.check_connectivity()
-                self.assertTrue(result)
-                mock_check.assert_called_once()
-        except AttributeError:
-            self.skipTest(
-                "check_connectivity function not found in core.network_client"
-            )
+    def test_init_creates_secure_session(self):
+        """Test that __init__ creates a secure session."""
+        # Reset the mock to clear any previous calls
+        self.mock_configure_session.reset_mock()
+        self.mock_logger.reset_mock()
 
-    def test_check_connectivity_failure(self):
-        """Test checking network connectivity failure."""
-        try:
-            with patch("core.network_client.check_connectivity") as mock_check:
-                mock_check.return_value = False
-                result = self.network_client.check_connectivity()
-                self.assertFalse(result)
-                mock_check.assert_called_once()
-        except AttributeError:
-            self.skipTest(
-                "check_connectivity function not found in core.network_client"
-            )
+        # Create a new instance to trigger __init__
+        _ = NetworkClient()  # Store in _ to indicate we're intentionally not using it
 
-    def test_handle_response(self):
-        """Test handling a network response."""
-        try:
-            with patch("core.network_client.handle_response") as mock_handle:
-                mock_handle.return_value = {
-                    "processed": True,
-                    "data": "handled_response",
-                }
-                test_response = {"status": 200, "data": "raw_response"}
-                result = self.network_client.handle_response(test_response)
-                self.assertIsInstance(result, dict)
-                self.assertTrue(result["processed"])
-                mock_handle.assert_called_once_with(test_response)
-        except AttributeError:
-            self.skipTest("handle_response function not found in core.network_client")
+        # Verify the session was configured and logged
+        self.mock_configure_session.assert_called_once()
+        self.mock_logger.info.assert_called_with(
+            "Network client initialized with secure session"
+        )
 
-    def test_handle_response_error_status(self):
-        """Test handling a network response with error status."""
-        try:
-            with patch("core.network_client.handle_response") as mock_handle:
-                mock_handle.return_value = {
-                    "processed": False,
-                    "data": "error_response",
-                }
-                test_response = {"status": 404, "data": "not found"}
-                result = self.network_client.handle_response(test_response)
-                self.assertIsInstance(result, dict)
-                self.assertFalse(result["processed"])
-                mock_handle.assert_called_once_with(test_response)
-        except AttributeError:
-            self.skipTest("handle_response function not found in core.network_client")
+    def test_validate_url_success(self):
+        """Test URL validation with valid URL."""
+        test_url = "https://example.com"
+        self.client.validate_url(test_url)
+        self.mock_validate_ssl.assert_called_once_with(test_url, 10)
 
-    def test_handle_response_empty(self):
-        """Test handling an empty network response."""
-        try:
-            with patch("core.network_client.handle_response") as mock_handle:
-                mock_handle.return_value = {"processed": False, "data": ""}
-                test_response = {}
-                result = self.network_client.handle_response(test_response)
-                self.assertIsInstance(result, dict)
-                self.assertFalse(result["processed"])
-                mock_handle.assert_called_once_with(test_response)
-        except AttributeError:
-            self.skipTest("handle_response function not found in core.network_client")
+    def test_validate_url_with_custom_timeout(self):
+        """Test URL validation with custom timeout."""
+        test_url = "https://example.com"
+        custom_timeout = 30
+        self.client.validate_url(test_url, custom_timeout)
+        self.mock_validate_ssl.assert_called_once_with(test_url, custom_timeout)
 
-    def test_retry_request(self):
-        """Test retrying a network request."""
-        try:
-            with patch("core.network_client.retry_request") as mock_retry:
-                mock_retry.return_value = {"status": 200, "data": "retry_success"}
-                result = self.network_client.retry_request(
-                    "GET", "https://example.com", max_retries=3
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 200)
-                mock_retry.assert_called_once_with(
-                    "GET", "https://example.com", max_retries=3
-                )
-        except AttributeError:
-            self.skipTest("retry_request function not found in core.network_client")
+    def test_get_success(self):
+        """Test successful GET request."""
+        test_url = "https://example.com"
+        response = self.client.get(test_url)
 
-    def test_retry_request_with_data(self):
-        """Test retrying a network request with data."""
-        try:
-            with patch("core.network_client.retry_request") as mock_retry:
-                mock_retry.return_value = {"status": 201, "data": "retry_created"}
-                test_data = {"key": "value"}
-                result = self.network_client.retry_request(
-                    "POST", "https://example.com", max_retries=2, data=test_data
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 201)
-                mock_retry.assert_called_once_with(
-                    "POST", "https://example.com", max_retries=2, data=test_data
-                )
-        except AttributeError:
-            self.skipTest("retry_request function not found in core.network_client")
+        # Verify make_secure_request was called with correct arguments
+        self.mock_make_secure_request.assert_called_once()
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)
+        self.assertEqual(kwargs["method"], "GET")
+        self.assertEqual(kwargs.get("timeout"), 10)
+        self.assertEqual(response, self.mock_response)
 
-    def test_retry_request_with_headers(self):
-        """Test retrying a network request with headers."""
-        try:
-            with patch("core.network_client.retry_request") as mock_retry:
-                mock_retry.return_value = {
-                    "status": 200,
-                    "data": "retry_success_headers",
-                }
-                test_headers = {"Authorization": "Bearer token"}
-                result = self.network_client.retry_request(
-                    "GET", "https://example.com", max_retries=2, headers=test_headers
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 200)
-                mock_retry.assert_called_once_with(
-                    "GET", "https://example.com", max_retries=2, headers=test_headers
-                )
-        except AttributeError:
-            self.skipTest("retry_request function not found in core.network_client")
+    def test_get_with_ssl_validation_failure(self):
+        """Test GET request with SSL validation failure."""
+        test_url = "https://example.com"
+        self.mock_validate_ssl.return_value = (False, "Invalid certificate")
 
-    def test_retry_request_with_timeout(self):
-        """Test retrying a network request with timeout."""
-        try:
-            with patch("core.network_client.retry_request") as mock_retry:
-                mock_retry.return_value = {
-                    "status": 200,
-                    "data": "retry_success_timeout",
-                }
-                result = self.network_client.retry_request(
-                    "GET", "https://example.com", max_retries=2, timeout=10
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 200)
-                mock_retry.assert_called_once_with(
-                    "GET", "https://example.com", max_retries=2, timeout=10
-                )
-        except AttributeError:
-            self.skipTest("retry_request function not found in core.network_client")
+        response = self.client.get(test_url, validate_ssl=True)
 
-    def test_retry_request_failure(self):
-        """Test retrying a network request that ultimately fails."""
-        try:
-            with patch("core.network_client.retry_request") as mock_retry:
-                mock_retry.return_value = {"status": 503, "data": "service unavailable"}
-                result = self.network_client.retry_request(
-                    "GET", "https://example.com", max_retries=1
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 503)
-                mock_retry.assert_called_once_with(
-                    "GET", "https://example.com", max_retries=1
-                )
-        except AttributeError:
-            self.skipTest("retry_request function not found in core.network_client")
+        self.assertIsNone(response)
+        self.mock_validate_ssl.assert_called_once_with(test_url, 10)
+        self.mock_make_secure_request.assert_not_called()
 
-    def test_retry_request_invalid_max_retries(self):
-        """Test retrying a network request with invalid max_retries."""
-        try:
-            with patch("core.network_client.retry_request") as mock_retry:
-                mock_retry.return_value = {"status": 400, "data": "invalid retries"}
-                result = self.network_client.retry_request(
-                    "GET", "https://example.com", max_retries=-1
-                )
-                self.assertIsInstance(result, dict)
-                self.assertEqual(result["status"], 400)
-                mock_retry.assert_called_once_with(
-                    "GET", "https://example.com", max_retries=-1
-                )
-        except AttributeError:
-            self.skipTest("retry_request function not found in core.network_client")
+    def test_get_with_ssl_validation_disabled(self):
+        """Test GET request with SSL validation disabled."""
+        test_url = "https://example.com"
+        response = self.client.get(test_url, validate_ssl=False)
 
-    def test_set_timeout(self):
-        """Test setting timeout for network requests."""
-        try:
-            with patch("core.network_client.set_timeout") as mock_timeout:
-                self.network_client.set_timeout(10)
-                mock_timeout.assert_called_once_with(10)
-        except AttributeError:
-            self.skipTest("set_timeout function not found in core.network_client")
+        self.mock_validate_ssl.assert_not_called()
+        self.mock_make_secure_request.assert_called_once()
+        self.assertEqual(response, self.mock_response)
 
-    def test_set_timeout_invalid(self):
-        """Test setting an invalid timeout for network requests."""
-        try:
-            with patch("core.network_client.set_timeout") as mock_timeout:
-                self.network_client.set_timeout(-5)
-                mock_timeout.assert_called_once_with(-5)
-        except AttributeError:
-            self.skipTest("set_timeout function not found in core.network_client")
+    def test_post_success(self):
+        """Test successful POST request."""
+        test_url = "https://example.com"
+        test_data = {"key": "value"}
+        response = self.client.post(test_url, data=test_data)
 
-    def test_configure_proxy(self):
-        """Test configuring proxy settings for network requests."""
-        try:
-            with patch("core.network_client.configure_proxy") as mock_proxy:
-                proxy_settings = {
-                    "http": "http://proxy.com:8080",
-                    "https": "https://proxy.com:8080",
-                }
-                self.network_client.configure_proxy(proxy_settings)
-                mock_proxy.assert_called_once_with(proxy_settings)
-        except AttributeError:
-            self.skipTest("configure_proxy function not found in core.network_client")
+        # Verify make_secure_request was called with correct arguments
+        self.mock_make_secure_request.assert_called_once()
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)
+        self.assertEqual(kwargs["method"], "POST")
+        self.assertEqual(kwargs.get("data"), test_data)
+        self.assertEqual(kwargs.get("timeout"), 10)
+        self.assertEqual(response, self.mock_response)
 
-    def test_configure_proxy_empty(self):
-        """Test configuring empty proxy settings for network requests."""
-        try:
-            with patch("core.network_client.configure_proxy") as mock_proxy:
-                proxy_settings = {}
-                self.network_client.configure_proxy(proxy_settings)
-                mock_proxy.assert_called_once_with(proxy_settings)
-        except AttributeError:
-            self.skipTest("configure_proxy function not found in core.network_client")
+    def test_request_success(self):
+        """Test successful generic request."""
+        test_url = "https://example.com"
+        test_data = {"key": "value"}
+        test_headers = {"Content-Type": "application/json"}
 
-    def test_configure_proxy_invalid(self):
-        """Test configuring invalid proxy settings for network requests."""
-        try:
-            with patch("core.network_client.configure_proxy") as mock_proxy:
-                proxy_settings = {"invalid_key": "invalid_value"}
-                self.network_client.configure_proxy(proxy_settings)
-                mock_proxy.assert_called_once_with(proxy_settings)
-        except AttributeError:
-            self.skipTest("configure_proxy function not found in core.network_client")
+        response = self.client.request(
+            "PUT", test_url, data=test_data, headers=test_headers, timeout=30
+        )
+
+        # Verify make_secure_request was called with correct arguments
+        self.mock_make_secure_request.assert_called_once()
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)
+        self.assertEqual(kwargs["method"], "PUT")
+        self.assertEqual(kwargs.get("data"), test_data)
+        self.assertEqual(kwargs.get("headers"), test_headers)
+        self.assertEqual(kwargs.get("timeout"), 30)
+        self.assertEqual(response, self.mock_response)
+
+    def test_request_with_ssl_error(self):
+        """Test handling of SSL errors."""
+        test_url = "https://example.com"
+        # Configure the mock to raise an SSL error
+        self.mock_validate_ssl.return_value = (
+            False,
+            "SSL certificate verification failed",
+        )
+
+        response = self.client.get(test_url)
+
+        self.assertIsNone(response)
+        # Verify the error was logged
+        self.mock_logger.error.assert_called_with(
+            "SSL validation failed for GET request to %s: %s",
+            test_url,
+            "SSL certificate verification failed",
+        )
+
+    def test_request_with_timeout(self):
+        """Test handling of request timeouts."""
+        test_url = "https://example.com"
+        # Configure the mock to return None to simulate a timeout
+        self.mock_make_secure_request.return_value = None
+        # Make the request
+        response = self.client.get(test_url)
+        # Verify the response is None
+        self.assertIsNone(response)
+        # Verify make_secure_request was called with the correct arguments
+        self.mock_make_secure_request.assert_called_once()
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)  # First positional argument is URL
+        self.assertEqual(kwargs["method"], "GET")
+        self.assertEqual(kwargs["timeout"], 10)
+
+    def test_request_with_generic_exception(self):
+        """Test handling of generic exceptions."""
+        test_url = "https://example.com"
+        # Configure the mock to return None to simulate a generic error
+        self.mock_make_secure_request.return_value = None
+        # Make the request
+        response = self.client.get(test_url)
+        # Verify the response is None
+        self.assertIsNone(response)
+        # Verify make_secure_request was called with the correct arguments
+        self.mock_make_secure_request.assert_called_once()
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)  # First positional argument is URL
+        self.assertEqual(kwargs["method"], "GET")
+        self.assertEqual(kwargs["timeout"], 10)
+
+    def test_close(self):
+        """Test closing the network client."""
+        self.client.close()
+        self.mock_session.close.assert_called_once()
+
+    def test_post_request(self):
+        """Test making a POST request."""
+        test_url = "https://example.com/api"
+        test_data = {"key": "value"}
+        test_headers = {"Content-Type": "application/json"}
+
+        # Configure the mock to return a successful response
+        self.mock_make_secure_request.return_value = self.mock_response
+
+        # Make the POST request
+        response = self.client.post(test_url, data=test_data, headers=test_headers)
+
+        # Verify the response
+        self.assertEqual(response, self.mock_response)
+        # Verify the call was made with the correct arguments
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)  # First positional arg is URL
+        self.assertEqual(kwargs["method"], "POST")
+        self.assertEqual(kwargs["data"], test_data)
+        self.assertEqual(kwargs["headers"], test_headers)
+        self.assertEqual(kwargs["timeout"], 10)
+
+    def test_validate_url(self):
+        """Test URL validation."""
+        # Test with a valid URL
+        is_valid, message = self.client.validate_url("https://example.com")
+        self.assertTrue(is_valid)
+        # Check that validate_ssl_certificate was called with correct arguments
+        args, kwargs = self.mock_validate_ssl.call_args
+        self.assertEqual(args[0], "https://example.com")
+        self.assertEqual(args[1], 10)  # Default timeout
+
+        # Test with a different timeout
+        self.mock_validate_ssl.reset_mock()
+        self.client.validate_url("https://example.com", timeout=5)
+        args, kwargs = self.mock_validate_ssl.call_args
+        self.assertEqual(args[0], "https://example.com")
+        self.assertEqual(args[1], 5)  # Custom timeout
+
+    def test_request_with_custom_timeout(self):
+        """Test making a request with a custom timeout."""
+        test_url = "https://example.com"
+        self.mock_make_secure_request.return_value = self.mock_response
+
+        response = self.client.get(test_url, timeout=15)
+
+        self.assertEqual(response, self.mock_response)
+        # Verify the call was made with the correct arguments
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)
+        self.assertEqual(kwargs["method"], "GET")
+        self.assertEqual(kwargs["timeout"], 15)
+
+    def test_request_with_ssl_verification_disabled(self):
+        """Test making a request with SSL verification disabled."""
+        test_url = "https://example.com"
+        self.mock_make_secure_request.return_value = self.mock_response
+
+        response = self.client.get(test_url, validate_ssl=False)
+
+        self.assertEqual(response, self.mock_response)
+        # Should skip validation
+        self.mock_validate_ssl.assert_not_called()
+        # Verify the call was made with the correct arguments
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)
+        self.assertEqual(kwargs["method"], "GET")
+        self.assertEqual(kwargs["timeout"], 10)
+
+    def test_request_with_custom_headers(self):
+        """Test making a request with custom headers."""
+        test_url = "https://example.com"
+        test_headers = {"Authorization": "Bearer token"}
+        self.mock_make_secure_request.return_value = self.mock_response
+
+        response = self.client.get(test_url, headers=test_headers)
+
+        self.assertEqual(response, self.mock_response)
+        # Verify the call was made with the correct arguments
+        args, kwargs = self.mock_make_secure_request.call_args
+        self.assertEqual(args[0], test_url)
+        self.assertEqual(kwargs["method"], "GET")
+        self.assertEqual(kwargs["headers"], test_headers)
+        self.assertEqual(kwargs["timeout"], 10)
 
 
 if __name__ == "__main__":

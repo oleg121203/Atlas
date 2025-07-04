@@ -1,6 +1,196 @@
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
+from core.accessibility_compliance import AccessibilityCompliance
+
+
+class TestAccessibilityCompliance(unittest.TestCase):
+    """Tests for the AccessibilityCompliance class."""
+
+    def setUp(self):
+        """Set up test environment before each test."""
+        self.compliance = AccessibilityCompliance()
+
+    def test_check_ui_element(self):
+        """Test checking a UI element for accessibility compliance."""
+        # Create a mock UI element
+        mock_element = MagicMock()
+        mock_element.objectName.return_value = "test_button"
+        mock_element.toolTip.return_value = "Test tooltip"
+        mock_element.isEnabled.return_value = True
+        mock_element.isVisible.return_value = True
+
+        # Check the element
+        result = self.compliance.check_ui_element(mock_element)
+
+        # Verify result is a dictionary with expected keys
+        self.assertIsInstance(result, dict)
+        self.assertIn("name", result)
+        self.assertIn("tooltip", result)
+        self.assertIn("enabled", result)
+        self.assertIn("visible", result)
+        self.assertIn("compliance_level", result)
+
+        # Verify values
+        self.assertEqual(result["name"], "test_button")
+        self.assertEqual(result["tooltip"], "Test tooltip")
+        self.assertTrue(result["enabled"])
+        self.assertTrue(result["visible"])
+
+    def test_check_ui_element_no_tooltip(self):
+        """Test checking a UI element without a tooltip."""
+        # Create a mock UI element without a tooltip
+        mock_element = MagicMock()
+        mock_element.objectName.return_value = "test_button"
+        mock_element.toolTip.return_value = ""
+        mock_element.isEnabled.return_value = True
+        mock_element.isVisible.return_value = True
+
+        # Check the element
+        result = self.compliance.check_ui_element(mock_element)
+
+        # Verify compliance level is lower due to missing tooltip
+        self.assertLess(result["compliance_level"], 100)
+        self.assertIn("tooltip", result["issues"])
+
+    def test_check_ui_element_disabled(self):
+        """Test checking a disabled UI element."""
+        # Create a mock disabled UI element
+        mock_element = MagicMock()
+        mock_element.objectName.return_value = "test_button"
+        mock_element.toolTip.return_value = "Test tooltip"
+        mock_element.isEnabled.return_value = False
+        mock_element.isVisible.return_value = True
+
+        # Check the element
+        result = self.compliance.check_ui_element(mock_element)
+
+        # Verify disabled state is correctly reported
+        self.assertFalse(result["enabled"])
+        # Disabled elements should still be compliant if they have proper metadata
+        self.assertGreaterEqual(result["compliance_level"], 80)
+
+    def test_check_ui_element_invisible(self):
+        """Test checking an invisible UI element."""
+        # Create a mock invisible UI element
+        mock_element = MagicMock()
+        mock_element.objectName.return_value = "test_button"
+        mock_element.toolTip.return_value = "Test tooltip"
+        mock_element.isEnabled.return_value = True
+        mock_element.isVisible.return_value = False
+
+        # Check the element
+        result = self.compliance.check_ui_element(mock_element)
+
+        # Verify invisible state is correctly reported
+        self.assertFalse(result["visible"])
+
+    def test_check_application_accessibility(self):
+        """Test checking application-wide accessibility."""
+        # Create a mock application with a mock window
+        mock_app = MagicMock()
+        mock_window = MagicMock()
+        mock_app.activeWindow.return_value = mock_window
+
+        # Create a mock widget tree
+        mock_button = MagicMock()
+        mock_button.objectName.return_value = "test_button"
+        mock_button.toolTip.return_value = "Test tooltip"
+        mock_button.isEnabled.return_value = True
+        mock_button.isVisible.return_value = True
+
+        mock_label = MagicMock()
+        mock_label.objectName.return_value = "test_label"
+        mock_label.toolTip.return_value = ""
+        mock_label.isEnabled.return_value = True
+        mock_label.isVisible.return_value = True
+
+        # Set up the widget tree
+        mock_window.findChildren.return_value = [mock_button, mock_label]
+
+        # Check application accessibility
+        with patch.object(self.compliance, "check_ui_element") as mock_check:
+            mock_check.side_effect = [
+                {"compliance_level": 100, "issues": []},
+                {"compliance_level": 80, "issues": ["missing tooltip"]},
+            ]
+
+            result = self.compliance.check_application_accessibility(mock_app)
+
+            # Verify result is a dictionary with expected keys
+            self.assertIsInstance(result, dict)
+            self.assertIn("overall_compliance", result)
+            self.assertIn("elements_checked", result)
+            self.assertIn("issues_found", result)
+            self.assertIn("elements", result)
+
+            # Verify values
+            self.assertEqual(result["elements_checked"], 2)
+            self.assertEqual(result["issues_found"], 1)
+            self.assertEqual(len(result["elements"]), 2)
+
+    def test_check_application_accessibility_multiple_windows(self):
+        """Test checking accessibility with multiple windows."""
+        # Create a mock application with multiple windows
+        mock_app = MagicMock()
+        mock_window1 = MagicMock()
+        mock_window2 = MagicMock()
+        mock_app.topLevelWidgets.return_value = [mock_window1, mock_window2]
+
+        # Set up widget trees
+        mock_button1 = MagicMock()
+        mock_button1.objectName.return_value = "button1"
+        mock_window1.findChildren.return_value = [mock_button1]
+
+        mock_button2 = MagicMock()
+        mock_button2.objectName.return_value = "button2"
+        mock_window2.findChildren.return_value = [mock_button2]
+
+        # Check application accessibility
+        with patch.object(self.compliance, "check_ui_element") as mock_check:
+            mock_check.side_effect = [
+                {"compliance_level": 100, "issues": []},
+                {"compliance_level": 90, "issues": ["minor issue"]},
+            ]
+
+            result = self.compliance.check_application_accessibility(
+                mock_app, all_windows=True
+            )
+
+            # Verify both windows were checked
+            self.assertEqual(result["elements_checked"], 2)
+            self.assertEqual(result["issues_found"], 1)
+            self.assertEqual(len(result["elements"]), 2)
+
+    def test_get_compliance_guidelines(self):
+        """Test getting accessibility compliance guidelines."""
+        guidelines = self.compliance.get_compliance_guidelines()
+
+        # Verify guidelines is a dictionary with expected keys
+        self.assertIsInstance(guidelines, dict)
+        self.assertIn("tooltip", guidelines)
+        self.assertIn("color_contrast", guidelines)
+        self.assertIn("keyboard_navigation", guidelines)
+        self.assertIn("screen_reader", guidelines)
+
+    @unittest.skip("Method not implemented yet")
+    def test_validate_color_contrast(self):
+        """Test validating color contrast for accessibility."""
+        pass
+
+    @unittest.skip("Method not implemented yet")
+    def test_check_keyboard_navigation(self):
+        """Test checking keyboard navigation for accessibility."""
+        pass
+
+    @unittest.skip("Method not implemented yet")
+    def test_validate_aria_attributes(self):
+        """Test validating ARIA attributes for accessibility."""
+        pass
+
+
+if __name__ == "__main__":
+    unittest.main()
 import core.accessibility_compliance
 
 

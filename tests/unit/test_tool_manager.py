@@ -1,7 +1,220 @@
+import asyncio
 import unittest
 import unittest.mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
+from core.event_bus import EventBus
+
+
+class TestToolManager(unittest.TestCase):
+    """Tests for the ToolManager class."""
+
+    def setUp(self):
+        """Set up test environment before each test."""
+        self.event_bus = EventBus()
+        # Import here to avoid circular import issues
+        from tools.tool_manager import ToolManager
+
+        self.tool_manager = ToolManager(self.event_bus)
+
+    def test_initialization(self):
+        """Test that ToolManager initializes correctly."""
+        self.assertEqual(self.tool_manager.event_bus, self.event_bus)
+        self.assertIsInstance(self.tool_manager.tools, dict)
+        self.assertIsInstance(self.tool_manager.tool_classes, dict)
+
+    def test_register_tool_class(self):
+        """Test registering a tool class."""
+        # Create a mock tool class
+        mock_tool_class = MagicMock()
+        mock_tool_class.TOOL_NAME = "test_tool"
+
+        # Register the tool class
+        self.tool_manager.register_tool_class(mock_tool_class)
+
+        # Verify tool class was registered
+        self.assertIn("test_tool", self.tool_manager.tool_classes)
+        self.assertEqual(self.tool_manager.tool_classes["test_tool"], mock_tool_class)
+
+    def test_register_duplicate_tool_class(self):
+        """Test registering a duplicate tool class."""
+        # Create mock tool classes with the same name
+        mock_tool_class1 = MagicMock()
+        mock_tool_class1.TOOL_NAME = "test_tool"
+        mock_tool_class2 = MagicMock()
+        mock_tool_class2.TOOL_NAME = "test_tool"
+
+        # Register the first tool class
+        self.tool_manager.register_tool_class(mock_tool_class1)
+
+        # Register the second tool class (should override the first)
+        self.tool_manager.register_tool_class(mock_tool_class2)
+
+        # Verify the second tool class was registered
+        self.assertEqual(self.tool_manager.tool_classes["test_tool"], mock_tool_class2)
+
+    def test_load_tool(self):
+        """Test loading a tool."""
+        # Create a mock tool class and instance
+        mock_tool_class = MagicMock()
+        mock_tool_class.TOOL_NAME = "test_tool"
+        mock_tool_instance = MagicMock()
+        mock_tool_class.return_value = mock_tool_instance
+
+        # Register the tool class
+        self.tool_manager.register_tool_class(mock_tool_class)
+
+        # Load the tool
+        result = self.tool_manager.load_tool("test_tool")
+
+        # Verify tool was loaded
+        self.assertTrue(result)
+        self.assertIn("test_tool", self.tool_manager.tools)
+        self.assertEqual(self.tool_manager.tools["test_tool"], mock_tool_instance)
+
+        # Verify tool instance was initialized
+        mock_tool_instance.initialize.assert_called_once()
+
+    def test_load_nonexistent_tool(self):
+        """Test loading a tool that doesn't exist."""
+        # Try to load a nonexistent tool
+        result = self.tool_manager.load_tool("nonexistent_tool")
+
+        # Verify tool was not loaded
+        self.assertFalse(result)
+        self.assertNotIn("nonexistent_tool", self.tool_manager.tools)
+
+    def test_unload_tool(self):
+        """Test unloading a tool."""
+        # Create a mock tool instance
+        mock_tool = MagicMock()
+        self.tool_manager.tools["test_tool"] = mock_tool
+
+        # Unload the tool
+        self.tool_manager.unload_tool("test_tool")
+
+        # Verify tool was unloaded
+        self.assertNotIn("test_tool", self.tool_manager.tools)
+        mock_tool.shutdown.assert_called_once()
+
+    def test_unload_nonexistent_tool(self):
+        """Test unloading a tool that doesn't exist."""
+        # Should not raise an exception
+        self.tool_manager.unload_tool("nonexistent_tool")
+
+    def test_get_tool(self):
+        """Test getting a tool."""
+        # Create a mock tool instance
+        mock_tool = MagicMock()
+        self.tool_manager.tools["test_tool"] = mock_tool
+
+        # Get the tool
+        tool = self.tool_manager.get_tool("test_tool")
+
+        # Verify correct tool was returned
+        self.assertEqual(tool, mock_tool)
+
+    def test_get_nonexistent_tool(self):
+        """Test getting a tool that doesn't exist."""
+        tool = self.tool_manager.get_tool("nonexistent_tool")
+        self.assertIsNone(tool)
+
+    def test_get_all_tools(self):
+        """Test getting all tools."""
+        # Add some mock tools
+        self.tool_manager.tools = {"tool1": MagicMock(), "tool2": MagicMock()}
+
+        # Get all tools
+        tools = self.tool_manager.get_all_tools()
+
+        # Verify all tools were returned
+        self.assertEqual(len(tools), 2)
+        self.assertIn("tool1", tools)
+        self.assertIn("tool2", tools)
+
+    def test_execute_tool(self):
+        """Test executing a tool."""
+        # Create a mock tool instance with a synchronous execute method
+        mock_tool = MagicMock()
+        mock_tool.execute = MagicMock(return_value="result")
+        self.tool_manager.tools["test_tool"] = mock_tool
+
+        # Execute the tool synchronously
+        result = asyncio.run(self.tool_manager.execute_tool("test_tool", arg1="value1"))
+
+        # Verify tool was executed with correct args
+        mock_tool.execute.assert_called_once_with(arg1="value1")
+        self.assertEqual(result, "result")
+
+    def test_execute_async_tool(self):
+        """Test executing a tool with an async execute method."""
+        # Create a mock tool instance with an asynchronous execute method
+        mock_tool = MagicMock()
+
+        async def mock_execute(**kwargs):
+            return "async_result"
+
+        mock_tool.execute = mock_execute
+        self.tool_manager.tools["test_tool"] = mock_tool
+
+        # Execute the tool asynchronously
+        result = asyncio.run(self.tool_manager.execute_tool("test_tool", arg1="value1"))
+
+        # Verify result
+        self.assertEqual(result, "async_result")
+
+    def test_execute_nonexistent_tool(self):
+        """Test executing a tool that doesn't exist."""
+        with self.assertRaises(ValueError):
+            asyncio.run(self.tool_manager.execute_tool("nonexistent_tool"))
+
+    def test_initialize_all_tools(self):
+        """Test initializing all tools."""
+        # Create mock tool classes
+        mock_tool_class1 = MagicMock()
+        mock_tool_class1.TOOL_NAME = "tool1"
+        mock_tool_instance1 = MagicMock()
+        mock_tool_class1.return_value = mock_tool_instance1
+
+        mock_tool_class2 = MagicMock()
+        mock_tool_class2.TOOL_NAME = "tool2"
+        mock_tool_instance2 = MagicMock()
+        mock_tool_class2.return_value = mock_tool_instance2
+
+        # Register the tool classes
+        self.tool_manager.tool_classes = {
+            "tool1": mock_tool_class1,
+            "tool2": mock_tool_class2,
+        }
+
+        # Initialize all tools
+        with patch.object(self.tool_manager, "load_tool") as mock_load:
+            mock_load.return_value = True
+            self.tool_manager.initialize_all_tools()
+
+            # Verify load_tool was called for each tool class
+            self.assertEqual(mock_load.call_count, 2)
+            mock_load.assert_any_call("tool1")
+            mock_load.assert_any_call("tool2")
+
+    def test_shutdown_all_tools(self):
+        """Test shutting down all tools."""
+        # Add some mock tools
+        mock_tool1 = MagicMock()
+        mock_tool2 = MagicMock()
+        self.tool_manager.tools = {"tool1": mock_tool1, "tool2": mock_tool2}
+
+        # Shutdown all tools
+        self.tool_manager.shutdown_all_tools()
+
+        # Verify all tools were shut down
+        mock_tool1.shutdown.assert_called_once()
+        mock_tool2.shutdown.assert_called_once()
+        self.assertEqual(len(self.tool_manager.tools), 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
 # Mock the core.tools module and its classes to avoid import errors
 core = unittest.mock.MagicMock()
 core.tools = unittest.mock.MagicMock()

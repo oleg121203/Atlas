@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QLabel, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
 class SelfImprovementUI(QWidget):
     """UI component for displaying and interacting with self-improvement engine data."""
 
-    def __init__(self, improvement_engine=None, parent: QWidget | None = None):
+    def __init__(self, improvement_engine=None, parent=None):
         super().__init__(parent)
         self.improvement_engine = improvement_engine
         self.init_ui()

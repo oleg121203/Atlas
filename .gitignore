@@ -3,6 +3,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Mock and test artifacts (CRITICAL - ignore MagicMock directory)
+MagicMock/
+*.mock
+*_mock.py
+test_mock_*
+
+# Chroma DB and vector databases
+chroma_db/
+*.chroma
+vector_db/
+
 # C extensions
 *.so
 
@@ -261,77 +272,49 @@ security-reports/
 dev-tools/temp/
 docs/api/
 
-# Atlas Development Tools
-htmlcov/
-.coverage
-coverage.xml
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-benchmark.json
-benchmark-main.json
-*-report.json
-trivy-results.sarif
+# Ignore broken files
+*.broken
 
-# Security and audit reports
-safety-report.json
-bandit-report.json
-security-reports/
+# Ignore duplicate __init__.py files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Windsurf sessions (local only)
-.windsurf/sessions/
-.windsurf/context/
+# Ignore backup directories
+/backup_archive/
+/backup_ui/
+/legacy-tests/
+/unused/
 
-# Development artifacts
-dev-tools/temp/
-docs/api/
+# Ignore profiling and test outputs
+/profiling_output/
+/test_temp_generated_tools/
+/performance_reports/
 
-# Atlas Development Tools
-htmlcov/
-.coverage
-coverage.xml
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-benchmark.json
-benchmark-main.json
-*-report.json
-trivy-results.sarif
+# Ignore environment files
+.python-version
+.env
+.env.local
+.env.development
+.env.test
+.env.production
 
-# Security and audit reports
-safety-report.json
-bandit-report.json
-security-reports/
+# Ignore macOS specific files
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# Windsurf sessions (local only)
-.windsurf/sessions/
-.windsurf/context/
+# Ignore Python build artifacts
+/build/
+/dist/
+/*.pyc
+/__pycache__/
+*.py[cod]
+*$py.class
 
-# Development artifacts
-dev-tools/temp/
-docs/api/
+# Ignore pytest cache
+/.pytest_cache/
 
-# Atlas Development Tools
-htmlcov/
-.coverage
-coverage.xml
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-benchmark.json
-benchmark-main.json
-*-report.json
-trivy-results.sarif
-
-# Security and audit reports
-safety-report.json
-bandit-report.json
-security-reports/
-
-# Windsurf sessions (local only)
-.windsurf/sessions/
-.windsurf/context/
-
-# Development artifacts
-dev-tools/temp/
-docs/api/
+# Ignore mypy cache
+/.mypy_cache/

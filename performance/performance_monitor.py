@@ -1,343 +1,290 @@
 """
-Performance Monitor Module
+Performance monitoring module for Atlas application.
 
-This module provides performance monitoring for the Atlas application.
+This module provides comprehensive monitoring of system performance metrics including CPU usage,
+memory consumption, response times, operations per second, active agents, queue size, and error rates.
+It integrates with the UI to display real-time performance data and supports optimization efforts.
 """
 
 import logging
+import threading
 import time
-import tracemalloc
 from typing import Any, Dict, List, Optional
 
-try:
-    import psutil
-
-    PSUTIL_AVAILABLE = True
-except ImportError:
-    PSUTIL_AVAILABLE = False
-
-try:
-    TRACEMALLOC_AVAILABLE = True
-except ImportError:
-    TRACEMALLOC_AVAILABLE = False
+import psutil
 
 logger = logging.getLogger(__name__)
 
 
 class PerformanceMonitor:
-    """A class for monitoring performance metrics of the Atlas application."""
+    """Monitors and collects performance metrics across the application.
 
-    def __init__(self):
-        self._metrics: Dict[str, List[float]] = {}
-        self.start_time: float = time.time()
-        if PSUTIL_AVAILABLE:
-            try:
-                self.process: Optional["psutil.Process"] = psutil.Process()
-            except Exception as e:
-                logger.error(f"Failed to initialize process for monitoring: {e}")
-                self.process = None
-        else:
-            self.process = None
+    This class provides methods to track CPU usage, memory consumption,
+    response times, operation rates, and other performance metrics crucial
+    for maintaining optimal application performance.
+    """
 
-        # Initialize metrics
-        self._metrics["CPU Usage"] = []
-        self._metrics["Memory Usage"] = []
-        self._metrics["Response Time"] = []
-        self._metrics["Operations/sec"] = []
-        self._metrics["Active Agents"] = []
-        self._metrics["Queue Size"] = []
-        self._metrics["Error Rate"] = []
-
-    def record_metric(self, metric_name: str, value: float) -> None:
-        """Record a performance metric.
+    def __init__(self, sampling_interval: float = 1.0, enable_ui_tracking: bool = True):
+        """Initialize the performance monitor.
 
         Args:
-            metric_name (str): The name of the metric.
-            value (float): The value of the metric.
+            sampling_interval: Time between metric samples in seconds
+            enable_ui_tracking: Whether to track UI responsiveness metrics
         """
-        if metric_name not in self._metrics:
-            self._metrics[metric_name] = []
-        self._metrics[metric_name].append(value)
+        self.sampling_interval = sampling_interval
+        self.enable_ui_tracking = enable_ui_tracking
+        self.running = False
+        self.monitoring_thread: Optional[threading.Thread] = None
 
-    def get_cpu_usage(self) -> float:
-        """Get current CPU usage percentage.
+        # Performance metrics storage
+        self.metrics: Dict[str, List[float]] = {
+            "cpu_usage": [],
+            "memory_usage": [],
+            "response_time": [],
+            "operations_per_second": [],
+            "active_agents": [],
+            "queue_size": [],
+            "error_rate": [],
+        }
 
-        Returns:
-            float: CPU usage percentage.
-        """
-        if self.process:
+        # Operation timings for latency tracking
+        self.operation_timings: Dict[str, List[float]] = {}
+
+        logger.info("Performance monitor initialized")
+
+    def start(self):
+        """Start the performance monitoring thread."""
+        if self.running:
+            logger.warning("Performance monitor already running")
+            return
+
+        self.running = True
+        self.monitoring_thread = threading.Thread(
+            target=self._monitoring_loop, daemon=True, name="PerformanceMonitorThread"
+        )
+        self.monitoring_thread.start()
+        logger.info("Performance monitoring started")
+
+    def stop(self):
+        """Stop the performance monitoring thread."""
+        if not self.running:
+            logger.warning("Performance monitor not running")
+            return
+
+        self.running = False
+        if self.monitoring_thread and self.monitoring_thread.is_alive():
+            self.monitoring_thread.join(timeout=2.0)
+        logger.info("Performance monitoring stopped")
+
+    def _monitoring_loop(self):
+        """Main monitoring loop that collects metrics at regular intervals."""
+        while self.running:
             try:
-                cpu_percent = self.process.cpu_percent(interval=1)
-                self.record_metric("CPU Usage", cpu_percent)
-                return cpu_percent
+                # Collect system metrics
+                self._collect_system_metrics()
+
+                # Sleep for the sampling interval
+                time.sleep(self.sampling_interval)
             except Exception as e:
-                logger.error(f"Error getting CPU usage: {e}")
-                return 0.0
-        return 0.0
+                logger.error(f"Error in performance monitoring loop: {e}")
+                # Continue monitoring despite errors
 
-    def get_memory_usage(self) -> float:
-        """Get current memory usage in MB.
+    def _collect_system_metrics(self):
+        """Collect system-level performance metrics."""
+        # CPU usage (per core and overall)
+        try:
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            self.metrics["cpu_usage"].append(cpu_percent)
 
-        Returns:
-            float: Memory usage in MB.
-        """
-        if self.process:
-            try:
-                mem_info = self.process.memory_info()
-                mem_mb = mem_info.rss / (1024 * 1024)  # Convert to MB
-                self.record_metric("Memory Usage", mem_mb)
-                return mem_mb
-            except Exception as e:
-                logger.error(f"Error getting memory usage: {e}")
-                return 0.0
-        return 0.0
+            # Memory usage
+            memory = psutil.virtual_memory()
+            memory_percent = memory.percent
+            self.metrics["memory_usage"].append(memory_percent)
 
-    def get_response_time(self) -> float:
-        """Get simulated response time in milliseconds.
+            # Limit metric history to avoid memory growth
+            self._trim_metrics_history(1000)  # Keep last 1000 samples
+        except Exception as e:
+            logger.error(f"Error collecting system metrics: {e}")
 
-        Returns:
-            float: Response time in milliseconds.
-        """
-        # Placeholder for actual response time measurement
-        response_time = 50.0  # Simulated value
-        self.record_metric("Response Time", response_time)
-        return response_time
-
-    def get_operations_per_second(self) -> float:
-        """Get simulated operations per second.
-
-        Returns:
-            float: Operations per second.
-        """
-        # Placeholder for actual operations per second measurement
-        ops_per_sec = 100.0  # Simulated value
-        self.record_metric("Operations/sec", ops_per_sec)
-        return ops_per_sec
-
-    def get_active_agents(self) -> float:
-        """Get simulated number of active agents.
-
-        Returns:
-            float: Number of active agents.
-        """
-        # Placeholder for actual active agents count
-        active_agents = 5.0  # Simulated value
-        self.record_metric("Active Agents", active_agents)
-        return active_agents
-
-    def get_queue_size(self) -> float:
-        """Get simulated queue size.
-
-        Returns:
-            float: Queue size.
-        """
-        # Placeholder for actual queue size measurement
-        queue_size = 10.0  # Simulated value
-        self.record_metric("Queue Size", queue_size)
-        return queue_size
-
-    def get_error_rate(self) -> float:
-        """Get simulated error rate percentage.
-
-        Returns:
-            float: Error rate percentage.
-        """
-        # Placeholder for actual error rate measurement
-        error_rate = 0.5  # Simulated value
-        self.record_metric("Error Rate", error_rate)
-        return error_rate
-
-    def get_average_metric(self, metric_name: str, window: int = 10) -> float:
-        """Get the average of a metric over a specified window of recent values.
+    def track_operation(self, operation_name: str, start_time: float, end_time: float):
+        """Track the execution time of a specific operation.
 
         Args:
-            metric_name (str): The name of the metric.
-            window (int): The number of recent values to average over.
+            operation_name: Identifier for the operation being tracked
+            start_time: Operation start timestamp
+            end_time: Operation end timestamp
+        """
+        duration = end_time - start_time
+
+        if operation_name not in self.operation_timings:
+            self.operation_timings[operation_name] = []
+
+        self.operation_timings[operation_name].append(duration)
+
+        # Limit history to avoid memory growth
+        if len(self.operation_timings[operation_name]) > 1000:
+            self.operation_timings[operation_name] = self.operation_timings[
+                operation_name
+            ][-1000:]
+
+    def get_average_latency(self, operation_name: str) -> float:
+        """Get the average latency for a specific operation.
+
+        Args:
+            operation_name: The operation to get metrics for
 
         Returns:
-            float: The average value of the metric over the window.
+            Average latency in seconds, or 0 if no data available
         """
-        if metric_name in self._metrics and self._metrics[metric_name]:
-            recent_values = self._metrics[metric_name][-window:]
-            return sum(recent_values) / len(recent_values)
-        return 0.0
+        if (
+            operation_name not in self.operation_timings
+            or not self.operation_timings[operation_name]
+        ):
+            return 0.0
 
-    def start_memory_tracing(self) -> None:
-        """Start tracing memory allocations if tracemalloc is available."""
-        if TRACEMALLOC_AVAILABLE:
-            tracemalloc.start()
-            logger.info("Memory tracing started")
-        else:
-            logger.warning("tracemalloc not available, memory tracing not started")
-
-    def stop_memory_tracing(self) -> None:
-        """Stop tracing memory allocations if tracemalloc is available."""
-        if TRACEMALLOC_AVAILABLE:
-            tracemalloc.stop()
-            logger.info("Memory tracing stopped")
-        else:
-            logger.warning("tracemalloc not available, memory tracing not stopped")
-
-    def get_memory_snapshot(self) -> Optional[List[Any]]:
-        """Get a snapshot of current memory allocations.
-
-        Returns:
-            Optional[List[Any]]: List of memory allocation statistics if tracemalloc is available, else None.
-        """
-        if TRACEMALLOC_AVAILABLE:
-            snapshot = tracemalloc.take_snapshot()
-            return snapshot.filter_traces(
-                (
-                    tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
-                    tracemalloc.Filter(False, "<unknown>"),
-                )
-            ).statistics("lineno")
-        return None
-
-    def get_metrics_history(self) -> Dict[str, List[float]]:
-        """Get the full history of recorded metrics.
-
-        Returns:
-            Dict[str, List[float]]: Dictionary of metric names to their historical values.
-        """
-        return self._metrics
-
-    def clear_metrics(self) -> None:
-        """Clear all recorded metrics."""
-        self._metrics.clear()
-        logger.info("Performance metrics cleared")
-
-    def get_latest_response_time(self) -> float:
-        """Get the latest response time metric.
-
-        Returns:
-            float: Latest response time in seconds, or 0.0 if not available.
-        """
-        return (
-            self._metrics.get("Response Time", [0.0])[-1]
-            if "Response Time" in self._metrics
-            else 0.0
+        return sum(self.operation_timings[operation_name]) / len(
+            self.operation_timings[operation_name]
         )
 
-    def get_current_operations_per_second(self) -> float:
-        """Get the operations per second metric.
+    def get_metrics_summary(self) -> Dict[str, float]:
+        """Get a summary of current performance metrics.
 
         Returns:
-            float: Operations per second, or 0.0 if not available.
+            Dictionary containing average values of all tracked metrics
         """
-        ops_key = "Operations/sec"
-        return (
-            self._metrics.get(ops_key, [0.0])[-1] if ops_key in self._metrics else 0.0
-        )
+        summary = {}
 
-    def get_active_agents_count(self) -> int:
-        """Get the number of active agents.
+        # Calculate averages for all metrics
+        for metric_name, values in self.metrics.items():
+            if values:
+                summary[f"avg_{metric_name}"] = sum(values) / len(values)
+                summary[f"max_{metric_name}"] = max(values)
+            else:
+                summary[f"avg_{metric_name}"] = 0.0
+                summary[f"max_{metric_name}"] = 0.0
 
-        Returns:
-            int: Number of active agents, or 0 if not available.
+        # Add operation latencies
+        for op_name, timings in self.operation_timings.items():
+            if timings:
+                summary[f"latency_{op_name}"] = sum(timings) / len(timings)
+            else:
+                summary[f"latency_{op_name}"] = 0.0
+
+        return summary
+
+    def _trim_metrics_history(self, max_samples: int):
+        """Trim metric history to avoid unbounded memory growth.
+
+        Args:
+            max_samples: Maximum number of samples to keep per metric
         """
-        return (
-            int(self._metrics.get("Active Agents", [0])[-1])
-            if "Active Agents" in self._metrics
-            else 0
-        )
+        for metric_name in self.metrics:
+            if len(self.metrics[metric_name]) > max_samples:
+                self.metrics[metric_name] = self.metrics[metric_name][-max_samples:]
 
-    def get_current_queue_size(self) -> int:
-        """Get the current queue size.
+    def reset_metrics(self):
+        """Reset all collected metrics."""
+        for metric_name in self.metrics:
+            self.metrics[metric_name] = []
 
-        Returns:
-            int: Current queue size, or 0 if not available.
-        """
-        return (
-            int(self._metrics.get("Queue Size", [0])[-1])
-            if "Queue Size" in self._metrics
-            else 0
-        )
+        for op_name in self.operation_timings:
+            self.operation_timings[op_name] = []
 
-    def get_current_error_rate(self) -> float:
-        """Get the current error rate.
-
-        Returns:
-            float: Error rate as a percentage, or 0.0 if not available.
-        """
-        return (
-            self._metrics.get("Error Rate", [0.0])[-1]
-            if "Error Rate" in self._metrics
-            else 0.0
-        )
+        logger.info("Performance metrics reset")
 
     def get_performance_summary(self) -> Dict[str, Any]:
         """Get a summary of key performance metrics.
 
         Returns:
-            Dict[str, Any]: Dictionary with key performance metrics.
+            Dict containing key performance indicators
         """
-        cpu_usage = self.get_cpu_usage()
-        memory_usage = self.get_memory_usage()
+
+        # Get the most recent metrics if available
+        cpu_usage = self.metrics["cpu_usage"][-1] if self.metrics["cpu_usage"] else 0.0
+        memory_usage = (
+            self.metrics["memory_usage"][-1] if self.metrics["memory_usage"] else 0.0
+        )
+        response_time = (
+            self.metrics["response_time"][-1] if self.metrics["response_time"] else 0.0
+        )
+        ops_per_sec = (
+            self.metrics["operations_per_second"][-1]
+            if self.metrics["operations_per_second"]
+            else 0.0
+        )
+        active_agents = (
+            self.metrics["active_agents"][-1] if self.metrics["active_agents"] else 0
+        )
+        queue_size = self.metrics["queue_size"][-1] if self.metrics["queue_size"] else 0
+        error_rate = (
+            self.metrics["error_rate"][-1] if self.metrics["error_rate"] else 0.0
+        )
+
         return {
-            "cpu_usage": cpu_usage if cpu_usage is not None else 0.0,
-            "memory_usage_mb": memory_usage if memory_usage else 0.0,
-            "response_time": self.get_latest_response_time(),
-            "operations_per_second": self.get_current_operations_per_second(),
-            "active_agents": self.get_active_agents_count(),
-            "queue_size": self.get_current_queue_size(),
-            "error_rate": self.get_current_error_rate(),
+            "cpu_usage": cpu_usage,
+            "memory_usage": memory_usage,
+            "response_time": response_time,
+            "operations_per_second": ops_per_sec,
+            "active_agents": int(active_agents),
+            "queue_size": int(queue_size),
+            "error_rate": error_rate,
+            "uptime": time.time() - self.start_time
+            if hasattr(self, "start_time")
+            else 0.0,
         }
 
-    def get_uptime(self) -> float:
-        """Get application uptime in seconds.
 
-        Returns:
-            float: Uptime in seconds.
-        """
-        return time.time() - self.start_time
+# Singleton instance for global access
+_instance = None
 
-    def get_metrics_summary(self) -> Dict[str, Dict[str, float]]:
-        """Get a summary of all recorded metrics.
 
-        Returns:
-            Dict[str, Dict[str, float]]: Summary of metrics with min, max, and average values.
-        """
-        summary = {}
-        for metric_name, values in self._metrics.items():
-            if values:
-                summary[metric_name] = {
-                    "min": min(values),
-                    "max": max(values),
-                    "avg": sum(values) / len(values),
-                    "count": len(values),
-                }
-        return summary
+def get_performance_monitor() -> PerformanceMonitor:
+    """Get the global performance monitor instance.
 
-    def _log_performance_report(self):
-        """Log a detailed performance report with current metrics."""
-        cpu_usage = self.get_cpu_usage()
-        memory_usage = self.get_memory_usage()
+    Returns:
+        Singleton instance of PerformanceMonitor
+    """
+    global _instance
+    if _instance is None:
+        _instance = PerformanceMonitor()
+    return _instance
 
-        report_lines = ["Performance Report:"]
-        if cpu_usage is not None:
-            report_lines.append(f"  CPU Usage: {cpu_usage:.1f}%")
-        else:
-            report_lines.append("  CPU Usage: unavailable")
 
-        if memory_usage:
-            report_lines.append(f"  Memory Usage (RSS): {memory_usage:.1f} MB")
-        else:
-            report_lines.append("  Memory Usage: unavailable")
+def track_operation_performance(operation_name: str, func_to_track=None):
+    """Helper decorator for tracking operation performance.
 
-        for metric_name, values in self._metrics.items():
-            if values:
-                avg = sum(values) / len(values)
-                report_lines.append(f"  Metric - {metric_name}: Average = {avg:.2f}")
+    This is a convenience function that can be used as a decorator to track
+    the performance of any function in the Atlas application.
 
-        logger.info("\n".join(report_lines))
+    Args:
+        operation_name: Name of the operation to track
+        func_to_track: Function to track (automatically provided when used as decorator)
 
-    def log_performance_report(self, interval: int = 1800) -> None:
-        """Log a detailed performance report.
+    Returns:
+        Decorated function that tracks performance
 
-        Args:
-            interval (int): Time interval in seconds between reports.
-            Defaults to 1800 (30 minutes).
-        """
-        self._log_performance_report()
-        logger.info(f"Next performance report in {interval} seconds")
+    Example:
+        @track_operation_performance("ui_rendering")
+        def render_ui_component():
+            # Function implementation
+    """
+    import functools
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            monitor = get_performance_monitor()
+            start_time = time.time()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                end_time = time.time()
+                monitor.track_operation(operation_name, start_time, end_time)
+
+        return wrapper
+
+    # Handle case when used as function or decorator
+    if func_to_track is None:
+        return decorator
+    else:
+        return decorator(func_to_track)

@@ -1,3 +1,7 @@
+# DEPRECATION WARNING: This file is deprecated and not used in the current Atlas implementation.
+# The active implementation of AtlasApplication is in core/application.py.
+# Do not modify or reference this file as it will be removed in future updates.
+
 """
 Atlas Application Core
 

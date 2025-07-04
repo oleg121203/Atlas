@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QLabel, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
 class DecisionUI(QWidget):
     """UI component for displaying and interacting with decision engine data."""
 
-    def __init__(self, decision_engine=None, parent: QWidget | None = None):
+    def __init__(self, decision_engine=None, parent=None):
         super().__init__(parent)
         self.decision_engine = decision_engine
         self.init_ui()

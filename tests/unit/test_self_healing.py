@@ -1,6 +1,230 @@
 import contextlib
 import unittest
+from unittest.mock import MagicMock, patch
 
+from core.event_bus import EventBus
+from core.self_healing import SelfHealingSystem
+
+
+class TestSelfHealingSystem(unittest.TestCase):
+    """Tests for the SelfHealingSystem class."""
+
+    def setUp(self):
+        """Set up test environment before each test."""
+        self.event_bus = EventBus()
+        self.self_healing = SelfHealingSystem(self.event_bus)
+
+    def test_initialization(self):
+        """Test that SelfHealingSystem initializes correctly."""
+        self.assertEqual(self.self_healing.event_bus, self.event_bus)
+        self.assertIsInstance(self.self_healing.system_state, dict)
+        self.assertIsInstance(self.self_healing.error_counts, dict)
+        self.assertIsInstance(self.self_healing.recovery_attempts, dict)
+
+    def test_handle_error(self):
+        """Test handling a system error."""
+        error = Exception("Test error")
+        component = "test_component"
+
+        # Handle the error
+        self.self_healing.handle_error(error=error, component=component)
+
+        # Verify error was recorded
+        self.assertIn(component, self.self_healing.error_counts)
+        self.assertEqual(self.self_healing.error_counts[component], 1)
+        self.assertEqual(self.self_healing.system_state[component], "error")
+
+    def test_handle_multiple_errors(self):
+        """Test handling multiple errors for the same component."""
+        error = Exception("Test error")
+        component = "test_component"
+
+        # Handle multiple errors
+        for _ in range(3):
+            self.self_healing.handle_error(error=error, component=component)
+
+        # Verify error count
+        self.assertEqual(self.self_healing.error_counts[component], 3)
+
+    @patch("logging.error")
+    def test_restart_module(self, mock_log_error):
+        """Test restarting a module after failure."""
+        module_name = "test_module"
+        error = Exception("Module failure")
+
+        # Create a mock module
+        mock_module = MagicMock()
+
+        # Patch the module registry
+        with patch.object(self.self_healing, "_get_module", return_value=mock_module):
+            # Restart the module
+            self.self_healing.restart_module(module_name=module_name, error=error)
+
+            # Verify module was restarted
+            mock_module.shutdown.assert_called_once()
+            mock_module.initialize.assert_called_once()
+
+            # Verify recovery attempt was recorded
+            self.assertIn(module_name, self.self_healing.recovery_attempts)
+            self.assertEqual(self.self_healing.recovery_attempts[module_name], 1)
+
+    @patch("logging.error")
+    def test_restart_module_nonexistent(self, mock_log_error):
+        """Test restarting a module that doesn't exist."""
+        module_name = "nonexistent_module"
+        error = Exception("Module failure")
+
+        # Patch the module registry to return None (module not found)
+        with patch.object(self.self_healing, "_get_module", return_value=None):
+            # Restart the module
+            self.self_healing.restart_module(module_name=module_name, error=error)
+
+            # Verify error was logged
+            mock_log_error.assert_called_once()
+
+    def test_run_diagnostics(self):
+        """Test running system diagnostics."""
+        # Add some system state
+        self.self_healing.system_state = {
+            "component1": "ok",
+            "component2": "error",
+            "component3": "warning",
+        }
+
+        # Run diagnostics
+        results = self.self_healing.run_diagnostics()
+
+        # Verify results
+        self.assertIsInstance(results, dict)
+        self.assertEqual(len(results), 3)
+        self.assertEqual(results["component1"], "ok")
+        self.assertEqual(results["component2"], "error")
+        self.assertEqual(results["component3"], "warning")
+
+    def test_recover_component(self):
+        """Test recovering a component after error."""
+        component = "test_component"
+
+        # Add component to error state
+        self.self_healing.system_state[component] = "error"
+        self.self_healing.error_counts[component] = 1
+
+        # Create a mock recovery function
+        mock_recovery_func = MagicMock(return_value=True)
+
+        # Recover the component
+        result = self.self_healing.recover_component(component, mock_recovery_func)
+
+        # Verify recovery was attempted
+        mock_recovery_func.assert_called_once()
+        self.assertTrue(result)
+
+        # Verify system state was updated
+        self.assertEqual(self.self_healing.system_state[component], "ok")
+        self.assertEqual(self.self_healing.error_counts[component], 0)
+
+    def test_recover_component_failure(self):
+        """Test failing to recover a component after error."""
+        component = "test_component"
+
+        # Add component to error state
+        self.self_healing.system_state[component] = "error"
+        self.self_healing.error_counts[component] = 1
+
+        # Create a mock recovery function that fails
+        mock_recovery_func = MagicMock(return_value=False)
+
+        # Attempt to recover the component
+        result = self.self_healing.recover_component(component, mock_recovery_func)
+
+        # Verify recovery was attempted
+        mock_recovery_func.assert_called_once()
+        self.assertFalse(result)
+
+        # Verify system state remains in error
+        self.assertEqual(self.self_healing.system_state[component], "error")
+        self.assertEqual(self.self_healing.error_counts[component], 1)
+
+    def test_get_system_health(self):
+        """Test getting overall system health."""
+        # Add some system state
+        self.self_healing.system_state = {
+            "component1": "ok",
+            "component2": "ok",
+            "component3": "ok",
+        }
+
+        # Get system health
+        health = self.self_healing.get_system_health()
+
+        # Verify health
+        self.assertEqual(health, "healthy")
+
+        # Add an error
+        self.self_healing.system_state["component2"] = "error"
+
+        # Get system health again
+        health = self.self_healing.get_system_health()
+
+        # Verify health
+        self.assertEqual(health, "degraded")
+
+        # Add more errors
+        self.self_healing.system_state["component1"] = "error"
+        self.self_healing.system_state["component3"] = "error"
+
+        # Get system health again
+        health = self.self_healing.get_system_health()
+
+        # Verify health
+        self.assertEqual(health, "critical")
+
+    def test_reset_error_counts(self):
+        """Test resetting error counts for a component."""
+        component = "test_component"
+
+        # Add error counts
+        self.self_healing.error_counts[component] = 5
+        self.self_healing.recovery_attempts[component] = 3
+
+        # Reset error counts
+        self.self_healing.reset_error_counts(component)
+
+        # Verify counts were reset
+        self.assertEqual(self.self_healing.error_counts[component], 0)
+        self.assertEqual(self.self_healing.recovery_attempts[component], 0)
+
+    def test_self_healing_process(self):
+        """Test the end-to-end self-healing process."""
+        # Add mock components and modules
+        mock_module = MagicMock()
+
+        # Patch module registry
+        with patch.object(self.self_healing, "_get_module", return_value=mock_module):
+            # Handle an error
+            error = Exception("Test error")
+            self.self_healing.handle_error(error=error, component="test_component")
+
+            # Verify error was recorded
+            self.assertEqual(self.self_healing.error_counts["test_component"], 1)
+
+            # Publish module failure event
+            self.event_bus.publish(
+                "module_failure",
+                module_name="test_module",
+                error=Exception("Module failure"),
+            )
+
+            # Verify module was restarted
+            mock_module.shutdown.assert_called_once()
+            mock_module.initialize.assert_called_once()
+
+            # Verify recovery attempt was recorded
+            self.assertEqual(self.self_healing.recovery_attempts["test_module"], 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
 try:
     import unittest.mock as mock
 except ImportError:

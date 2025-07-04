@@ -352,5 +352,83 @@ Fix all identified issues.
 
 ---
 
+## 🔧 **Code Quality & Auto-Checking Commands**
+
+### **Auto Code Quality Check (MANDATORY AFTER CHANGES)**
+```
+ATLAS_AUTO_CODE_CHECK
+
+🚨 EXECUTE AFTER EVERY CODE CHANGE:
+
+1. Run: ./activate_auto_coding_2.1.sh
+2. Verify critical syntax errors are fixed
+3. Check processing completes in <5 seconds
+4. Review summary for remaining issues
+5. Apply additional fixes if needed
+
+⚠️  ALWAYS USE THIS AFTER:
+- File modifications
+- New feature implementations  
+- Import changes
+- Syntax corrections
+- Before commits
+
+Reference: AUTO_CODING_PROBLEM_RESOLUTION.md for troubleshooting
+```
+
+### **Quick Syntax Fix**
+```
+ATLAS_QUICK_SYNTAX_FIX
+
+Run quick syntax error resolution:
+1. python3 scripts/quick_syntax_fix.py
+2. python3 scripts/improved_atlas_code_fixer.py
+3. ruff format .
+4. ruff check --statistics .
+
+Use when encountering parsing errors or corrupted files.
+```
+
+### **Code Quality Validation Protocol**
+```
+ATLAS_CODE_VALIDATION
+
+MANDATORY WORKFLOW FOR ALL AI AGENTS:
+
+Before any file changes:
+1. Check current syntax: ruff check [target_files]
+
+After any file changes:
+2. Run: ./activate_auto_coding_2.1.sh
+3. Verify no hanging (max 10 seconds)
+4. Check exit status and summary
+5. Fix remaining critical issues (F821, syntax errors)
+
+Performance targets:
+- Processing time: <5 seconds
+- Critical errors: 0
+- Minor warnings: acceptable
+
+Escalation: If hanging occurs, run quick_syntax_fix.py first
+```
+
+### **Mandatory AI Protocol Check**
+```
+ATLAS_AI_PROTOCOL_CHECK
+
+🤖 EVERY AI AGENT MUST EXECUTE AFTER CODE CHANGES:
+
+1. Read: AI_CODE_QUALITY_PROTOCOL.md
+2. Run: ./activate_auto_coding_2.1.sh  
+3. Verify: <5 seconds completion time
+4. Check: "completed successfully" message
+5. Fix: Any critical errors (F821, syntax)
+
+❌ NEVER skip this step after file modifications!
+✅ Reference: AUTO_CODING_PROBLEM_RESOLUTION.md for troubleshooting
+```
+
+---
+
 **Last Updated**: June 27, 2025
 **Target**: Complete intelligent, self-improving AI platform with cyberpunk aesthetics

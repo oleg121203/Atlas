@@ -1,20 +1,259 @@
 """
 Sentry Configuration Module
 
-This module provides configuration for Sentry crash reporting in the Atlas application.
+Sentry integration for error tracking and monitoring.
+
+This module provides integration with Sentry.io for error tracking,
+performance monitoring, and crash reporting in Atlas.
 """
 
 import logging
+import os
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Sentry SDK might not be installed, so we'll use a placeholder
-sentry_sdk = None
+# Attempt to import sentry_sdk, but don't fail if it's not installed
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
+    logger.warning("Sentry SDK not installed. Error tracking disabled.")
 
 
-def init_sentry(dsn, environment=None, release=None):
-    """Stub for Sentry initialization."""
-    pass
+def init_sentry(
+    dsn: str,
+    environment: str = "development",
+    release: str = "atlas@1.0.0",
+    traces_sample_rate: float = 0.2,
+    profiles_sample_rate: float = 0.1,
+) -> bool:
+    """Initialize Sentry SDK for error reporting and performance monitoring.
+
+    Args:
+        dsn: Sentry DSN for the project
+        environment: Environment name (development, staging, production)
+        release: Release version string
+        traces_sample_rate: Percentage of transactions to sample for performance
+        profiles_sample_rate: Percentage of transactions to sample for profiling
+
+    Returns:
+        Boolean indicating whether Sentry was successfully initialized
+    """
+    if not SENTRY_AVAILABLE:
+        logger.warning("Cannot initialize Sentry: SDK not available")
+        return False
+
+    if not dsn:
+        logger.warning("Cannot initialize Sentry: DSN not provided")
+        return False
+
+    try:
+        # Configure logging integration
+        logging_integration = LoggingIntegration(
+            level=logging.INFO,  # Capture info and above as breadcrumbs
+            event_level=logging.ERROR,  # Send errors as events
+        )
+
+        # Initialize the SDK
+        sentry_sdk.init(
+            dsn=dsn,
+            environment=environment,
+            release=release,
+            # Performance monitoring
+            traces_sample_rate=traces_sample_rate,
+            # Profiling
+            profiles_sample_rate=profiles_sample_rate,
+            # Integrations
+            integrations=[
+                logging_integration,
+            ],
+            # Configure which in-app frames should be captured
+            in_app_include=["atlas", "core", "ui", "plugins", "tools"],
+        )
+
+        # Set user information if available
+        user_id = os.environ.get("ATLAS_USER_ID")
+        if user_id:
+            sentry_sdk.set_user({"id": user_id})
+
+        logger.info(f"Sentry initialized for environment: {environment}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to initialize Sentry: {e}")
+        return False
+
+
+def capture_exception(
+    exception: Optional[Exception] = None, context: Optional[Dict[str, Any]] = None
+) -> str:
+    """Capture and report an exception to Sentry.
+
+    Args:
+        exception: Exception object to report, or current exception if None
+        context: Additional contextual data for the event
+
+    Returns:
+        Event ID if captured successfully, empty string otherwise
+    """
+    if not SENTRY_AVAILABLE:
+        logger.warning("Cannot capture exception: Sentry SDK not available")
+        return ""
+
+    try:
+        # Add extra context to the event
+        if context:
+            with sentry_sdk.configure_scope() as scope:
+                for key, value in context.items():
+                    scope.set_extra(key, value)
+
+        # Capture the exception
+        return sentry_sdk.capture_exception(exception)
+    except Exception as e:
+        logger.error(f"Failed to capture exception in Sentry: {e}")
+        return ""
+
+
+def set_tag(key: str, value: str) -> bool:
+    """Set a tag for all future events.
+
+    Args:
+        key: Tag name
+        value: Tag value
+
+    Returns:
+        Boolean indicating success
+    """
+    if not SENTRY_AVAILABLE:
+        return False
+
+    try:
+        sentry_sdk.set_tag(key, value)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to set Sentry tag: {e}")
+        return False
+
+
+def set_context(name: str, data: Dict[str, Any]) -> bool:
+    """Add contextual data to future events.
+
+    Args:
+        name: Context name
+        data: Context data dictionary
+
+    Returns:
+        Boolean indicating success
+    """
+    if not SENTRY_AVAILABLE:
+        return False
+
+    try:
+        with sentry_sdk.configure_scope() as scope:
+            scope.set_context(name, data)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to set Sentry context: {e}")
+        return False
+
+
+def start_transaction(name: str, op: str) -> Any:
+    """Start a performance transaction for profiling.
+
+    Args:
+        name: Transaction name
+        op: Operation type
+
+    Returns:
+        Transaction object or None if not available
+    """
+    if not SENTRY_AVAILABLE:
+        return None
+
+    try:
+        return sentry_sdk.start_transaction(name=name, op=op)
+    except Exception as e:
+        logger.error(f"Failed to start Sentry transaction: {e}")
+        return None
+
+
+import logging
+from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
+
+# Attempt to import sentry_sdk, but don't fail if it's not installed
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
+    sentry_sdk = None
+    logger.warning("Sentry SDK not installed. Error tracking disabled.")
+
+
+def init_sentry(
+    dsn: str, environment: str = "development", release: str = "atlas@1.0.0"
+):
+    """Initialize Sentry SDK for error reporting and performance monitoring.
+
+    Args:
+        dsn: Sentry DSN for the project
+        environment: Environment name (development, staging, production)
+        release: Release version string
+
+    Returns:
+        Boolean indicating whether Sentry was successfully initialized
+    """
+    if not SENTRY_AVAILABLE:
+        logger.warning("Cannot initialize Sentry: SDK not available")
+        return False
+
+    if not dsn:
+        logger.warning("Cannot initialize Sentry: DSN not provided")
+        return False
+
+    try:
+        # Configure logging integration
+        logging_integration = LoggingIntegration(
+            level=logging.INFO,  # Capture info and above as breadcrumbs
+            event_level=logging.ERROR,  # Send errors as events
+        )
+
+        # Initialize the SDK
+        sentry_sdk.init(
+            dsn=dsn,
+            environment=environment,
+            release=release,
+            # Performance monitoring
+            traces_sample_rate=0.2,
+            # Profiling
+            profiles_sample_rate=0.1,
+            # Integrations
+            integrations=[
+                logging_integration,
+            ],
+            # Configure which in-app frames should be captured
+            in_app_include=["atlas", "core", "ui", "plugins", "tools"],
+        )
+
+        # Set user information if available
+        user_id = os.environ.get("ATLAS_USER_ID")
+        if user_id:
+            sentry_sdk.set_user({"id": user_id})
+
+        logger.info(f"Sentry initialized for environment: {environment}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to initialize Sentry: {e}")
+        return False
 
 
 def capture_exception(exception: Exception, extra_data: dict = None) -> str:
@@ -91,3 +330,23 @@ def set_user(user_id: str, email: str = "", username: str = "") -> None:
             logger.error(f"Failed to set user information: {e}")
     else:
         logger.warning("Sentry SDK not available, user information not set")
+
+
+def start_transaction(name: str, op: str) -> Any:
+    """Start a performance transaction for profiling.
+
+    Args:
+        name: Transaction name
+        op: Operation type
+
+    Returns:
+        Transaction object or None if not available
+    """
+    if not SENTRY_AVAILABLE:
+        return None
+
+    try:
+        return sentry_sdk.start_transaction(name=name, op=op)
+    except Exception as e:
+        logger.error(f"Failed to start Sentry transaction: {e}")
+        return None

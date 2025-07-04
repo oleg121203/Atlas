@@ -29,7 +29,7 @@ def test_application_initialization(benchmark):
     def init_app():
         with (
             patch("core.application.EventBus", return_value=Mock()),
-            patch("core.application.ModuleRegistry", return_value=Mock()),
+            patch("core.module_registry.ModuleRegistry", return_value=Mock()),
             patch("core.application.PluginSystem", return_value=Mock()),
             patch("tools.tool_manager.ToolManager", return_value=Mock()),
             patch("core.application.SelfHealingSystem", return_value=Mock()),
@@ -55,18 +55,13 @@ def test_event_system_publish(benchmark):
 @pytest.mark.benchmark(group="module")
 def test_module_initialization(benchmark):
     """Benchmark the initialization of a Module."""
-    with (
-        patch("core.application.EventBus", return_value=Mock()),
-        patch("core.application.ModuleRegistry", return_value=Mock()),
-        patch("core.application.PluginSystem", return_value=Mock()),
-        patch("tools.tool_manager.ToolManager", return_value=Mock()),
-        patch("core.application.SelfHealingSystem", return_value=Mock()),
-    ):
-        app = AtlasApplication()
+    with patch("core.application.EventBus", return_value=Mock()):
+        app = Mock(spec=AtlasApplication)
 
     def init_module():
-        module = MockModule(app)
-        module.initialize()
+        with patch("core.module_registry.ModuleRegistry", return_value=Mock()):
+            module = MockModule(app)
+            module.initialize()
         return module
 
     benchmark(init_module)

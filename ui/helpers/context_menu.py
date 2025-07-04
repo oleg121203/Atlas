@@ -4,7 +4,12 @@ import logging
 from typing import Callable, List, Optional, Tuple
 
 from PySide6.QtCore import QPoint
-from PySide6.QtWidgets import QAction, QMenu, QWidget  # type: ignore
+
+try:
+    from PySide6.QtWidgets import QAction, QMenu, QWidget  # type: ignore
+except ImportError:
+    from PySide6.QtGui import QAction  # Fallback to QtGui if QtWidgets fails
+    from PySide6.QtWidgets import QMenu, QWidget  # type: ignore
 
 
 class ContextMenu(QMenu):

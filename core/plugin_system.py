@@ -198,56 +198,59 @@ class PluginSystem:
         self.plugin_dirs = plugin_dirs or []
         self._discover_plugins()
 
-    def _discover_plugins(self) -> None:
+    def _discover_plugins(self) -> List[str]:
         """
         Discover available plugins in the specified directories.
         This method scans for plugin modules and updates the plugin_metadata dictionary.
-        """
-        import glob
-        import importlib.util
-        from pathlib import Path
 
-        self.plugin_metadata.clear()
+        Returns:
+            List[str]: List of plugin names that were discovered.
+        """
+        logger.info("Discovering plugins")
+        discovered_plugins = []
+
         for plugin_dir in self.plugin_dirs:
-            plugin_dir_path = Path(plugin_dir)
-            if not plugin_dir_path.exists():
+            if not os.path.exists(plugin_dir):
+                logger.warning(f"Plugin directory not found: {plugin_dir}")
                 continue
 
-            # Look for Python files or directories with __init__.py
-            plugin_files = glob.glob(str(plugin_dir_path / "**/*.py"), recursive=True)
-            for plugin_file in plugin_files:
-                plugin_path = Path(plugin_file)
-                if plugin_path.name == "__init__.py":
-                    continue
+            for entry in os.scandir(plugin_dir):
+                if entry.is_dir() and not entry.name.startswith("__"):
+                    plugin_init = os.path.join(entry.path, "__init__.py")
+                    if os.path.exists(plugin_init):
+                        plugin_name = entry.name
+                        try:
+                            # Import the plugin module to get metadata
+                            spec = importlib.util.spec_from_file_location(
+                                f"plugins.{plugin_name}", plugin_init
+                            )
+                            if spec and spec.loader:
+                                module = importlib.util.module_from_spec(spec)
+                                importlib.util.module_from_spec(spec)
+                                spec.loader.exec_module(module)
 
-                module_name = plugin_path.stem
-                try:
-                    spec = importlib.util.spec_from_file_location(
-                        module_name, plugin_path
-                    )
-                    if spec is None or spec.loader is None:
-                        continue
-
-                    module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)
-
-                    # Check for plugin class in the module
-                    for attr_name in dir(module):
-                        attr = getattr(module, attr_name)
-                        if (
-                            isinstance(attr, type)
-                            and issubclass(attr, PluginBase)
-                            and attr != PluginBase
-                        ):
-                            plugin_instance = attr()
-                            metadata = plugin_instance.get_metadata()
-                            if metadata:
-                                self.plugin_metadata[metadata.name] = metadata
-                                logger.info(
-                                    f"Discovered plugin: {metadata.name} v{metadata.version}"
+                                # Check for plugin metadata
+                                if hasattr(module, "PLUGIN_METADATA"):
+                                    self.plugin_metadata[plugin_name] = (
+                                        module.PLUGIN_METADATA
+                                    )
+                                    discovered_plugins.append(plugin_name)
+                                    logger.info(f"Discovered plugin: {plugin_name}")
+                                else:
+                                    logger.warning(
+                                        f"Plugin {plugin_name} has no metadata"
+                                    )
+                            else:
+                                logger.error(
+                                    f"Failed to create spec for plugin: {plugin_name}"
                                 )
-                except Exception as e:
-                    logger.error(f"Error discovering plugin in {plugin_file}: {str(e)}")
+                        except Exception as e:
+                            logger.error(
+                                f"Error discovering plugin {plugin_name}: {str(e)}"
+                            )
+
+        logger.info(f"Discovered {len(discovered_plugins)} plugins")
+        return discovered_plugins
 
     def load_plugin(self, plugin_name: str) -> bool:
         """

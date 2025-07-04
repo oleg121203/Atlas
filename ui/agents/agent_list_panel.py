@@ -71,7 +71,15 @@ class AgentListPanel(QWidget):
         # Add agents
         for agent_id, agent in self.agents.items():
             frame = QFrame()
-            frame.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Raised)
+            box_shape = QFrame.Shape.Box
+            raised_shadow = QFrame.Shadow.Raised
+            if box_shape is not None and raised_shadow is not None:
+                frame.setFrameStyle(box_shape | raised_shadow)
+            elif box_shape is not None:
+                frame.setFrameStyle(box_shape)
+            elif raised_shadow is not None:
+                frame.setFrameStyle(raised_shadow)
+            frame.setLineWidth(1)
 
             frame_layout = QHBoxLayout(frame)
             frame_layout.setContentsMargins(5, 5, 5, 5)
@@ -88,7 +96,7 @@ class AgentListPanel(QWidget):
 
             frame_layout.addStretch()
 
-            # Control buttons            # Control buttons
+            # Control buttons
             if self.on_stop_agent is not None:
                 stop_btn = QPushButton("Stop")
                 stop_btn.setFixedWidth(60)

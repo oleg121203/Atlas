@@ -111,7 +111,12 @@ class SplashScreenManager:
         pixmap = QPixmap(400, 300)
         pixmap.fill(Qt.white)
         self._splash = QSplashScreen(pixmap)
-        self._splash.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        stays_on_top = Qt.WindowStaysOnTopHint
+        frameless = Qt.FramelessWindowHint
+        if stays_on_top is not None and frameless is not None:
+            self._splash.setWindowFlags(stays_on_top | frameless)
+        else:
+            self._splash.setWindowFlags(Qt.FramelessWindowHint)
         self._splash.show()
         logger.info("Splash screen shown")
 

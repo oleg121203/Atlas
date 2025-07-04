@@ -4,13 +4,17 @@ Latency Analyzer for Atlas
 This module provides tools for analyzing latency and identifying bottlenecks within Atlas.
 """
 
+import functools
 import logging
 import statistics
 import time
-from typing import Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 # Set up logging
 logger = logging.getLogger(__name__)
+
+# Type variable for function return type preservation
+T = TypeVar("T")
 
 
 class LatencyAnalyzer:
@@ -20,6 +24,13 @@ class LatencyAnalyzer:
         """Initialize the LatencyAnalyzer."""
         self._operation_times: Dict[str, List[float]] = {}
         self._start_times: Dict[str, float] = {}
+        self.thresholds: Dict[str, float] = {
+            "ui_operation": 100.0,  # 100ms threshold for UI operations
+            "memory_operation": 50.0,  # 50ms threshold for memory operations
+            "plugin_load": 200.0,  # 200ms threshold for plugin loading
+            "tool_execution": 150.0,  # 150ms threshold for tool execution
+            "default": 200.0,  # 200ms default threshold
+        }
         logger.info("LatencyAnalyzer initialized")
 
     def start_operation(self, operation_name: str) -> None:
@@ -64,22 +75,23 @@ class LatencyAnalyzer:
             operation_name (str): The name of the operation to get stats for.
 
         Returns:
-            Optional[Dict[str, float]]: Dictionary with min, max, avg, and count of latencies if
-            available, None otherwise.
+            Optional[Dict[str, float]]: Dictionary containing latency statistics,
+                or None if operation not found.
         """
         if (
             operation_name in self._operation_times
             and self._operation_times[operation_name]
         ):
             latencies = self._operation_times[operation_name]
+            threshold = self.thresholds.get(operation_name, self.thresholds["default"])
             return {
                 "min": min(latencies),
                 "max": max(latencies),
                 "average": sum(latencies) / len(latencies),
                 "median": statistics.median(latencies),
                 "count": len(latencies),
-                "exceeds_threshold": sum(latencies) / len(latencies) > 100,
-                "threshold": 100,
+                "exceeds_threshold": sum(latencies) / len(latencies) > threshold,
+                "threshold": threshold,
             }
         return None
 
@@ -96,79 +108,77 @@ class LatencyAnalyzer:
                 stats[operation_name] = operation_stats
         return stats
 
-    def check_latency_threshold(self, operation_name: str, threshold_ms: float) -> bool:
-        """Check if the average latency for an operation exceeds a threshold.
+    def measure(
+        self, operation_name: str
+    ) -> Callable[[Callable[..., T]], Callable[..., T]]:
+        """Decorator to measure the latency of a function.
 
         Args:
-            operation_name (str): The name of the operation to check.
-            threshold_ms (float): The latency threshold in milliseconds.
+            operation_name (str): The name of the operation being measured.
 
         Returns:
-            bool: True if average latency exceeds threshold, False otherwise.
+            Callable: Decorator function that adds latency measurement.
         """
-        stats = self.get_latency_stats(operation_name)
-        if stats and stats["average"] > threshold_ms:
-            logger.warning(
-                f"Latency threshold exceeded for {operation_name}: "
-                f"{stats['average']:.2f}ms > {threshold_ms}ms"
-            )
-            return True
-        return False
 
-    def suggest_optimizations(self, operation_name: str) -> List[str]:
-        """Suggest optimizations for operations with high latency.
+        def decorator(func: Callable[..., T]) -> Callable[..., T]:
+            @functools.wraps(func)
+            def wrapper(*args: Any, **kwargs: Any) -> T:
+                self.start_operation(operation_name)
+                try:
+                    result = func(*args, **kwargs)
+                    return result
+                finally:
+                    self.end_operation(operation_name)
 
-        Args:
-            operation_name (str): The name of the operation to analyze.
+            return wrapper
+
+        return decorator
+
+    def reset_stats(self) -> None:
+        """Reset all recorded latency statistics."""
+        self._operation_times.clear()
+        self._start_times.clear()
+        logger.info("Latency statistics reset")
+
+    def export_stats(self) -> Dict[str, Any]:
+        """Export all latency statistics for external analysis.
 
         Returns:
-            List[str]: List of optimization suggestions.
+            Dict[str, Any]: Complete statistics data structure.
         """
-        suggestions = []
-        stats = self.get_latency_stats(operation_name)
-        if stats and stats["average"] > 100:
-            suggestions.append(
-                f"Optimize {operation_name} - high average latency ({stats['average']:.2f}ms)"
-            )
-            if stats["max"] > stats["average"] * 1.5:
-                suggestions.append("Investigate occasional spikes in latency")
-            if stats["count"] > 100:
-                suggestions.append("Consider caching frequent operations")
-            if "screen" in operation_name.lower() or "input" in operation_name.lower():
-                suggestions.append("Target latency <100ms for user interaction")
-            elif "planning" in operation_name.lower():
-                suggestions.append("Target latency <500ms for planning operations")
-            elif "memory" in operation_name.lower():
-                suggestions.append("Target latency <200ms for memory operations")
-        if suggestions:
-            logger.info(
-                f"Optimization suggestions for {operation_name}: {', '.join(suggestions)}"
-            )
-        return suggestions
+        return {
+            "operation_times": dict(self._operation_times),
+            "statistics": self.get_all_latency_stats(),
+            "thresholds": dict(self.thresholds),
+        }
 
-    def log_latency_report(self) -> None:
-        """Log a comprehensive latency report for all operations."""
-        if not self._operation_times:
-            logger.info("No latency data available for report")
-            return
 
-        report = ["Latency Report:"]
-        for operation, _times in self._operation_times.items():
-            stats = self.get_latency_stats(operation)
-            if stats:
-                report.append(f"  Operation: {operation}")
-                report.append(f"    Count: {stats['count']}")
-                report.append(f"    Average: {stats['average']:.3f} ms")
-                report.append(f"    Min: {stats['min']:.3f} ms")
-                report.append(f"    Max: {stats['max']:.3f} ms")
-                report.append(f"    Median: {stats['median']:.3f} ms")
-                if stats["exceeds_threshold"]:
-                    report.append(
-                        f"    WARNING: Latency exceeds threshold of {stats['threshold']:.0f} ms"
-                    )
-                    optimizations = self.suggest_optimizations(operation)
-                    if optimizations:
-                        report.append("    Suggested Optimizations:")
-                        for opt in optimizations:
-                            report.append(f"      - {opt}")
-        logger.info("\n".join(report))
+# Global instance
+_latency_analyzer = None
+
+
+def get_latency_analyzer() -> LatencyAnalyzer:
+    """Get the global latency analyzer instance.
+
+    Returns:
+        LatencyAnalyzer: The global latency analyzer instance.
+    """
+    global _latency_analyzer
+    if _latency_analyzer is None:
+        _latency_analyzer = LatencyAnalyzer()
+    return _latency_analyzer
+
+
+def measure_latency(
+    operation_type: str,
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Decorator for measuring function latency.
+
+    Args:
+        operation_type: The type of operation being measured
+
+    Returns:
+        Decorator function that adds latency measurement
+    """
+    analyzer = get_latency_analyzer()
+    return analyzer.measure(operation_type)
