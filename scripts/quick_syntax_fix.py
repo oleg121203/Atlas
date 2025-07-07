@@ -44,7 +44,7 @@ def create_minimal_script(file_path: Path):
 
     content = f'''#!/usr/bin/env python3
 """
-{script_name.replace('_', ' ').title()}
+{script_name.replace("_", " ").title()}
 
 This is a minimal version created by the quick fix script.
 The original file had syntax errors that prevented parsing.
@@ -61,13 +61,13 @@ def main():
     print(f"🔧 {{script_name.replace('_', ' ').title()}} - Minimal Version")
     print("This script was auto-generated to fix syntax errors.")
     print("Please implement the actual functionality when needed.")
-    
+
     # Basic error checking
     atlas_root = Path(__file__).parent.parent
     if not (atlas_root / "pyproject.toml").exists():
         print("❌ Not in Atlas project root")
         sys.exit(1)
-    
+
     print("✅ Basic checks passed")
     return True
 

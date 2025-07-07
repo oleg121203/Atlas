@@ -173,7 +173,7 @@ def process_files_safely(file_paths: List[str]) -> Tuple[int, List[str]]:
 
         # Progress update
         if i % PROGRESS_UPDATE_INTERVAL == 0:
-            logger.info(f"📊 Progress: {i+1}/{len(file_paths)} files")
+            logger.info(f"📊 Progress: {i + 1}/{len(file_paths)} files")
 
         # Skip problematic files
         if (
