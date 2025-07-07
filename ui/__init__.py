@@ -135,16 +135,16 @@ def initialize_ui(app):
     """Initialize the UI components for the application."""
     logger.info("Starting UI initialization")
     try:
-        logger.debug("Importing MainWindow")
-        from .main_window import MainWindow
+        logger.debug("Importing AtlasMainWindow")
+        from .main_window import AtlasMainWindow
 
-        logger.debug("MainWindow imported successfully")
+        logger.debug("AtlasMainWindow imported successfully")
 
-        logger.debug("Creating MainWindow instance")
-        main_window = MainWindow(app)
-        logger.debug("MainWindow instance created")
+        logger.debug("Creating AtlasMainWindow instance")
+        main_window = AtlasMainWindow(app)
+        logger.debug("AtlasMainWindow instance created")
 
-        logger.debug("Calling setup_ui on MainWindow")
+        logger.debug("Calling setup_ui on AtlasMainWindow")
         main_window.setup_ui()
         logger.debug("setup_ui completed")
 
@@ -259,14 +259,14 @@ try:
         from ui.user_management_widget import UserManagementWidget
 
         from .command_palette import CommandPalette
-        from .main_window import MainWindow
+        from .main_window import AtlasMainWindow
         from .self_improvement_center import SelfImprovementCenter
         from .settings.config_widget import ConfigWidget
     except ImportError as e:
         print(f"UI component import failed: {e}")
         print("Using fallback for UI components.")
 
-        class MainWindow:
+        class AtlasMainWindow:
             pass
 
         class ConfigWidget:
@@ -309,7 +309,7 @@ try:
     from . import context, developer, stats
 
     __all__ = [
-        "MainWindow",
+        "AtlasMainWindow",
         "ConfigWidget",
         "validate_ui_input",
         "sanitize_ui_input",

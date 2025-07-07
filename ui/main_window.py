@@ -92,6 +92,8 @@ class AtlasMainWindow(QMainWindow):
             theme_manager: Theme manager instance.
         """
         super().__init__(parent)
+        # Initialize sidebar_buttons as an empty dict before setup_ui
+        self.sidebar_buttons = {}
         self.logger = logging.getLogger(__name__)
         self.logger.info("Initializing AtlasMainWindow")
         if app is None:
@@ -119,13 +121,11 @@ class AtlasMainWindow(QMainWindow):
         # Initialize core UI elements before any usage
         self.central = QStackedWidget()
         self.setCentralWidget(self.central)
-        self.sidebar = QToolBar()
-        self.sidebar.setOrientation(Qt.Orientation.Vertical)
-        self.topbar = QToolBar()
-        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.topbar)
-        self.dock = QDockWidget()
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-        self.dock.setWidget(self.sidebar)
+
+        # Initialize toolbar and dock placeholders
+        self.topbar = None
+        self.sidebar_widget = None
+        self.dock = None
         # Initialize modules safely with try-except to prevent startup crashes
         try:
             self.chat_module = ChatWidget(self.app)
@@ -217,63 +217,135 @@ class AtlasMainWindow(QMainWindow):
         self._setup_dock_widgets()
         self._setup_status_bar()
         self._setup_button_connections()
+        self._create_menu_bar()
         self.logger.info("UI setup complete")
 
     def _setup_central_widget(self):
         """Set up the central widget for the main window."""
         self.logger.debug("Setting up central widget")
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
-        self.central = QStackedWidget()
-        layout.addWidget(self.central)
+        # Central widget is already initialized in __init__
+        if not hasattr(self, "central") or self.central is None:
+            self.central = QStackedWidget()
+            self.setCentralWidget(self.central)
+
+        # Add modules to central widget if they exist
+        if (
+            hasattr(self, "chat_module")
+            and self.chat_module
+            and self.central.indexOf(self.chat_module) == -1
+        ):
+            self.central.addWidget(self.chat_module)
+        if (
+            hasattr(self, "plugins_module")
+            and self.plugins_module
+            and self.central.indexOf(self.plugins_module) == -1
+        ):
+            self.central.addWidget(self.plugins_module)
+
+        # Set current widget to chat if available
+        if hasattr(self, "chat_module") and self.chat_module:
+            self.central.setCurrentWidget(self.chat_module)
 
     def _setup_topbar(self):
         """Set up the top toolbar with navigation and control buttons."""
         self.logger.debug("Setting up top toolbar")
-        self.topbar = QToolBar()
-        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.topbar)
-        # Use dictionary for button placeholders to avoid lint errors
-        self.topbar_buttons = {
-            "chat_btn": None,
-            "tasks_btn": None,
-            "settings_btn": None,
-            "plugins_btn": None,
-            "intelligence_btn": None,
-            "decision_btn": None,
-            "self_improvement_btn": None,
-            "user_btn": None,
-            "consent_btn": None,
-            "ai_assistant_btn": None,
-            "tools_btn": None,
-            "menu_btn": None,
-            "minimize_btn": None,
-            "maximize_btn": None,
-            "close_btn": None,
-        }
+        if not hasattr(self, "topbar") or self.topbar is None:
+            self.topbar = QToolBar()
+            self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.topbar)
+
+        # Initialize buttons dictionary
+        self.topbar_buttons = {}
+
+        # Create actual buttons for topbar
+        button_configs = [
+            ("chat_btn", "Chat", lambda: self.show_module("Chat")),
+            ("tasks_btn", "Tasks", lambda: self.show_module("Tasks")),
+            ("plugins_btn", "Plugins", lambda: self.show_module("Plugins")),
+            ("settings_btn", "Settings", lambda: self.show_module("Settings")),
+            ("help_btn", "Help", lambda: self.show_module("Help")),
+            ("minimize_btn", "−", self.showMinimized),
+            ("maximize_btn", "□", self._toggle_maximize),
+            ("close_btn", "×", self.close),
+        ]
+
+        for btn_name, btn_text, action in button_configs:
+            btn = QPushButton(btn_text)
+            btn.setStyleSheet("""
+                QPushButton {
+                    color: #00ffaa;
+                    background-color: #222;
+                    border: 1px solid #00ffaa;
+                    border-radius: 4px;
+                    padding: 6px 12px;
+                    margin: 2px;
+                }
+                QPushButton:hover {
+                    background-color: #333;
+                }
+                QPushButton:pressed {
+                    background-color: #00ffaa;
+                    color: #000;
+                }
+            """)
+            btn.clicked.connect(action)
+            self.topbar.addWidget(btn)
+            self.topbar_buttons[btn_name] = btn
 
     def _setup_sidebar(self):
         """Set up the sidebar for additional navigation or module access."""
         self.logger.debug("Setting up sidebar")
-        self.sidebar = QToolBar()
-        self.sidebar.setOrientation(Qt.Orientation.Vertical)
-        self.dock = QDockWidget()
-        self.dock.setWidget(self.sidebar)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-        # Use dictionary for sidebar button placeholders to avoid lint errors
-        self.sidebar_buttons = {
-            "chat_btn": None,
-            "tasks_btn": None,
-            "settings_btn": None,
-            "plugins_btn": None,
-            "intelligence_btn": None,
-            "decision_btn": None,
-            "self_improvement_btn": None,
-            "user_btn": None,
-            "consent_btn": None,
-            "ai_assistant_btn": None,
-            "tools_btn": None,
-        }
+
+        # Create sidebar as QWidget with layout instead of QToolBar
+        self.sidebar_widget = QWidget()
+        self.sidebar_layout = QVBoxLayout(self.sidebar_widget)
+
+        # Initialize buttons dictionary
+        self.sidebar_buttons = {}
+
+        # Create buttons for navigation
+        button_configs = [
+            ("Chat", lambda: self.show_module("Chat")),
+            ("Plugins", lambda: self.show_module("Plugins")),
+            ("Tools", lambda: self.show_module("Tools")),
+            ("Settings", lambda: self.show_module("Settings")),
+        ]
+
+        for name, action in button_configs:
+            self.logger.debug(f"Creating sidebar button for module: {name}")
+            btn = QPushButton(name)
+            btn.setStyleSheet("""
+                QPushButton {
+                    color: #00ffaa;
+                    background-color: #111;
+                    border: 1px solid #00ffaa;
+                    border-radius: 4px;
+                    padding: 6px;
+                    margin: 4px;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: #222;
+                }
+                QPushButton:pressed {
+                    background-color: #00ffaa;
+                    color: #000;
+                }
+            """)
+            btn.clicked.connect(action)
+            self.sidebar_layout.addWidget(btn)
+            key = f"{name.lower()}_btn"
+            self.sidebar_buttons[key] = btn
+            self.logger.debug(f"Added sidebar button for module: {name}")
+
+        # Add stretch to push buttons to top
+        self.sidebar_layout.addStretch()
+
+        # Setup dock widget properly
+        if not hasattr(self, "dock") or self.dock is None:
+            self.dock = QDockWidget("Navigation", self)
+            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+
+        self.dock.setWidget(self.sidebar_widget)
 
     def _setup_dock_widgets(self):
         """Set up additional dock widgets if needed."""
@@ -291,38 +363,13 @@ class AtlasMainWindow(QMainWindow):
     def _setup_button_connections(self):
         """Connect buttons to show_module method if they exist."""
         self.logger.info("Setting up button connections")
-        self._connect_topbar_buttons()
-        self._connect_sidebar_buttons()
+        # Buttons are already connected during creation in _setup_topbar and _setup_sidebar
         self.logger.info("Button connections completed")
-
-    def _connect_topbar_buttons(self):
-        """Connect topbar buttons to their respective actions."""
-        topbar_connections = [
-            ("tasks_btn", lambda: self.show_module("Tasks")),
-            ("chat_btn", lambda: self.show_module("Chat")),
-            ("plugins_btn", lambda: self.show_module("Plugins")),
-            ("settings_btn", lambda: self.show_module("Settings")),
-            ("help_btn", lambda: self.show_module("Help")),
-            ("minimize_btn", self.showMinimized),
-            ("maximize_btn", self._toggle_maximize),
-            ("close_btn", self.close),
-        ]
-        for btn_name, action in topbar_connections:
-            if btn_name in self.topbar_buttons and self.topbar_buttons[btn_name]:
-                self.topbar_buttons[btn_name].clicked.connect(action)
 
     def _connect_sidebar_buttons(self):
         """Connect sidebar buttons to their respective actions."""
-        sidebar_connections = [
-            ("chat_btn", lambda: self.show_module("Chat")),
-            ("tasks_btn", lambda: self.show_module("Tasks")),
-            ("plugins_btn", lambda: self.show_module("Plugins")),
-            ("stats_btn", lambda: self.show_module("Stats")),
-            ("settings_btn", lambda: self.show_module("Settings")),
-        ]
-        for btn_name, action in sidebar_connections:
-            if btn_name in self.sidebar_buttons and self.sidebar_buttons[btn_name]:
-                self.sidebar_buttons[btn_name].clicked.connect(action)
+        # Buttons are already connected during creation in _setup_sidebar
+        pass
 
     def _create_menu_bar(self):
         """Create the menu bar with necessary menus and actions."""
@@ -382,10 +429,13 @@ class AtlasMainWindow(QMainWindow):
 
     def toggle_dock_widget(self):
         """Toggle the visibility of the dock widget (sidebar)."""
-        if self.dock.isVisible():
-            self.dock.hide()
+        if hasattr(self, "dock") and self.dock is not None:
+            if self.dock.isVisible():
+                self.dock.hide()
+            else:
+                self.dock.show()
         else:
-            self.dock.show()
+            self.logger.warning("Dock widget not initialized, cannot toggle")
 
     def show_about_dialog(self):
         """Show the About dialog with application information."""
@@ -440,11 +490,16 @@ class AtlasMainWindow(QMainWindow):
         self.central = QStackedWidget()
         self.setCentralWidget(self.central)
         try:
-            from ui.plugins.plugin_manager_ui import PluginManagerUI
-
-            self.plugin_module = PluginManagerUI()
+            # Create a placeholder plugin system if needed
+            self.logger.warning(
+                "PluginManagerUI requires plugin_system parameter, using placeholder"
+            )
+            self.plugin_module = QWidget()
+            layout = QVBoxLayout()
+            layout.addWidget(QLabel("Plugin Manager not available"))
+            self.plugin_module.setLayout(layout)
             self.modules["Plugins"] = self.plugin_module
-            self.logger.info("PluginManager module initialized")
+            self.logger.info("PluginManager module placeholder created")
         except Exception as e:
             self.logger.error(f"Failed to initialize PluginManager module: {e}")
             self.plugin_module = QWidget()
