@@ -6,7 +6,10 @@ for tracking errors, exceptions, and performance issues in the Atlas application
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
+
+# Type alias for Sentry log levels
+SentryLevel = Literal["fatal", "critical", "error", "warning", "info", "debug"]
 
 # Try to import sentry_sdk, but don't require it
 SENTRY_AVAILABLE = False
@@ -104,13 +107,16 @@ class SentryManager:
             return None
 
     def capture_message(
-        self, message: str, level: str = "info", tags: Optional[Dict[str, str]] = None
+        self,
+        message: str,
+        level: SentryLevel = "info",
+        tags: Optional[Dict[str, str]] = None,
     ) -> Optional[str]:
         """Capture a message and send to Sentry.
 
         Args:
             message: The message to capture
-            level: The level of the message (debug, info, warning, error)
+            level: The level of the message ("fatal", "critical", "error", "warning", "info", "debug")
             tags: Optional tags to associate with the message
 
         Returns:
@@ -267,61 +273,51 @@ def get_sentry_manager() -> SentryManager:
     return _instance
 
 
+# Convenience functions that use the singleton manager
 def init_sentry(dsn: str, environment: str = "development", release: str = "1.0.0"):
     """
-    Initialize Sentry for error tracking.
+    Initialize Sentry for error tracking using environment variables.
 
     Args:
-        dsn: Sentry DSN string
+        dsn: Sentry DSN string (will be set as SENTRY_DSN env var)
         environment: Environment name (development, production, etc.)
         release: Release version
     """
-    if not SENTRY_AVAILABLE:
-        logger.warning("Sentry SDK not installed, skipping error tracking setup")
-        return
+    # Set environment variables for SentryManager
+    os.environ["SENTRY_DSN"] = dsn
+    os.environ["ATLAS_ENV"] = environment
+    os.environ["ATLAS_VERSION"] = release
 
-    try:
-        sentry_sdk.init(
-            dsn=dsn,
-            environment=environment,
-            release=release,
-            traces_sample_rate=1.0,
-        )
-        logger.info(f"Sentry initialized for {environment} environment")
-    except Exception as e:
-        logger.error(f"Failed to initialize Sentry: {e}")
+    # Get or create manager instance to trigger initialization
+    manager = get_sentry_manager()
+    if not manager.is_initialized:
+        logger.warning("Failed to initialize Sentry through manager")
 
 
-def capture_exception(exception):
+def capture_exception(exception: Optional[Exception] = None) -> Optional[str]:
     """
     Capture exception with Sentry if available.
 
     Args:
         exception: Exception to capture
+
+    Returns:
+        Event ID if successful, None otherwise
     """
-    if not SENTRY_AVAILABLE:
-        logger.warning("Sentry SDK not available, exception not captured")
-        return
-
-    try:
-        sentry_sdk.capture_exception(exception)
-    except Exception as e:
-        logger.error(f"Failed to capture exception: {e}")
+    manager = get_sentry_manager()
+    return manager.capture_exception(exception)
 
 
-def capture_message(message, level="info"):
+def capture_message(message: str, level: SentryLevel = "info") -> Optional[str]:
     """
     Capture message with Sentry if available.
 
     Args:
         message: Message to capture
-        level: Log level (info, warning, error, etc.)
-    """
-    if not SENTRY_AVAILABLE:
-        logger.warning("Sentry SDK not available, message not captured")
-        return
+        level: Log level ("fatal", "critical", "error", "warning", "info", "debug")
 
-    try:
-        sentry_sdk.capture_message(message, level)
-    except Exception as e:
-        logger.error(f"Failed to capture message: {e}")
+    Returns:
+        Event ID if successful, None otherwise
+    """
+    manager = get_sentry_manager()
+    return manager.capture_message(message, level)
