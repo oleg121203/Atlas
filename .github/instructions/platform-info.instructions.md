@@ -55,11 +55,12 @@ Atlas uses a standardized development approach:
 
 ## Development Standards
 
-### Code Compatibility
+### Code Compatibility (POST-MIGRATION)
 - All code is optimized for macOS as the primary platform
-- Use platform detection utilities from `utils/platform_utils.py` for version compatibility
+- Use platform detection utilities from `atlas/utils/platform_utils.py` for version compatibility
 - Implement native macOS features for optimal user experience
 - Focus on full GUI operation and macOS system integration
+- **NEW**: All imports use unified `atlas.` package structure
 
 ### Python Version Management
 ```python
@@ -177,19 +178,22 @@ if sys.version_info >= (3, 12):
 
 ## Atlas Development Workflow
 
-### Development Plan & Changelog Integration
-- **DEV_PLAN.md**: Central source of truth for development priorities
+### Development Plan & Changelog Integration (POST-MIGRATION)
+- **DEV_PLAN.md**: Central source of truth for development priorities (MIGRATION COMPLETED)
 - **CHANGELOG.md**: Record of all implemented changes following semantic versioning
 - **Workflow**: Each task from DEV_PLAN.md must be tracked in CHANGELOG.md once completed
+- **NEW STRUCTURE**: All development now focuses on `atlas/` package enhancement
 
-### Task Execution Procedure
-1. **Task Selection**: Select next prioritized task from DEV_PLAN.md
-2. **Implementation**: Develop and test the feature or fix
+### Task Execution Procedure (UPDATED FOR NEW STRUCTURE)
+1. **Task Selection**: Select next prioritized task from DEV_PLAN.md (focus on atlas/ enhancement)
+2. **Implementation**: Develop and test the feature or fix within atlas/ package
 3. **Documentation**: 
    - Add entry to CHANGELOG.md in format: `- [TYPE] Brief description of change (#issue or reference)`
    - Types: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`
+   - Update import examples to use `atlas.` prefix
 4. **Mark as Complete**: Update status in DEV_PLAN.md
 5. **Version Management**: Group changes under appropriate version sections in CHANGELOG.md
+6. **Quality Check**: Ensure all new code follows unified package structure
 
 ### Language Requirements
 - **Development Documentation**: All code comments, commit messages, and workflow documents must be in English
@@ -212,12 +216,14 @@ if sys.version_info >= (3, 12):
 - **Version Compatibility**: Ensure compatibility with Python 3.9 while preparing for future versions
 - **Security Awareness**: Follow security protocols at all development stages
 
-### Windsurf Development Protocols
+### Windsurf Development Protocols (POST-MIGRATION)
 1. **Task-Based Execution**: Automatically prioritize and execute tasks from DEV_PLAN.md in sequence
 2. **Changelog Integration**: Document all changes in CHANGELOG.md as they are completed
 3. **Quality Assurance**: Ensure code quality through automated testing and type checking
 4. **Documentation Update**: Keep documentation synchronized with implementation
 5. **Workflow Optimization**: Suggest improvements to development workflow when appropriate
+6. **NEW**: Focus on atlas/ package enhancement and feature development
+7. **NEW**: Maintain unified import structure throughout development
 
 ### Recommended Model Configuration
 For Atlas development with Python 3.9 compatibility:
