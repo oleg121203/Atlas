@@ -43,7 +43,7 @@ PyScreeze==1.0.1
 pytweening==1.2.0
 
 # Security
-cryptography==42.0.5
+cryptography==45.0.5
 bcrypt==4.1.2
 keyring>=24.3.0 
 PyJWT==2.8.0
