@@ -69,7 +69,6 @@ class PerformanceProfiler:
             ".git",
             ".venv",
             "venv",
-            "venv-macos",
             "venv-linux",
             "node_modules",
             ".pytest_cache",
@@ -573,10 +572,12 @@ Process Memory: {system_metrics.get("process", {}).get("memory_mb", "N/A"):.1f} 
                 f"- **CPU**: {cpu.get('usage_percent', 'N/A')}% usage, {cpu.get('count', 'N/A')} cores"
             )
             report.append(
-                f"- **Memory**: {memory.get('used_percent', 'N/A')}% used ({memory.get('available_gb', 'N/A'):.1f}GB available)"
+                f"- **Memory**: {memory.get('used_percent', 'N/A')}% used "
+                f"({memory.get('available_gb', 'N/A'):.1f}GB available)"
             )
             report.append(
-                f"- **Process Memory**: {process.get('memory_mb', 'N/A'):.1f} MB ({process.get('memory_percent', 'N/A'):.1f}%)"
+                f"- **Process Memory**: {process.get('memory_mb', 'N/A'):.1f} MB "
+                f"({process.get('memory_percent', 'N/A'):.1f}%)"
             )
             report.append("")
 

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from PySide6.QtCore import (
     QObject,
@@ -40,6 +40,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from core.agents.agent_loop_manager import AgentLoopManager
+from core.application import AtlasApplication
 from core.event_bus import EventBus
 from core.events import TOOL_ERROR, TOOL_EXECUTED
 from data.memory_manager import MemoryManager
@@ -69,6 +71,9 @@ except ImportError:
     PlaceholderWidget = None
 
 
+from core.application import AtlasApplication
+
+
 class AtlasMainWindow(QMainWindow):
     """Main window for Atlas application with cyberpunk styling.
 
@@ -84,6 +89,7 @@ class AtlasMainWindow(QMainWindow):
         lang_combo (QComboBox): Language selector
         event_bus (ModuleEventBus): Event bus for cross-module communication
         memory_manager (MemoryManager): Memory management system
+        app_instance (Optional[AtlasApplication]): Atlas application instance
     """
 
     def __init__(
@@ -1901,103 +1907,55 @@ class AtlasMainWindow(QMainWindow):
         return settings_widget
 
     def _create_tasks_module(self):
-        """Create a comprehensive tasks module."""
-        tasks_widget = QWidget()
-        layout = QVBoxLayout(tasks_widget)
+        """Create a comprehensive tasks module using TasksWidget."""
+        from ui.tasks import TasksWidget
 
-        # Title
-        title = QLabel("📋 Task Management")
-        title.setStyleSheet("""
-            QLabel {
-                font-size: 22px;
-                font-weight: bold;
-                color: #00ffaa;
-                padding: 15px;
-                text-align: center;
-                border-bottom: 2px solid #333;
-                margin-bottom: 15px;
-            }
-        """)
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(title)
+        tasks_widget = TasksWidget()
+        self._connect_tasks_events(tasks_widget)
+        return tasks_widget
 
-        # Task controls
-        controls_container = QWidget()
-        controls_layout = QHBoxLayout(controls_container)
+    def _connect_tasks_events(self, tasks_widget):
+        """Connect task events to handlers."""
+        # Connect task events to agent loop
+        self._connect_task_creation(tasks_widget)
+        self._subscribe_to_task_events(tasks_widget)
 
-        # Add task button
-        add_task_btn = QPushButton("➕ New Task")
-        add_task_btn.setStyleSheet("""
-            QPushButton {
-                color: #00ffaa;
-                background-color: #2a2a2a;
-                border: 2px solid #00ffaa;
-                border-radius: 8px;
-                padding: 10px 20px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 255, 170, 0.1);
-            }
-            QPushButton:pressed {
-                background-color: rgba(0, 255, 170, 0.2);
-            }
-        """)
-        add_task_btn.clicked.connect(self._add_new_task)
-        controls_layout.addWidget(add_task_btn)
+    def _connect_task_creation(self, tasks_widget):
+        """Connect task creation to agent loop if available."""
+        # Get the agent loop from app instance and check it has the required method
+        app = self.app_instance
+        if isinstance(app, AtlasApplication) and app.agent_loop:
+            tasks_widget.task_created.connect(app.agent_loop._handle_new_task)
 
-        controls_layout.addStretch()
+    def _subscribe_to_task_events(self, tasks_widget):
+        """Subscribe to task-related events from event bus."""
 
-        # Filter buttons
-        filter_buttons = ["All", "Active", "Completed", "Urgent"]
-        for filter_name in filter_buttons:
-            filter_btn = QPushButton(filter_name)
-            filter_btn.setCheckable(True)
-            filter_btn.setStyleSheet("""
-                QPushButton {
-                    color: #aaa;
-                    background-color: #1a1a1a;
-                    border: 1px solid #444;
-                    border-radius: 4px;
-                    padding: 8px 16px;
-                    margin: 2px;
-                }
-                QPushButton:hover {
-                    color: #00ffaa;
-                    border-color: #00ffaa;
-                }
-                QPushButton:checked {
-                    color: #000;
-                    background-color: #00ffaa;
-                }
-            """)
-            filter_btn.clicked.connect(
-                lambda checked, f=filter_name: self._filter_tasks(f)
-            )
-            controls_layout.addWidget(filter_btn)
+        def handle_task_update(data: Dict[str, Any]) -> None:
+            if isinstance(data, dict):
+                task_id = data.get("task_id")
+                status = data.get("status")
+                if task_id and status:
+                    tasks_widget.update_task_status(task_id, status)
 
-        layout.addWidget(controls_container)
+        def handle_task_complete(data: Dict[str, Any]) -> None:
+            if isinstance(data, dict):
+                task_id = data.get("task_id")
+                result = data.get("result")
+                if task_id:
+                    tasks_widget.update_task_status(task_id, "completed", result)
 
-        # Tasks list placeholder
-        tasks_list = QLabel(
-            "📝 Task list will appear here\n\nClick 'New Task' to create your first task!"
-        )
-        tasks_list.setStyleSheet("""
-            QLabel {
-                color: #888;
-                font-size: 16px;
-                padding: 40px;
-                text-align: center;
-                border: 2px dashed #444;
-                border-radius: 8px;
-                margin: 20px;
-            }
-        """)
-        tasks_list.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(tasks_list)
+        def handle_task_fail(data: Dict[str, Any]) -> None:
+            if isinstance(data, dict):
+                task_id = data.get("task_id")
+                error = data.get("error")
+                if task_id:
+                    tasks_widget.update_task_status(
+                        task_id, "failed", {"error": error} if error else None
+                    )
 
-        layout.addStretch()
+        self.event_bus.subscribe("TASK_UPDATED", handle_task_update)
+        self.event_bus.subscribe("TASK_COMPLETED", handle_task_complete)
+        self.event_bus.subscribe("TASK_FAILED", handle_task_fail)
 
         return tasks_widget
 

@@ -30,7 +30,7 @@ When encountering ambiguous requirements:
 development:
   platform: "macos-apple-silicon"
   hardware: "mac-studio-m1-max-32gb"
-  environment: "venv-macos"
+  environment: ".venv"
   python_version: "3.9.6"
   architecture: "arm64"
   testing: pytest

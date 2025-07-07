@@ -14,8 +14,68 @@ class SystemContextProvider:
     def __init__(self, config=None):
         self.config = config or {}
 
-    def __call__(self):
-        return {"cpu_usage": 0.5, "memory_usage": 0.7, "disk_space": 0.3}
+    def __call__(self) -> Dict[str, Any]:
+        """Get current system context."""
+        import psutil
+
+        context = {
+            "cpu_usage": psutil.cpu_percent(interval=1) / 100.0,
+            "memory_usage": psutil.virtual_memory().percent / 100.0,
+            "disk_space": psutil.disk_usage("/").percent / 100.0,
+            "active_processes": len(psutil.Process().children()),
+        }
+
+        try:
+            active_window = self._get_active_window()
+            if active_window:
+                context["active_window"] = active_window
+        except Exception as e:
+            logger.warning(f"Failed to get active window: {e}")
+
+        try:
+            clipboard = self._get_clipboard_content()
+            if clipboard:
+                context["clipboard"] = clipboard
+        except Exception as e:
+            logger.warning(f"Failed to get clipboard content: {e}")
+
+        return context
+
+    def _get_active_window(self) -> Optional[str]:
+        """Get the title of the currently active window."""
+        import platform
+
+        system = platform.system()
+
+        if system == "Darwin":  # macOS
+            from AppKit import NSWorkspace
+
+            active_app = NSWorkspace.sharedWorkspace().activeApplication()
+            if active_app:
+                return active_app["NSApplicationName"]
+        elif system == "Windows":
+            import win32gui
+
+            return win32gui.GetWindowText(win32gui.GetForegroundWindow())
+        elif system == "Linux":
+            try:
+                import Xlib.display
+
+                display = Xlib.display.Display()
+                window = display.get_input_focus().focus
+                wmname = window.get_wm_name()
+                display.close()
+                return wmname
+            except Exception:
+                pass
+        return None
+
+    def _get_clipboard_content(self) -> Optional[str]:
+        """Get the current clipboard content."""
+        from PySide6.QtWidgets import QApplication
+
+        clipboard = QApplication.clipboard()
+        return clipboard.text()
 
     def stop(self):
         pass

@@ -39,6 +39,8 @@ class AtlasApplication:
         self.plugin_system = PluginSystem([])
         self.tool_manager = None
         self.memory_manager = None
+        self.decision_engine = None
+        self.agent_loop = None
         logger.info("AtlasApplication initialized")
 
         self.self_healing = SelfHealingSystem(self.event_bus)
@@ -63,13 +65,28 @@ class AtlasApplication:
         # Initialize plugin system
         self.plugin_system.initialize()
 
-        # Now initialize tool_manager and memory_manager after imports are resolved
+        # Import core system components
+        from core.agents.agent_loop_manager import AgentLoopManager
+        from core.intelligence.decision_engine import DecisionEngine
+        from core.tools.tool_manager import ToolManager
         from data.memory_manager import MemoryManager
-        from tools.tool_manager import ToolManager
 
         self.tool_manager = ToolManager()
         self.memory_manager = MemoryManager()
         logger.info("ToolManager and MemoryManager initialized")
+
+        self.decision_engine = (
+            DecisionEngine()
+        )  # Create the config manager for the agent loop
+        from utils.config_manager import ConfigManager
+
+        agent_config = ConfigManager()
+
+        self.agent_loop = AgentLoopManager(
+            self.event_bus, self.decision_engine, self.tool_manager, agent_config
+        )
+        self.agent_loop.start()
+        logger.info("DecisionEngine and AgentLoopManager initialized and started")
 
         logger.info("Core systems initialized successfully")
 

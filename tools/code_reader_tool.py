@@ -147,7 +147,6 @@ class CodeReaderTool:
             ".git",
             ".venv",
             "venv",
-            "venv-macos",
             "venv-linux",
             "node_modules",
             ".pytest_cache",

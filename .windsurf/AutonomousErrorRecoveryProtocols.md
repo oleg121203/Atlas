@@ -27,7 +27,7 @@ When encountering ambiguous requirements:
 development:
   platform: "macos-apple-silicon"
   hardware: "mac-studio-m1-max-32gb"
-  environment: "venv-macos"
+  environment: ".venv"
   python_version: "3.9.6+"
   architecture: "arm64"
   testing: pytest
@@ -221,7 +221,7 @@ Security testing MUST be performed in the macOS Mac Studio M1 Max 32GB environme
 - **Hardware**: Mac Studio M1 Max 32GB
 - **OS**: macOS (exclusively)
 - **Python**: 3.9.6+ (ARM64 native)
-- **Virtual Environment**: `venv-macos`
+- **Virtual Environment**: `.venv`
 
 All security tests require:
 - `bandit` for security linting
@@ -288,7 +288,7 @@ All development MUST use the macOS Mac Studio M1 Max 32GB environment:
 - **Hardware**: Mac Studio M1 Max with 32GB unified memory
 - **OS**: macOS (exclusively)
 - **Python**: 3.9.6+ (ARM64 native)
-- **Virtual Environment**: `venv-macos`
+- **Virtual Environment**: `.venv`
 - **Native Frameworks**: PyObjC, Metal, CoreML
 
 ## Language Quality Standards
@@ -366,7 +366,7 @@ All development MUST use the Mac Studio M1 Max 32GB optimized environment:
 - **Hardware**: Mac Studio M1 Max with 32GB RAM
 - **OS**: macOS (exclusively)
 - **Python**: 3.9.6+ (ARM64 native)
-- **Virtual Environment**: `venv-macos`
+- **Virtual Environment**: `.venv`
 - **Performance**: Optimized for Apple Silicon
 
 ## Language Standards
@@ -485,8 +485,8 @@ If environment issues are detected:
 - **Hardware**: Mac Studio M1 Max 32GB RAM
 - **Architecture**: Apple Silicon (arm64)
 - **Python Version**: 3.9.6+ (minimum 3.9.6, supports higher versions)
-- **Virtual Environment**: `venv-macos`
-- **Requirements**: `requirements-macos.txt`
+- **Virtual Environment**: `.venv`
+- **Requirements**: `requirements.txt`
 - **Native Features**: Full pyobjc frameworks integration
 - **Memory**: Optimized for 32GB unified memory
 - **Performance**: Leverage Apple Silicon acceleration

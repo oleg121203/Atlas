@@ -1,43 +1,51 @@
-# Atlas Universal Requirements
-# Compatible with Python 3.9.20+
-# Cross-platform dependencies for Atlas AI Assistant
+# Atlas Python dependencies (macOS unified)
+# This file is automatically checked by Dependabot for updates
 
-# GUI Framework
-PySide6==6.9.1
-darkdetect>=0.8.0 
-qdarkstyle>=3.1.0
+# macOS GUI integration
+pyobjc-core>=9.0.0
+pyobjc-framework-Cocoa>=9.0.0
+pyobjc-framework-Quartz>=9.0.0
 
-# AI and ML
-openai==1.93.0
-anthropic>=0.8.1 
-langchain==0.3.26
-langchain-core==0.3.68
-langchain-community==0.3.27
-chromadb==1.0.15
-sentence-transformers>=2.3.0 
-nltk==3.8.1
+# macOS native application bundling
+py2app>=0.28.0
+dmgbuild>=1.6.0
 
-# Data Processing
-pandas==2.3.0 
-matplotlib>=3.9.1
-numpy>=1.26.4 
-scikit-learn==1.5.1
-Pillow==10.3.0
-seaborn==0.13.1
+# macOS-specific utilities
+pyautogui>=0.9.53  # With native macOS support
+pyperclip>=1.8.2
 
-# Network and HTTP
-requests==2.32.3
-urllib3>=2.0.7
-aiohttp>=3.9.3 
-websockets==12.0
+# Accessibility support for macOS
+pyobjc-framework-ApplicationServices>=9.0.0
+pyobjc-framework-Accessibility>=9.0.0
 
-# System Interaction
-psutil>=5.9.8 
-pynput>=1.7.6 
-pyautogui==0.9.54
-PyGetWindow==0.0.9
-PyMsgBox==1.0.9
-pyperclip==1.9.0
+# macOS notifications
+pync>=2.0.3
+
+# macOS UI libraries
+pyside6>=6.5.0  # Qt for macOS
+customtkinter>=5.1.0  # Modern tkinter for macOS
+
+# Development utilities
+pyright>=1.1.0
+black>=23.0.0
+ruff>=0.0.40
+mypy>=1.0.0
+bandit>=1.7.5
+safety>=2.3.5
+
+# Docker integration
+docker>=6.0.0
+docker-compose>=2.0.0
+
+# CI/CD tools
+pytest-github-actions-annotate-failures>=0.1.7
+
+# Headless environment dependencies (optional, for CI)
+pytest-xvfb>=2.0.0
+pyvirtualdisplay>=3.0
+
+# Linux-specific GUI fallbacks (optional, for CI)
+pynput>=1.7.6  # For headless input simulation
 PyRect==0.2.0
 PyScreeze==1.0.1
 pytweening==1.2.0
@@ -97,6 +105,23 @@ beautifulsoup4==4.12.3
 
 # Add safety for dependency security scanning
 safety==3.2.0
+
+# macOS-specific dependencies
+# macOS GUI integration
+pyobjc-core>=9.0.0
+pyobjc-framework-Cocoa>=9.0.0
+pyobjc-framework-Quartz>=9.0.0
+
+# macOS native application bundling
+py2app>=0.28.0
+dmgbuild>=1.6.0
+
+# Accessibility support for macOS
+pyobjc-framework-ApplicationServices>=9.0.0
+pyobjc-framework-Accessibility>=9.0.0
+
+# macOS notifications
+pync>=2.0.3
 
 # Other dependencies
 oauthlib==3.2.2 

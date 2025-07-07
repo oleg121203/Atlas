@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Python dependencies
+  # Atlas Python dependencies (macOS unified)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -25,6 +25,13 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "urllib3"
         update-types: ["version-update:semver-major"]
+    labels:
+      - "dependencies"
+      - "python"
+    groups:
+      atlas-unified:
+        patterns:
+          - "*"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -40,3 +47,12 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    open-pull-requests-limit: 5
+    groups:
+      workflow-actions:
+        patterns:
+          - "actions/*"

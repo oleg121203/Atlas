@@ -46,7 +46,7 @@ All development MUST use the macOS Mac Studio M1 Max 32GB environment:
 - **Hardware**: Mac Studio M1 Max with 32GB unified memory
 - **OS**: macOS
 - **Python**: 3.13.x (ARM64 native)
-- **Virtual Environment**: `venv-macos`
+- **Virtual Environment**: `.venv`
 - **Native Frameworks**: PyObjC, Metal, CoreML
 
 ## Language Quality Standards

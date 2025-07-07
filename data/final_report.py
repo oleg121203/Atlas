@@ -127,9 +127,7 @@ def check_configuration():
         "config.ini існує": os.path.exists("config.ini"),
         ".env існує": os.path.exists(".env"),
         "~/.atlas/config.yaml існує": (Path.home() / ".atlas" / "config.yaml").exists(),
-        "venv-macos активне": "venv-macos" in sys.prefix
-        if hasattr(sys, "prefix")
-        else False,
+        ".venv активне": ".venv" in sys.prefix if hasattr(sys, "prefix") else False,
     }
 
 

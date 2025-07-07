@@ -29,7 +29,7 @@ Security testing MUST be performed in the macOS Mac Studio M1 Max 32GB environme
 - **Hardware**: Mac Studio M1 Max 32GB
 - **OS**: macOS
 - **Python**: 3.9.6 (ARM64 native)
-- **Virtual Environment**: `venv-macos`
+- **Virtual Environment**: `.venv`
 
 All security tests require:
 - `bandit` for security linting

@@ -18,7 +18,7 @@
     "config.ini існує": true,
     ".env існує": true,
     "~/.atlas/config.yaml існує": true,
-    "venv-macos активне": true
+    ".venv активне": true
   },
   "files_created": [
     "setup_atlas_quick.py",

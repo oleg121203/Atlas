@@ -8,8 +8,7 @@ Before starting any Atlas development task, Windsurf AI MUST configure the macOS
 ### 1. Environment Activation (REQUIRED - macOS ONLY)
 
 ```bash
-# macOS Mac Studio M1 Max environment ONLY:
-source scripts/use_macos.sh
+
 
 # Verify we're on Apple Silicon Mac:
 uname -m  # Should output: arm64
@@ -40,14 +39,9 @@ The following tools MUST be accessible for quality assurance:
 ### 4. macOS Native Integration (REQUIRED)
 
 ```bash
-# Install macOS-specific dependencies:
-pip install pyobjc-framework-Cocoa
-pip install py2app
-pip install rumps
 
-# Verify macOS frameworks access:
-python3 -c "import Cocoa; print('✅ Cocoa framework OK')"
-python3 -c "import Foundation; print('✅ Foundation framework OK')"
+
+
 ```
 
 ### 5. IDE Integration Issues (IF APPLICABLE)
@@ -97,8 +91,8 @@ If environment issues are detected:
 - **Hardware**: Mac Studio M1 Max 32GB RAM
 - **Architecture**: Apple Silicon (arm64)
 - **Python Version**: 3.9.6
-- **Virtual Environment**: `venv-macos`
-- **Requirements**: `requirements-macos.txt`
+- **Virtual Environment**: `.venv`
+- **Requirements**: `requirements.txt`
 - **Native Features**: Full pyobjc frameworks integration
 - **Memory**: Optimized for 32GB unified memory
 - **Performance**: Leverage Apple Silicon acceleration

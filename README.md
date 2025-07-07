@@ -4,6 +4,10 @@
 
 Atlas — сучасна модульна AI-платформа з кіберпанк-дизайном, розширюваністю через плагіни та тулси.
 
+## Системні вимоги
+- **Python**: 3.9.2+
+- **Інтерфейс**: PySide6
+
 ## Основні особливості
 - PySide6 + qdarkstyle (темний кіберпанк-інтерфейс)
 - Модульна архітектура: Chat, Tasks, Agents, Plugins, Settings, Stats
@@ -79,7 +83,7 @@ Atlas is a modern modular AI platform with cyberpunk design, extensibility throu
 
 ## System Requirements
 
-- Python 3.9+
+- Python 3.9.2+
 - PySide6
 - Mac Studio M1 Max 32GB (optimized for)
 - macOS Sequoia (optimized for)
@@ -88,8 +92,8 @@ Atlas is a modern modular AI platform with cyberpunk design, extensibility throu
 
 ```bash
 # Create a virtual environment
-pyenv virtualenv 3.9.20 atlas
-pyenv activate atlas
+python3 -m venv .venv
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -245,7 +249,7 @@ Atlas is a comprehensive workflow management and analytics platform optimized fo
 
 ## Getting Started
 
-To get started with Atlas development, ensure your environment is set up according to `.windsurf/ENVIRONMENT_SETUP.md`. Use Python 3.9.6 (ARM64 native) within the `venv-macos` virtual environment.
+To get started with Atlas development, ensure your environment is set up according to `.windsurf/ENVIRONMENT_SETUP.md`. Use Python 3.9.6 (ARM64 native) within the `.venv` virtual environment.
 
 Run the demo scripts to see the features in action:
 - Workflow Analytics: `python3.9 workflow_analytics_demo.py`
