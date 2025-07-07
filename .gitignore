@@ -318,3 +318,21 @@ __pycache__/
 
 # Ignore mypy cache
 /.mypy_cache/
+
+# Migration artifacts
+atlas_backup/
+backup_ui*/
+app/
+src/
+
+# Development artifacts from migration
+*.pyc
+bandit-report.json
+coverage.xml
+.coverage
+UI_INTEGRATION_FINAL_REPORT.md
+ui_integration_report.md
+test_module_distribution.py
+
+# Temporary benchmarks
+.benchmarks/
