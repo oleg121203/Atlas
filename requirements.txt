@@ -96,7 +96,7 @@ pytest-benchmark==4.0.0
 beautifulsoup4==4.12.3
 
 # Add safety for dependency security scanning
-safety==3.2.0
+safety==3.5.2
 
 # Other dependencies
 oauthlib==3.2.2 
