@@ -185,9 +185,6 @@ select = ["E", "F", "B", "I", "N", "UP", "S", "C4", "PTH", "RUF", "TID", "PL"]
 ignore = ["E501", "S101", "C901"]
 fixable = ["ALL"]
 
-[tool.ruff.lint.mccabe]
-max-complexity = 25
-
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

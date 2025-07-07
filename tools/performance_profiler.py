@@ -11,11 +11,20 @@ import tracemalloc
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Optional
 
 import psutil
 
 logger = logging.getLogger(__name__)
+
+# Performance thresholds
+HIGH_MEMORY_THRESHOLD = 80
+HIGH_CPU_THRESHOLD = 80
+EXCELLENT_SCORE_THRESHOLD = 90
+GOOD_SCORE_THRESHOLD = 75
+MODERATE_SCORE_THRESHOLD = 50
+MAX_LOOP_DEPTH = 2
+HIGH_COMPLEXITY_THRESHOLD = 20
 
 
 @dataclass
@@ -50,18 +59,18 @@ class FunctionProfile:
 class PerformanceReport:
     """Complete performance analysis report."""
 
-    issues: List[PerformanceIssue]
-    function_profiles: List[FunctionProfile]
-    memory_usage: Dict[str, Any]
-    system_metrics: Dict[str, Any]
-    recommendations: List[str]
+    issues: list[PerformanceIssue]
+    function_profiles: list[FunctionProfile]
+    memory_usage: dict[str, Any]
+    system_metrics: dict[str, Any]
+    recommendations: list[str]
     summary: str
 
 
 class PerformanceProfiler:
     """Advanced performance analyzer for Atlas codebase."""
 
-    def __init__(self, root_path: str = None):
+    def __init__(self, root_path: Optional[str] = None):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.root_path = Path(root_path) if root_path else Path(__file__).parent.parent
         self.excluded_dirs = {
@@ -180,7 +189,7 @@ class PerformanceProfiler:
             summary=summary,
         )
 
-    def _analyze_static_performance(self) -> List[PerformanceIssue]:
+    def _analyze_static_performance(self) -> list[PerformanceIssue]:
         """Analyze code for static performance issues."""
         issues = []
 
@@ -200,12 +209,12 @@ class PerformanceProfiler:
             key=lambda x: {"critical": 0, "high": 1, "medium": 2, "low": 3}[x.severity],
         )
 
-    def _analyze_file_performance(self, file_path: Path) -> List[PerformanceIssue]:
+    def _analyze_file_performance(self, file_path: Path) -> list[PerformanceIssue]:
         """Analyze a single file for performance issues."""
         issues = []
 
         try:
-            with open(file_path, encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 content = f.read()
                 lines = content.split("\n")
 
@@ -251,7 +260,7 @@ class PerformanceProfiler:
 
         return issues
 
-    def _is_in_loop_context(self, lines: List[str], line_num: int) -> bool:
+    def _is_in_loop_context(self, lines: list[str], line_num: int) -> bool:
         """Check if a line is within a loop context."""
         # Look backwards for loop keywords
         loop_keywords = ["for ", "while "]
@@ -288,7 +297,7 @@ class PerformanceProfiler:
 
     def _analyze_ast_performance(
         self, file_path: Path, content: str
-    ) -> List[PerformanceIssue]:
+    ) -> list[PerformanceIssue]:
         """Analyze AST for complex performance patterns."""
         issues = []
 
@@ -307,7 +316,7 @@ class PerformanceProfiler:
 
         return issues
 
-    def _get_system_metrics(self) -> Dict[str, Any]:
+    def _get_system_metrics(self) -> dict[str, Any]:
         """Get current system performance metrics."""
         try:
             # CPU information
@@ -352,7 +361,7 @@ class PerformanceProfiler:
             self.logger.error(f"Error getting system metrics: {e}")
             return {}
 
-    def _analyze_memory_usage(self) -> Dict[str, Any]:
+    def _analyze_memory_usage(self) -> dict[str, Any]:
         """Analyze memory usage patterns."""
         try:
             # Start memory tracing
@@ -387,7 +396,7 @@ class PerformanceProfiler:
             self.logger.error(f"Error analyzing memory usage: {e}")
             return {"error": str(e)}
 
-    def _profile_runtime_performance(self) -> List[FunctionProfile]:
+    def _profile_runtime_performance(self) -> list[FunctionProfile]:
         """Profile runtime performance of key functions."""
         profiles = []
 
@@ -402,8 +411,8 @@ class PerformanceProfiler:
         return profiles
 
     def _generate_performance_recommendations(
-        self, issues: List[PerformanceIssue], system_metrics: Dict[str, Any]
-    ) -> List[str]:
+        self, issues: list[PerformanceIssue], system_metrics: dict[str, Any]
+    ) -> list[str]:
         """Generate performance optimization recommendations."""
         recommendations = []
 
@@ -442,12 +451,15 @@ class PerformanceProfiler:
             )
 
         # System-based recommendations
-        if system_metrics.get("memory", {}).get("used_percent", 0) > 80:
+        if (
+            system_metrics.get("memory", {}).get("used_percent", 0)
+            > HIGH_MEMORY_THRESHOLD
+        ):
             recommendations.append(
                 "💾 **Memory Optimization**: High memory usage detected, consider memory optimization"
             )
 
-        if system_metrics.get("cpu", {}).get("usage_percent", 0) > 80:
+        if system_metrics.get("cpu", {}).get("usage_percent", 0) > HIGH_CPU_THRESHOLD:
             recommendations.append(
                 "⚡ **CPU Optimization**: High CPU usage detected, profile CPU-intensive operations"
             )
@@ -466,9 +478,9 @@ class PerformanceProfiler:
 
     def _create_performance_summary(
         self,
-        issues: List[PerformanceIssue],
-        system_metrics: Dict[str, Any],
-        memory_usage: Dict[str, Any],
+        issues: list[PerformanceIssue],
+        system_metrics: dict[str, Any],
+        memory_usage: dict[str, Any],
     ) -> str:
         """Create performance analysis summary."""
         critical_count = len([i for i in issues if i.severity == "critical"])
@@ -506,15 +518,15 @@ Process Memory: {system_metrics.get("process", {}).get("memory_mb", "N/A"):.1f} 
 
     def _get_performance_assessment(self, score: int, critical: int, high: int) -> str:
         """Get performance assessment based on score and issues."""
-        if score >= 90 and critical == 0:
+        if score >= EXCELLENT_SCORE_THRESHOLD and critical == 0:
             return "Excellent performance. Minor optimizations possible."
-        if score >= 75 and critical == 0:
+        if score >= GOOD_SCORE_THRESHOLD and critical == 0:
             return "Good performance with room for optimization."
-        if score >= 50 or critical == 0:
+        if score >= MODERATE_SCORE_THRESHOLD or critical == 0:
             return "Moderate performance. Optimization recommended."
         return "Poor performance. Immediate optimization required."
 
-    def generate_performance_report(self) -> str:
+    def generate_performance_report(self) -> str:  # noqa: C901
         """Generate comprehensive performance report."""
         analysis = self.analyze_performance()
 
@@ -600,12 +612,12 @@ class PerformanceASTAnalyzer(ast.NodeVisitor):
         self.loop_depth = 0
         self.function_complexity = defaultdict(int)
 
-    def visit_For(self, node):
+    def visit_for(self, node):
         """Analyze for loops."""
         self.loop_depth += 1
 
         # Check for nested loops
-        if self.loop_depth > 2:
+        if self.loop_depth > MAX_LOOP_DEPTH:
             self.issues.append(
                 PerformanceIssue(
                     file_path=self.file_path,
@@ -622,13 +634,13 @@ class PerformanceASTAnalyzer(ast.NodeVisitor):
         self.generic_visit(node)
         self.loop_depth -= 1
 
-    def visit_While(self, node):
+    def visit_while(self, node):
         """Analyze while loops."""
         self.loop_depth += 1
         self.generic_visit(node)
         self.loop_depth -= 1
 
-    def visit_FunctionDef(self, node):
+    def visit_functiondef(self, node):
         """Analyze function complexity."""
         # Count decision points
         complexity = 1
@@ -636,7 +648,7 @@ class PerformanceASTAnalyzer(ast.NodeVisitor):
             if isinstance(child, (ast.If, ast.While, ast.For, ast.ExceptHandler)):
                 complexity += 1
 
-        if complexity > 20:
+        if complexity > HIGH_COMPLEXITY_THRESHOLD:
             self.issues.append(
                 PerformanceIssue(
                     file_path=self.file_path,
