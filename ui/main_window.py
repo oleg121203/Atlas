@@ -128,7 +128,7 @@ class AtlasMainWindow(QMainWindow):
         self.dock.setWidget(self.sidebar)
         # Initialize modules safely with try-except to prevent startup crashes
         try:
-            self.chat_module = ChatWidget()
+            self.chat_module = ChatWidget(self.app)
             self.modules["Chat"] = self.chat_module
         except Exception as e:
             self.logger.error(f"Failed to initialize Chat module: {e}")
@@ -164,9 +164,8 @@ class AtlasMainWindow(QMainWindow):
         """Handle application shutdown event."""
         self.logger.info("Received app_shutdown event, closing main window")
         try:
-            # Always use a byte string for signal to ensure type compatibility
-            shutdown_signal = b"app_shutdown"
-            self.event_bus.emit(shutdown_signal)
+            # Use the publish method instead of emit
+            self.event_bus.publish("app_shutdown")
         except Exception as e:
             self.logger.error(f"Error handling app_shutdown: {e}")
         self.close()
@@ -620,15 +619,10 @@ class AtlasMainWindow(QMainWindow):
         """Handle window close event with proper cleanup."""
         self.logger.info("Closing main window")
         try:
-            # Emit shutdown signal to subscribers if method exists
-            if hasattr(self, "event_bus") and hasattr(self.event_bus, "emit"):
+            # Emit shutdown signal to subscribers
+            if hasattr(self, "event_bus") and hasattr(self.event_bus, "publish"):
                 try:
-                    self.event_bus.emit(b"app_shutdown")
-                except Exception as e:
-                    self.logger.error(f"Error emitting shutdown signal: {e}")
-            elif hasattr(self.event_bus, "publish"):
-                try:
-                    self.event_bus.publish("app_shutdown", {})
+                    self.event_bus.publish("app_shutdown")
                 except Exception as e:
                     self.logger.error(f"Error publishing shutdown signal: {e}")
             # Close all windows and cleanup

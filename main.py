@@ -53,10 +53,13 @@ def main():
         app = AtlasApplication()
 
         if not args.no_ui:
+            # Initialize UI for GUI mode
+            app.initialize_ui()
             return app.run()
         else:
             logger.info("Running Atlas in headless mode")
             # Headless mode implementation would go here
+            app.start()  # Use start() method for headless mode
             return 0
 
     except KeyboardInterrupt:
