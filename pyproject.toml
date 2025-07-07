@@ -66,7 +66,7 @@ Repository = "https://github.com/atlas-ai/atlas"
 "Bug Tracker" = "https://github.com/atlas-ai/atlas/issues"
 
 [project.scripts]
-atlas = "main:main"
+atlas = "atlas.main:main"
 
 [project.optional-dependencies]
 dev = [
@@ -272,3 +272,10 @@ show_contexts = true
 
 [tool.coverage.xml]
 output = "coverage.xml"
+
+[tool.poetry]
+name = "atlas-ai-assistant"
+version = "1.0.0"
+description = "Atlas Universal AI Assistant with Advanced Analytics"
+authors = ["Atlas Development Team <dev@atlas-ai.com>"]
+packages = [{include = "atlas"}]
