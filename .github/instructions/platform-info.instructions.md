@@ -73,21 +73,43 @@ if sys.version_info >= (3, 12):
 - **Dependencies**: `requirements.txt` (with macOS-specific packages)
 - **Features**: Quartz API, Dock integration, native permissions
 
-### File Structure Standards
+## 🏗️ Фінальна Структура Проєкту
+
 ```
 Atlas/
-├── .venv/                     # Віртуальне середовище (використовується всюди)
-├── app/                       # Основний код застосунку
-├── core/                      # Ключова логіка та компоненти
-├── ui/                        # Компоненти користувацького інтерфейсу
-├── tools/                     # Інструменти для розробки та автоматизації
-├── scripts/                   # Допоміжні скрипти
-├── tests/                     # Тести Pytest
-├── requirements.txt           # Залежності проекту (Python 3.9–3.12)
-├── pyproject.toml             # Конфігурація проекту
-├── setup_macos_dev.sh         # Скрипт для налаштування середовища розробки
-├── launch_macos.sh            # Скрипт для запуску застосунку
-└── ...                        # Інші каталоги та файли проекту
+├── .github/              # GitHub workflows, templates
+├── .idea/                # IDE налаштування  
+├── .venv/                # Віртуальне середовище
+├── .vscode/              # VS Code налаштування
+├── .windsurf/            # Windsurf IDE налаштування
+│
+├── atlas/                # 📦 ОСНОВНИЙ ПАКЕТ ПРОГРАМИ
+│   ├── __init__.py
+│   ├── main.py             # 🚀 Точка входу
+│   │
+│   ├── assets/             # 🎨 Іконки, стилі, шрифти, локалізація
+│   ├── core/               # ⚙️ Ядро (Application, EventBus, Systems)
+│   ├── agents/             # 🧠 AI агенти та інтелект
+│   ├── memory/             # 🧬 Система пам'яті та контексту
+│   ├── plugins/            # 🧩 Система плагінів
+│   ├── tools/              # 🛠️ Інструменти та утиліти
+│   ├── ui/                 # 🖼️ Графічний інтерфейс (PySide6)
+│   ├── workflows/          # 🔄 Система робочих процесів
+│   └── utils/              # 🔧 Допоміжні утиліти
+│
+├── config/               # ✅ Шаблони конфігурацій (default.json, schema.json)
+├── data/                 # ✅ Приклади даних, шаблони для розробки
+├── docs/                 # 📚 Документація
+├── scripts/              # 📜 Скрипти (збірка, аналіз, деплой)
+├── tests/                # 🧪 Тести
+├── user/                 # 👤 Користувацькі дані та налаштування
+│
+├── .gitignore
+├── CHANGELOG.md
+├── DEV_PLAN.md           # 📋 Цей файл
+├── LICENSE
+├── README.md
+└── pyproject.toml        # 📦 Конфігурація проєкту
 ```
 
 ### Import Standards
