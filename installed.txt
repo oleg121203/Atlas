@@ -204,7 +204,7 @@ safety-schemas==0.0.14
 safety==3.5.2
 scapy==2.5.0
 schedule==1.2.0
-scikit-learn==1.6.1
+scikit-learn==1.7.0
 scipy==1.13.1
 seaborn==0.13.2
 sentence-transformers==5.0.0
