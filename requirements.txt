@@ -46,7 +46,7 @@ pytweening==1.2.0
 cryptography==42.0.5
 bcrypt==4.1.2
 keyring>=24.3.0 
-PyJWT==2.8.0
+PyJWT==2.10.1
 
 # Storage and Database
 sqlalchemy>=2.0.27 
