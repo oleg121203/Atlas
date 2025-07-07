@@ -216,11 +216,8 @@ class DecisionEngine(QObject):
         required_fields = ["tool", "args"]
         has_required = all(field in decision for field in required_fields)
 
-        if not has_required:
-            return False
-
         # Additional validation can be added here
-        return True
+        return has_required
 
     def _default_tool_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
