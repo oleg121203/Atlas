@@ -1,0 +1,416 @@
+/* Atlas Theme Stylesheet (ASC-024) */
+/* This QSS file defines the visual styling for the Atlas application based on the UI Design Specifications. */
+/* It includes styles for light and dark themes, with variables for easy theme switching. */
+
+/* Global Variables for Theme Colors */
+/* These are placeholders for dynamic replacement during theme switching */
+/* Light Theme Defaults */
+:root {
+    color-primary: #3B82F6;
+    color-secondary: #1E3A8A;
+    color-accent: #F59E0B;
+    color-success: #38A169;
+    color-error: #E53E3E;
+    bg-light: #F7FAFC;
+    bg-dark: #1A202C;
+    card-light: #FFFFFF;
+    card-dark: #2D3748;
+    text-dark: #4A5568;
+    text-light: #CBD5E1;
+    sidebar-bg: #1E293B;
+    border-light: #E2E8F0;
+    border-dark: #4A5568;
+}
+
+/* Base Application Styles */
+QMainWindow, QWidget {
+    background-color: var(bg-light);
+    color: var(text-dark);
+    font-family: Roboto, sans-serif;
+}
+
+/* Header Bar */
+#appHeader {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 var(color-secondary), stop:1 var(color-primary));
+    min-height: 60px;
+    max-height: 60px;
+}
+
+QLabel#headerLogo {
+    min-height: 40px;
+    max-height: 40px;
+    margin-left: 16px;
+}
+
+QTabBar::tab, QPushButton#navTab {
+    color: white;
+    font-size: 16px;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+}
+
+QTabBar::tab:selected, QPushButton#navTab:hover {
+    color: rgba(255, 255, 255, 0.9);
+    border-bottom: 2px solid var(color-accent);
+}
+
+QTabBar::tab:hover, QPushButton#navTab:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Search Bar */
+QLineEdit#searchBar {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid white;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    font-style: italic;
+    min-height: 32px;
+    max-height: 32px;
+    margin-right: 16px;
+    padding-left: 8px;
+}
+
+QLineEdit#searchBar::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Sidebar */
+QWidget#sidebar {
+    background-color: var(sidebar-bg);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+QPushButton#sidebarToggle {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+}
+
+QLabel#sidebarItem, QPushButton#sidebarItem {
+    color: var(text-light);
+    font-size: 16px;
+    padding: 8px 12px;
+    text-align: left;
+    background: transparent;
+    border: none;
+}
+
+QLabel#sidebarItem:hover, QPushButton#sidebarItem:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+QLabel#sidebarItem.active, QPushButton#sidebarItem.active {
+    border-left: 4px solid var(color-accent);
+    color: white;
+}
+
+/* Breadcrumb */
+QLabel#breadcrumb {
+    color: var(text-dark);
+    font-size: 12px;
+    margin-left: 16px;
+    margin-top: 8px;
+}
+
+QLabel#breadcrumbSegment:hover {
+    color: var(color-primary);
+    text-decoration: underline;
+}
+
+/* Main Content Area */
+QWidget#contentArea {
+    padding: 16px;
+}
+
+QWidget.card {
+    background-color: var(card-light);
+    border-radius: 4px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    margin: 16px;
+}
+
+QLabel.cardTitle {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(text-dark);
+}
+
+QLabel.cardBody {
+    font-size: 16px;
+    color: var(text-dark);
+}
+
+/* Contextual Toolbar */
+QWidget#contextToolbar {
+    min-height: 48px;
+    max-height: 48px;
+    border-bottom: 1px solid var(border-light);
+}
+
+QPushButton.toolbarPrimary {
+    background-color: var(color-primary);
+    color: white;
+    font-size: 14px;
+    min-height: 32px;
+    max-height: 32px;
+    border-radius: 4px;
+    padding: 0px 16px;
+    border: none;
+}
+
+QPushButton.toolbarPrimary:hover {
+    background-color: rgba(59, 130, 246, 0.9);
+}
+
+QPushButton.toolbarSecondary {
+    background-color: #A0AEC0;
+    color: white;
+    font-size: 14px;
+    min-height: 32px;
+    max-height: 32px;
+    border-radius: 4px;
+    padding: 0px 16px;
+    border: none;
+}
+
+QPushButton.toolbarSecondary:hover {
+    background-color: rgba(160, 174, 192, 0.9);
+}
+
+/* Modal Window */
+QDialog.modal {
+    background-color: var(card-light);
+    border: 1px solid var(border-light);
+    border-radius: 8px;
+}
+
+QLabel.modalTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(text-dark);
+    margin-bottom: 16px;
+}
+
+QPushButton#closeModal {
+    background: transparent;
+    border: none;
+    color: var(text-dark);
+    font-size: 24px;
+}
+
+QPushButton#closeModal:hover {
+    color: var(color-error);
+}
+
+QLineEdit.modalInput, QComboBox.modalInput, QTextEdit.modalInput {
+    border: 1px solid #A0AEC0;
+    border-radius: 4px;
+    min-height: 40px;
+    font-size: 16px;
+    padding: 8px;
+    color: var(text-dark);
+}
+
+QLineEdit.modalInput:focus, QComboBox.modalInput:focus, QTextEdit.modalInput:focus {
+    border: 2px solid var(color-primary);
+}
+
+QLabel.modalLabel {
+    font-size: 14px;
+    color: var(text-dark);
+    margin-bottom: 8px;
+}
+
+QPushButton#advancedOptions {
+    border: 1px solid var(color-accent);
+    color: var(color-accent);
+    background: transparent;
+    font-size: 14px;
+    min-height: 32px;
+    border-radius: 4px;
+    padding: 8px 16px;
+}
+
+QPushButton#advancedOptions:hover {
+    background-color: rgba(245, 158, 11, 0.1);
+}
+
+QLabel#aiSuggestion {
+    font-size: 12px;
+    font-style: italic;
+    color: var(color-success);
+    margin-top: 4px;
+}
+
+QPushButton.modalSave {
+    background-color: var(color-primary);
+    color: white;
+    font-size: 14px;
+    min-height: 32px;
+    border-radius: 4px;
+    padding: 8px 16px;
+    border: none;
+}
+
+QPushButton.modalSave:hover {
+    background-color: rgba(59, 130, 246, 0.9);
+}
+
+QPushButton.modalSaveNew {
+    border: 1px solid var(color-primary);
+    color: var(color-primary);
+    background: transparent;
+    font-size: 14px;
+    min-height: 32px;
+    border-radius: 4px;
+    padding: 8px 16px;
+}
+
+QPushButton.modalSaveNew:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+QPushButton.modalCancel {
+    background-color: #A0AEC0;
+    color: white;
+    font-size: 14px;
+    min-height: 32px;
+    border-radius: 4px;
+    padding: 8px 16px;
+    border: none;
+}
+
+QPushButton.modalCancel:hover {
+    background-color: rgba(160, 174, 192, 0.9);
+}
+
+/* Context Panel */
+QWidget#contextPanel {
+    background-color: #EDF2F7;
+    border-left: 1px solid var(border-light);
+}
+
+QPushButton#contextResizeHandle {
+    background: transparent;
+    border: none;
+    cursor: ew-resize;
+    width: 5px;
+}
+
+QWidget#contextSectionHeader {
+    padding: 16px;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(text-dark);
+}
+
+QPushButton.contextAction {
+    color: var(color-primary);
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    text-align: left;
+    padding: 8px 12px;
+}
+
+QPushButton.contextAction:hover {
+    text-decoration: underline;
+}
+
+/* Dark Theme Overrides */
+/* Note: In actual implementation, these would be applied via a separate stylesheet or dynamic variable replacement */
+/* For simplicity, commented out here as a placeholder for theme switching logic */
+/*
+QMainWindow[theme="dark"], QWidget[theme="dark"] {
+    background-color: var(bg-dark);
+    color: var(text-light);
+}
+
+QWidget.card[theme="dark"] {
+    background-color: var(card-dark);
+    box-shadow: 0px 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+QLabel.cardTitle[theme="dark"], QLabel.cardBody[theme="dark"] {
+    color: var(text-light);
+}
+
+QWidget#contextToolbar[theme="dark"] {
+    border-bottom: 1px solid var(border-dark);
+}
+
+QDialog.modal[theme="dark"] {
+    background-color: var(card-dark);
+    border: 1px solid var(border-dark);
+}
+
+QLabel.modalTitle[theme="dark"], QLabel.modalLabel[theme="dark"] {
+    color: var(text-light);
+}
+
+QPushButton#closeModal[theme="dark"] {
+    color: var(text-light);
+}
+
+QLineEdit.modalInput[theme="dark"], QComboBox.modalInput[theme="dark"], QTextEdit.modalInput[theme="dark"] {
+    border: 1px solid var(border-dark);
+    color: var(text-light);
+}
+
+QPushButton.modalCancel[theme="dark"] {
+    background: transparent;
+    border: 1px solid #A0AEC0;
+    color: var(text-light);
+}
+
+QWidget#contextPanel[theme="dark"] {
+    background-color: var(sidebar-bg);
+    border-left: 1px solid var(border-dark);
+}
+
+QWidget#contextSectionHeader[theme="dark"] {
+    color: var(text-light);
+}
+*/
+
+/* High Contrast Theme */
+/* Placeholder for high contrast mode, would be applied similarly */
+/*
+QMainWindow[theme="high-contrast"], QWidget[theme="high-contrast"] {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+QPushButton[theme="high-contrast"] {
+    background-color: #FFFF00;
+    color: #000000;
+    border: 1px solid #FFFFFF;
+}
+
+QLineEdit[theme="high-contrast"], QComboBox[theme="high-contrast"], QTextEdit[theme="high-contrast"] {
+    border: 1px solid #FFFFFF;
+    color: #FFFFFF;
+}
+
+QPushButton:focus[theme="high-contrast"], QLineEdit:focus[theme="high-contrast"], QComboBox:focus[theme="high-contrast"], QTextEdit:focus[theme="high-contrast"] {
+    border: 3px solid #FFFF00;
+    box-shadow: 0 0 0 1px rgba(255, 255, 0, 0.3);
+}
+*/
+
+/* Focus Indicators */
+QPushButton:focus, QLineEdit:focus, QComboBox:focus, QTextEdit:focus, QWidget:focus {
+    border: 2px solid var(color-primary);
+    animation: focusPulse 1s ease-in-out infinite;
+}
+
+/* Placeholder for animation, note that QSS doesn't support keyframes directly, this is a note for implementation */
+/* In code, use QPropertyAnimation or similar for pulse effect */
+
+/* End of Stylesheet */

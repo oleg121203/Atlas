@@ -219,9 +219,10 @@ dist/
 *.db
 *.sqlite
 
-# Compiled executables
-Atlas
-Atlas.exe
+# Compiled executables (not source code directory)
+/Atlas
+/Atlas.exe
+!/atlas/
 
 # App bundles
 *.app
