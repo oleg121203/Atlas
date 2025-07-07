@@ -5,19 +5,55 @@ This module provides functions to validate and sanitize user inputs in the UI,
 ensuring security and data integrity.
 """
 
+import html
+import logging
 import re
 from typing import Dict
 
-from security.security_utils import get_logger, sanitize_input, validate_input
-
 # Logger for input validation
-logger = get_logger("InputValidation")
+logger = logging.getLogger("InputValidation")
 
 # Additional UI-specific validation patterns
 USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
 PASSWORD_PATTERN = re.compile(
     r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
 )
+EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+
+
+def validate_input(value: str, input_type: str) -> bool:
+    """Simple input validation."""
+    if not value:
+        return False
+
+    if input_type == "email":
+        return bool(EMAIL_PATTERN.match(value))
+    elif input_type == "url":
+        return value.startswith(("http://", "https://", "ftp://"))
+    elif input_type == "filepath":
+        return len(value) < 255 and not any(
+            char in value for char in ["<", ">", "|", '"']
+        )
+    elif input_type == "text":
+        return len(value) < 1000
+    elif input_type == "alphanumeric":
+        return value.isalnum()
+    return True
+
+
+def sanitize_input(value: str) -> str:
+    """Sanitize input by escaping HTML and removing dangerous characters."""
+    if not isinstance(value, str):
+        return ""
+
+    # Escape HTML
+    sanitized = html.escape(value)
+
+    # Remove null bytes
+    sanitized = sanitized.replace("\x00", "")
+
+    return sanitized
+
 
 # Input field types
 INPUT_TYPES = {

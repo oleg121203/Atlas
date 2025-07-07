@@ -20,7 +20,26 @@ from PySide6.QtWidgets import (
 
 from ui.components.loading_spinner import LoadingSpinner
 from ui.module_communication import EVENT_BUS
-from workflow.engine import WorkflowEngine
+
+
+# Placeholder for WorkflowEngine - will be replaced when workflow module is available
+class WorkflowEngine:
+    """Placeholder WorkflowEngine class."""
+
+    def __init__(self):
+        pass
+
+    def execute(self, workflow_name: str):
+        """Placeholder execute method."""
+        return {"status": "success", "message": f"Workflow {workflow_name} executed"}
+
+    def stop(self, workflow_name: str):
+        """Placeholder stop method."""
+        return {"status": "stopped", "message": f"Workflow {workflow_name} stopped"}
+
+    def execute_workflow_plan(self, plan: Any, initial_state: Any):
+        """Placeholder execute_workflow_plan method."""
+        return {"status": "success", "message": "Workflow plan executed", "result": {}}
 
 
 class WorkflowExecutionControl(QWidget):

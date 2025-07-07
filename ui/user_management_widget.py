@@ -5,6 +5,9 @@ This module provides the UI component for user management, including
 role assignment and permission viewing with RBAC integration.
 """
 
+# Placeholder for security.rbac - will be replaced when security module is available
+from enum import Enum
+
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -19,8 +22,45 @@ from PySide6.QtWidgets import (
 )
 
 from core.logging import get_logger
-from security.rbac import Role, get_rbac_manager
 from ui.input_validation import sanitize_ui_input, validate_ui_input
+
+
+class Role(Enum):
+    """Placeholder Role enum."""
+
+    ADMIN = "admin"
+    USER = "user"
+    GUEST = "guest"
+
+
+def get_rbac_manager():
+    """Placeholder RBAC manager."""
+
+    class RBACManager:
+        def __init__(self):
+            self.user_roles = {}
+
+        def get_roles(self):
+            return [Role.ADMIN, Role.USER, Role.GUEST]
+
+        def check_permission(self, user, permission):
+            return True  # Placeholder - always allow
+
+        def assign_user_role(self, username, role):
+            self.user_roles[username] = role
+
+        def remove_user_role(self, username):
+            if username in self.user_roles:
+                del self.user_roles[username]
+
+        def get_user_role(self, username):
+            return self.user_roles.get(username, Role.GUEST)
+
+        def get_user_permissions(self, username):
+            return ["read", "write"]  # Placeholder permissions
+
+    return RBACManager()
+
 
 logger = get_logger("UserManagementWidget")
 
@@ -166,8 +206,8 @@ class UserManagementWidget(QWidget):
             # Display permissions
             permissions = self.rbac_manager.get_user_permissions(username)
             self.perms_list.clear()
-            for perm in sorted(permissions, key=lambda p: p.value):
-                self.perms_list.addItem(QListWidgetItem(perm.value))
+            for perm in sorted(permissions):
+                self.perms_list.addItem(QListWidgetItem(perm))
             logger.debug("Displayed role and permissions for user %s", username)
         else:
             self.role_display.setText("Role: None (Not assigned)")

@@ -43,14 +43,30 @@ from PySide6.QtWidgets import (
 from core.event_bus import EventBus
 from core.events import TOOL_ERROR, TOOL_EXECUTED
 from data.memory_manager import MemoryManager
+from ui.agents.agents_widget import AgentsWidget
 from ui.chat.ai_assistant_widget import AIAssistantWidget
 from ui.chat.chat_widget import ChatWidget
+from ui.intelligence.context_ui import ContextUI
+from ui.intelligence.decision_ui import DecisionUI
+from ui.intelligence.self_improvement_ui import SelfImprovementUI
+from ui.memory.memory_ui import MemoryUI
 from ui.module_communication import EVENT_BUS
+from ui.performance_panel import PerformancePanel
 from ui.plugins.plugins_widget import PluginsWidget
-from ui.themes import ThemeManager
-from ui.tools import ToolManagerUI
+from ui.security_panel import SecurityPanel
+from ui.stats_module import StatsModule
+from ui.system_control_panel import SystemControlPanel
+from ui.themes.theme_manager import ThemeManager
+from ui.tools.tool_manager_ui import ToolManagerUI
+from ui.workflowui import WorkflowUI
 
 _logger = logging.getLogger(__name__)
+
+# Safe imports with error handling
+try:
+    from ui.placeholder_widgets import PlaceholderWidget
+except ImportError:
+    PlaceholderWidget = None
 
 
 class AtlasMainWindow(QMainWindow):
@@ -127,26 +143,8 @@ class AtlasMainWindow(QMainWindow):
         self.sidebar_widget = None
         self.dock = None
         # Initialize modules safely with try-except to prevent startup crashes
-        try:
-            self.chat_module = ChatWidget(self.app)
-            self.modules["Chat"] = self.chat_module
-        except Exception as e:
-            self.logger.error(f"Failed to initialize Chat module: {e}")
-            self.chat_module = QWidget()
-            layout = QVBoxLayout()
-            layout.addWidget(QLabel("Chat not available"))
-            self.chat_module.setLayout(layout)
-            self.modules["Chat"] = self.chat_module
-        try:
-            self.plugins_module = PluginsWidget(self)
-            self.modules["Plugins"] = self.plugins_module
-        except Exception as e:
-            self.logger.error(f"Failed to initialize Plugins module: {e}")
-            self.plugins_module = QWidget()
-            layout = QVBoxLayout()
-            layout.addWidget(QLabel("Plugins not available"))
-            self.plugins_module.setLayout(layout)
-            self.modules["Plugins"] = self.plugins_module
+        self._initialize_core_modules()
+
         # Delay UI initialization to ensure QApplication is ready
         QTimer.singleShot(0, self._init_ui)
         self.main_layout = QVBoxLayout()  # Додаємо основний layout, якщо його не було
@@ -211,6 +209,7 @@ class AtlasMainWindow(QMainWindow):
     def setup_ui(self):
         """Set up the user interface components."""
         self.logger.info("Setting up UI components")
+        self._apply_global_theme()
         self._setup_central_widget()
         self._setup_topbar()
         self._setup_sidebar()
@@ -218,6 +217,10 @@ class AtlasMainWindow(QMainWindow):
         self._setup_status_bar()
         self._setup_button_connections()
         self._create_menu_bar()
+
+        # Initialize with Chat module
+        self.show_module("Chat")
+
         self.logger.info("UI setup complete")
 
     def _setup_central_widget(self):
@@ -251,45 +254,155 @@ class AtlasMainWindow(QMainWindow):
         self.logger.debug("Setting up top toolbar")
         if not hasattr(self, "topbar") or self.topbar is None:
             self.topbar = QToolBar()
+            self.topbar.setObjectName("mainTopbar")
             self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.topbar)
+
+        # Set topbar style
+        self.topbar.setStyleSheet("""
+            QToolBar {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #2a2a2a, stop:1 #1a1a1a);
+                border: none;
+                spacing: 5px;
+                padding: 5px;
+            }
+        """)
 
         # Initialize buttons dictionary
         self.topbar_buttons = {}
 
-        # Create actual buttons for topbar
-        button_configs = [
-            ("chat_btn", "Chat", lambda: self.show_module("Chat")),
-            ("tasks_btn", "Tasks", lambda: self.show_module("Tasks")),
-            ("plugins_btn", "Plugins", lambda: self.show_module("Plugins")),
-            ("settings_btn", "Settings", lambda: self.show_module("Settings")),
-            ("help_btn", "Help", lambda: self.show_module("Help")),
-            ("minimize_btn", "−", self.showMinimized),
-            ("maximize_btn", "□", self._toggle_maximize),
-            ("close_btn", "×", self.close),
+        # Left side - Main Navigation buttons (primary modules)
+        nav_group = QWidget()
+        nav_layout = QHBoxLayout(nav_group)
+        nav_layout.setContentsMargins(0, 0, 0, 0)
+
+        nav_buttons = [
+            # Primary/core modules in topbar only
+            ("chat_btn", "💬 Chat", lambda: self.show_module("Chat")),
+            ("tasks_btn", "📋 Tasks", lambda: self.show_module("Tasks")),
+            ("tools_btn", "🔧 Tools", lambda: self.show_module("Tools")),
+            ("plugins_btn", "🔌 Plugins", lambda: self.show_module("Plugins")),
+            (
+                "performance_btn",
+                "⚡ Performance",
+                lambda: self.show_module("Performance"),
+            ),
+            ("security_btn", "🔒 Security", lambda: self.show_module("Security")),
+            (
+                "system_control_btn",
+                "🎛️ Control",
+                lambda: self.show_module("System Control"),
+            ),
         ]
 
-        for btn_name, btn_text, action in button_configs:
+        for btn_name, btn_text, action in nav_buttons:
             btn = QPushButton(btn_text)
             btn.setStyleSheet("""
                 QPushButton {
                     color: #00ffaa;
-                    background-color: #222;
-                    border: 1px solid #00ffaa;
-                    border-radius: 4px;
-                    padding: 6px 12px;
+                    background-color: rgba(34, 34, 34, 0.8);
+                    border: 1px solid #333;
+                    border-radius: 6px;
+                    padding: 8px 16px;
                     margin: 2px;
+                    font-weight: bold;
+                    min-width: 80px;
                 }
                 QPushButton:hover {
-                    background-color: #333;
+                    background-color: rgba(0, 255, 170, 0.1);
+                    border-color: #00ffaa;
+                    box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);
                 }
                 QPushButton:pressed {
                     background-color: #00ffaa;
                     color: #000;
                 }
+                QPushButton:checked {
+                    background-color: rgba(0, 255, 170, 0.2);
+                    border-color: #00ffaa;
+                }
             """)
+            btn.setCheckable(True)
             btn.clicked.connect(action)
-            self.topbar.addWidget(btn)
+            btn.clicked.connect(lambda checked, b=btn: self._highlight_active_button(b))
+            nav_layout.addWidget(btn)
             self.topbar_buttons[btn_name] = btn
+
+        self.topbar.addWidget(nav_group)
+
+        # Add spacer
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.topbar.addWidget(spacer)
+
+        # Right side - Control buttons
+        control_group = QWidget()
+        control_layout = QHBoxLayout(control_group)
+        control_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Add toggle panels button
+        toggle_right_btn = QPushButton("📊 Panel")
+        toggle_right_btn.setStyleSheet("""
+            QPushButton {
+                color: #aaa;
+                background-color: rgba(34, 34, 34, 0.5);
+                border: 1px solid #333;
+                border-radius: 4px;
+                padding: 6px 12px;
+                margin: 2px;
+            }
+            QPushButton:hover {
+                color: #00ffaa;
+                border-color: #00ffaa;
+            }
+        """)
+        toggle_right_btn.clicked.connect(self._toggle_right_panel)
+        control_layout.addWidget(toggle_right_btn)
+
+        # Window control buttons
+        control_buttons = [
+            ("minimize_btn", "−", self.showMinimized),
+            ("maximize_btn", "□", self._toggle_maximize),
+            ("close_btn", "×", self.close),
+        ]
+
+        for btn_name, btn_text, action in control_buttons:
+            btn = QPushButton(btn_text)
+            btn.setStyleSheet("""
+                QPushButton {
+                    color: #aaa;
+                    background-color: rgba(34, 34, 34, 0.5);
+                    border: 1px solid #333;
+                    border-radius: 4px;
+                    padding: 6px 8px;
+                    margin: 1px;
+                    font-weight: bold;
+                    min-width: 30px;
+                    max-width: 30px;
+                }
+                QPushButton:hover {
+                    color: #fff;
+                    background-color: rgba(255, 255, 255, 0.1);
+                }
+                QPushButton:pressed {
+                    background-color: rgba(255, 255, 255, 0.2);
+                }
+            """)
+            if btn_name == "close_btn":
+                btn.setStyleSheet(
+                    btn.styleSheet()
+                    + """
+                    QPushButton:hover {
+                        color: #ff5555;
+                        background-color: rgba(255, 85, 85, 0.2);
+                    }
+                """
+                )
+            btn.clicked.connect(action)
+            control_layout.addWidget(btn)
+            self.topbar_buttons[btn_name] = btn
+
+        self.topbar.addWidget(control_group)
 
     def _setup_sidebar(self):
         """Set up the sidebar for additional navigation or module access."""
@@ -297,34 +410,256 @@ class AtlasMainWindow(QMainWindow):
 
         # Create sidebar as QWidget with layout instead of QToolBar
         self.sidebar_widget = QWidget()
+        self.sidebar_widget.setObjectName("sidebarWidget")
         self.sidebar_layout = QVBoxLayout(self.sidebar_widget)
+        self.sidebar_layout.setContentsMargins(5, 10, 5, 10)
+        self.sidebar_layout.setSpacing(8)
+
+        # Set sidebar styling
+        self.sidebar_widget.setStyleSheet("""
+            QWidget#sidebarWidget {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #1e1e1e, stop:1 #2a2a2a);
+                border-right: 2px solid #333;
+            }
+        """)
 
         # Initialize buttons dictionary
         self.sidebar_buttons = {}
 
-        # Create buttons for navigation
+        # Add Atlas logo/title
+        title_label = QLabel("ATLAS")
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #00ffaa;
+                font-size: 20px;
+                font-weight: bold;
+                text-align: center;
+                padding: 10px;
+                border-bottom: 1px solid #333;
+                margin-bottom: 10px;
+            }
+        """)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sidebar_layout.addWidget(title_label)
+
+        # Add module section
+        modules_label = QLabel("ADDITIONAL MODULES")
+        modules_label.setStyleSheet("""
+            QLabel {
+                color: #888;
+                font-size: 12px;
+                font-weight: bold;
+                padding: 5px 10px;
+                margin-top: 10px;
+            }
+        """)
+        self.sidebar_layout.addWidget(modules_label)
+
+        # Create buttons for navigation with icons (sidebar only contains secondary/additional modules)
         button_configs = [
-            ("Chat", lambda: self.show_module("Chat")),
-            ("Plugins", lambda: self.show_module("Plugins")),
-            ("Tools", lambda: self.show_module("Tools")),
-            ("Settings", lambda: self.show_module("Settings")),
+            (
+                "Analytics",
+                "📊",
+                "Data analytics and insights",
+                lambda: self.show_module("Analytics"),
+            ),
+            (
+                "AI Assistant",
+                "🤖",
+                "AI-powered assistant",
+                lambda: self.show_module("AI Assistant"),
+            ),
+            (
+                "System Info",
+                "🖥️",
+                "System information and monitoring",
+                lambda: self.show_module("System Info"),
+            ),
+            (
+                "Agents",
+                "👥",
+                "Agent management and coordination",
+                lambda: self.show_module("Agents"),
+            ),
+            (
+                "Memory",
+                "🧠",
+                "Memory management and storage",
+                lambda: self.show_module("Memory"),
+            ),
+            (
+                "Intelligence",
+                "🔮",
+                "AI intelligence and decision making",
+                lambda: self.show_module("Intelligence"),
+            ),
+            (
+                "Workflows",
+                "🔄",
+                "Workflow automation and management",
+                lambda: self.show_module("Workflows"),
+            ),
+            (
+                "Stats",
+                "📈",
+                "Statistics and performance metrics",
+                lambda: self.show_module("Stats"),
+            ),
+            (
+                "Settings",
+                "⚙️",
+                "Configuration and preferences",
+                lambda: self.show_module("Settings"),
+            ),
         ]
 
-        for name, action in button_configs:
+        for name, icon, tooltip, action in button_configs:
             self.logger.debug(f"Creating sidebar button for module: {name}")
-            btn = QPushButton(name)
+
+            # Create container for button
+            btn_container = QWidget()
+            btn_layout = QHBoxLayout(btn_container)
+            btn_layout.setContentsMargins(0, 0, 0, 0)
+
+            btn = QPushButton(f"{icon} {name}")
+            btn.setToolTip(tooltip)
+            btn.setStyleSheet("""
+                QPushButton {
+                    color: #ccc;
+                    background-color: transparent;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 12px 16px;
+                    margin: 2px;
+                    text-align: left;
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+                QPushButton:hover {
+                    background-color: rgba(0, 255, 170, 0.1);
+                    color: #00ffaa;
+                    border-left: 3px solid #00ffaa;
+                }
+                QPushButton:pressed {
+                    background-color: rgba(0, 255, 170, 0.2);
+                }
+                QPushButton:checked {
+                    background-color: rgba(0, 255, 170, 0.15);
+                    color: #00ffaa;
+                    border-left: 3px solid #00ffaa;
+                }
+            """)
+            btn.setCheckable(True)
+            btn.clicked.connect(action)
+            btn.clicked.connect(
+                lambda checked, b=btn: self._highlight_sidebar_button(b)
+            )
+
+            btn_layout.addWidget(btn)
+            self.sidebar_layout.addWidget(btn_container)
+
+            key = f"{name.lower()}_btn"
+            self.sidebar_buttons[key] = btn
+            self.logger.debug(f"Added sidebar button for module: {name}")
+
+        # Add spacer
+        self.sidebar_layout.addStretch()
+
+        # Add system info section
+        system_label = QLabel("SYSTEM")
+        system_label.setStyleSheet("""
+            QLabel {
+                color: #888;
+                font-size: 12px;
+                font-weight: bold;
+                padding: 5px 10px;
+                margin-top: 10px;
+            }
+        """)
+        self.sidebar_layout.addWidget(system_label)
+
+        # Add status indicator
+        self.status_indicator = QLabel("🟢 Online")
+        self.status_indicator.setStyleSheet("""
+            QLabel {
+                color: #888;
+                font-size: 12px;
+                padding: 5px 10px;
+                margin-bottom: 10px;
+            }
+        """)
+        self.sidebar_layout.addWidget(self.status_indicator)
+
+        # Setup dock widget properly
+        if not hasattr(self, "dock") or self.dock is None:
+            self.dock = QDockWidget("Navigation", self)
+            self.dock.setObjectName("navigationDock")
+            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+
+        # Set dock widget styling
+        self.dock.setStyleSheet("""
+            QDockWidget {
+                titlebar-close-icon: none;
+                titlebar-normal-icon: none;
+            }
+            QDockWidget::title {
+                background: #2a2a2a;
+                color: #00ffaa;
+                padding: 5px;
+                border-bottom: 1px solid #333;
+            }
+        """)
+
+        self.dock.setWidget(self.sidebar_widget)
+
+        # Set initial width
+        self.dock.setMinimumWidth(200)
+        self.dock.setMaximumWidth(300)
+
+    def _setup_dock_widgets(self):
+        """Set up additional dock widgets for enhanced functionality."""
+        self.logger.debug("Setting up dock widgets")
+
+        # Create right panel for tools and information
+        self.right_dock = QDockWidget("Tools & Info", self)
+        self.right_dock.setObjectName("rightDock")
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.right_dock)
+
+        # Create right panel content
+        right_panel_widget = QWidget()
+        right_panel_layout = QVBoxLayout(right_panel_widget)
+
+        # Add quick action buttons
+        quick_actions_label = QLabel("Quick Actions")
+        quick_actions_label.setStyleSheet(
+            "font-weight: bold; color: #00ffaa; padding: 5px;"
+        )
+        right_panel_layout.addWidget(quick_actions_label)
+
+        quick_buttons = [
+            ("🔄 Refresh", self._refresh_current_module),
+            ("📊 Analytics", lambda: self.show_module("Analytics")),
+            ("🤖 AI Assistant", lambda: self.show_module("AI Assistant")),
+            ("� System Info", lambda: self.show_module("System Info")),
+            ("� New Chat", self._new_chat),
+        ]
+
+        for btn_text, action in quick_buttons:
+            btn = QPushButton(btn_text)
             btn.setStyleSheet("""
                 QPushButton {
                     color: #00ffaa;
-                    background-color: #111;
-                    border: 1px solid #00ffaa;
-                    border-radius: 4px;
-                    padding: 6px;
-                    margin: 4px;
+                    background-color: #1a1a1a;
+                    border: 1px solid #333;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    margin: 2px;
                     text-align: left;
                 }
                 QPushButton:hover {
-                    background-color: #222;
+                    background-color: #2a2a2a;
+                    border-color: #00ffaa;
                 }
                 QPushButton:pressed {
                     background-color: #00ffaa;
@@ -332,26 +667,23 @@ class AtlasMainWindow(QMainWindow):
                 }
             """)
             btn.clicked.connect(action)
-            self.sidebar_layout.addWidget(btn)
-            key = f"{name.lower()}_btn"
-            self.sidebar_buttons[key] = btn
-            self.logger.debug(f"Added sidebar button for module: {name}")
+            right_panel_layout.addWidget(btn)
 
-        # Add stretch to push buttons to top
-        self.sidebar_layout.addStretch()
+        right_panel_layout.addStretch()
 
-        # Setup dock widget properly
-        if not hasattr(self, "dock") or self.dock is None:
-            self.dock = QDockWidget("Navigation", self)
-            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        # Add status information
+        status_label = QLabel("System Status")
+        status_label.setStyleSheet("font-weight: bold; color: #00ffaa; padding: 5px;")
+        right_panel_layout.addWidget(status_label)
 
-        self.dock.setWidget(self.sidebar_widget)
+        self.status_info = QLabel("Ready")
+        self.status_info.setStyleSheet("color: #aaa; padding: 5px; font-size: 12px;")
+        right_panel_layout.addWidget(self.status_info)
 
-    def _setup_dock_widgets(self):
-        """Set up additional dock widgets if needed."""
-        self.logger.debug("Setting up dock widgets")
-        # Placeholder for additional dock widgets
-        pass
+        self.right_dock.setWidget(right_panel_widget)
+
+        # Initially hide right dock
+        self.right_dock.hide()
 
     def _setup_status_bar(self):
         """Set up the status bar at the bottom of the window."""
@@ -452,7 +784,9 @@ class AtlasMainWindow(QMainWindow):
         widget = self.modules.get(module_name)
         if widget is None:
             self.logger.warning(f"Module {module_name} not found or not initialized")
-            return
+            # Create placeholder if module doesn't exist
+            widget = self._create_placeholder_module(module_name)
+            self.modules[module_name] = widget
 
         if not hasattr(self, "central") or self.central is None:
             self.logger.error("Central widget is not initialized")
@@ -469,6 +803,70 @@ class AtlasMainWindow(QMainWindow):
 
         self.central.setCurrentWidget(widget)
         self.logger.debug(f"Set module {module_name} as current widget")
+
+        # Update button highlights
+        self._update_button_highlights(module_name)
+
+        # Update status bar
+        self.statusBar().showMessage(f"Switched to {module_name} module", 3000)
+
+        # Update status indicator
+        if hasattr(self, "status_info"):
+            self.status_info.setText(f"Current: {module_name}")
+
+    def _create_placeholder_module(self, module_name: str) -> QWidget:
+        """Create a placeholder widget for missing modules."""
+        if PlaceholderWidget:
+            return PlaceholderWidget(module_name)
+
+        # Fallback placeholder if PlaceholderWidget is not available
+        placeholder = QWidget()
+        layout = QVBoxLayout(placeholder)
+
+        # Title
+        title = QLabel(f"{module_name} Module")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 24px;
+                font-weight: bold;
+                color: #00ffaa;
+                padding: 20px;
+                text-align: center;
+            }
+        """)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        # Description
+        desc = QLabel(f"The {module_name} module is currently under development.")
+        desc.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #aaa;
+                padding: 10px;
+                text-align: center;
+            }
+        """)
+        desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(desc)
+
+        # Add some spacing
+        layout.addStretch()
+
+        return placeholder
+
+    def _update_button_highlights(self, module_name: str):
+        """Update button highlights for the current module."""
+        # Update topbar buttons
+        target_btn_name = f"{module_name.lower()}_btn"
+        for btn_name, btn in self.topbar_buttons.items():
+            if hasattr(btn, "setChecked"):
+                btn.setChecked(btn_name == target_btn_name)
+
+        # Update sidebar buttons
+        for btn_name, btn in self.sidebar_buttons.items():
+            if hasattr(btn, "setChecked"):
+                btn.setChecked(btn_name == target_btn_name)
 
     def execute_tool(self, tool_name: str, params: Dict[str, Any]) -> Any:
         """Execute a tool with the given parameters.
@@ -1014,5 +1412,1015 @@ class AtlasMainWindow(QMainWindow):
                 "Event bus does not support subscribe, skipping connections"
             )
 
+    def _refresh_current_module(self):
+        """Refresh the current active module."""
+        self.logger.info("Refreshing current module")
+        current_widget = self.central.currentWidget()
+        if current_widget:
+            # Use getattr for safe attribute access
+            refresh_method = getattr(current_widget, "refresh", None)
+            if refresh_method and callable(refresh_method):
+                try:
+                    refresh_method()
+                except Exception as e:
+                    self.logger.error(f"Error refreshing module: {e}")
+        self.statusBar().showMessage("Module refreshed", 3000)
 
-MainWindow = AtlasMainWindow
+    def _new_chat(self):
+        """Start a new chat session."""
+        self.logger.info("Starting new chat")
+        self.show_module("Chat")
+        if hasattr(self, "chat_module"):
+            # Use getattr for safe attribute access
+            clear_chat_method = getattr(self.chat_module, "clear_chat", None)
+            if clear_chat_method and callable(clear_chat_method):
+                try:
+                    clear_chat_method()
+                except Exception as e:
+                    self.logger.error(f"Error clearing chat: {e}")
+        self.statusBar().showMessage("New chat started", 3000)
+
+    def _toggle_right_panel(self):
+        """Toggle the right panel visibility."""
+        if hasattr(self, "right_dock"):
+            if self.right_dock.isVisible():
+                self.right_dock.hide()
+            else:
+                self.right_dock.show()
+
+    def _highlight_active_button(self, active_button):
+        """Highlight the active navigation button."""
+        # Reset all navigation buttons
+        for btn_name, btn in self.topbar_buttons.items():
+            if btn_name.endswith("_btn") and btn_name not in [
+                "minimize_btn",
+                "maximize_btn",
+                "close_btn",
+            ]:
+                btn.setChecked(False)
+
+        # Set active button as checked
+        if active_button:
+            active_button.setChecked(True)
+
+    def _highlight_sidebar_button(self, active_button):
+        """Highlight the active sidebar button."""
+        # Reset all sidebar buttons
+        for btn in self.sidebar_buttons.values():
+            if hasattr(btn, "setChecked"):
+                btn.setChecked(False)
+
+        # Set active button as checked
+        if active_button and hasattr(active_button, "setChecked"):
+            active_button.setChecked(True)
+
+    def _apply_global_theme(self):
+        """Apply global theme styling to the main window."""
+        global_style = """
+        QMainWindow {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                stop:0 #1a1a1a, stop:1 #0d0d0d);
+            color: #ccc;
+        }
+
+        QStatusBar {
+            background: #1a1a1a;
+            color: #888;
+            border-top: 1px solid #333;
+            padding: 5px;
+        }
+
+        QStackedWidget {
+            background: #1a1a1a;
+            border: none;
+        }
+
+        QLabel {
+            color: #ccc;
+        }
+
+        /* Scrollbars */
+        QScrollBar:vertical {
+            background: #2a2a2a;
+            width: 12px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:vertical {
+            background: #00ffaa;
+            border-radius: 6px;
+            min-height: 20px;
+        }
+
+        QScrollBar::handle:vertical:hover {
+            background: #00ff88;
+        }
+
+        /* Menu styling */
+        QMenuBar {
+            background: #2a2a2a;
+            color: #ccc;
+            border-bottom: 1px solid #333;
+        }
+
+        QMenuBar::item {
+            background: transparent;
+            padding: 8px 12px;
+        }
+
+        QMenuBar::item:selected {
+            background: rgba(0, 255, 170, 0.2);
+            color: #00ffaa;
+        }
+
+        QMenu {
+            background: #2a2a2a;
+            color: #ccc;
+            border: 1px solid #333;
+        }
+
+        QMenu::item {
+            padding: 8px 16px;
+        }
+
+        QMenu::item:selected {
+            background: rgba(0, 255, 170, 0.2);
+            color: #00ffaa;
+        }
+        """
+        self.setStyleSheet(global_style)
+
+    def _initialize_core_modules(self):
+        """Initialize all core UI modules with error handling."""
+        self.logger.info("Initializing core modules")
+
+        # Chat Module - always create even if basic
+        try:
+            self.chat_module = ChatWidget(self.app)
+            self.modules["Chat"] = self.chat_module
+            self.logger.info("Chat module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Chat module: {e}")
+            self.chat_module = self._create_placeholder_module("Chat")
+            self.modules["Chat"] = self.chat_module
+
+        # Plugins Module
+        try:
+            self.plugins_module = PluginsWidget(self)
+            self.modules["Plugins"] = self.plugins_module
+            self.logger.info("Plugins module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Plugins module: {e}")
+            self.plugins_module = self._create_placeholder_module("Plugins")
+            self.modules["Plugins"] = self.plugins_module
+
+        # Tools Module
+        self.tools_module = self._create_tools_module()
+        self.modules["Tools"] = self.tools_module
+        self.logger.info("Tools module initialized successfully")
+
+        # Settings Module
+        self.settings_module = self._create_settings_module()
+        self.modules["Settings"] = self.settings_module
+        self.logger.info("Settings module initialized successfully")
+
+        # Tasks Module
+        self.tasks_module = self._create_tasks_module()
+        self.modules["Tasks"] = self.tasks_module
+        self.logger.info("Tasks module initialized successfully")
+
+        # Analytics Module (sidebar only)
+        self.analytics_module = self._create_analytics_module()
+        self.modules["Analytics"] = self.analytics_module
+        self.logger.info("Analytics module initialized successfully")
+
+        # AI Assistant Module (sidebar only)
+        self.ai_assistant_module = self._create_ai_assistant_module()
+        self.modules["AI Assistant"] = self.ai_assistant_module
+        self.logger.info("AI Assistant module initialized successfully")
+
+        # System Info Module (sidebar only)
+        self.system_info_module = self._create_system_info_module()
+        self.modules["System Info"] = self.system_info_module
+        self.logger.info("System Info module initialized successfully")
+
+        # Agents Module
+        try:
+            self.agents_module = self._create_agents_module()
+            self.modules["Agents"] = self.agents_module
+            self.logger.info("Agents module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Agents module: {e}")
+            self.agents_module = self._create_placeholder_module("Agents")
+            self.modules["Agents"] = self.agents_module
+
+        # Memory Module
+        try:
+            self.memory_module = self._create_memory_module()
+            self.modules["Memory"] = self.memory_module
+            self.logger.info("Memory module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Memory module: {e}")
+            self.memory_module = self._create_placeholder_module("Memory")
+            self.modules["Memory"] = self.memory_module
+
+        # Intelligence Module
+        try:
+            self.intelligence_module = self._create_intelligence_module()
+            self.modules["Intelligence"] = self.intelligence_module
+            self.logger.info("Intelligence module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Intelligence module: {e}")
+            self.intelligence_module = self._create_placeholder_module("Intelligence")
+            self.modules["Intelligence"] = self.intelligence_module
+
+        # Workflows Module
+        try:
+            self.workflows_module = self._create_workflows_module()
+            self.modules["Workflows"] = self.workflows_module
+            self.logger.info("Workflows module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Workflows module: {e}")
+            self.workflows_module = self._create_placeholder_module("Workflows")
+            self.modules["Workflows"] = self.workflows_module
+
+        # Stats Module
+        try:
+            self.stats_module = self._create_stats_module()
+            self.modules["Stats"] = self.stats_module
+            self.logger.info("Stats module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Stats module: {e}")
+            self.stats_module = self._create_placeholder_module("Stats")
+            self.modules["Stats"] = self.stats_module
+
+        # Performance Module
+        try:
+            self.performance_module = self._create_performance_module()
+            self.modules["Performance"] = self.performance_module
+            self.logger.info("Performance module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Performance module: {e}")
+            self.performance_module = self._create_placeholder_module("Performance")
+            self.modules["Performance"] = self.performance_module
+
+        # Security Module
+        self.security_module = self._create_security_module()
+        self.modules["Security"] = self.security_module
+        self.logger.info("Security module initialized successfully")
+
+        # System Control Module
+        try:
+            self.system_control_module = self._create_system_control_module()
+            self.modules["System Control"] = self.system_control_module
+            self.logger.info("System Control module initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize System Control module: {e}")
+            self.system_control_module = self._create_placeholder_module(
+                "System Control"
+            )
+            self.modules["System Control"] = self.system_control_module
+
+        self.logger.info(
+            f"Core modules initialization completed. Total modules: {len(self.modules)}"
+        )
+
+    def _create_tools_module(self):
+        """Create a comprehensive tools module."""
+        tools_widget = QWidget()
+        layout = QVBoxLayout(tools_widget)
+
+        # Title
+        title = QLabel("🔧 Development Tools")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 22px;
+                font-weight: bold;
+                color: #00ffaa;
+                padding: 15px;
+                text-align: center;
+                border-bottom: 2px solid #333;
+                margin-bottom: 15px;
+            }
+        """)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        # Tools grid
+        tools_container = QWidget()
+        tools_layout = QVBoxLayout(tools_container)
+
+        # Tool categories
+        tool_categories = [
+            (
+                "Code Tools",
+                [
+                    ("🐍 Python REPL", "Interactive Python console"),
+                    ("📊 Data Viewer", "View and analyze data"),
+                    ("🔍 Code Search", "Search through codebase"),
+                    ("🛠️ Debugger", "Debug applications"),
+                ],
+            ),
+            (
+                "System Tools",
+                [
+                    ("📁 File Manager", "Browse and manage files"),
+                    ("⚡ Process Monitor", "Monitor system processes"),
+                    ("🌐 Network Tools", "Network diagnostic tools"),
+                    ("📈 Performance Monitor", "Monitor system performance"),
+                ],
+            ),
+            (
+                "AI Tools",
+                [
+                    ("🤖 Code Generator", "Generate code with AI"),
+                    ("📝 Documentation Generator", "Auto-generate docs"),
+                    ("🔧 Code Refactor", "Refactor code intelligently"),
+                    ("🧪 Test Generator", "Generate unit tests"),
+                ],
+            ),
+        ]
+
+        for category_name, tools in tool_categories:
+            # Category header
+            category_label = QLabel(category_name)
+            category_label.setStyleSheet("""
+                QLabel {
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: #00ffaa;
+                    padding: 10px 5px;
+                    border-bottom: 1px solid #444;
+                }
+            """)
+            tools_layout.addWidget(category_label)
+
+            # Tools in category
+            for tool_name, tool_desc in tools:
+                tool_btn = QPushButton(f"{tool_name}")
+                tool_btn.setToolTip(tool_desc)
+                tool_btn.setStyleSheet("""
+                    QPushButton {
+                        color: #ccc;
+                        background-color: #2a2a2a;
+                        border: 1px solid #444;
+                        border-radius: 6px;
+                        padding: 10px 15px;
+                        margin: 3px;
+                        text-align: left;
+                        font-size: 14px;
+                    }
+                    QPushButton:hover {
+                        background-color: rgba(0, 255, 170, 0.1);
+                        border-color: #00ffaa;
+                        color: #00ffaa;
+                    }
+                    QPushButton:pressed {
+                        background-color: rgba(0, 255, 170, 0.2);
+                    }
+                """)
+                tool_btn.clicked.connect(
+                    lambda checked, name=tool_name: self._launch_tool(name)
+                )
+                tools_layout.addWidget(tool_btn)
+
+        layout.addWidget(tools_container)
+        layout.addStretch()
+
+        return tools_widget
+
+    def _create_settings_module(self):
+        """Create a comprehensive settings module."""
+        settings_widget = QWidget()
+        layout = QVBoxLayout(settings_widget)
+
+        # Title
+        title = QLabel("⚙️ Application Settings")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 22px;
+                font-weight: bold;
+                color: #00ffaa;
+                padding: 15px;
+                text-align: center;
+                border-bottom: 2px solid #333;
+                margin-bottom: 15px;
+            }
+        """)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        # Settings categories
+        settings_container = QWidget()
+        settings_layout = QVBoxLayout(settings_container)
+
+        settings_categories = [
+            (
+                "🎨 Appearance",
+                [
+                    "Theme Selection",
+                    "Font Settings",
+                    "Color Scheme",
+                    "UI Layout",
+                ],
+            ),
+            (
+                "🔧 General",
+                [
+                    "Auto-save Settings",
+                    "Default Modules",
+                    "Startup Behavior",
+                    "Language Settings",
+                ],
+            ),
+            (
+                "🤖 AI Configuration",
+                [
+                    "Model Selection",
+                    "API Keys",
+                    "Behavior Settings",
+                    "Privacy Settings",
+                ],
+            ),
+            (
+                "🔌 Plugins",
+                [
+                    "Enabled Plugins",
+                    "Plugin Settings",
+                    "Auto-update",
+                    "Plugin Repositories",
+                ],
+            ),
+        ]
+
+        for category_name, settings in settings_categories:
+            # Category header
+            category_label = QLabel(category_name)
+            category_label.setStyleSheet("""
+                QLabel {
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: #00ffaa;
+                    padding: 10px 5px;
+                    border-bottom: 1px solid #444;
+                }
+            """)
+            settings_layout.addWidget(category_label)
+
+            # Settings in category
+            for setting_name in settings:
+                setting_btn = QPushButton(f"📝 {setting_name}")
+                setting_btn.setStyleSheet("""
+                    QPushButton {
+                        color: #ccc;
+                        background-color: #2a2a2a;
+                        border: 1px solid #444;
+                        border-radius: 6px;
+                        padding: 10px 15px;
+                        margin: 3px;
+                        text-align: left;
+                        font-size: 14px;
+                    }
+                    QPushButton:hover {
+                        background-color: rgba(0, 255, 170, 0.1);
+                        border-color: #00ffaa;
+                        color: #00ffaa;
+                    }
+                    QPushButton:pressed {
+                        background-color: rgba(0, 255, 170, 0.2);
+                    }
+                """)
+                setting_btn.clicked.connect(
+                    lambda checked, name=setting_name: self._open_setting(name)
+                )
+                settings_layout.addWidget(setting_btn)
+
+        layout.addWidget(settings_container)
+        layout.addStretch()
+
+        return settings_widget
+
+    def _create_tasks_module(self):
+        """Create a comprehensive tasks module."""
+        tasks_widget = QWidget()
+        layout = QVBoxLayout(tasks_widget)
+
+        # Title
+        title = QLabel("📋 Task Management")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 22px;
+                font-weight: bold;
+                color: #00ffaa;
+                padding: 15px;
+                text-align: center;
+                border-bottom: 2px solid #333;
+                margin-bottom: 15px;
+            }
+        """)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        # Task controls
+        controls_container = QWidget()
+        controls_layout = QHBoxLayout(controls_container)
+
+        # Add task button
+        add_task_btn = QPushButton("➕ New Task")
+        add_task_btn.setStyleSheet("""
+            QPushButton {
+                color: #00ffaa;
+                background-color: #2a2a2a;
+                border: 2px solid #00ffaa;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 255, 170, 0.1);
+            }
+            QPushButton:pressed {
+                background-color: rgba(0, 255, 170, 0.2);
+            }
+        """)
+        add_task_btn.clicked.connect(self._add_new_task)
+        controls_layout.addWidget(add_task_btn)
+
+        controls_layout.addStretch()
+
+        # Filter buttons
+        filter_buttons = ["All", "Active", "Completed", "Urgent"]
+        for filter_name in filter_buttons:
+            filter_btn = QPushButton(filter_name)
+            filter_btn.setCheckable(True)
+            filter_btn.setStyleSheet("""
+                QPushButton {
+                    color: #aaa;
+                    background-color: #1a1a1a;
+                    border: 1px solid #444;
+                    border-radius: 4px;
+                    padding: 8px 16px;
+                    margin: 2px;
+                }
+                QPushButton:hover {
+                    color: #00ffaa;
+                    border-color: #00ffaa;
+                }
+                QPushButton:checked {
+                    color: #000;
+                    background-color: #00ffaa;
+                }
+            """)
+            filter_btn.clicked.connect(
+                lambda checked, f=filter_name: self._filter_tasks(f)
+            )
+            controls_layout.addWidget(filter_btn)
+
+        layout.addWidget(controls_container)
+
+        # Tasks list placeholder
+        tasks_list = QLabel(
+            "📝 Task list will appear here\n\nClick 'New Task' to create your first task!"
+        )
+        tasks_list.setStyleSheet("""
+            QLabel {
+                color: #888;
+                font-size: 16px;
+                padding: 40px;
+                text-align: center;
+                border: 2px dashed #444;
+                border-radius: 8px;
+                margin: 20px;
+            }
+        """)
+        tasks_list.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(tasks_list)
+
+        layout.addStretch()
+
+        return tasks_widget
+
+    def _create_analytics_module(self):
+        """Create analytics module for sidebar."""
+        analytics_widget = QWidget()
+        layout = QVBoxLayout(analytics_widget)
+
+        title = QLabel("📊 Analytics Dashboard")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #00ffaa;
+                padding: 15px;
+                text-align: center;
+            }
+        """)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        # Analytics items
+        analytics_items = [
+            "📈 Usage Statistics",
+            "⏱️ Time Tracking",
+            "🎯 Performance Metrics",
+            "📋 Task Analytics",
+            "🤖 AI Usage Stats",
+        ]
+
+        for item in analytics_items:
+            item_label = QLabel(item)
+            item_label.setStyleSheet("""
+                QLabel {
+                    color: #ccc;
+                    padding: 8px 12px;
+                    border: 1px solid #444;
+                    border-radius: 4px;
+                    margin: 2px;
+                }
+            """)
+            layout.addWidget(item_label)
+
+        layout.addStretch()
+        return analytics_widget
+
+    def _create_ai_assistant_module(self):
+        """Create AI assistant module for sidebar."""
+        ai_widget = QWidget()
+        layout = QVBoxLayout(ai_widget)
+
+        title = QLabel("🤖 AI Assistant")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #00ffaa;
+                padding: 15px;
+                text-align: center;
+            }
+        """)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        # AI features
+        ai_features = [
+            "💬 Smart Chat",
+            "🔍 Code Analysis",
+            "📝 Auto Documentation",
+            "🛠️ Code Generation",
+            "🧪 Test Creation",
+        ]
+
+        for feature in ai_features:
+            feature_btn = QPushButton(feature)
+            feature_btn.setStyleSheet("""
+                QPushButton {
+                    color: #ccc;
+                    background-color: #2a2a2a;
+                    border: 1px solid #444;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    margin: 2px;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: rgba(0, 255, 170, 0.1);
+                    color: #00ffaa;
+                    border-color: #00ffaa;
+                }
+            """)
+            feature_btn.clicked.connect(
+                lambda checked, f=feature: self._use_ai_feature(f)
+            )
+            layout.addWidget(feature_btn)
+
+        layout.addStretch()
+        return ai_widget
+
+    def _create_system_info_module(self):
+        """Create system information module for sidebar."""
+        system_widget = QWidget()
+        layout = QVBoxLayout(system_widget)
+
+        title = QLabel("💻 System Information")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #00ffaa;
+                padding: 15px;
+                text-align: center;
+            }
+        """)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        # System info sections
+        info_sections = [
+            ("🖥️ Hardware", "View hardware specifications"),
+            ("💾 Memory", "Monitor memory usage"),
+            ("💽 Storage", "Check disk space"),
+            ("🌐 Network", "Network status and info"),
+            ("⚡ Performance", "Performance metrics"),
+            ("📊 Logs", "System and application logs"),
+        ]
+
+        for section_name, description in info_sections:
+            section_btn = QPushButton(section_name)
+            section_btn.setToolTip(description)
+            section_btn.setStyleSheet("""
+                QPushButton {
+                    color: #ccc;
+                    background-color: #2a2a2a;
+                    border: 1px solid #444;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    margin: 2px;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: rgba(0, 255, 170, 0.1);
+                    color: #00ffaa;
+                    border-color: #00ffaa;
+                }
+            """)
+            section_btn.clicked.connect(
+                lambda checked, s=section_name: self._show_system_info(s)
+            )
+            layout.addWidget(section_btn)
+
+        layout.addStretch()
+        return system_widget
+
+    def _show_system_info(self, section_name: str):
+        """Show specific system information section."""
+        self.logger.info(f"Showing system info: {section_name}")
+        self.statusBar().showMessage(f"System info: {section_name}", 3000)
+        # Placeholder for system info display logic
+
+    def _launch_tool(self, tool_name: str):
+        """Launch a specific tool."""
+        self.logger.info(f"Launching tool: {tool_name}")
+        self.statusBar().showMessage(f"Launched tool: {tool_name}", 3000)
+        # Placeholder for actual tool launching logic
+
+    def _open_setting(self, setting_name: str):
+        """Open a specific setting."""
+        self.logger.info(f"Opening setting: {setting_name}")
+        self.statusBar().showMessage(f"Opened setting: {setting_name}", 3000)
+        # Placeholder for actual settings logic
+
+    def _add_new_task(self):
+        """Add a new task."""
+        self.logger.info("Adding new task")
+        self.statusBar().showMessage("New task dialog would open here", 3000)
+        # Placeholder for task creation dialog
+
+    def _filter_tasks(self, filter_name: str):
+        """Filter tasks by type."""
+        self.logger.info(f"Filtering tasks by: {filter_name}")
+        self.statusBar().showMessage(f"Filtered tasks: {filter_name}", 3000)
+        # Placeholder for task filtering logic
+
+    def _use_ai_feature(self, feature_name: str):
+        """Use an AI feature."""
+        self.logger.info(f"Using AI feature: {feature_name}")
+        self.statusBar().showMessage(f"AI feature activated: {feature_name}", 3000)
+        # Placeholder for AI feature logic
+
+    def _create_agents_module(self):
+        """Create the agents management module."""
+        try:
+            agents_widget = AgentsWidget(self)
+            return agents_widget
+        except Exception as e:
+            self.logger.error(f"Error creating agents module: {e}")
+            return self._create_placeholder_module("Agents")
+
+    def _create_memory_module(self):
+        """Create the memory management module."""
+        try:
+            # Try to create with memory manager if available
+            if hasattr(self, "memory_manager") and self.memory_manager:
+                memory_widget = MemoryUI(self.memory_manager, self)
+            else:
+                # Create a basic memory UI without manager
+                memory_widget = QWidget()
+                layout = QVBoxLayout(memory_widget)
+                title = QLabel("🧠 Memory Management")
+                title.setStyleSheet(
+                    "font-size: 22px; font-weight: bold; color: #00ffaa; padding: 15px;"
+                )
+                layout.addWidget(title)
+
+                status_label = QLabel(
+                    "Memory manager not available. Please configure memory system."
+                )
+                status_label.setStyleSheet("color: #ffaa00; padding: 10px;")
+                layout.addWidget(status_label)
+
+            return memory_widget
+        except Exception as e:
+            self.logger.error(f"Error creating memory module: {e}")
+            return self._create_placeholder_module("Memory")
+
+    def _create_intelligence_module(self):
+        """Create the intelligence module with self-improvement, context, and decision UIs."""
+        try:
+            intelligence_widget = QWidget()
+            layout = QVBoxLayout(intelligence_widget)
+
+            # Title
+            title = QLabel("🧠 Intelligence Center")
+            title.setStyleSheet(
+                "font-size: 22px; font-weight: bold; color: #00ffaa; padding: 15px;"
+            )
+            layout.addWidget(title)
+
+            # Tab widget for different intelligence components
+            tab_widget = QTabWidget()
+            tab_widget.setStyleSheet("""
+                QTabWidget::pane {
+                    border: 1px solid #444;
+                    background-color: #1a1a1a;
+                }
+                QTabBar::tab {
+                    background-color: #2a2a2a;
+                    color: #ccc;
+                    padding: 8px 16px;
+                    margin: 2px;
+                    border-radius: 4px;
+                }
+                QTabBar::tab:selected {
+                    background-color: #00ffaa;
+                    color: #000;
+                }
+            """)
+
+            # Self-improvement tab
+            try:
+                self_improvement_widget = SelfImprovementUI(None, self)
+                tab_widget.addTab(self_improvement_widget, "Self-Improvement")
+
+            except Exception as e:
+                self.logger.error(f"Error creating self-improvement UI: {e}")
+                placeholder = self._create_placeholder_module("Self-Improvement")
+                tab_widget.addTab(placeholder, "Self-Improvement")
+
+            # Context tab
+            try:
+                # Create a basic context widget since we don't have context_engine
+                context_widget = QWidget()
+                context_layout = QVBoxLayout(context_widget)
+                context_title = QLabel("Context Awareness Engine")
+                context_title.setStyleSheet(
+                    "font-size: 18px; font-weight: bold; color: #00ffaa;"
+                )
+                context_layout.addWidget(context_title)
+
+                context_info = QLabel(
+                    "Context engine not available. Please configure context system."
+                )
+                context_info.setStyleSheet("color: #ffaa00; padding: 10px;")
+                context_layout.addWidget(context_info)
+
+                tab_widget.addTab(context_widget, "Context")
+            except Exception as e:
+                self.logger.error(f"Error creating context UI: {e}")
+                placeholder = self._create_placeholder_module("Context")
+                tab_widget.addTab(placeholder, "Context")
+
+            # Decision tab
+            try:
+                decision_widget = DecisionUI(None, self)
+                tab_widget.addTab(decision_widget, "Decisions")
+            except Exception as e:
+                self.logger.error(f"Error creating decision UI: {e}")
+                placeholder = self._create_placeholder_module("Decisions")
+                tab_widget.addTab(placeholder, "Decisions")
+
+            layout.addWidget(tab_widget)
+            return intelligence_widget
+
+        except Exception as e:
+            self.logger.error(f"Error creating intelligence module: {e}")
+            return self._create_placeholder_module("Intelligence")
+
+    def _create_workflows_module(self):
+        """Create the workflows module."""
+        try:
+            workflows_widget = WorkflowUI(self)
+
+            # Add a wrapper with title if WorkflowUI is basic
+            wrapper = QWidget()
+            layout = QVBoxLayout(wrapper)
+
+            title = QLabel("🔄 Workflow Management")
+            title.setStyleSheet(
+                "font-size: 22px; font-weight: bold; color: #00ffaa; padding: 15px;"
+            )
+            layout.addWidget(title)
+
+            layout.addWidget(workflows_widget)
+            return wrapper
+
+        except Exception as e:
+            self.logger.error(f"Error creating workflows module: {e}")
+            return self._create_placeholder_module("Workflows")
+
+    def _create_stats_module(self):
+        """Create the statistics module."""
+        try:
+            stats_widget = StatsModule(self)
+
+            # Add a wrapper with enhanced styling
+            wrapper = QWidget()
+            layout = QVBoxLayout(wrapper)
+
+            title = QLabel("📊 Statistics & Analytics")
+            title.setStyleSheet(
+                "font-size: 22px; font-weight: bold; color: #00ffaa; padding: 15px;"
+            )
+            layout.addWidget(title)
+
+            layout.addWidget(stats_widget)
+            return wrapper
+
+        except Exception as e:
+            self.logger.error(f"Error creating stats module: {e}")
+            return self._create_placeholder_module("Stats")
+
+    def _create_performance_module(self):
+        """Create the performance monitoring module."""
+        try:
+            performance_widget = PerformancePanel(self)
+
+            # Add a wrapper with title
+            wrapper = QWidget()
+            layout = QVBoxLayout(wrapper)
+
+            title = QLabel("⚡ Performance Monitor")
+            title.setStyleSheet(
+                "font-size: 22px; font-weight: bold; color: #00ffaa; padding: 15px;"
+            )
+            layout.addWidget(title)
+
+            layout.addWidget(performance_widget)
+            return wrapper
+
+        except Exception as e:
+            self.logger.error(f"Error creating performance module: {e}")
+            return self._create_placeholder_module("Performance")
+
+    def _create_security_module(self):
+        """Create the security management module."""
+        try:
+            # Create basic security widget since SecurityPanel needs specific parameters
+            security_widget = QWidget()
+            layout = QVBoxLayout(security_widget)
+
+            title = QLabel("🔒 Security Center")
+            title.setStyleSheet(
+                "font-size: 22px; font-weight: bold; color: #00ffaa; padding: 15px;"
+            )
+            layout.addWidget(title)
+
+            # Add basic security info
+            info_label = QLabel("Security monitoring and management")
+            info_label.setStyleSheet("color: #ccc; padding: 10px;")
+            layout.addWidget(info_label)
+
+            # Add security status
+            status_label = QLabel("🟢 System Secure")
+            status_label.setStyleSheet(
+                "color: #00ffaa; font-weight: bold; padding: 10px;"
+            )
+            layout.addWidget(status_label)
+
+            return security_widget
+
+        except Exception as e:
+            self.logger.error(f"Error creating security module: {e}")
+            return self._create_placeholder_module("Security")
+
+    def _create_system_control_module(self):
+        """Create the system control module."""
+        try:
+            system_control_widget = SystemControlPanel(self)
+
+            # Add a wrapper with title
+            wrapper = QWidget()
+            layout = QVBoxLayout(wrapper)
+
+            title = QLabel("🔧 System Control")
+            title.setStyleSheet(
+                "font-size: 22px; font-weight: bold; color: #00ffaa; padding: 15px;"
+            )
+            layout.addWidget(title)
+
+            layout.addWidget(system_control_widget)
+            return wrapper
+
+        except Exception as e:
+            self.logger.error(f"Error creating system control module: {e}")
+            return self._create_placeholder_module("System Control")

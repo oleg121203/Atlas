@@ -1,1 +1,0 @@
-"""Sample Plugin for Atlas."""

@@ -3,6 +3,7 @@ Onboarding Manager Module for Atlas.
 This module manages the onboarding process to simplify initial setup and guide new users through key features.
 """
 
+from analytics.onboarding_analytics import OnboardingAnalytics
 from PySide6.QtWidgets import (
     QCheckBox,
     QLabel,
@@ -12,8 +13,6 @@ from PySide6.QtWidgets import (
     QWizard,
     QWizardPage,
 )
-
-from analytics.onboarding_analytics import OnboardingAnalytics
 
 
 class OnboardingManager(QWizard):

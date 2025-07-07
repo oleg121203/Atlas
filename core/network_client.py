@@ -8,13 +8,13 @@ integrating network security utilities to enforce HTTPS and SSL validation.
 from typing import Any, Dict, Optional
 
 import requests
-
-from core.logging import get_logger
 from security.network_security import (
     configure_secure_session,
     make_secure_request,
     validate_ssl_certificate,
 )
+
+from core.logging import get_logger
 
 logger = get_logger("NetworkClient")
 

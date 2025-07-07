@@ -36,13 +36,14 @@ except ImportError:
         return True
 
 
+from security.rbac import get_rbac_manager
+
 from core.ai_integration import get_ai_model_manager
 from core.async_task_manager import AsyncTaskManager
 from core.feature_flags import get_feature_flag_manager
 from core.network_client import NetworkClient
 from core.self_healing import SelfHealingManager, initialize_self_healing
 from core.workflow_manager import WorkflowManager
-from security.rbac import get_rbac_manager
 
 logger = get_logger("AtlasApplication")
 
