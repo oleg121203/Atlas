@@ -89,7 +89,7 @@ pygments==2.17.2
 markdown2>=2.4.12
 
 # Deployment and Scalability
-docker==7.0.0
+docker==7.1.0
 kubernetes==29.0.0
 
 # Development and Testing
