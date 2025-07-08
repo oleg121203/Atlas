@@ -205,7 +205,7 @@ class DependencyAnalyzer:
                 current_path.pop()
                 return False
 
-            for module in self.dependency_graph:
+            for module in list(self.dependency_graph.keys()):
                 if module not in visited:
                     dfs(module, [])
             return circular_deps
