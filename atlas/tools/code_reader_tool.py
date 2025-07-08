@@ -295,46 +295,70 @@ class CodeReaderTool:
                 if search_count >= max_results:
                     break
 
-                # Skip excluded directories
-                if any(excluded in file_path.parts for excluded in self.excluded_dirs):
+                # Skip excluded/non-allowed files
+                if self._should_skip_file(file_path):
                     continue
 
-                # Skip non-allowed extensions
-                if file_path.suffix not in self.allowed_extensions:
-                    continue
+                matches = self._search_in_single_file(file_path, search_term)
+                if matches:
+                    self._add_file_results(results, file_path, matches)
+                    search_count += 1
 
-                try:
-                    with open(file_path, encoding="utf-8") as f:
-                        content = f.read()
-                        lines = content.split("\n")
-
-                    # Search for term in file
-                    matches = []
-                    for line_num, line in enumerate(lines, 1):
-                        if search_term.lower() in line.lower():
-                            matches.append(f"  Line {line_num}: {line.strip()}")
-
-                    if matches:
-                        relative_path = file_path.relative_to(self.root_path)
-                        results.append(f"📄 **{relative_path}**:")
-                        results.extend(matches[:5])  # Limit matches per file
-                        if len(matches) > 5:
-                            results.append(f"  ... and {len(matches) - 5} more matches")
-                        results.append("")
-                        search_count += 1
-
-                except (UnicodeDecodeError, PermissionError):
-                    continue
-
-            if not results:
-                return f"🔍 No results found for '{search_term}' in pattern '{file_pattern}'"
-
-            header = f"🔍 **Search Results for '{search_term}'**\n\nFound {search_count} files with matches:\n\n"
-            return header + "\n".join(results)
+            return self._format_search_results(
+                results, search_term, file_pattern, search_count
+            )
 
         except Exception as e:
             self.logger.error(f"Error searching files: {e}")
             return f"❌ Error searching files: {e!s}"
+
+    def _should_skip_file(self, file_path: Path) -> bool:
+        """Check if file should be skipped based on exclusion rules."""
+        # Skip excluded directories
+        if any(excluded in file_path.parts for excluded in self.excluded_dirs):
+            return True
+
+        # Skip non-allowed extensions
+        return file_path.suffix not in self.allowed_extensions
+
+    def _search_in_single_file(self, file_path: Path, search_term: str) -> list:
+        """Search for term in a single file and return matches."""
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                content = f.read()
+                lines = content.split("\n")
+
+            # Search for term in file
+            matches = []
+            for line_num, line in enumerate(lines, 1):
+                if search_term.lower() in line.lower():
+                    matches.append(f"  Line {line_num}: {line.strip()}")
+
+            return matches
+
+        except (UnicodeDecodeError, PermissionError):
+            return []
+
+    def _add_file_results(self, results: list, file_path: Path, matches: list) -> None:
+        """Add file search results to the results list."""
+        relative_path = file_path.relative_to(self.root_path)
+        results.append(f"📄 **{relative_path}**:")
+        results.extend(matches[:5])  # Limit matches per file
+        if len(matches) > 5:
+            results.append(f"  ... and {len(matches) - 5} more matches")
+        results.append("")
+
+    def _format_search_results(
+        self, results: list, search_term: str, file_pattern: str, search_count: int
+    ) -> str:
+        """Format the final search results."""
+        if not results:
+            return (
+                f"🔍 No results found for '{search_term}' in pattern '{file_pattern}'"
+            )
+
+        header = f"🔍 **Search Results for '{search_term}'**\n\nFound {search_count} files with matches:\n\n"
+        return header + "\n".join(results)
 
     def get_file_info(self, file_path: str) -> str:
         """Get information about a specific file."""
@@ -395,47 +419,69 @@ class CodeReaderTool:
             self.logger.error(f"Error getting file info for {file_path}: {e}")
             return f"❌ Error getting file info: {e!s}"
 
+    def _resolve_target_path(
+        self, dir_path: str
+    ) -> tuple[Optional[Path], Optional[str]]:
+        """Resolve and validate target directory path."""
+        if not dir_path:
+            return self.root_path, None
+
+        normalized_path = Path(dir_path)
+        target_path = (
+            self.root_path / normalized_path
+            if not normalized_path.is_absolute()
+            else normalized_path
+        )
+
+        # Security check
+        try:
+            target_path.resolve().relative_to(self.root_path.resolve())
+        except ValueError:
+            return None, "❌ Access denied: Path outside Atlas codebase"
+
+        return target_path, None
+
+    def _validate_directory_path(
+        self, target_path: Path, dir_path: str
+    ) -> Optional[str]:
+        """Validate that the target path is a valid directory."""
+        if not target_path.exists():
+            return f"❌ Directory not found: {dir_path}"
+        if not target_path.is_dir():
+            return f"❌ Not a directory: {dir_path}"
+        return None
+
+    def _collect_directory_items(self, target_path: Path) -> List[str]:
+        """Collect formatted directory items."""
+        items = []
+        for item in sorted(target_path.iterdir()):
+            if item.name.startswith("."):
+                continue
+            if item.is_dir() and item.name in self.excluded_dirs:
+                continue
+
+            icon = self._get_file_icon(item)
+            size_info = ""
+            if item.is_file():
+                size = item.stat().st_size
+                size_info = f" ({size} bytes)"
+
+            items.append(f"  {icon} {item.name}{size_info}")
+        return items
+
     def list_directory(self, dir_path: str = "") -> str:
         """List contents of a directory."""
         try:
-            if not dir_path:
-                target_path = self.root_path
-            else:
-                normalized_path = Path(dir_path)
-                target_path = (
-                    self.root_path / normalized_path
-                    if not normalized_path.is_absolute()
-                    else normalized_path
-                )
+            target_path, error = self._resolve_target_path(dir_path)
+            if error or target_path is None:
+                return error or "❌ Invalid path"
 
-            # Security check
-            try:
-                target_path.resolve().relative_to(self.root_path.resolve())
-            except ValueError:
-                return "❌ Access denied: Path outside Atlas codebase"
-
-            if not target_path.exists():
-                return f"❌ Directory not found: {dir_path}"
-
-            if not target_path.is_dir():
-                return f"❌ Not a directory: {dir_path}"
+            error = self._validate_directory_path(target_path, dir_path)
+            if error:
+                return error
 
             relative_path = target_path.relative_to(self.root_path)
-            items = []
-
-            for item in sorted(target_path.iterdir()):
-                if item.name.startswith("."):
-                    continue
-                if item.is_dir() and item.name in self.excluded_dirs:
-                    continue
-
-                icon = self._get_file_icon(item)
-                size_info = ""
-                if item.is_file():
-                    size = item.stat().st_size
-                    size_info = f" ({size} bytes)"
-
-                items.append(f"  {icon} {item.name}{size_info}")
+            items = self._collect_directory_items(target_path)
 
             header = f"📁 **Directory: /{relative_path}**\n\nContents ({len(items)} items):\n\n"
             return (
@@ -660,22 +706,20 @@ class CodeReaderTool:
 
         return "\n".join(result)
 
-    def search_classes(self, query: str = "") -> str:
-        """Search for classes in the codebase"""
-        self._ensure_index_updated()
-
+    def _get_class_elements(self, query: str) -> List[CodeElement]:
+        """Get class elements based on query."""
         if query:
-            elements = self.index.search_elements(query, "class")
-        else:
-            elements = []
-            for file_analysis in self.index.files.values():
-                elements.extend(
-                    [e for e in file_analysis.elements if e.type == "class"]
-                )
+            return self.index.search_elements(query, "class")
 
-        if not elements:
-            return "🔍 No classes found" + (f" for query '{query}'" if query else "")
+        elements = []
+        for file_analysis in self.index.files.values():
+            elements.extend([e for e in file_analysis.elements if e.type == "class"])
+        return elements
 
+    def _format_class_results(
+        self, elements: List[CodeElement], query: str
+    ) -> List[str]:
+        """Format class search results."""
         # Group by file
         by_file = defaultdict(list)
         for element in elements[:30]:  # Limit results
@@ -691,64 +735,76 @@ class CodeReaderTool:
         for file_path, file_elements in by_file.items():
             result.append(f"📄 **{file_path}:**")
             for element in file_elements:
-                decorators_info = ""
-                if element.decorators:
-                    decorators_info = f" @{', @'.join(element.decorators)}"
-                result.append(
-                    f"  📦 `{element.name}`{decorators_info} - Line {element.line_number}"
-                )
-                if element.docstring:
-                    # Show first line of docstring
-                    first_line = element.docstring.split("\n")[0].strip()
-                    if first_line:
-                        result.append(f"    💬 {first_line}")
-
-                # Show methods in this class
-                methods = [
-                    e
-                    for e in self.index.get_file_elements(file_path, "method")
-                    if e.parent_class == element.name
-                ]
-                if methods:
-                    method_names = [m.name for m in methods[:5]]
-                    more_info = (
-                        f" + {len(methods) - 5} more" if len(methods) > 5 else ""
-                    )
-                    result.append(
-                        f"    🔧 Methods: {', '.join(method_names)}{more_info}"
-                    )
+                result.extend(self._format_single_class(element, file_path))
             result.append("")
 
-        return "\n".join(result)
+        return result
 
-    def analyze_file_structure(self, file_path: str) -> str:
-        """Provide detailed structural analysis of a Python file"""
+    def _format_single_class(self, element: CodeElement, file_path: str) -> List[str]:
+        """Format a single class element."""
+        result = []
+
+        decorators_info = ""
+        if element.decorators:
+            decorators_info = f" @{', @'.join(element.decorators)}"
+        result.append(
+            f"  📦 `{element.name}`{decorators_info} - Line {element.line_number}"
+        )
+
+        if element.docstring:
+            first_line = element.docstring.split("\n")[0].strip()
+            if first_line:
+                result.append(f"    💬 {first_line}")
+
+        # Show methods in this class
+        methods = [
+            e
+            for e in self.index.get_file_elements(file_path, "method")
+            if e.parent_class == element.name
+        ]
+        if methods:
+            method_names = [m.name for m in methods[:5]]
+            more_info = f" + {len(methods) - 5} more" if len(methods) > 5 else ""
+            result.append(f"    🔧 Methods: {', '.join(method_names)}{more_info}")
+
+        return result
+
+    def search_classes(self, query: str = "") -> str:
+        """Search for classes in the codebase"""
         self._ensure_index_updated()
 
-        # Normalize path
+        elements = self._get_class_elements(query)
+        if not elements:
+            return "🔍 No classes found" + (f" for query '{query}'" if query else "")
+
+        result = self._format_class_results(elements, query)
+        return "\n".join(result)
+
+    def _get_file_analysis(self, file_path: str) -> Optional[FileAnalysis]:
+        """Get or create file analysis for the given path."""
         normalized_path = Path(file_path)
         full_path = (
             self.root_path / normalized_path
             if not normalized_path.is_absolute()
             else normalized_path
         )
-
         relative_path = str(full_path.relative_to(self.root_path))
 
-        # Check if file is in index
-        if relative_path not in self.index.files:
-            # Try to analyze it now
-            if full_path.suffix == ".py":
-                analysis = self._analyze_python_file(full_path)
-                if analysis:
-                    self.index.add_file_analysis(analysis)
-                else:
-                    return f"❌ Could not analyze file: {file_path}"
-            else:
-                return "❌ File analysis only available for Python files"
+        if relative_path in self.index.files:
+            return self.index.files[relative_path]
 
-        analysis = self.index.files[relative_path]
+        # Try to analyze it now
+        if full_path.suffix == ".py":
+            analysis = self._analyze_python_file(full_path)
+            if analysis:
+                self.index.add_file_analysis(analysis)
+                return analysis
+        return None
 
+    def _build_analysis_header(
+        self, relative_path: str, analysis: FileAnalysis
+    ) -> List[str]:
+        """Build the header section of file analysis."""
         result = []
         result.append(f"📊 **Structural Analysis: {relative_path}**\n")
         result.append("**📈 Statistics:**")
@@ -757,13 +813,10 @@ class CodeReaderTool:
         result.append(f"  • Complexity: {analysis.complexity}")
         result.append(f"  • Elements: {len(analysis.elements)}")
         result.append("")
+        return result
 
-        # Group elements by type
-        by_type = defaultdict(list)
-        for element in analysis.elements:
-            by_type[element.type].append(element)
-
-        # Show imports
+    def _add_imports_section(self, result: List[str], analysis: FileAnalysis) -> None:
+        """Add imports section to analysis results."""
         if analysis.imports:
             result.append("📦 **Imports:**")
             for imp in analysis.imports[:10]:
@@ -772,7 +825,10 @@ class CodeReaderTool:
                 result.append(f"  • ... and {len(analysis.imports) - 10} more")
             result.append("")
 
-        # Show dependencies
+    def _add_dependencies_section(
+        self, result: List[str], analysis: FileAnalysis
+    ) -> None:
+        """Add dependencies section to analysis results."""
         if analysis.dependencies:
             result.append("🔗 **Dependencies:**")
             for dep in analysis.dependencies[:10]:
@@ -781,58 +837,98 @@ class CodeReaderTool:
                 result.append(f"  • ... and {len(analysis.dependencies) - 10} more")
             result.append("")
 
-        # Show classes and their methods
-        if "class" in by_type:
-            result.append("📦 **Classes:**")
-            for cls in by_type["class"]:
-                result.append(f"  • `{cls.name}` (Line {cls.line_number})")
-                if cls.docstring:
-                    first_line = cls.docstring.split("\n")[0].strip()
-                    if first_line:
-                        result.append(f"    💬 {first_line}")
+    def _add_classes_section(
+        self, result: List[str], by_type: Dict, analysis: FileAnalysis
+    ) -> None:
+        """Add classes section to analysis results."""
+        if "class" not in by_type:
+            return
 
-                # Show methods for this class
-                methods = [
-                    e
-                    for e in analysis.elements
-                    if e.type == "method" and e.parent_class == cls.name
-                ]
-                if methods:
-                    result.append(f"    🔧 Methods ({len(methods)}):")
-                    for method in methods[:5]:
-                        result.append(
-                            f"      - `{method.name}` (Line {method.line_number})"
-                        )
-                    if len(methods) > 5:
-                        result.append(f"      - ... and {len(methods) - 5} more")
-            result.append("")
+        result.append("📦 **Classes:**")
+        for cls in by_type["class"]:
+            result.append(f"  • `{cls.name}` (Line {cls.line_number})")
+            if cls.docstring:
+                first_line = cls.docstring.split("\n")[0].strip()
+                if first_line:
+                    result.append(f"    💬 {first_line}")
 
-        # Show standalone functions
+            # Show methods for this class
+            methods = [
+                e
+                for e in analysis.elements
+                if e.type == "method" and e.parent_class == cls.name
+            ]
+            if methods:
+                result.append(f"    🔧 Methods ({len(methods)}):")
+                for method in methods[:5]:
+                    result.append(
+                        f"      - `{method.name}` (Line {method.line_number})"
+                    )
+                if len(methods) > 5:
+                    result.append(f"      - ... and {len(methods) - 5} more")
+        result.append("")
+
+    def _add_functions_section(self, result: List[str], by_type: Dict) -> None:
+        """Add standalone functions section to analysis results."""
         standalone_functions = [
             e for e in by_type.get("function", []) if not e.parent_class
         ]
-        if standalone_functions:
-            result.append("⚙️ **Functions:**")
-            for func in standalone_functions:
-                complexity_info = (
-                    f" [complexity: {func.complexity}]" if func.complexity > 0 else ""
-                )
-                result.append(
-                    f"  • `{func.signature}` (Line {func.line_number}){complexity_info}"
-                )
-                if func.docstring:
-                    first_line = func.docstring.split("\n")[0].strip()
-                    if first_line:
-                        result.append(f"    💬 {first_line}")
-            result.append("")
+        if not standalone_functions:
+            return
 
-        # Show variables/constants
-        if "variable" in by_type:
-            result.append("🔤 **Variables/Constants:**")
-            for var in by_type["variable"][:10]:
-                result.append(f"  • `{var.name}` (Line {var.line_number})")
-            if len(by_type["variable"]) > 10:
-                result.append(f"  • ... and {len(by_type['variable']) - 10} more")
+        result.append("⚙️ **Functions:**")
+        for func in standalone_functions:
+            complexity_info = (
+                f" [complexity: {func.complexity}]" if func.complexity > 0 else ""
+            )
+            result.append(
+                f"  • `{func.signature}` (Line {func.line_number}){complexity_info}"
+            )
+            if func.docstring:
+                first_line = func.docstring.split("\n")[0].strip()
+                if first_line:
+                    result.append(f"    💬 {first_line}")
+        result.append("")
+
+    def _add_variables_section(self, result: List[str], by_type: Dict) -> None:
+        """Add variables section to analysis results."""
+        if "variable" not in by_type:
+            return
+
+        result.append("🔤 **Variables/Constants:**")
+        for var in by_type["variable"][:10]:
+            result.append(f"  • `{var.name}` (Line {var.line_number})")
+        if len(by_type["variable"]) > 10:
+            result.append(f"  • ... and {len(by_type['variable']) - 10} more")
+
+    def analyze_file_structure(self, file_path: str) -> str:
+        """Provide detailed structural analysis of a Python file"""
+        self._ensure_index_updated()
+
+        analysis = self._get_file_analysis(file_path)
+        if analysis is None:
+            return f"❌ Could not analyze file: {file_path}"
+
+        normalized_path = Path(file_path)
+        full_path = (
+            self.root_path / normalized_path
+            if not normalized_path.is_absolute()
+            else normalized_path
+        )
+        relative_path = str(full_path.relative_to(self.root_path))
+
+        result = self._build_analysis_header(relative_path, analysis)
+
+        # Group elements by type
+        by_type = defaultdict(list)
+        for element in analysis.elements:
+            by_type[element.type].append(element)
+
+        self._add_imports_section(result, analysis)
+        self._add_dependencies_section(result, analysis)
+        self._add_classes_section(result, by_type, analysis)
+        self._add_functions_section(result, by_type)
+        self._add_variables_section(result, by_type)
 
         return "\n".join(result)
 
@@ -946,6 +1042,68 @@ class CodeReaderTool:
 
         return "\n".join(result)
 
+    def _search_symbol_definitions(self, query: str) -> List[str]:
+        """Search for symbol definitions and format results."""
+        elements = self.index.search_elements(query)
+        if not elements:
+            return []
+
+        results = [f"🎯 **Symbol Definitions for '{query}':**\n"]
+
+        # Group by type
+        by_type = defaultdict(list)
+        for element in elements[:20]:
+            by_type[element.type].append(element)
+
+        for element_type, type_elements in by_type.items():
+            icon_map = {
+                "function": "⚙️",
+                "method": "🔧",
+                "class": "📦",
+                "variable": "🔤",
+            }
+            icon = icon_map.get(element_type, "📄")
+            results.append(f"**{icon} {element_type.title()}s:**")
+
+            for element in type_elements:
+                parent_info = (
+                    f" (in {element.parent_class})" if element.parent_class else ""
+                )
+                results.append(
+                    f"  • `{element.name}` - {element.file_path}:{element.line_number}{parent_info}"
+                )
+
+        results.append("")
+        return results
+
+    def _search_file_content(self, query: str) -> List[str]:
+        """Search in file contents and format results."""
+        content_results = self.search_in_files(query, "**/*.py", max_results=10)
+        if "No results found" not in content_results:
+            return [content_results, ""]
+        return []
+
+    def _search_file_names(self, query: str) -> List[str]:
+        """Search for files with matching names and format results."""
+        file_matches = []
+        for file_path in self.root_path.glob("**/*"):
+            if any(excluded in file_path.parts for excluded in self.excluded_dirs):
+                continue
+            if query.lower() in file_path.name.lower():
+                relative_path = file_path.relative_to(self.root_path)
+                icon = self._get_file_icon(file_path)
+                file_matches.append(f"  {icon} {relative_path}")
+
+        if not file_matches:
+            return []
+
+        results = [f"📁 **Files matching '{query}':**\n"]
+        results.extend(file_matches[:10])
+        if len(file_matches) > 10:
+            results.append(f"  ... and {len(file_matches) - 10} more")
+        results.append("")
+        return results
+
     def smart_search(self, query: str, search_type: str = "all") -> str:
         """Intelligent search that combines multiple search strategies"""
         self._ensure_index_updated()
@@ -953,62 +1111,13 @@ class CodeReaderTool:
         results = []
 
         if search_type in ["all", "definitions"]:
-            # Search for symbol definitions
-            elements = self.index.search_elements(query)
-            if elements:
-                results.append(f"🎯 **Symbol Definitions for '{query}':**\n")
-
-                # Group by type
-                by_type = defaultdict(list)
-                for element in elements[:20]:
-                    by_type[element.type].append(element)
-
-                for element_type, type_elements in by_type.items():
-                    icon_map = {
-                        "function": "⚙️",
-                        "method": "🔧",
-                        "class": "📦",
-                        "variable": "🔤",
-                    }
-                    icon = icon_map.get(element_type, "📄")
-                    results.append(f"**{icon} {element_type.title()}s:**")
-
-                    for element in type_elements:
-                        parent_info = (
-                            f" (in {element.parent_class})"
-                            if element.parent_class
-                            else ""
-                        )
-                        results.append(
-                            f"  • `{element.name}` - {element.file_path}:{element.line_number}{parent_info}"
-                        )
-
-                results.append("")
+            results.extend(self._search_symbol_definitions(query))
 
         if search_type in ["all", "content"]:
-            # Search in file contents
-            content_results = self.search_in_files(query, "**/*.py", max_results=10)
-            if "No results found" not in content_results:
-                results.append(content_results)
-                results.append("")
+            results.extend(self._search_file_content(query))
 
         if search_type in ["all", "files"]:
-            # Search for files with matching names
-            file_matches = []
-            for file_path in self.root_path.glob("**/*"):
-                if any(excluded in file_path.parts for excluded in self.excluded_dirs):
-                    continue
-                if query.lower() in file_path.name.lower():
-                    relative_path = file_path.relative_to(self.root_path)
-                    icon = self._get_file_icon(file_path)
-                    file_matches.append(f"  {icon} {relative_path}")
-
-            if file_matches:
-                results.append(f"📁 **Files matching '{query}':**\n")
-                results.extend(file_matches[:10])
-                if len(file_matches) > 10:
-                    results.append(f"  ... and {len(file_matches) - 10} more")
-                results.append("")
+            results.extend(self._search_file_names(query))
 
         if not results:
             return f"❌ No results found for '{query}' with search type '{search_type}'"
@@ -1182,8 +1291,30 @@ class ASTAnalyzer(ast.NodeVisitor):
 
     def visit_AsyncFunctionDef(self, node):
         """Visit async function definitions"""
-        # Treat async functions the same as regular functions
-        self.visit_FunctionDef(node)
+        # Handle async functions with their own logic
+        decorators = [self._get_decorator_name(dec) for dec in node.decorator_list]
+
+        # Build signature (same logic as regular functions)
+        args = []
+        for arg in node.args.args:
+            args.append(arg.arg)
+        signature = f"async def {node.name}({', '.join(args)})"
+
+        element = CodeElement(
+            name=node.name,
+            type="method" if self.class_stack else "function",
+            file_path=self.file_path,
+            line_number=node.lineno,
+            end_line=getattr(node, "end_lineno", node.lineno),
+            signature=signature,
+            docstring=ast.get_docstring(node),
+            parent_class=self.class_stack[-1] if self.class_stack else None,
+            decorators=decorators,
+            complexity=self._calculate_complexity(node),
+        )
+
+        self.elements.append(element)
+        self.generic_visit(node)
 
     def visit_Assign(self, node):
         """Visit variable assignments"""

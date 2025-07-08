@@ -1,6 +1,9 @@
 """Context Panel Module for Atlas UI (ASC-024)
 
-This module defines the context-aware side panel for the Atlas application as part of the UI enhancements under ASC-024. The panel provides dynamic actions and details based on the selected item or current view, following the design specifications in ui_design_specifications.md.
+This module defines the context-aware side panel for the Atlas application as part of
+the UI enhancements under ASC-024. The panel provides dynamic actions and details based
+on the selected item or current view, following the design specifications in
+ui_design_specifications.md.
 """
 
 import logging

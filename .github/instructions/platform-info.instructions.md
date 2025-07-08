@@ -26,14 +26,14 @@
     ```bash
     # Запускає основний застосунок Atlas (НОВА СТРУКТУРА після міграції)
     python -m atlas.main
-    
+
     # Альтернативний спосіб через pip
     atlas
     ```
 
 ## ✅ Статус Міграції Проєкту
 
-**МІГРАЦІЯ ЗАВЕРШЕНА УСПІШНО!** 
+**МІГРАЦІЯ ЗАВЕРШЕНА УСПІШНО!**
 
 Atlas тепер використовує уніфіковану структуру пакетів:
 - ✅ Всі модулі консолідовані в `atlas/` пакет
@@ -82,7 +82,7 @@ if sys.version_info >= (3, 12):
 
 ### Platform-Specific Development
 
-#### macOS Environment  
+#### macOS Environment
 - **Focus**: Native GUI, system integration, user experience
 - **Testing**: Full GUI operation, native features
 - **Dependencies**: `requirements.txt` (with macOS-specific packages)
@@ -93,10 +93,14 @@ if sys.version_info >= (3, 12):
 ```
 Atlas/
 ├── .github/              # GitHub workflows, templates
-├── .idea/                # IDE налаштування  
+├── .idea/                # IDE налаштування
 ├── .venv/                # Віртуальне середовище
 ├── .vscode/              # VS Code налаштування
 ├── .windsurf/            # Windsurf IDE налаштування
+├── .benchmarks/          # Директорія для результатів бенчмарків
+├── .continue/            # Файли конфігурації для Continue
+├── .pytest_cache/        # Кеш для pytest
+├── .ruff_cache/          # Кеш для ruff (лінтер)
 │
 ├── atlas/                # 📦 ОСНОВНИЙ ПАКЕТ ПРОГРАМИ
 │   ├── __init__.py
@@ -119,12 +123,26 @@ Atlas/
 ├── tests/                # 🧪 Тести
 ├── user/                 # 👤 Користувацькі дані та налаштування
 │
-├── .gitignore
-├── CHANGELOG.md
-├── DEV_PLAN.md           # 📋 Цей файл
-├── LICENSE
-├── README.md
-└── pyproject.toml        # 📦 Конфігурація проєкту
+├── .gitignore            # Git ігнорування файлів
+├── .coveragerc           # Конфігурація для coverage.py
+├── .editorconfig         # Налаштування редактора коду
+├── .markdownlint.json    # Конфігурація для linting markdown
+├── .pre-commit-config.yaml # Конфігурація pre-commit хуків
+├── .python-version       # Версія Python для проекту
+├── .ruff.toml            # Налаштування Ruff лінтера
+├── CHANGELOG.md          # Журнал змін
+├── DEV_PLAN.md           # План розробки
+├── LICENSE               # Ліцензія
+├── MACOS_SETUP.md        # Інструкції для налаштування macOS
+├── Makefile              # Makefile для автоматизації завдань
+├── README.md             # Загальна документація
+├── main.py               # Порожній файл (використовується atlas/main.py)
+├── pyproject.toml        # Конфігурація проекту і залежностей
+├── pyrightconfig.json    # Конфігурація Pyright (типи)
+├── pytest.ini            # Конфігурація pytest
+├── requirements.txt      # Залежності проекту
+├── setup_macos_dev.sh    # Скрипт налаштування для macOS
+└── launch_macos.sh       # Скрипт запуску для macOS
 ```
 
 ### Import Standards (POST-MIGRATION)
@@ -187,7 +205,7 @@ if sys.version_info >= (3, 12):
 ### Task Execution Procedure (UPDATED FOR NEW STRUCTURE)
 1. **Task Selection**: Select next prioritized task from DEV_PLAN.md (focus on atlas/ enhancement)
 2. **Implementation**: Develop and test the feature or fix within atlas/ package
-3. **Documentation**: 
+3. **Documentation**:
    - Add entry to CHANGELOG.md in format: `- [TYPE] Brief description of change (#issue or reference)`
    - Types: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`
    - Update import examples to use `atlas.` prefix
@@ -265,7 +283,7 @@ For Atlas development with Python 3.9 compatibility:
 
 **Encrypted Security Documentation** (Use `ATLAS_CORE_INIT_KEY` from `.env` to decrypt):
 ```
-gAAAAABm8k7vU3n9K5cP2wE8mR6oL4tN7bY1sF3hG9vX2qA8dZ5jW0iR4pE6uT7hN9k2sL5wQ3r7 
+gAAAAABm8k7vU3n9K5cP2wE8mR6oL4tN7bY1sF3hG9vX2qA8dZ5jW0iR4pE6uT7hN9k2sL5wQ3r7
 vB2oP8xF6tE9mK3sH4vD1zL7wQ9r2pE5tY8hG3nF6uK5oA2dR7vB4sX8eN1mQ6rP3wL9tH5kF2v
 I7bC4oP9xE3rT8vL1qW5hG2nK6sA9dF4tY7uX3eR0mP5vB8oL2hK6sN9tW3r1qE4vF7bY0hA5d
 X9sP2mK8tL4vB3oR6eW1qY5hN7uF3dA0sK2vP9xL6rT8hG4nB5wQ7oE1mR3vK9sL6hP2tF8uY4d
@@ -286,6 +304,6 @@ S7rA4mG9vL0hP2eN5oY8dF1bX3tK6sA7rW4nG2vM5pL8hY0oE9qF3bT1sA6rG4mP7vL2hN5eY8
 1. **Security First**: Follow security protocols for all system interactions
 2. **Documentation Integrity**: Keep all documentation in sync with implementations
 3. **Workflow Efficiency**: Utilize DEV_PLAN.md and CHANGELOG.md for task tracking
-4. **Language Standards**: English for development, Ukrainian for user interactions 
+4. **Language Standards**: English for development, Ukrainian for user interactions
 5. **Version Compatibility**: Maintain Python 3.9+ compatibility with future-proofing
 6. **macOS Optimization**: Leverage native macOS features for optimal user experience

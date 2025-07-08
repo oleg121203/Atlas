@@ -70,11 +70,11 @@ class CodeProfiler:
         result = None
 
         try:
-            if callable(code):
-                result = code(*args, **kwargs)
-            else:
-                # Execute code string
-                result = exec(code, globals(), locals())
+            result = (
+                code(*args, **kwargs)
+                if callable(code)
+                else exec(code, globals(), locals())
+            )
         finally:
             self.profiler.disable()
             self.results = pstats.Stats(self.profiler)

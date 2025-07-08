@@ -17,6 +17,7 @@ except ImportError:
 from PySide6.QtCore import QProcess
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
+    QHBoxLayout,
     QLineEdit,
     QPushButton,
     QTextEdit,

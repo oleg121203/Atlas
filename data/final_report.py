@@ -181,7 +181,6 @@ def test_functionality():
     try:
         # Тест LLMManager
         from modules.agents.token_tracker import TokenTracker
-
         from utils.llm_manager import LLMManager
 
         token_tracker = TokenTracker()

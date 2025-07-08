@@ -9,10 +9,14 @@
 ```
 Atlas/
 ├── .github/              # GitHub workflows, templates
-├── .idea/                # IDE налаштування  
+├── .idea/                # IDE налаштування
 ├── .venv/                # Віртуальне середовище
 ├── .vscode/              # VS Code налаштування
 ├── .windsurf/            # Windsurf IDE налаштування
+├── .benchmarks/          # Директорія для результатів бенчмарків
+├── .continue/            # Файли конфігурації для Continue
+├── .pytest_cache/        # Кеш для pytest
+├── .ruff_cache/          # Кеш для ruff (лінтер)
 │
 ├── atlas/                # 📦 ОСНОВНИЙ ПАКЕТ ПРОГРАМИ
 │   ├── __init__.py
@@ -35,12 +39,26 @@ Atlas/
 ├── tests/                # 🧪 Тести
 ├── user/                 # 👤 Користувацькі дані та налаштування
 │
-├── .gitignore
-├── CHANGELOG.md
-├── DEV_PLAN.md           # 📋 Цей файл
-├── LICENSE
-├── README.md
-└── pyproject.toml        # 📦 Конфігурація проєкту
+├── .gitignore            # Git ігнорування файлів
+├── .coveragerc           # Конфігурація для coverage.py
+├── .editorconfig         # Налаштування редактора коду
+├── .markdownlint.json    # Конфігурація для linting markdown
+├── .pre-commit-config.yaml # Конфігурація pre-commit хуків
+├── .python-version       # Версія Python для проекту
+├── .ruff.toml            # Налаштування Ruff лінтера
+├── CHANGELOG.md          # Журнал змін
+├── DEV_PLAN.md           # План розробки
+├── LICENSE               # Ліцензія
+├── MACOS_SETUP.md        # Інструкції для налаштування macOS
+├── Makefile              # Makefile для автоматизації завдань
+├── README.md             # Загальна документація
+├── main.py               # Порожній файл (використовується atlas/main.py)
+├── pyproject.toml        # Конфігурація проекту і залежностей
+├── pyrightconfig.json    # Конфігурація Pyright (типи)
+├── pytest.ini            # Конфігурація pytest
+├── requirements.txt      # Залежності проекту
+├── setup_macos_dev.sh    # Скрипт налаштування для macOS
+└── launch_macos.sh       # Скрипт запуску для macOS
 ```
 
 ## 🔄 Поточна Проблема - Дублювання Структури
@@ -71,7 +89,7 @@ git checkout -b refactor/project-structure
 **Виявлені відмінності:**
 - `atlas/core/` - базова версія (6 файлів)
 - `core/` - повна версія (30+ файлів з AI, агентами, пам'яттю)
-- `atlas/ui/` - мінімальна версія (2 файли)  
+- `atlas/ui/` - мінімальна версія (2 файли)
 - `ui/` - повна версія (50+ файлів з модулями, компонентами)
 
 ### Фаза 2: Створення Нової Структури 🏗️
@@ -93,7 +111,7 @@ cp -r utils/* atlas/utils/
 
 # 4. Створення нових модулів
 mkdir -p atlas/agents
-mkdir -p atlas/memory  
+mkdir -p atlas/memory
 mkdir -p atlas/workflows
 mkdir -p atlas/plugins
 
@@ -111,11 +129,11 @@ cp main.py atlas/main.py
 **Стратегія інтеграції:**
 
 1. **Базові системи** - взяти з кореневої версії (більш розвинуті)
-2. **Архітектурні рішення** - об'єднати обидві версії  
+2. **Архітектурні рішення** - об'єднати обидві версії
 3. **Імпорти** - оновити для нової структури
 
 **Ключові файли для об'єднання:**
-- `application.py` - об'єднати функціональність  
+- `application.py` - об'єднати функціональність
 - `event_bus.py` - взяти повнішу версію
 - `config.py` - об'єднати можливості
 - `main_window.py` - взяти повну версію з UI
@@ -145,7 +163,7 @@ find atlas/ -name "*.py" -exec sed -i '' 's/from core\.intelligence/from atlas.a
 ```json
 {
     "name": "Atlas Debug",
-    "type": "python", 
+    "type": "python",
     "request": "launch",
     "module": "atlas.main",
     "console": "integratedTerminal",
@@ -205,7 +223,7 @@ ruff format atlas/
 # Видалення дублікатів коду та старих версій
 rm -rf app/ backup_ui/ backup_ui_qt/ src/
 
-# Видалення старих точок входу та конфігурацій  
+# Видалення старих точок входу та конфігурацій
 rm -f main.py sentry_config.py __init__.py
 
 # Видалення тимчасових кеш файлів
@@ -238,7 +256,7 @@ git commit --no-verify -m "Add complete atlas package to version control"
 
 - [x] **M1:** Аналіз поточної структури та виявлення дублікатів
 - [x] **M2:** Створення резервної копії та нової структури
-- [x] **M3:** Об'єднання кращих версій файлів  
+- [x] **M3:** Об'єднання кращих версій файлів
 - [x] **M4:** Виправлення всіх імпортів
 - [x] **M5:** Оновлення конфігурацій запуску
 - [x] **M6:** Тестування функціональності
@@ -259,7 +277,7 @@ git commit --no-verify -m "Add complete atlas package to version control"
 
 ## ✅ Статус Міграції
 
-**ЗАВЕРШЕНО УСПІШНО!** 
+**ЗАВЕРШЕНО УСПІШНО!**
 
 **🔗 Деталі у [CHANGELOG.md v2.0.0](CHANGELOG.md)**
 
@@ -276,178 +294,12 @@ git commit --no-verify -m "Add complete atlas package to version control"
 - ✅ Sentry config помилки виправлені (level типізація)
 
 **Статистика міграції:**
-- 237 файлів додано до git tracking
-- 38,483+ рядків коду у atlas/ пакеті
+**Статистика міграції:**
+- 198 файлів додано до git tracking
+- 32,882+ рядків коду у atlas/ пакеті
 - 3,000+ автоматичних замін імпортів
 - Повне покриття модулів: core, ui, agents, memory, tools, plugins, workflows, utils
-
-## 🔄 Поточний Фокус Розробки
-
-**Етап:** Post-Migration Development
-**Пріоритет:** Code Quality & Feature Enhancement
-
-**🔗 Roadmap з [CHANGELOG.md v2.0.0](CHANGELOG.md):**
-
-**Наступні кроки (у пріоритеті):**
-1. **[PHASE 10]** Code Quality: Виправлення Ruff/lint помилок, type hints, MyPy
-2. **[PHASE 11]** Testing: Розширення test coverage для atlas/, UI компонент testing
-3. **[PHASE 12]** Features: Додавання нової функціональності (AI, UI, tools, plugins)
-4. **[PHASE 13]** Performance: Оптимізація та profiling atlas/ компонентів
-5. **[PHASE 14]** Documentation: API docs, user guides, distribution готовність
-
-**Активні завдання:**
-- [ ] Виправлення всіх lint помилок у atlas/
-- [ ] Додавання comprehensive type hints
-- [ ] Розширення test suite для нової структури
-- [ ] Performance optimization для startup time
-- [ ] API documentation generation
-
-## 🚀 Запуск після Міграції
-
-```bash
-# Основний спосіб запуску (рекомендований)
-python -m atlas.main
-
-# Через встановлену команду (якщо налаштовано в pyproject.toml)
-atlas
-
-# Через pip в режимі розробки
-pip install -e .
-atlas
-
-# VS Code debugging (launch.json налаштовано)
-# F5 або Run > Start Debugging
-```
-
-## 🔧 Розробка після Міграції
-
-### Структура Імпортів (НОВА)
-
-```python
-# Core системи
-from atlas.core.application import AtlasApplication
-from atlas.core.event_bus import EventBus
-from atlas.core.config import Config
-
-# UI компоненти (PySide6)
-from atlas.ui.main_window import MainWindow
-from atlas.ui.chat.chat_module import ChatModule
-from atlas.ui.settings.settings_panel import SettingsPanel
-
-# AI та агенти
-from atlas.agents.meta_agent import MetaAgent
-from atlas.agents.decision_engine import DecisionEngine
-from atlas.memory.memory_manager import MemoryManager
-
-# Інструменти та утиліти
-from atlas.tools.base_tool import BaseTool
-from atlas.utils.platform_utils import IS_MACOS
-```
-
-## 🔧 Розробка
-
-### Добавлення Нових Модулів (ОНОВЛЕНО)
-
-1. **Створити модуль в atlas/**
-   ```bash
-   mkdir atlas/my_new_module
-   touch atlas/my_new_module/__init__.py
-   touch atlas/my_new_module/my_module.py
-   ```
-
-2. **Додати до registry**
-   - Оновити `atlas/core/module_registry.py`
-   - Зареєструвати в `atlas/__init__.py`
-
-3. **Налаштувати імпорти**
-   ```python
-   # В новому модулі
-   from atlas.core.event_bus import EventBus
-   from atlas.core.config import Config
-   
-   # В інших файлах для використання
-   from atlas.my_new_module.my_module import MyClass
-   ```
-
-4. **Додати тести**
-   ```bash
-   mkdir tests/my_new_module
-   touch tests/my_new_module/test_my_module.py
-   ```
-
-### Код-стайл та Якість (ОНОВЛЕНО)
-
-```bash
-# Форматування коду atlas/ пакету
-ruff format atlas/
-
-# Перевірка якості з виправленням
-ruff check atlas/ --fix
-
-# Type checking
-mypy atlas/ --install-types
-
-# Запуск тестів з покриттям для atlas/
-python -m pytest tests/ --cov=atlas --cov-report=html --cov-report=term
-
-# Security scan
-bandit -r atlas/ -f json -o atlas-security-report.json
-
-# Performance profiling
-python -m cProfile -s cumulative atlas/main.py
-```
-
-### VS Code Integration (НАЛАШТОВАНО)
-
-**Launch Configuration** (.vscode/launch.json):
-```json
-{
-    "name": "Atlas Debug",
-    "type": "python",
-    "request": "launch", 
-    "module": "atlas.main",
-    "console": "integratedTerminal",
-    "justMyCode": false
-}
-```
-
-**Tasks** (.vscode/tasks.json):
-- `Ruff: Lint` - перевірка якості коду
-- `Ruff: Format` - форматування коду  
-- `Pytest: Run All Tests` - запуск тестів
-- `Local CI Check` - повна перевірка проєкту
-
-## 📚 Документація
-
-- **README.md** - Загальний огляд та швидкий старт
-- **CHANGELOG.md** - Повна історія змін та версій проєкту ✅ **[v2.0.0 MIGRATION]**
-- **docs/** - Детальна документація архітектури
-- **Цей файл** - План розробки та міграції
-
----
-
-*Оновлено: 8 липня 2025*
-*Статус: ✅ МІГРАЦІЯ ЗАВЕРШЕНА УСПІШНО*
-*Наступний етап: 🔧 ПОЛІПШЕННЯ ЯКОСТІ КОДУ ТА РОЗШИРЕННЯ ФУНКЦІОНАЛЬНОСТІ*
-
-**🔗 Синхронізовано з [CHANGELOG.md v2.0.0](CHANGELOG.md)**
-
-### 📊 Підсумок Проєкту Atlas v2.0.0
-
-**Архітектура:** Unified Python Package (`atlas/`)
-**UI Framework:** PySide6  
-**AI Integration:** OpenAI, Anthropic, Local LLMs
-**Platform:** macOS (primary), Windows/Linux (support)
-**Development:** Python 3.9+, Poetry, Ruff, pytest
-
-**Ключові Досягнення:**
-- ✅ Повна структурна міграція до atlas/ package
-- ✅ 237 файлів, 38,483+ рядків коду під git tracking
-- ✅ Всі імпорти оновлені (3,000+ автоматичних замін)
-- ✅ UI/Core інтеграція з PySide6 працює повністю
-- ✅ VS Code, Git, pyproject.toml конфігурації оновлені
-- ✅ Sentry error tracking налаштовано та виправлено
-- ✅ Clean project root структура
+- Останнє оновлення: 2025-07-08
 
 **Готовність до наступних фаз розвитку:** 🚀
 
@@ -458,30 +310,66 @@ python -m cProfile -s cumulative atlas/main.py
 ### Фаза 10: Поліпшення Якості Коду 🔧
 
 **Пріоритет:** Високий
-**Статус:** Готовий до виконання
+**Статус:** **🔄 В ПРОЦЕСІ ВИКОНАННЯ**
 **Відповідає:** PHASE 10 у CHANGELOG.md
 
+**🛠️ Інтегрована Система Контролю Якості:**
+
+#### A) VS Code Розширення та Налаштування
+```json
+// .vscode/extensions.json - рекомендовані розширення
+"eamodio.gitlens",              // 🔍 Git контроль та історія
+"christian-kohler.path-intellisense", // 🧠 Підказки шляхів
+"sleistner.vscode-fileutils",   // 📁 Управління файлами
+"gruntfuggly.todo-tree",        // 🚀 TODO/FIXME tracking
+"aaron-bond.better-comments"    // 📝 Покращені коментарі
+```
+
+#### B) Автоматичні Перевірки Pre-commit
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks  # 🧹 Базові перевірки
+  - repo: https://github.com/astral-sh/ruff-pre-commit    # 🐍 Python якість
+  - repo: https://github.com/PyCQA/bandit                # 🔒 Security scan
+  - repo: local                                          # 🏗️ Atlas структура
+    hooks:
+      - id: atlas-structure-check                        # ✅ Перевірка структури
+      - id: pytest-check                                 # 🧪 Запуск тестів
+```
+
+#### C) Скрипт Перевірки Структури
 ```bash
-# 1. Виправлення всіх помилок Ruff/lint
-ruff check atlas/ --fix
-ruff format atlas/
+# scripts/check_structure.py
+python scripts/check_structure.py
+# 🔍 Перевіряє дублікати файлів
+# 📋 Валідує структуру atlas/ пакету
+# 🔧 Аналізує правильність імпортів
+# 📁 Контролює naming conventions
+# 🧹 Перевіряє чистоту кореня проєкту
+```
 
-# 2. Додавання type hints
-mypy atlas/ --install-types
-
-# 3. Оптимізація імпортів
-isort atlas/ --profile black
-
-# 4. Видалення невикористаних залежностей
-pip-audit
+#### D) CI/CD Автоматизація
+```yaml
+# .github/workflows/quality-control.yml
+jobs:
+  structure-check:    # 📋 Перевірка структури проєкту
+  code-quality:       # 🧹 Linting, formatting, typing
+  tests:              # 🧪 Test suite на Python 3.9-3.11
+  build-check:        # 🚀 Import та build валідація
+  documentation:      # 📚 Sync DEV_PLAN ↔ CHANGELOG
 ```
 
 **Завдання:**
-- [ ] Виправити всі помилки linting в atlas/
-- [ ] Додати type hints для всіх функцій та методів
-- [ ] Оптимізувати структуру імпортів
-- [ ] Провести security audit через bandit
-- [ ] Оновити documentation strings
+- [x] ✅ Налаштування VS Code розширень та settings
+- [x] ✅ Створення скрипту check_structure.py
+- [x] ✅ Розширення pre-commit hooks з безпекою та структурою
+- [x] ✅ GitHub Actions workflow для повної CI/CD
+- [x] ✅ Автоматичне оновлення документації
+- [ ] 🔄 Виправити всі помилки linting в atlas/
+- [ ] 🔄 Додати type hints для всіх функцій та методів
+- [ ] 🔄 Провести security audit через bandit
+- [ ] 🔄 Оптимізувати структуру імпортів
 
 ### Фаза 11: Функціональні Тести та Валідація 🧪
 

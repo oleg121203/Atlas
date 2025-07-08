@@ -18,7 +18,7 @@ def handle_test_error(error_type, error_message, failed_test):
     # Common error patterns and their fixes
     ERROR_FIXES = {
         'AttributeError': 'auto_fix_missing_method',
-        'ImportError': 'auto_fix_missing_import', 
+        'ImportError': 'auto_fix_missing_import',
         'ModuleNotFoundError': 'auto_fix_missing_module',
         'ConnectionError': 'auto_skip_network_dependent_test',
         'TimeoutError': 'auto_increase_timeout_or_skip'
@@ -47,7 +47,7 @@ def handle_test_error(error_type, error_message, failed_test):
 RECOVERY_ACTIONS = {
     "WebSocketServer.*has no attribute 'start'": [
         "Add start() method that calls start_server()",
-        "Add stop() method for test compatibility", 
+        "Add stop() method for test compatibility",
         "Continue with next development task"
     ],
     "Port.*already in use": [
@@ -57,7 +57,7 @@ RECOVERY_ACTIONS = {
     ],
     "Module.*not found": [
         "Auto-create missing module",
-        "Add minimal implementation", 
+        "Add minimal implementation",
         "Continue development"
     ]
 }

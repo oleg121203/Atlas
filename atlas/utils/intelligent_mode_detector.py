@@ -488,7 +488,10 @@ class IntelligentModeDetector:
             mode = ChatMode.HYBRID
             confidence = max(simple_score, adjusted_advanced_score)
             should_use_advanced = adjusted_advanced_score >= simple_score
-            reasoning = f"Ambiguous case (diff: {score_diff:.2f}): prefer {'advanced' if should_use_advanced else 'simple'}"
+            reasoning = (
+                f"Ambiguous case (diff: {score_diff:.2f}): prefer "
+                f"{'advanced' if should_use_advanced else 'simple'}"
+            )
 
         elif simple_score > 0.8:
             # Високий пріоритет простих команд
@@ -514,12 +517,18 @@ class IntelligentModeDetector:
                 mode = ChatMode.ADVANCED_THINKING
                 confidence = max(adjusted_advanced_score, 0.6)
                 should_use_advanced = True
-                reasoning = f"Fallback to advanced: scores(simple={simple_score:.2f}, advanced={adjusted_advanced_score:.2f})"
+                reasoning = (
+                    f"Fallback to advanced: scores(simple={simple_score:.2f}, "
+                    f"advanced={adjusted_advanced_score:.2f})"
+                )
             else:
                 mode = ChatMode.SIMPLE_COMMAND
                 confidence = max(simple_score, 0.5)
                 should_use_advanced = False
-                reasoning = f"Fallback to simple: scores(simple={simple_score:.2f}, advanced={adjusted_advanced_score:.2f})"
+                reasoning = (
+                    f"Fallback to simple: scores(simple={simple_score:.2f}, "
+                    f"advanced={adjusted_advanced_score:.2f})"
+                )
 
         return DetectionResult(
             mode=mode,

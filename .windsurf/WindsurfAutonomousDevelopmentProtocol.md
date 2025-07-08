@@ -19,7 +19,7 @@
 When encountering ambiguous requirements:
 - **Priority 1**: Follow established patterns in existing codebase
 - **Priority 2**: Use macOS/Apple Silicon best practices
-- **Priority 3**: Leverage Mac Studio M1 Max performance capabilities  
+- **Priority 3**: Leverage Mac Studio M1 Max performance capabilities
 - **Priority 4**: Implement the simplest solution that meets the requirement
 - **Priority 5**: Document assumptions made in commit messages (English only)
 
@@ -76,7 +76,7 @@ class МенеджерЗавдань:  # FORBIDDEN
 UI_STRINGS = {
     'task_create': {
         'uk': 'Створити завдання',
-        'ru': 'Создать задачу', 
+        'ru': 'Создать задачу',
         'en': 'Create Task'
     },
     'task_title': {

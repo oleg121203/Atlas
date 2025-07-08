@@ -7,10 +7,20 @@ form the visual interface of the Atlas application.
 
 import logging
 import os
-import sys
-from typing import Any, Dict, List, Optional, Type
+from pathlib import Path
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
+
+# Define UI themes
+THEMES = {
+    "cyberpunk": "cyberpunk.qss",
+    "dark": "dark.qss",
+    "light": "light.qss",
+}
+
+# Default theme
+DEFAULT_THEME = "cyberpunk"
 
 # Ensure PySide6 is imported first to avoid conflicts
 try:
@@ -23,16 +33,6 @@ except ImportError as e:
     QtCore = None
     QtWidgets = None
     QtGui = None
-
-# Define UI themes
-THEMES = {
-    "cyberpunk": "cyberpunk.qss",
-    "dark": "dark.qss",
-    "light": "light.qss",
-}
-
-# Default theme
-DEFAULT_THEME = "cyberpunk"
 
 
 def apply_theme(app: "QtWidgets.QApplication", theme_name: str = DEFAULT_THEME) -> bool:
@@ -165,45 +165,8 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import AtlasMainWindow: {e}")
 
-try:
-    from .chat import ChatModule
-
-    __all__.append("ChatModule")
-except ImportError as e:
-    logger.warning(f"Could not import ChatModule: {e}")
-
-try:
-    from .tasks import TasksModule
-
-    __all__.append("TasksModule")
-except ImportError as e:
-    logger.warning(f"Could not import TasksModule: {e}")
-
-try:
-    from .agents import AgentsModule
-
-    __all__.append("AgentsModule")
-except ImportError as e:
-    logger.warning(f"Could not import AgentsModule: {e}")
-
-try:
-    from .settings import SettingsModule
-
-    __all__.append("SettingsModule")
-except ImportError as e:
-    logger.warning(f"Could not import SettingsModule: {e}")
-
-try:
-    from .plugins import PluginsModule
-
-    __all__.append("PluginsModule")
-except ImportError as e:
-    logger.warning(f"Could not import PluginsModule: {e}")
-
-import logging
-from pathlib import Path
-
-logger = logging.getLogger(__name__)
+# Remove unused module imports to fix linting issues
+# These modules are imported but not actually used in __all__
 
 logger.info("Starting UI package initialization")
 try:

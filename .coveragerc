@@ -2,7 +2,7 @@
 [run]
 branch = True
 source = core,ui,tools,utils,atlas
-omit = 
+omit =
     */tests/*
     */__pycache__/*
     */.*

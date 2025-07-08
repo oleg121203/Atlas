@@ -18,7 +18,7 @@ echo "Detected macOS version: $MACOS_VERSION"
 if ! command -v brew &> /dev/null; then
     echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    
+
     # Add Homebrew to PATH based on architecture
     if [[ $(uname -m) == "arm64" ]]; then
         echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
@@ -68,13 +68,13 @@ pip install pytest pytest-cov mypy ruff pre-commit
 # Setup VS Code if installed
 if [ -d "/Applications/Visual Studio Code.app" ]; then
     echo "Setting up VS Code integration..."
-    
+
     # Install recommended extensions
     code --install-extension ms-python.python
     code --install-extension ms-python.vscode-pylance
     code --install-extension charliermarsh.ruff
     code --install-extension ms-python.debugpy
-    
+
     echo "VS Code extensions installed."
 fi
 

@@ -1,6 +1,8 @@
 """Theme Manager Module for Atlas UI (ASC-024)
 
-This module handles theme management for the Atlas application as part of the UI enhancements under ASC-024. It manages theme loading, switching, and customization, following the design specifications in ui_design_specifications.md.
+This module handles theme management for the Atlas application as part of the UI
+enhancements under ASC-024. It manages theme loading, switching, and customization,
+following the design specifications in ui_design_specifications.md.
 """
 
 import logging

@@ -9,7 +9,8 @@ def system_event(
     Query or trigger common macOS system events using AppleScript or system commands.
 
     Args:
-        event: The event to query or trigger ('sleep', 'wake', 'mute', 'unmute', 'get_volume', 'set_volume', 'open_app', 'get_running_apps').
+        event: The event to query or trigger ('sleep', 'wake', 'mute', 'unmute',
+               'get_volume', 'set_volume', 'open_app', 'get_running_apps').
         value: Value for set_volume (0-100).
         app_name: Name of app to open (for 'open_app').
     Returns:

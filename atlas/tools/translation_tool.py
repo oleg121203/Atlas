@@ -126,14 +126,15 @@ class TranslationTool:
         source_name = self.supported_languages.get(source_lang, source_lang)
         target_name = self.supported_languages.get(target_lang, target_lang)
 
-        translation_prompt = f"""You are a professional translator. Translate the following text from {source_name} to {target_name}.
-
-Preserve the original meaning, tone, and intent. If the text contains technical terms or commands, keep them accurate.
-If the text is already in {target_name}, return it unchanged.
-
-Text to translate: {text}
-
-Provide only the translation, no additional explanation."""
+        translation_prompt = (
+            f"You are a professional translator. Translate the following text "
+            f"from {source_name} to {target_name}.\n\n"
+            f"Preserve the original meaning, tone, and intent. If the text contains "
+            f"technical terms or commands, keep them accurate.\n"
+            f"If the text is already in {target_name}, return it unchanged.\n\n"
+            f"Text to translate: {text}\n\n"
+            f"Provide only the translation, no additional explanation."
+        )
 
         try:
             messages = [{"role": "user", "content": translation_prompt}]

@@ -16,7 +16,7 @@
 When encountering ambiguous requirements:
 - **Priority 1**: Follow established patterns in existing codebase
 - **Priority 2**: Use macOS/Apple Silicon best practices
-- **Priority 3**: Leverage Mac Studio M1 Max performance capabilities  
+- **Priority 3**: Leverage Mac Studio M1 Max performance capabilities
 - **Priority 4**: Implement the simplest solution that meets the requirement
 - **Priority 5**: Document assumptions made in commit messages (English only)
 
@@ -75,7 +75,7 @@ class МенеджерЗавдань:  # FORBIDDEN
 UI_STRINGS = {
     'task_create': {
         'uk': 'Створити завдання',
-        'ru': 'Создать задачу', 
+        'ru': 'Создать задачу',
         'en': 'Create Task'
     },
     'task_title': {
@@ -462,7 +462,7 @@ If environment issues are detected:
    ```bash
    # Check current environment:
    echo $VIRTUAL_ENV
-   
+
    # If incorrect, activate proper environment:
    source scripts/use_macos.sh  # macOS only
    ```
@@ -478,7 +478,7 @@ If environment issues are detected:
    ```bash
    ./scripts/fix_jedi.sh
    ```
-   
+
 ## Platform-Specific Development Standards - macOS Mac Studio M1 Max 32GB
 
 ### macOS Development Environment
@@ -497,7 +497,7 @@ If environment issues are detected:
    ```python
    import platform
    import sys
-   
+
    assert platform.system() == 'Darwin'
    assert platform.machine() == 'arm64'
    assert sys.version_info >= (3, 9, 6)
@@ -550,7 +550,7 @@ TRANSLATIONS = {
         'task_title': 'Назва завдання'
     },
     'ru': {
-        'create_task': 'Создать задачу', 
+        'create_task': 'Создать задачу',
         'task_title': 'Название задачи'
     }
 }
@@ -558,7 +558,7 @@ TRANSLATIONS = {
 
 ## Windsurf Protocol Compliance
 
-This environment setup protocol is mandatory and has the HIGHEST PRIORITY under Windsurf's "Never-Stop Execution" and "Quality Excellence" principles. 
+This environment setup protocol is mandatory and has the HIGHEST PRIORITY under Windsurf's "Never-Stop Execution" and "Quality Excellence" principles.
 
 **CRITICAL**: Development is EXCLUSIVELY for macOS Mac Studio M1 Max 32GB. No cross-platform support needed.
 

@@ -1,6 +1,15 @@
+"""
+Plugin Mfrom typing import Dict, List, Optional
+
+from atlas.plugins.plugin_interface import PluginBaseger for Atlas
+
+Handles plugin loading, management and execution.
+"""
+
 import importlib
 import importlib.util
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -172,3 +181,20 @@ class PluginManager:
             ),
         }
         return info
+
+    def load_plugins(self) -> None:
+        """Load all plugins from the plugins directory."""
+        for fname in os.listdir(self.plugin_dir):
+            if fname.endswith(".py") and fname != "base.py":
+                self.load_plugin(fname)
+
+    def get_available_plugins(self) -> List[str]:
+        """Get list of available plugin names."""
+        return list(self.plugins.keys())
+
+    def get_plugin_help(self, plugin_name: str) -> str:
+        """Get help text for a plugin."""
+        plugin = self.plugins.get(plugin_name)
+        if plugin is None:
+            return f"Plugin {plugin_name} not found"
+        return plugin.__doc__ or "No documentation available"

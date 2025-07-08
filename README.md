@@ -146,7 +146,7 @@ def deactivate():
 Tools are classes that extend the BaseTool class:
 
 ```python
-from tools.base_tool import BaseTool
+from atlas.tools.base_tool import BaseTool
 
 class MyTool(BaseTool):
     TOOL_NAME = "my_tool"

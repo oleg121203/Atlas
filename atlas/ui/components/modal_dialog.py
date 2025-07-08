@@ -1,6 +1,8 @@
 """Modal Dialog Module for Atlas UI (ASC-024)
 
-This module defines a custom modal dialog for the Atlas application as part of the UI enhancements under ASC-024. The modal is used for task creation and other input forms, following the design specifications in ui_design_specifications.md.
+This module defines a custom modal dialog for the Atlas application as part of
+the UI enhancements under ASC-024. The modal is used for task creation and other
+input forms, following the design specifications in ui_design_specifications.md.
 """
 
 import logging

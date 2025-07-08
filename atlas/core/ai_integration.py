@@ -411,7 +411,8 @@ Current code context:
 
 My request: {user_input}
 
-Please provide relevant code suggestions, explanations, or solutions. Make sure your response is concise and directly addresses my request."""
+Please provide relevant code suggestions, explanations, or solutions.
+Make sure your response is concise and directly addresses my request."""
         return prompt
 
     def _craft_task_prompt(self, context: Dict) -> str:
@@ -433,7 +434,8 @@ Current tasks or context:
 
 My request: {user_input}
 
-Please provide suggestions for task prioritization, organization, or completion strategies. Keep your response focused and practical."""
+Please provide suggestions for task prioritization, organization, or completion strategies.
+Keep your response focused and practical."""
         return prompt
 
     def _craft_general_prompt(self, context: Dict) -> str:
@@ -477,7 +479,8 @@ Please provide a clear and concise response that directly addresses my request."
 Task description: {task_description}
 
 Please provide a step-by-step plan to automate this task. Include expected outcomes for each step.
-Format your response as a JSON object with 'steps' as a list of objects with 'step', 'action', and 'expected_outcome' fields."""
+Format your response as a JSON object with 'steps' as a list of objects with 'step', 'action',
+and 'expected_outcome' fields."""
 
         if context:
             prompt += f"""
@@ -496,7 +499,10 @@ Additional context:
 
 
 def _record_performance(
-    model_name: str, start_time: float, success: bool, error_message: str = None
+    model_name: str,
+    start_time: float,
+    success: bool,
+    error_message: Optional[str] = None,
 ):
     """
     Record performance metrics for AI model inference.
@@ -535,7 +541,7 @@ def _record_performance(
     )
 
 
-def get_performance_report(model_name: str = None) -> Dict:
+def get_performance_report(model_name: Optional[str] = None) -> Dict:
     """
     Generate a performance report for AI models.
 

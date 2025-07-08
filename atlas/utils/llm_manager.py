@@ -117,76 +117,118 @@ class LLMManager:
                 f"Unknown model provider for '{model_to_use}'. Using default: {provider}."
             )
 
-        cache_key = None
-        try:
-            # Check cache first for non-conversational queries
-            if len(messages) == 1 and messages[0].get("role") == "user":
-                cache_key = json.dumps(messages[0])
-                if cache_key in self.cache:
-                    self.logger.info(f"Cache hit for request: {cache_key[:50]}...")
-                    return self.cache[cache_key]
+        # Check cache first for non-conversational queries
+        cache_key = self._check_cache(messages)
+        if cache_key and cache_key in self.cache:
+            self.logger.info(f"Cache hit for request: {cache_key[:50]}...")
+            return self.cache[cache_key]
 
-            # Route the request to the appropriate provider
-            if provider not in self.providers:
-                self.logger.error(f"Unsupported provider: {provider}")
-                return self._fallback_to_available_provider(
-                    messages, tools, model_to_use, max_tokens
-                )
-
-            if not self.providers[provider].is_available():
-                self.logger.error(
-                    f"Provider {provider} is not available. Attempting fallback."
-                )
-                return self._fallback_to_available_provider(
-                    messages, tools, model_to_use, max_tokens
-                )
-
-            response_data = self.providers[provider].chat(
-                messages, tools, model_to_use, max_tokens
-            )
-            token_usage = TokenUsage(
-                response_text=response_data.get("content", ""),
-                tool_calls=response_data.get("tool_calls"),
-                prompt_tokens=response_data.get("prompt_tokens", 0),
-                completion_tokens=response_data.get("completion_tokens", 0),
-                total_tokens=response_data.get("total_tokens", 0),
-            )
-            self.token_tracker.add_usage(token_usage)
-
-            if cache_key:
-                self.cache[cache_key] = token_usage
-                self.logger.info(f"Cached response for request: {cache_key[:50]}...")
-
-            return token_usage
-        except socket.timeout as e:
-            self.logger.error(f"LLM API timeout with {provider}: {e}", exc_info=True)
-            return TokenUsage(response_text="[ERROR: LLM API timeout]", tool_calls=None)
-        except ValueError as e:
-            if "API key" in str(e) or "not initialized" in str(e):
-                self.logger.error(
-                    f"LLM API key error with {provider}: {e}", exc_info=True
-                )
-                return TokenUsage(
-                    response_text="[ERROR: Invalid or missing API key]", tool_calls=None
-                )
-            else:
-                self.logger.error(
-                    f"LLM API value error with {provider}: {e}", exc_info=True
-                )
-                return TokenUsage(response_text=f"[ERROR: {e}]", tool_calls=None)
-        except Exception as e:
-            if "unavailable" in str(e).lower() or "connection" in str(e).lower():
-                self.logger.error(
-                    f"LLM API service unavailable with {provider}: {e}", exc_info=True
-                )
-                return TokenUsage(
-                    response_text="[ERROR: LLM API service unavailable]",
-                    tool_calls=None,
-                )
-            self.logger.error(f"LLM API error with {provider}: {e}", exc_info=True)
+        # Validate provider availability
+        if not self._is_provider_available(provider):
             return self._fallback_to_available_provider(
                 messages, tools, model_to_use, max_tokens
             )
+
+        try:
+            return self._execute_chat_request(
+                provider, messages, tools, model_to_use, max_tokens, cache_key
+            )
+        except Exception as e:
+            return self._handle_chat_exception(
+                e, provider, messages, tools, model_to_use, max_tokens
+            )
+
+    def _check_cache(self, messages: List[Dict[str, Any]]) -> Optional[str]:
+        """Check if the request can be cached and return cache key."""
+        if len(messages) == 1 and messages[0].get("role") == "user":
+            return json.dumps(messages[0])
+        return None
+
+    def _is_provider_available(self, provider: str) -> bool:
+        """Check if the provider is available."""
+        if provider not in self.providers:
+            self.logger.error(f"Unsupported provider: {provider}")
+            return False
+
+        if not self.providers[provider].is_available():
+            self.logger.error(
+                f"Provider {provider} is not available. Attempting fallback."
+            )
+            return False
+
+        return True
+
+    def _execute_chat_request(
+        self,
+        provider: str,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]],
+        model_to_use: Optional[str],
+        max_tokens: Optional[int],
+        cache_key: Optional[str],
+    ) -> TokenUsage:
+        """Execute the actual chat request."""
+        response_data = self.providers[provider].chat(
+            messages, tools, model_to_use, max_tokens
+        )
+        token_usage = TokenUsage(
+            response_text=response_data.get("content", ""),
+            tool_calls=response_data.get("tool_calls"),
+            prompt_tokens=response_data.get("prompt_tokens", 0),
+            completion_tokens=response_data.get("completion_tokens", 0),
+            total_tokens=response_data.get("total_tokens", 0),
+        )
+        self.token_tracker.add_usage(token_usage)
+
+        if cache_key:
+            self.cache[cache_key] = token_usage
+            self.logger.info(f"Cached response for request: {cache_key[:50]}...")
+
+        return token_usage
+
+    def _handle_chat_exception(
+        self,
+        e: Exception,
+        provider: str,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]],
+        model_to_use: Optional[str],
+        max_tokens: Optional[int],
+    ) -> TokenUsage:
+        """Handle exceptions from chat requests."""
+        if isinstance(e, socket.timeout):
+            self.logger.error(f"LLM API timeout with {provider}: {e}", exc_info=True)
+            return TokenUsage(response_text="[ERROR: LLM API timeout]", tool_calls=None)
+
+        if isinstance(e, ValueError):
+            return self._handle_value_error(e, provider)
+
+        if "unavailable" in str(e).lower() or "connection" in str(e).lower():
+            self.logger.error(
+                f"LLM API service unavailable with {provider}: {e}", exc_info=True
+            )
+            return TokenUsage(
+                response_text="[ERROR: LLM API service unavailable]",
+                tool_calls=None,
+            )
+
+        self.logger.error(f"LLM API error with {provider}: {e}", exc_info=True)
+        return self._fallback_to_available_provider(
+            messages, tools, model_to_use, max_tokens
+        )
+
+    def _handle_value_error(self, e: ValueError, provider: str) -> TokenUsage:
+        """Handle ValueError exceptions specifically."""
+        if "API key" in str(e) or "not initialized" in str(e):
+            self.logger.error(f"LLM API key error with {provider}: {e}", exc_info=True)
+            return TokenUsage(
+                response_text="[ERROR: Invalid or missing API key]", tool_calls=None
+            )
+        else:
+            self.logger.error(
+                f"LLM API value error with {provider}: {e}", exc_info=True
+            )
+            return TokenUsage(response_text=f"[ERROR: {e}]", tool_calls=None)
 
     def _fallback_to_available_provider(
         self,

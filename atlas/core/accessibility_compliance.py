@@ -59,72 +59,14 @@ class AccessibilityCompliance:
                 self.accessibility_issues.append(report)
                 return report
 
-            # Get accessibility role
-            role = element.accessibilityRole()
-            report["role"] = role if role else "Unknown"
-
-            if role not in self.supported_roles:
-                report["issues"].append(f"Unsupported accessibility role: {role}")
-
-            # Check for role description
-            role_description = element.accessibilityRoleDescription()
-            if not role_description:
-                report["issues"].append("Missing accessibility role description")
-
-            # Check for label/help text
-            label = element.accessibilityLabel()
-            if not label:
-                report["issues"].append("Missing accessibility label")
-
-            # Check if element is enabled
-            if not element.accessibilityEnabled():
-                report["issues"].append("Accessibility is not enabled for this element")
-
-            # Check for focusability if applicable
-            if (
-                role
-                in {
-                    "AXButton",
-                    "AXTextField",
-                    "AXTextArea",
-                    "AXMenuItem",
-                    "AXRadioButton",
-                    "AXCheckBox",
-                    "AXPopUpButton",
-                    "AXSlider",
-                }
-                and not element.accessibilityFocused()
-                and not hasattr(element, "accessibilityPerformPress")
-                and not hasattr(element, "accessibilityPerformShowMenu")
-            ):
-                report["issues"].append("Element is not focusable")
-
-            # Check for parent/child relationships
-            children = element.accessibilityChildren()
-            if children:
-                for child in children:
-                    child_report = self.check_ui_element(child)
-                    if not child_report["accessible"]:
-                        report["issues"].extend(
-                            [
-                                f"Child element issue: {issue}"
-                                for issue in child_report["issues"]
-                            ]
-                        )
-
-            # Check for minimum size (for touch targets)
-            frame = element.accessibilityFrame()
-            if (
-                frame.size.width < 44
-                or frame.size.height < 44
-                and role in {"AXButton", "AXMenuItem", "AXRadioButton", "AXCheckBox"}
-            ):
-                report["issues"].append(
-                    "Touch target is too small (should be at least 44x44 points)"
-                )
+            self._check_basic_properties(element, report)
+            self._check_focusability(element, report)
+            self._check_children(element, report)
+            self._check_size_requirements(element, report)
 
             # If no issues found, mark as accessible
             report["accessible"] = len(report["issues"]) == 0
+            role_description = element.accessibilityRoleDescription()
             report["description"] = (
                 role_description if role_description else "No description"
             )
@@ -137,6 +79,85 @@ class AccessibilityCompliance:
             self.accessibility_issues.append(report)
 
         return report
+
+    def _check_basic_properties(
+        self, element: NSAccessibilityElement, report: Dict[str, Any]
+    ) -> None:
+        """Check basic accessibility properties of an element."""
+        # Get accessibility role
+        role = element.accessibilityRole()
+        report["role"] = role if role else "Unknown"
+
+        if role not in self.supported_roles:
+            report["issues"].append(f"Unsupported accessibility role: {role}")
+
+        # Check for role description
+        role_description = element.accessibilityRoleDescription()
+        if not role_description:
+            report["issues"].append("Missing accessibility role description")
+
+        # Check for label/help text
+        label = element.accessibilityLabel()
+        if not label:
+            report["issues"].append("Missing accessibility label")
+
+        # Check if element is enabled
+        if not element.accessibilityEnabled():
+            report["issues"].append("Accessibility is not enabled for this element")
+
+    def _check_focusability(
+        self, element: NSAccessibilityElement, report: Dict[str, Any]
+    ) -> None:
+        """Check focusability requirements for interactive elements."""
+        role = report["role"]
+        if (
+            role
+            in {
+                "AXButton",
+                "AXTextField",
+                "AXTextArea",
+                "AXMenuItem",
+                "AXRadioButton",
+                "AXCheckBox",
+                "AXPopUpButton",
+                "AXSlider",
+            }
+            and not element.accessibilityFocused()
+            and not hasattr(element, "accessibilityPerformPress")
+            and not hasattr(element, "accessibilityPerformShowMenu")
+        ):
+            report["issues"].append("Element is not focusable")
+
+    def _check_children(
+        self, element: NSAccessibilityElement, report: Dict[str, Any]
+    ) -> None:
+        """Check accessibility of child elements."""
+        children = element.accessibilityChildren()
+        if children:
+            for child in children:
+                child_report = self.check_ui_element(child)
+                if not child_report["accessible"]:
+                    report["issues"].extend(
+                        [
+                            f"Child element issue: {issue}"
+                            for issue in child_report["issues"]
+                        ]
+                    )
+
+    def _check_size_requirements(
+        self, element: NSAccessibilityElement, report: Dict[str, Any]
+    ) -> None:
+        """Check minimum size requirements for touch targets."""
+        role = report["role"]
+        frame = element.accessibilityFrame()
+        if (
+            frame.size.width < 44
+            or frame.size.height < 44
+            and role in {"AXButton", "AXMenuItem", "AXRadioButton", "AXCheckBox"}
+        ):
+            report["issues"].append(
+                "Touch target is too small (should be at least 44x44 points)"
+            )
 
     def check_application_accessibility(self, app: NSApplication) -> Dict[str, Any]:
         """Check accessibility compliance for the entire application

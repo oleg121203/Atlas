@@ -3,4 +3,6 @@
 
 """Memory UI module for Atlas."""
 
-from .memory_ui import MemoryUI
+from .memory_ui import MemoryUI as MemoryUI
+
+__all__ = ["MemoryUI"]

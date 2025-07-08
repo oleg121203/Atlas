@@ -382,14 +382,8 @@ class DependencyAnalyzer:
 
         return complexity_ranges
 
-    def generate_dependency_report(self) -> str:
-        """Generate a comprehensive dependency analysis report."""
-        analysis = self.analyze_project_architecture()
-
-        report = []
-        report.append("🏗️ **Atlas Architectural Analysis Report**\n")
-
-        # Overview
+    def _generate_report_overview(self, analysis, report: list) -> None:
+        """Generate the overview section of the report."""
         report.append("## 📊 **Project Overview**")
         report.append(f"- **Total Modules**: {analysis.metrics['total_modules']}")
         report.append(
@@ -403,7 +397,8 @@ class DependencyAnalyzer:
         )
         report.append("")
 
-        # Circular Dependencies
+    def _generate_circular_dependencies_section(self, analysis, report: list) -> None:
+        """Generate the circular dependencies section."""
         if analysis.circular_dependencies:
             report.append("## 🔄 **Circular Dependencies** ⚠️")
             for i, cycle in enumerate(analysis.circular_dependencies, 1):
@@ -412,7 +407,8 @@ class DependencyAnalyzer:
         else:
             report.append("## ✅ **No Circular Dependencies Found**\n")
 
-        # Dependency Layers
+    def _generate_layers_section(self, analysis, report: list) -> None:
+        """Generate the architectural layers section."""
         report.append("## 🏢 **Architectural Layers**")
         for layer, modules in sorted(analysis.dependency_layers.items()):
             report.append(f"**Layer {layer}** ({len(modules)} modules):")
@@ -422,7 +418,8 @@ class DependencyAnalyzer:
                 report.append(f"  - ... and {len(modules) - 10} more")
             report.append("")
 
-        # Most Connected Modules
+    def _generate_connections_section(self, analysis, report: list) -> None:
+        """Generate the most connected modules section."""
         report.append("## 🔗 **Most Connected Modules**")
         coupling_data = [
             (
@@ -443,7 +440,8 @@ class DependencyAnalyzer:
             )
         report.append("")
 
-        # External Dependencies
+    def _generate_external_deps_section(self, analysis, report: list) -> None:
+        """Generate the external dependencies section."""
         if analysis.external_dependencies:
             report.append("## 📦 **External Dependencies**")
             for dep in sorted(analysis.external_dependencies)[:20]:
@@ -454,7 +452,8 @@ class DependencyAnalyzer:
                 )
             report.append("")
 
-        # Complexity Analysis
+    def _generate_complexity_section(self, analysis, report: list) -> None:
+        """Generate the complexity distribution section."""
         complexity_dist = analysis.metrics["cyclomatic_complexity_distribution"]
         report.append("## 📈 **Complexity Distribution**")
         report.append(f"- **Low Complexity** (≤5): {complexity_dist['low']} modules")
@@ -469,8 +468,10 @@ class DependencyAnalyzer:
         )
         report.append("")
 
-        # Recommendations
+    def _generate_recommendations_section(self, analysis, report: list) -> None:
+        """Generate the recommendations section."""
         report.append("## 💡 **Architectural Recommendations**")
+
         if analysis.circular_dependencies:
             report.append(
                 "- 🚨 **Critical**: Resolve circular dependencies to improve maintainability"
@@ -490,6 +491,7 @@ class DependencyAnalyzer:
             )[:5]:
                 report.append(f"  - `{name}` (I: {inst:.2f})")
 
+        complexity_dist = analysis.metrics["cyclomatic_complexity_distribution"]
         if complexity_dist["very_high"] > 0:
             report.append(
                 f"- 🔧 **Refactoring**: {complexity_dist['very_high']} modules have very high complexity"
@@ -499,6 +501,23 @@ class DependencyAnalyzer:
             report.append(
                 "- 📊 **Architecture**: Consider reducing dependency density for better modularity"
             )
+
+    def generate_dependency_report(self) -> str:
+        """Generate a comprehensive dependency analysis report."""
+        analysis = self.analyze_project_architecture()
+
+        report = []
+        report.append("🏗️ **Atlas Architectural Analysis Report**\n")
+
+        self._generate_report_overview(analysis, report)
+        self._generate_circular_dependencies_section(analysis, report)
+        self._generate_layers_section(analysis, report)
+        self._generate_connections_section(analysis, report)
+        self._generate_external_deps_section(analysis, report)
+        self._generate_complexity_section(analysis, report)
+        self._generate_recommendations_section(analysis, report)
+
+        return "\n".join(report)
 
         return "\n".join(report)
 

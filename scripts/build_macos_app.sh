@@ -104,7 +104,7 @@ python3 setup.py py2app
 # Create a DMG installer if dmgbuild is available
 if command -v dmgbuild &> /dev/null; then
     echo "Creating DMG installer..."
-    
+
     # Create DMG settings file
     cat > dmg-settings.py << EOL
 # -*- coding: utf-8 -*-
@@ -150,10 +150,10 @@ show_pathbar = False
 show_sidebar = False
 sidebar_width = 180
 EOL
-    
+
     # Create DMG
     dmgbuild -s dmg-settings.py "Atlas" "dist/Atlas.dmg"
-    
+
     echo "DMG installer created at: dist/Atlas.dmg"
 else
     echo "dmgbuild not found, skipping DMG creation."

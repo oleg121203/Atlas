@@ -3,4 +3,6 @@
 This module contains UI components for managing and interacting with tools in Atlas.
 """
 
-from .tool_manager_ui import ToolManagerUI
+from .tool_manager_ui import ToolManagerUI as ToolManagerUI
+
+__all__ = ["ToolManagerUI"]

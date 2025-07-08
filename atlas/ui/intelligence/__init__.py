@@ -3,5 +3,7 @@
 
 """Intelligence UI module for Atlas."""
 
-from .context_ui import ContextUI
-from .decision_ui import DecisionUI
+from .context_ui import ContextUI as ContextUI
+from .decision_ui import DecisionUI as DecisionUI
+
+__all__ = ["ContextUI", "DecisionUI"]

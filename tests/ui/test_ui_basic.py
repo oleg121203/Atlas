@@ -20,9 +20,10 @@ def test_ui_modules_exist():
     """Test that UI module directories exist."""
     project_root = Path(__file__).parent.parent.parent
 
-    # Check UI directories
-    assert (project_root / "ui").exists()
-    assert (project_root / "backup_ui_qt").exists()
+    # Check UI directories in atlas/
+    assert (project_root / "atlas" / "ui").exists()
+    assert (project_root / "atlas" / "ui" / "chat").exists()
+    assert (project_root / "atlas" / "ui" / "settings").exists()
 
 
 @pytest.mark.ui

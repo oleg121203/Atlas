@@ -20,16 +20,23 @@ def test_project_structure():
     """Test that the project structure is as expected."""
     project_root = Path(__file__).parent.parent
 
-    # Check main directories exist
+    # Check main directories exist in atlas/
     assert (project_root / "atlas").exists()
-    assert (project_root / "core").exists()
-    assert (project_root / "ui").exists()
-    assert (project_root / "tools").exists()
-    assert (project_root / "utils").exists()
+    assert (project_root / "atlas" / "core").exists()
+    assert (project_root / "atlas" / "ui").exists()
+    assert (project_root / "atlas" / "tools").exists()
+    assert (project_root / "atlas" / "utils").exists()
+    assert (project_root / "atlas" / "agents").exists()
+    assert (project_root / "atlas" / "memory").exists()
+    assert (project_root / "atlas" / "plugins").exists()
+    assert (project_root / "atlas" / "assets").exists()
 
     # Check main files exist
-    assert (project_root / "main.py").exists()
     assert (project_root / "pyproject.toml").exists()
+
+    # Tests directory should be at the root level
+    assert (project_root / "tests").exists()
+    assert (project_root / "tests" / "__init__.py").exists()
 
 
 def test_python_path():
@@ -38,10 +45,12 @@ def test_python_path():
     assert str(project_root) in sys.path
 
 
-@pytest.mark.skipif(not os.path.exists("./app/main.py"), reason="App main.py not found")
+@pytest.mark.skipif(
+    not os.path.exists("./atlas/main.py"), reason="Atlas main.py not found"
+)
 def test_app_main_exists():
     """Test that the app main module exists."""
-    assert Path("./app/main.py").exists()
+    assert Path("./atlas/main.py").exists()
 
 
 if __name__ == "__main__":

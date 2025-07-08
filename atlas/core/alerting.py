@@ -84,13 +84,38 @@ def initialize_alerting() -> bool:
     config = get_config()
     alerting_config = config.get("alerting", {})
 
-    # Check UI alerting (Qt)
+    # Initialize all alerting mechanisms
+    _init_ui_alerting(alerting_config)
+    _init_desktop_notifications(alerting_config)
+    _init_email_alerting(alerting_config)
+    _init_webhook_alerting(alerting_config)
+
+    _initialized = True
+    total_handlers = (
+        len(_ui_alert_handlers)
+        + len(_desktop_alert_handlers)
+        + len(_email_alert_handlers)
+        + len(_webhook_alert_handlers)
+    )
+    if total_handlers > 0:
+        logger.info("Alerting system initialized with %d handler(s)", total_handlers)
+        return True
+    else:
+        logger.warning("No alerting mechanisms available - alerts will not be sent")
+        return False
+
+
+def _init_ui_alerting(alerting_config: dict) -> None:
+    """Initialize UI alerting mechanisms."""
     if QT_AVAILABLE and alerting_config.get("ui_alerts_enabled", True):
         _ui_alert_handlers.append(show_qt_alert)
         logger.info("Qt UI alerting enabled")
     else:
         logger.warning("Qt UI alerting unavailable - PySide6 not installed or disabled")
 
+
+def _init_desktop_notifications(alerting_config: dict) -> None:
+    """Initialize desktop notification mechanisms."""
     # Check desktop notifications (notify2 for Linux)
     if NOTIFY2_AVAILABLE and alerting_config.get("desktop_notifications_enabled", True):
         try:
@@ -111,7 +136,9 @@ def initialize_alerting() -> bool:
     else:
         logger.warning("notifypy desktop alerting unavailable or disabled")
 
-    # Check email alerting
+
+def _init_email_alerting(alerting_config: dict) -> None:
+    """Initialize email alerting mechanisms."""
     if SMTP_AVAILABLE and alerting_config.get("email_alerts_enabled", False):
         email_config = alerting_config.get("email", {})
         if email_config.get("smtp_server") and email_config.get("from_address"):
@@ -124,7 +151,9 @@ def initialize_alerting() -> bool:
             "Email alerting unavailable - SMTP libraries not installed or disabled"
         )
 
-    # Check webhook alerting
+
+def _init_webhook_alerting(alerting_config: dict) -> None:
+    """Initialize webhook alerting mechanisms."""
     if REQUESTS_AVAILABLE and alerting_config.get("webhook_alerts_enabled", False):
         webhook_url = alerting_config.get("webhook_url", "")
         if webhook_url:
@@ -136,22 +165,6 @@ def initialize_alerting() -> bool:
         logger.warning(
             "Webhook alerting unavailable - requests library not installed or disabled"
         )
-
-    _initialized = True
-    total_handlers = (
-        len(_ui_alert_handlers)
-        + len(_desktop_alert_handlers)
-        + len(_email_alert_handlers)
-        + len(_webhook_alert_handlers)
-    )
-    if total_handlers > 0:
-        logger.info("Alerting system initialized with %d handler(s)", total_handlers)
-        return True
-    else:
-        logger.error(
-            "Alerting system failed to initialize - no alerting mechanisms available"
-        )
-        return False
 
 
 def show_qt_alert(title: str, message: str, data: Dict) -> None:
@@ -366,10 +379,47 @@ def alert(
     if not _initialized:
         initialize_alerting()
 
+    full_data = _prepare_alert_data(data, severity)
+    _log_alert(title, message, severity)
+
+    success_count = 0
+    total_channels = 0
+
+    # Send to UI handlers
+    success_count, total_channels = _send_to_ui_handlers(
+        title, message, full_data, success_count, total_channels
+    )
+
+    # Send to desktop handlers
+    success_count, total_channels = _send_to_desktop_handlers(
+        title, message, full_data, success_count, total_channels
+    )
+
+    # Send to email handlers (only for ERROR and CRITICAL by default)
+    if _should_send_email(severity):
+        success_count, total_channels = _send_to_email_handlers(
+            title, message, full_data, success_count, total_channels
+        )
+
+    # Send to webhook handlers (only for ERROR and CRITICAL by default)
+    if _should_send_webhook(severity):
+        success_count, total_channels = _send_to_webhook_handlers(
+            title, message, full_data, success_count, total_channels
+        )
+
+    return _finalize_alert_result(success_count, total_channels, title)
+
+
+def _prepare_alert_data(data: Optional[Dict], severity: str) -> Dict:
+    """Prepare alert data with timestamp and severity."""
     full_data = data or {}
     full_data["severity"] = severity
     full_data["timestamp"] = datetime.now().isoformat()
+    return full_data
 
+
+def _log_alert(title: str, message: str, severity: str) -> None:
+    """Log the alert with appropriate severity level."""
     logger.log(
         {
             SEVERITY_INFO: logging.INFO,
@@ -382,10 +432,11 @@ def alert(
         message,
     )
 
-    success_count = 0
-    total_channels = 0
 
-    # Send to UI handlers
+def _send_to_ui_handlers(
+    title: str, message: str, full_data: Dict, success_count: int, total_channels: int
+) -> tuple[int, int]:
+    """Send alert to UI handlers."""
     total_channels += len(_ui_alert_handlers)
     for handler in _ui_alert_handlers:
         try:
@@ -393,8 +444,13 @@ def alert(
             success_count += 1
         except Exception as e:
             logger.error("UI alert handler failed: %s", str(e))
+    return success_count, total_channels
 
-    # Send to desktop notification handlers
+
+def _send_to_desktop_handlers(
+    title: str, message: str, full_data: Dict, success_count: int, total_channels: int
+) -> tuple[int, int]:
+    """Send alert to desktop notification handlers."""
     total_channels += len(_desktop_alert_handlers)
     for handler in _desktop_alert_handlers:
         try:
@@ -402,31 +458,53 @@ def alert(
             success_count += 1
         except Exception as e:
             logger.error("Desktop alert handler failed: %s", str(e))
+    return success_count, total_channels
 
-    # Send to email handlers (only for ERROR and CRITICAL by default)
-    if severity in (SEVERITY_ERROR, SEVERITY_CRITICAL) or get_config().get(
+
+def _should_send_email(severity: str) -> bool:
+    """Check if email should be sent for this severity."""
+    return severity in (SEVERITY_ERROR, SEVERITY_CRITICAL) or get_config().get(
         "alerting", {}
-    ).get("email_on_all_alerts", False):
-        total_channels += len(_email_alert_handlers)
-        for handler in _email_alert_handlers:
-            try:
-                handler(title, message, full_data)
-                success_count += 1
-            except Exception as e:
-                logger.error("Email alert handler failed: %s", str(e))
+    ).get("email_on_all_alerts", False)
 
-    # Send to webhook handlers (only for ERROR and CRITICAL by default)
-    if severity in (SEVERITY_ERROR, SEVERITY_CRITICAL) or get_config().get(
+
+def _send_to_email_handlers(
+    title: str, message: str, full_data: Dict, success_count: int, total_channels: int
+) -> tuple[int, int]:
+    """Send alert to email handlers."""
+    total_channels += len(_email_alert_handlers)
+    for handler in _email_alert_handlers:
+        try:
+            handler(title, message, full_data)
+            success_count += 1
+        except Exception as e:
+            logger.error("Email alert handler failed: %s", str(e))
+    return success_count, total_channels
+
+
+def _should_send_webhook(severity: str) -> bool:
+    """Check if webhook should be sent for this severity."""
+    return severity in (SEVERITY_ERROR, SEVERITY_CRITICAL) or get_config().get(
         "alerting", {}
-    ).get("webhook_on_all_alerts", False):
-        total_channels += len(_webhook_alert_handlers)
-        for handler in _webhook_alert_handlers:
-            try:
-                handler(title, message, full_data)
-                success_count += 1
-            except Exception as e:
-                logger.error("Webhook alert handler failed: %s", str(e))
+    ).get("webhook_on_all_alerts", False)
 
+
+def _send_to_webhook_handlers(
+    title: str, message: str, full_data: Dict, success_count: int, total_channels: int
+) -> tuple[int, int]:
+    """Send alert to webhook handlers."""
+    total_channels += len(_webhook_alert_handlers)
+    for handler in _webhook_alert_handlers:
+        try:
+            handler(title, message, full_data)
+            success_count += 1
+        except Exception as e:
+            logger.error("Webhook alert handler failed: %s", str(e))
+    return success_count, total_channels
+
+
+def _finalize_alert_result(success_count: int, total_channels: int, title: str) -> bool:
+    """Finalize and return the alert result."""
     if total_channels == 0:
         logger.warning("No alert channels available for: %s", title)
         return False

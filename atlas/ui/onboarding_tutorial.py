@@ -95,11 +95,13 @@ class OnboardingTutorial(QDialog):
             },
             {
                 "title": "Creating a Task",
-                "description": "Click the '+' button to add a new task. Enter a title, description, and due date. Try it now!",
+                "description": "Click the '+' button to add a new task. Enter a title, "
+                "description, and due date. Try it now!",
             },
             {
                 "title": "Using AI Suggestions",
-                "description": "Atlas suggests tasks based on your habits. Click 'AI Suggest' to see personalized recommendations.",
+                "description": "Atlas suggests tasks based on your habits. Click 'AI Suggest' "
+                "to see personalized recommendations.",
             },
             {
                 "title": "Organizing with Lists",
@@ -111,7 +113,8 @@ class OnboardingTutorial(QDialog):
             },
             {
                 "title": "Customization Options",
-                "description": "Personalize Atlas with themes and layouts. Visit 'Settings' to customize your experience.",
+                "description": "Personalize Atlas with themes and layouts. Visit 'Settings' "
+                "to customize your experience.",
             },
             {
                 "title": "You're Ready!",

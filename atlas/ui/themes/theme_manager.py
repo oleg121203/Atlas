@@ -17,7 +17,7 @@ class ThemeManager(QObject):
     def __init__(self, parent: Optional[QObject] = None):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
-        self.themes_directory = os.path.join(os.path.dirname(__file__), "themes")
+        self.themes_directory = os.path.join(os.path.dirname(__file__), "data")
         self.current_theme = "default"
         self.available_themes: List[str] = []
         self.theme_data: Dict[str, Dict[str, Any]] = {}

@@ -51,4 +51,4 @@ export ATLAS_PLATFORM="macos"
 
 # Launch the application
 echo "Launching Atlas..."
-python app/main.py "$@"
+python -m atlas.main "$@"

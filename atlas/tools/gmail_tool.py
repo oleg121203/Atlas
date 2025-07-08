@@ -24,7 +24,8 @@ try:
 except ImportError:
     GMAIL_AVAILABLE = False
     logging.warning(
-        "Gmail API libraries not available. Install with: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client"
+        "Gmail API libraries not available. Install with: "
+        "pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client"
     )
 
 # Configure logging
@@ -62,7 +63,10 @@ class GmailTool:
             return {
                 "success": False,
                 "error": "Gmail API libraries not available. Install required packages.",
-                "message": "Please install: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client",
+                "message": (
+                    "Please install: pip install google-auth-oauthlib "
+                    "google-auth-httplib2 google-api-python-client"
+                ),
             }
 
         try:

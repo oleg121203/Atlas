@@ -128,7 +128,7 @@ def capture_screen_macos(method: str = "auto") -> PIL.Image.Image:
             try:
                 return capture_screen_applescript()
             except Exception:
-                raise RuntimeError("No working screenshot method available")
+                raise RuntimeError("No working screenshot method available") from None
 
     elif method == "native":
         return capture_screen_native_macos()

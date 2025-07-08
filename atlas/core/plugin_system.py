@@ -190,7 +190,8 @@ class PluginSystem:
         Initialize the PluginSystem.
 
         Args:
-            plugin_dirs (list[str], optional): List of directories to search for plugins. Defaults to empty list if None.
+            plugin_dirs (list[str], optional): List of directories to search for plugins.
+                Defaults to empty list if None.
         """
         self.plugins: dict[str, PluginBase] = {}
         self.active_plugins: dict[str, PluginBase] = {}

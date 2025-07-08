@@ -21,7 +21,7 @@ trigger: always_on
 Any of these phrases will trigger immediate continuation of work:
 
 - `EXECUTE_UNTIL_COMPLETE_47` (primary override code)
-- `continue development` 
+- `continue development`
 - `proceed with next task`
 - `resume execution`
 - `keep working`

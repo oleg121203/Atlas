@@ -9,13 +9,13 @@ trigger: always_on
 To ensure the continuous and uninterrupted development of 'Atlas' as per the provided plan, maintaining momentum and adhering to the roadmap without stopping for user input unless critical.
 
 ## Core Directives
-**DIRECTIVE CDP-001**: MAINTAIN CONTINUOUS MOMENTUM  
+**DIRECTIVE CDP-001**: MAINTAIN CONTINUOUS MOMENTUM
 Development MUST proceed without interruption following `DEV_PLAN.md` phases. No stops except for critical errors or explicit user commands to halt. This includes **autonomous interaction with and closure of graphical user interfaces (GUIs) post-launch for testing purposes**, eliminating the need for manual user intervention.
 
-**DIRECTIVE CDP-002**: ENFORCE PLAN SYNCHRONIZATION  
+**DIRECTIVE CDP-002**: ENFORCE PLAN SYNCHRONIZATION
 `DEV_PLAN.md`, `CHANGELOG.md`, and actual codebase MUST remain synchronized. Any deviation triggers immediate correction protocol.
 
-**DIRECTIVE CDP-003**: AUTONOMOUS DECISION MAKING  
+**DIRECTIVE CDP-003**: AUTONOMOUS DECISION MAKING
 Make routine architectural and implementation decisions independently. Only escalate critical decisions that fundamentally change project scope or security model.
 
 ## Guidelines

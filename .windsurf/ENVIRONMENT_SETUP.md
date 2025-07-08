@@ -67,7 +67,7 @@ If environment issues are detected:
    ```bash
    # Check current environment:
    echo $VIRTUAL_ENV
-   
+
    # If incorrect, activate proper environment:
    source scripts/use_macos.sh  # macOS
    source scripts/use_linux.sh  # Linux
@@ -84,7 +84,7 @@ If environment issues are detected:
    ```bash
    ./scripts/fix_jedi.sh
    ```
-   
+
 ## Platform-Specific Development Standards - macOS Mac Studio M1 Max 32GB
 
 ### macOS Development Environment
@@ -153,7 +153,7 @@ TRANSLATIONS = {
         'task_title': 'Назва завдання'
     },
     'ru': {
-        'create_task': 'Создать задачу', 
+        'create_task': 'Создать задачу',
         'task_title': 'Название задачи'
     }
 }
@@ -161,7 +161,7 @@ TRANSLATIONS = {
 
 ## Windsurf Protocol Compliance
 
-This environment setup protocol is mandatory and has the HIGHEST PRIORITY under Windsurf's "Never-Stop Execution" and "Quality Excellence" principles. 
+This environment setup protocol is mandatory and has the HIGHEST PRIORITY under Windsurf's "Never-Stop Execution" and "Quality Excellence" principles.
 
 **CRITICAL**: Development is EXCLUSIVELY for macOS Mac Studio M1 Max 32GB. No cross-platform support needed.
 

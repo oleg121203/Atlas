@@ -68,6 +68,11 @@ class AtlasApplication:
         # Initialize plugin system
         self.plugin_system.initialize()
 
+        self._import_and_initialize_components()
+
+        logger.info("Core systems initialized successfully")
+
+    def _import_and_initialize_components(self):
         # Import core system components
         from atlas.agents.agent_loop_manager import AgentLoopManager
         from atlas.agents.decision_engine import DecisionEngine
@@ -90,8 +95,6 @@ class AtlasApplication:
         )
         self.agent_loop.start()
         logger.info("DecisionEngine and AgentLoopManager initialized and started")
-
-        logger.info("Core systems initialized successfully")
 
     def initialize_ui(self):
         """Initialize the Qt application and main window."""
@@ -158,7 +161,7 @@ class AtlasApplication:
 
         # Initialize tool manager
         if self.tool_manager:
-            self.tool_manager.initialize_all_tools()
+            self.tool_manager.initialize()
 
         # Publish application started event
         self.event_bus.publish("app_started")

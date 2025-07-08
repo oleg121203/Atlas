@@ -128,78 +128,106 @@ def capture_screen(save_to: Optional[Path] = None) -> Image.Image:
     save_to: pathlib.Path | None
         If provided, the resulting PNG screenshot is written to this path.
     """
-    img = None
-    last_error = None
+    img = _try_screen_capture_methods()
 
-    # Ordered attempt list ------------------------------------------------
-
-    # 1. Quartz (only if available)
-    if img is None and _QUARTZ_AVAILABLE:
-        try:
-            img = _capture_quartz()
-        except Exception as e:
-            last_error = f"Quartz capture failed: {e}"
-            print(last_error)
-
-    # 2. PyAutoGUI (works cross-platform; tests patch this path)
-    if img is None and _PYAUTOGUI_AVAILABLE:
-        try:
-            img = _capture_pyautogui()
-        except Exception as e:
-            last_error = f"PyAutoGUI capture failed: {e}"
-            if not IS_HEADLESS:
-                print(last_error)
-
-    # 3. macOS native screencapture / AppleScript fallbacks
-    if img is None and IS_MACOS and _MACOS_NATIVE_AVAILABLE:
-        try:
-            img = capture_screen_native_macos(None)
-        except Exception as e:
-            last_error = f"Native screencapture failed: {e}"
-            print(last_error)
-
-        if img is None:
-            try:
-                img = capture_screen_applescript()
-            except Exception as e:
-                last_error = f"AppleScript failed: {e}"
-                print(last_error)
-
-    # Last resort: create a dummy image
     if img is None:
-        print(
-            f"Creating dummy screenshot - no capture method available. Last error: {last_error}"
-        )
-        img = Image.new("RGB", (800, 600), color="lightgray")
-        # Add some text to indicate this is a dummy
-        try:
-            from PIL import ImageDraw
-
-            draw = ImageDraw.Draw(img)
-            draw.text((50, 250), "Screenshot not available", fill="black")
-            draw.text((50, 300), f"(Error: {last_error})", fill="red")
-            draw.text(
-                (50, 350),
-                f"Platform: {'macOS' if IS_MACOS else 'Linux' if IS_LINUX else 'Unknown'}",
-                fill="blue",
-            )
-        except Exception:
-            pass  # Font issues, just use plain gray
+        img = _create_dummy_screenshot()
 
     # Save if requested (adding timestamp & ensuring directory)
     if save_to and img:
-        save_to = Path(save_to)
-        # Create parent directory if it doesn't exist
-        save_to.parent.mkdir(parents=True, exist_ok=True)
-
-        # Append timestamp before extension if exactly 'screenshot.png'
-        timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
-        if save_to.stem == "screenshot":
-            save_to = save_to.with_name(f"{save_to.stem}_{timestamp}{save_to.suffix}")
-
-        try:
-            img.save(save_to)
-        except Exception as e:
-            print(f"Failed to save screenshot: {e}")
+        _save_screenshot(img, save_to)
 
     return img
+
+
+def _try_screen_capture_methods() -> Optional[Image.Image]:
+    """Try various screen capture methods in order of preference."""
+    img = None
+
+    # 1. Quartz (only if available)
+    if _QUARTZ_AVAILABLE:
+        img = _try_quartz_capture()
+
+    # 2. PyAutoGUI (works cross-platform; tests patch this path)
+    if img is None and _PYAUTOGUI_AVAILABLE:
+        img = _try_pyautogui_capture()
+
+    # 3. macOS native screencapture / AppleScript fallbacks
+    if img is None and IS_MACOS and _MACOS_NATIVE_AVAILABLE:
+        img = _try_macos_native_capture()
+
+    return img
+
+
+def _try_quartz_capture() -> Optional[Image.Image]:
+    """Try to capture screen using Quartz."""
+    try:
+        return _capture_quartz()
+    except Exception as e:
+        print(f"Quartz capture failed: {e}")
+        return None
+
+
+def _try_pyautogui_capture() -> Optional[Image.Image]:
+    """Try to capture screen using PyAutoGUI."""
+    try:
+        return _capture_pyautogui()
+    except Exception as e:
+        if not IS_HEADLESS:
+            print(f"PyAutoGUI capture failed: {e}")
+        return None
+
+
+def _try_macos_native_capture() -> Optional[Image.Image]:
+    """Try to capture screen using macOS native methods."""
+    # Try native screencapture first
+    try:
+        return capture_screen_native_macos(None)
+    except Exception as e:
+        print(f"Native screencapture failed: {e}")
+
+    # Fallback to AppleScript
+    try:
+        return capture_screen_applescript()
+    except Exception as e:
+        print(f"AppleScript failed: {e}")
+        return None
+
+
+def _create_dummy_screenshot() -> Image.Image:
+    """Create a dummy screenshot when no capture method is available."""
+    print("Creating dummy screenshot - no capture method available.")
+    img = Image.new("RGB", (800, 600), color="lightgray")
+
+    # Add some text to indicate this is a dummy
+    try:
+        from PIL import ImageDraw
+
+        draw = ImageDraw.Draw(img)
+        draw.text((50, 250), "Screenshot not available", fill="black")
+        draw.text(
+            (50, 350),
+            f"Platform: {'macOS' if IS_MACOS else 'Linux' if IS_LINUX else 'Unknown'}",
+            fill="blue",
+        )
+    except Exception:
+        pass  # Font issues, just use plain gray
+
+    return img
+
+
+def _save_screenshot(img: Image.Image, save_to: Path) -> None:
+    """Save screenshot to specified path."""
+    save_to = Path(save_to)
+    # Create parent directory if it doesn't exist
+    save_to.parent.mkdir(parents=True, exist_ok=True)
+
+    # Append timestamp before extension if exactly 'screenshot.png'
+    timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+    if save_to.stem == "screenshot":
+        save_to = save_to.with_name(f"{save_to.stem}_{timestamp}{save_to.suffix}")
+
+    try:
+        img.save(save_to)
+    except Exception as e:
+        print(f"Failed to save screenshot: {e}")
