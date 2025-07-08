@@ -296,7 +296,7 @@ git commit --no-verify -m "Add complete atlas package to version control"
 **Статистика міграції:**
 **Статистика міграції:**
 - 198 файлів додано до git tracking
-- 32,880+ рядків коду у atlas/ пакеті
+- 32,928+ рядків коду у atlas/ пакеті
 - 3,000+ автоматичних замін імпортів
 - Повне покриття модулів: core, ui, agents, memory, tools, plugins, workflows, utils
 - Останнє оновлення: 2025-07-08

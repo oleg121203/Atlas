@@ -26,7 +26,7 @@ class CodeElement:
     signature: str
     docstring: Optional[str]
     parent_class: Optional[str] = None
-    decorators: List[str] = None
+    decorators: Optional[List[str]] = None
     complexity: int = 0
 
     def __post_init__(self):
@@ -53,7 +53,7 @@ class FileAnalysis:
 class CodeIndex:
     """Maintains an index of all code elements for fast searching"""
 
-    def __init__(self, cache_file: str = None):
+    def __init__(self, cache_file: Optional[str] = None):
         self.elements: Dict[str, List[CodeElement]] = defaultdict(list)
         self.files: Dict[str, FileAnalysis] = {}
         self.cache_file = cache_file or ".atlas_code_cache.json"
@@ -68,7 +68,7 @@ class CodeIndex:
             self.elements[element.name.lower()].append(element)
 
     def search_elements(
-        self, query: str, element_type: str = None
+        self, query: str, element_type: Optional[str] = None
     ) -> List[CodeElement]:
         """Search for code elements by name"""
         query = query.lower()
@@ -83,7 +83,7 @@ class CodeIndex:
         return sorted(results, key=lambda x: x.name.lower().find(query))
 
     def get_file_elements(
-        self, file_path: str, element_type: str = None
+        self, file_path: str, element_type: Optional[str] = None
     ) -> List[CodeElement]:
         """Get all elements from a specific file"""
         if file_path not in self.files:
@@ -129,7 +129,7 @@ class CodeIndex:
 class CodeReaderTool:
     """Advanced tool for reading and analyzing Atlas codebase in Help mode."""
 
-    def __init__(self, root_path: str = None):
+    def __init__(self, root_path: Optional[str] = None):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.root_path = Path(root_path) if root_path else Path(__file__).parent.parent
         self.allowed_extensions = {
@@ -637,7 +637,9 @@ class CodeReaderTool:
             self.logger.error(f"Error analyzing file {file_path}: {e}")
             return None
 
-    def search_functions(self, query: str = "", class_name: str = None) -> str:
+    def search_functions(
+        self, query: str = "", class_name: Optional[str] = None
+    ) -> str:
         """Search for functions and methods in the codebase"""
         self._ensure_index_updated()
 

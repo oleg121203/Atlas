@@ -185,33 +185,55 @@ class DependencyAnalyzer:
         try:
             circular_deps = []
             visited = set()
-            path = set()
+            recursion_stack = set()
 
             def dfs(module, current_path):
+                if module in recursion_stack:
+                    # Found a cycle - extract the cycle from current_path
+                    cycle_start = current_path.index(module)
+                    cycle = current_path[cycle_start:] + [module]
+                    circular_deps.append(cycle)
+                    return True
+
+                if module in visited:
+                    return False
+
                 visited.add(module)
-                path.add(module)
+                recursion_stack.add(module)
                 current_path.append(module)
-                for dep in self.dependency_graph[module]:
-                    if dep not in visited:
-                        if (
-                            dfs(dep, current_path)
-                            and current_path[-1] == current_path[0]
-                        ):
-                            circular_deps.append(current_path[:])
-                    elif dep in path:
-                        cycle_start = current_path.index(dep)
-                        circular_deps.append(current_path[cycle_start:])
-                path.remove(module)
+
+                for dep in self.dependency_graph.get(module, []):
+                    # Only check internal dependencies to avoid false positives with external modules
+                    if dep in self.modules:
+                        dfs(dep, current_path)
+
                 current_path.pop()
+                recursion_stack.remove(module)
                 return False
 
             for module in list(self.dependency_graph.keys()):
                 if module not in visited:
                     dfs(module, [])
-            return circular_deps
+
+            return self._normalize_cycles(circular_deps)
         except Exception as e:
             self.logger.error(f"Error finding circular dependencies: {e}")
             return []
+
+    def _normalize_cycles(self, circular_deps: List[List[str]]) -> List[List[str]]:
+        """Remove duplicate cycles and normalize them."""
+        unique_cycles = []
+        for cycle in circular_deps:
+            if not cycle:
+                continue
+            # Normalize cycle by rotating to start with the lexicographically smallest element
+            min_idx = cycle.index(
+                min(cycle[:-1])
+            )  # Exclude last element as it's duplicate
+            normalized = cycle[min_idx:-1] + cycle[:min_idx]
+            if normalized not in unique_cycles:
+                unique_cycles.append(normalized)
+        return unique_cycles
 
     def _categorize_dependencies(self) -> Tuple[Set[str], Set[str]]:
         """Categorize dependencies as external or internal."""
@@ -604,24 +626,31 @@ def build_dependency_graph(root_dir):
 def detect_circular_dependencies(dependency_graph):
     """Detect circular dependencies in the dependency graph."""
     visited = set()
-    path = set()
+    recursion_stack = set()
     cycles = []
 
     def dfs(module, current_path):
+        if module in recursion_stack:
+            # Found a cycle
+            cycle_start = current_path.index(module)
+            cycle = current_path[cycle_start:] + [module]
+            cycles.append(cycle)
+            return True
+
+        if module in visited:
+            return False
+
         visited.add(module)
-        path.add(module)
+        recursion_stack.add(module)
         current_path.append(module)
+
         # Create a copy of dependencies to avoid runtime modification issues
         deps = list(dependency_graph.get(module, []))
         for dep in deps:
-            if dep not in visited:
-                if dfs(dep, current_path) and current_path[-1] == current_path[0]:
-                    cycles.append(current_path[:])
-            elif dep in path:
-                cycle_start = current_path.index(dep)
-                cycles.append(current_path[cycle_start:])
-        path.remove(module)
+            dfs(dep, current_path)
+
         current_path.pop()
+        recursion_stack.remove(module)
         return False
 
     # Create a list of keys to avoid runtime modification issues

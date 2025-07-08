@@ -14,21 +14,40 @@ from typing import Any, Dict, Optional
 
 from PySide6.QtWidgets import QApplication
 
+from atlas.core.ai_integration import get_ai_model_manager
 from atlas.core.alerting import raise_alert
+from atlas.core.async_task_manager import AsyncTaskManager
 from atlas.core.config import ConfigManager
 from atlas.core.event_system import EventBus
+from atlas.core.feature_flags import get_feature_flag_manager
 from atlas.core.logging import get_logger, setup_logging
-from atlas.core.module_registry import (
-    MODULE_REGISTRY,
-    initialize_module,
-    load_all_modules,
-)
-from atlas.core.module_system import ModuleRegistry
+from atlas.core.module_registry import ModuleRegistry
 from atlas.core.monitoring import stop_monitoring
 from atlas.core.plugin_system import PluginRegistry
+from atlas.core.self_healing import SelfHealingManager, initialize_self_healing
+
+# Stub implementations for deprecated functionality
+MODULE_REGISTRY: Dict[str, Any] = {}
+
+
+def initialize_module(module_class: Any, app_instance: Any) -> Optional[Any]:
+    """Stub implementation for deprecated initialize_module function."""
+    # This is a deprecated stub - actual implementation is in core/application.py
+    return None
+
+
+def load_all_modules() -> None:
+    """Stub implementation for deprecated load_all_modules function."""
+    # This is a deprecated stub - actual implementation is in core/application.py
+    pass
+
 
 try:
-    from security.security_utils import check_environment_security, initialize_security
+    from security.rbac import get_rbac_manager  # type: ignore
+    from security.security_utils import (  # type: ignore
+        check_environment_security,
+        initialize_security,
+    )
 except ImportError:
 
     def check_environment_security() -> bool:
@@ -39,13 +58,10 @@ except ImportError:
         print("Security initialization not available, using fallback.")
         return True
 
+    def get_rbac_manager():
+        """Fallback RBAC manager."""
+        return None
 
-from security.rbac import get_rbac_manager
-
-from atlas.core.ai_integration import get_ai_model_manager
-from atlas.core.async_task_manager import AsyncTaskManager
-from atlas.core.feature_flags import get_feature_flag_manager
-from atlas.core.self_healing import SelfHealingManager, initialize_self_healing
 
 logger = get_logger("AtlasApplication")
 
@@ -390,7 +406,8 @@ class AtlasApplication:
                 logger.debug("Initializing module: %s", module_name)
                 module_instance = initialize_module(module_class, self)
                 if module_instance:
-                    self.module_registry.register_module(module_name, module_instance)
+                    # Type ignore for deprecated code - proper typing in core/application.py
+                    self.module_registry.register_module(module_name, module_instance)  # type: ignore
                     logger.info("Module loaded: %s", module_name)
                 else:
                     logger.warning(
@@ -421,7 +438,7 @@ class AtlasApplication:
         try:
             ui_module = self.module_registry.get_module("ui")
             if ui_module and hasattr(ui_module, "show_main_window"):
-                ui_module.show_main_window()
+                ui_module.show_main_window()  # type: ignore
         except AttributeError:
             logger.warning("UI module methods not available in deprecated file")
 
