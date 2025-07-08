@@ -60,7 +60,7 @@ class ArchitecturalAnalysis:
 class DependencyAnalyzer:
     """Advanced dependency and architectural analyzer for Atlas codebase."""
 
-    def __init__(self, root_path: str = None):
+    def __init__(self, root_path: Optional[str] = None):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.root_path = Path(root_path) if root_path else Path(__file__).parent.parent
         self.excluded_dirs = {
@@ -516,8 +516,6 @@ class DependencyAnalyzer:
         self._generate_external_deps_section(analysis, report)
         self._generate_complexity_section(analysis, report)
         self._generate_recommendations_section(analysis, report)
-
-        return "\n".join(report)
 
         return "\n".join(report)
 
